@@ -172,10 +172,10 @@
             background-color: #1a7e52;
         }
         .btn-delete {
-            background-color: #dc3545;
+            background-color: #f08080; /* Rosso più chiaro */
         }
         .btn-delete:hover {
-            background-color: #c82333;
+            background-color: #e06666; /* Un rosso leggermente più scuro per l'hover */
         }
         .btn-edit {
             background-color: #ffc107;
@@ -326,7 +326,7 @@
         <p><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
     </div>
     
-    <button id="save-btn" class="btn">Salva</button>
+    <button id="save-btn" class="btn">💾 Salva</button>
     <button id="export-btn" class="btn">Esporta Registro in CSV</button>
 
     <h2>Riepilogo Mensile</h2>
@@ -378,7 +378,7 @@
     const endTimeOptions = document.getElementById('endTimeOptions');
     const lunchBreakCheckbox = document.getElementById('lunchBreak');
     const businessTripCheckbox = document.getElementById('businessTrip');
-    const onSiteCheckbox = document.getElementById('onSite'); // Nuova spunta
+    const onSiteCheckbox = document.getElementById('onSite');
     const locationInput = document.getElementById('location');
     const totalHoursSpan = document.getElementById('totalHours');
     const overtimeHoursSpan = document.getElementById('overtimeHours');
@@ -445,7 +445,7 @@
         const endTime = endTimeDisplay.getAttribute('data-value');
         const lunchBreak = lunchBreakCheckbox.checked;
         const businessTrip = businessTripCheckbox.checked;
-        const onSite = onSiteCheckbox.checked; // Recupero il valore della nuova spunta
+        const onSite = onSiteCheckbox.checked;
         const location = locationInput.value;
         const totalHours = parseFloat(totalHoursSpan.textContent);
         const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
@@ -461,7 +461,7 @@
             totalHours: totalHours,
             overtimeHours: overtimeHours,
             businessTrip: businessTrip,
-            onSite: onSite, // Aggiungo il valore al nuovo oggetto
+            onSite: onSite,
             lunchBreak: lunchBreak,
             location: location
         };
@@ -491,7 +491,7 @@
         endTimeDisplay.setAttribute('data-value', '');
         lunchBreakCheckbox.checked = false;
         businessTripCheckbox.checked = false;
-        onSiteCheckbox.checked = false; // Resetto la nuova spunta
+        onSiteCheckbox.checked = false;
         locationInput.value = '';
         calculateHours();
     }
@@ -514,7 +514,7 @@
             endTimeDisplay.setAttribute('data-value', entryToEdit.endTime);
             lunchBreakCheckbox.checked = entryToEdit.lunchBreak;
             businessTripCheckbox.checked = entryToEdit.businessTrip;
-            onSiteCheckbox.checked = entryToEdit.onSite; // Carico il valore della spunta
+            onSiteCheckbox.checked = entryToEdit.onSite;
             locationInput.value = entryToEdit.location;
             calculateHours();
             window.scrollTo(0, 0);
@@ -554,7 +554,7 @@
                     totalHours: 0,
                     overtimeHours: 0,
                     businessTripDays: 0,
-                    onSiteDays: 0 // Inizializzo il contatore per "In sede"
+                    onSiteDays: 0
                 };
             }
             summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
@@ -562,7 +562,7 @@
             if (entry.businessTrip) {
                 summary[monthKey].businessTripDays += 1;
             }
-            if (entry.onSite) { // Aumento il contatore per "In sede"
+            if (entry.onSite) {
                 summary[monthKey].onSiteDays += 1;
             }
         });
@@ -619,7 +619,7 @@
                 overtimeHours: parseFloat(entry.overtimeHours) || 0,
                 lunchBreak: entry.lunchBreak === true,
                 businessTrip: entry.businessTrip === true,
-                onSite: entry.onSite === true // Assicuro che la spunta sia un booleano
+                onSite: entry.onSite === true
             }));
             registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
             renderRegister();
