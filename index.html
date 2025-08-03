@@ -172,10 +172,10 @@
             background-color: #1a7e52;
         }
         .btn-delete {
-            background-color: #f08080; /* Rosso più chiaro */
+            background-color: #f08080;
         }
         .btn-delete:hover {
-            background-color: #e06666; /* Un rosso leggermente più scuro per l'hover */
+            background-color: #e06666;
         }
         .btn-edit {
             background-color: #ffc107;
@@ -234,6 +234,30 @@
             align-items: center;
             gap: 4px;
             white-space: nowrap;
+        }
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        #notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #notification.success {
+            background-color: #28a745;
+        }
+        #notification.error {
+            background-color: #dc3545;
         }
         @media (min-width: 600px) {
             body {
@@ -370,6 +394,8 @@
     </div>
 </div>
 
+<div id="notification"></div>
+
 <script>
     const dateInput = document.getElementById('date');
     const startTimeDisplay = document.getElementById('startTimeDisplay');
@@ -389,8 +415,19 @@
     const locationDatalist = document.getElementById('location-suggestions');
     const toggleRegisterHeader = document.getElementById('toggle-register');
     const registerContent = document.getElementById('register-content');
+    const notification = document.getElementById('notification');
     const standardWorkDay = 8;
     let registerData = [];
+    
+    function showNotification(message, type) {
+        notification.textContent = message;
+        notification.className = '';
+        notification.classList.add('show', type);
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+    
     function generateTimeOptions() {
         let optionsHtml = '';
         for (let h = 0; h < 24; h++) {
@@ -439,6 +476,25 @@
             overtimeHoursSpan.textContent = '0';
         }
     }
+    function createRow(entry) {
+        const row = document.createElement('tr');
+        row.setAttribute('data-date', entry.date);
+        row.innerHTML = `
+            <td>${formatDate(entry.date)}</td>
+            <td>${entry.startTime}</td>
+            <td>${entry.endTime}</td>
+            <td>${entry.totalHours.toFixed(2)}</td>
+            <td>${entry.overtimeHours.toFixed(2)}</td>
+            <td>${entry.businessTrip ? 'Sì' : 'No'}</td>
+            <td>${entry.onSite ? 'Sì' : 'No'}</td>
+            <td>${entry.location}</td>
+            <td class="action-buttons-cell">
+                <button class="btn-small btn-edit" onclick="editEntry('${entry.date}')">✏️</button>
+                <button class="btn-small btn-delete" onclick="deleteEntry('${entry.date}')">🗑️</button>
+            </td>
+        `;
+        return row;
+    }
     function saveEntry() {
         const date = dateInput.value;
         const startTime = startTimeDisplay.getAttribute('data-value');
@@ -449,9 +505,15 @@
         const location = locationInput.value;
         const totalHours = parseFloat(totalHoursSpan.textContent);
         const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
-
+        
         if (!date || !startTime || !endTime) {
-            alert('Per favore, compila tutti i campi obbligatori (Data, Orario inizio, Orario fine).');
+            showNotification('Per favore, compila tutti i campi obbligatori.', 'error');
+            return;
+        }
+        const start = new Date(`2025-01-01T${startTime}:00`);
+        const end = new Date(`2025-01-01T${endTime}:00`);
+        if (end < start) {
+            showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
             return;
         }
         const newEntry = {
@@ -476,14 +538,16 @@
         try {
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
         } catch (e) {
-            alert('ERRORE: Impossibile salvare in localStorage. Potrebbe essere un problema di spazio o autorizzazioni del browser.');
+            showNotification('ERRORE: Impossibile salvare i dati.', 'error');
             console.error(e);
             return;
         }
+        
         renderRegister();
         renderMonthlySummary();
         updateLocationSuggestions();
-        alert('Dati salvati nel registro!');
+        showNotification('Dati salvati nel registro!', 'success');
+        
         dateInput.value = '';
         startTimeDisplay.textContent = 'Seleziona orario';
         startTimeDisplay.setAttribute('data-value', '');
@@ -495,13 +559,15 @@
         locationInput.value = '';
         calculateHours();
     }
+    
     function deleteEntry(date) {
-        if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${date}?`)) {
+        if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
             registerData = registerData.filter(entry => entry.date !== date);
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
             renderRegister();
             renderMonthlySummary();
             updateLocationSuggestions();
+            showNotification(`Inserimento per il giorno ${formatDate(date)} cancellato.`, 'success');
         }
     }
     function editEntry(date) {
@@ -520,24 +586,11 @@
             window.scrollTo(0, 0);
         }
     }
+    
     function renderRegister() {
         registerBody.innerHTML = '';
         registerData.forEach(entry => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${formatDate(entry.date)}</td>
-                <td>${entry.startTime}</td>
-                <td>${entry.endTime}</td>
-                <td>${entry.totalHours.toFixed(2)}</td>
-                <td>${entry.overtimeHours.toFixed(2)}</td>
-                <td>${entry.businessTrip ? 'Sì' : 'No'}</td>
-                <td>${entry.onSite ? 'Sì' : 'No'}</td>
-                <td>${entry.location}</td>
-                <td class="action-buttons-cell">
-                    <button class="btn-small btn-edit" onclick="editEntry('${entry.date}')">✏️</button>
-                    <button class="btn-small btn-delete" onclick="deleteEntry('${entry.date}')">🗑️</button>
-                </td>
-            `;
+            const row = createRow(entry);
             registerBody.appendChild(row);
         });
     }
@@ -662,6 +715,16 @@
     saveButton.addEventListener('click', saveEntry);
     exportButton.addEventListener('click', exportToCsv);
     toggleRegisterHeader.addEventListener('click', toggleRegister);
+    businessTripCheckbox.addEventListener('change', () => {
+        if (businessTripCheckbox.checked) {
+            onSiteCheckbox.checked = false;
+        }
+    });
+    onSiteCheckbox.addEventListener('change', () => {
+        if (onSiteCheckbox.checked) {
+            businessTripCheckbox.checked = false;
+        }
+    });
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
