@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro Orario Lavoro</title>
-  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -377,7 +377,7 @@
     const standardWorkDay = 8;
     let registerData = [];
 
-    // Genera le opzioni per i menu a tendina dell'orario
+    // Funzione per generare le opzioni per i menu a tendina dell'orario
     function generateTimeOptions() {
         let options = '';
         for (let h = 0; h < 24; h++) {
@@ -419,9 +419,44 @@
             let totalMilliseconds = end - start;
             let totalHours = totalMilliseconds / (1000 * 60 * 60);
 
-            if (lunch
+            if (lunchBreak) {
+                totalHours -= 1;
+            }
+            
+            const totalHoursFixed = totalHours.toFixed(2);
+            let overtimeHours = 0;
+            if (totalHours > standardWorkDay) {
+                overtimeHours = totalHours - standardWorkDay;
+            }
 
+            totalHoursSpan.textContent = totalHoursFixed;
+            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
+        } else {
+            totalHoursSpan.textContent = '0';
+            overtimeHoursSpan.textContent = '0';
+        }
+    }
 
+    // Funzione per salvare i dati nel registro
+    function saveEntry() {
+        const date = dateInput.value;
+        const startTime = startTimeSelect.value;
+        const endTime = endTimeSelect.value;
+        const lunchBreak = lunchBreakCheckbox.checked;
+        const businessTrip = businessTripCheckbox.checked;
+        const location = locationInput.value;
+        const totalHours = parseFloat(totalHoursSpan.textContent);
+        const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
 
+        if (!date || !startTime || !endTime) {
+            alert('Per favore, compila tutti i campi obbligatori (Data, Orario inizio, Orario fine).');
+            return;
+        }
 
-
+        const newEntry = {
+            date: date,
+            startTime: startTime,
+            endTime: endTime,
+            totalHours: totalHours,
+            overtimeHours: overtimeHours,
+            businessTrip
