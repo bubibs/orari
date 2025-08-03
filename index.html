@@ -440,10 +440,13 @@
         const location = locationInput.value;
         const totalHours = parseFloat(totalHoursSpan.textContent);
         const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
+
+        // Questo controllo impedisce il salvataggio se i campi obbligatori sono vuoti
         if (!date || !startTime || !endTime) {
             alert('Per favore, compila tutti i campi obbligatori (Data, Orario inizio, Orario fine).');
             return;
         }
+
         const newEntry = {
             date: date,
             startTime: startTime,
@@ -459,8 +462,9 @@
             registerData[existingIndex] = newEntry;
         } else {
             registerData.push(newEntry);
-            registerData.sort((a, b) => new Date(a.date) - new Date(b.date));
         }
+        registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
         try {
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
         } catch (e) {
@@ -600,6 +604,7 @@
                 lunchBreak: entry.lunchBreak === true,
                 businessTrip: entry.businessTrip === true
             }));
+            registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
             renderRegister();
             renderMonthlySummary();
             updateLocationSuggestions();
