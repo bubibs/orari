@@ -535,4 +535,118 @@
             const monthName = date.toLocaleString('it-IT', { month: 'long' });
             if (!summary[monthKey]) {
                 summary[monthKey] = {
-                    monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1
+                    monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+                    totalHours: 0,
+                    overtimeHours: 0,
+                    businessTripDays: 0
+                };
+            }
+            summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
+            summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
+            if (entry.businessTrip) {
+                summary[monthKey].businessTripDays += 1;
+            }
+        });
+        const sortedMonths = Object.keys(summary).sort((a, b) => {
+            const [yearA, monthA] = a.split('-').map(Number);
+            const [yearB, monthB] = b.split('-').map(Number);
+            if (yearA !== yearB) return yearA - yearB;
+            return monthA - monthB;
+        });
+        sortedMonths.forEach(monthKey => {
+            const monthSummary = summary[monthKey];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${monthSummary.monthName}</td>
+                <td>${monthSummary.totalHours.toFixed(2)}</td>
+                <td>${monthSummary.overtimeHours.toFixed(2)}</td>
+                <td>${monthSummary.businessTripDays}</td>
+            `;
+            monthlySummaryBody.appendChild(row);
+        });
+    }
+    function updateLocationSuggestions() {
+        const uniqueLocations = [...new Set(registerData.map(entry => entry.location).filter(Boolean))];
+        locationDatalist.innerHTML = uniqueLocations.map(location => `<option value="${location}">`).join('');
+    }
+    function exportToCsv() {
+        const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Luogo\n";
+        const rows = registerData.map(entry => 
+            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.location}`
+        ).join('\n');
+        const csvContent = header + rows;
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "registro_orario_completo.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    function toggleRegister() {
+        registerContent.classList.toggle('open');
+        toggleRegisterHeader.classList.toggle('open');
+    }
+    function loadRegister() {
+        const savedData = localStorage.getItem('registroOrario');
+        if (savedData) {
+            registerData = JSON.parse(savedData);
+            registerData = registerData.map(entry => ({
+                ...entry,
+                totalHours: parseFloat(entry.totalHours) || 0,
+                overtimeHours: parseFloat(entry.overtimeHours) || 0,
+                lunchBreak: entry.lunchBreak === true,
+                businessTrip: entry.businessTrip === true
+            }));
+            renderRegister();
+            renderMonthlySummary();
+            updateLocationSuggestions();
+        }
+    }
+    function closeAllDropdowns() {
+        startTimeOptions.classList.remove('visible');
+        endTimeOptions.classList.remove('visible');
+    }
+    startTimeDisplay.addEventListener('click', (event) => {
+        event.stopPropagation();
+        startTimeOptions.classList.toggle('visible');
+        endTimeOptions.classList.remove('visible');
+    });
+    endTimeDisplay.addEventListener('click', (event) => {
+        event.stopPropagation();
+        endTimeOptions.classList.toggle('visible');
+        startTimeOptions.classList.remove('visible');
+    });
+    startTimeOptions.addEventListener('click', (event) => {
+        if (event.target.classList.contains('time-option')) {
+            startTimeDisplay.textContent = event.target.getAttribute('data-value');
+            startTimeDisplay.setAttribute('data-value', event.target.getAttribute('data-value'));
+            startTimeOptions.classList.remove('visible');
+            calculateHours();
+        }
+    });
+    endTimeOptions.addEventListener('click', (event) => {
+        if (event.target.classList.contains('time-option')) {
+            endTimeDisplay.textContent = event.target.getAttribute('data-value');
+            endTimeDisplay.setAttribute('data-value', event.target.getAttribute('data-value'));
+            endTimeOptions.classList.remove('visible');
+            calculateHours();
+        }
+    });
+    document.addEventListener('click', closeAllDropdowns);
+    lunchBreakCheckbox.addEventListener('change', calculateHours);
+    saveButton.addEventListener('click', saveEntry);
+    exportButton.addEventListener('click', exportToCsv);
+    toggleRegisterHeader.addEventListener('click', toggleRegister);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${year}-${month}-${day}`;
+    generateTimeOptions();
+    loadRegister();
+</script>
+</body>
+</html>
