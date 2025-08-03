@@ -229,6 +229,201 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 4px            margin-bottom: 15px;
+        }
+        
+        h2 {
+            margin-top: 30px;
+        }
+
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-bottom: 0;
+            font-size: 1.2em;
+        }
+
+        .collapsible-header .arrow {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .collapsible-header.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+
+        .collapsible-content.open {
+            max-height: 2000px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input[type="date"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        select {
+            background-color: #fff;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 8px top 50%;
+            background-size: 18px 18px;
+            padding-right: 30px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            margin-right: 8px;
+            -webkit-appearance: checkbox;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            -webkit-appearance: none;
+        }
+        
+        .btn-small {
+            padding: 5px 8px;
+            font-size: 12px;
+            margin: 0;
+            display: inline-block;
+            width: auto;
+        }
+
+        #save-btn {
+            background-color: #00a2e3;
+        }
+        
+        #save-btn:hover {
+            background-color: #007bb6;
+        }
+
+        #export-btn {
+            background-color: #22a36b;
+            margin-top: 15px;
+        }
+        
+        #export-btn:hover {
+            background-color: #1a7e52;
+        }
+        
+        .btn-delete {
+            background-color: #dc3545;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+        #results {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+
+        #results h3 {
+            margin-top: 0;
+            color: #00a2e3;
+            font-size: 1.1em;
+        }
+
+        #results p {
+            margin: 4px 0;
+            font-size: 16px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #fff;
+            font-size: 12px;
+        }
+        
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        th:last-child {
+            text-align: center;
+        }
+        
+        td:first-child {
+            white-space: nowrap;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .action-buttons-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 4px;
             white-space: nowrap;
         }
@@ -480,3 +675,4 @@
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
         } catch (e) {
             alert('ERRORE: Impossibile salvare in localStorage. Potrebbe essere un problema di spazio o autorizzazioni del browser.');
+
