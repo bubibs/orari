@@ -81,8 +81,7 @@
         }
 
         input[type="date"],
-        input[type="text"],
-        select {
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -94,13 +93,60 @@
             appearance: none;
         }
         
-        select {
+        .time-dropdown-container {
+            position: relative;
+        }
+
+        .time-display {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
             background-color: #fff;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 8px top 50%;
-            background-size: 18px 18px;
-            padding-right: 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time-display:after {
+            content: '▼';
+            font-size: 12px;
+        }
+
+        .time-options {
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            z-index: 10;
+            margin-top: 4px;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .time-options.visible {
+            display: block;
+        }
+
+        .time-option {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .time-option:hover {
+            background-color: #f0f0f5;
+        }
+        
+        .time-option.selected {
+            background-color: #e6f7ff;
+            font-weight: 600;
         }
 
         .checkbox-group {
@@ -251,7 +297,7 @@
             }
             input[type="date"],
             input[type="text"],
-            select {
+            .time-display {
                 padding: 12px;
                 font-size: 16px;
             }
@@ -287,16 +333,18 @@
         <input type="date" id="date">
     </div>
     <div class="form-group">
-        <label for="startTime">Orario Inizio:</label>
-        <select id="startTime">
-            <option value="">Seleziona orario</option>
-        </select>
+        <label>Orario Inizio:</label>
+        <div class="time-dropdown-container">
+            <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+            <div id="startTimeOptions" class="time-options"></div>
+        </div>
     </div>
     <div class="form-group">
-        <label for="endTime">Orario Fine:</label>
-        <select id="endTime">
-            <option value="">Seleziona orario</option>
-        </select>
+        <label>Orario Fine:</label>
+        <div class="time-dropdown-container">
+            <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+            <div id="endTimeOptions" class="time-options"></div>
+        </div>
     </div>
     <div class="checkbox-group">
         <input type="checkbox" id="lunchBreak">
@@ -361,11 +409,11 @@
 </div>
 
 <script>
-    console.log("Script avviato. Sto cercando gli elementi del DOM.");
-
     const dateInput = document.getElementById('date');
-    const startTimeSelect = document.getElementById('startTime');
-    const endTimeSelect = document.getElementById('endTime');
+    const startTimeDisplay = document.getElementById('startTimeDisplay');
+    const startTimeOptions = document.getElementById('startTimeOptions');
+    const endTimeDisplay = document.getElementById('endTimeDisplay');
+    const endTimeOptions = document.getElementById('endTimeOptions');
     const lunchBreakCheckbox = document.getElementById('lunchBreak');
     const businessTripCheckbox = document.getElementById('businessTrip');
     const locationInput = document.getElementById('location');
@@ -374,154 +422,5 @@
     const saveButton = document.getElementById('save-btn');
     const exportButton = document.getElementById('export-btn');
     const registerBody = document.querySelector('#register-table tbody');
-    const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
-    const locationDatalist = document.getElementById('location-suggestions');
-
-    const toggleRegisterHeader = document.getElementById('toggle-register');
-    const registerContent = document.getElementById('register-content');
-
-    const standardWorkDay = 8;
-    let registerData = [];
-
-    // Funzione per generare le opzioni per i menu a tendina dell'orario
-    function generateTimeOptions() {
-        console.log("Generazione opzioni orario avviata.");
-
-        let options = '';
-        for (let h = 0; h < 24; h++) {
-            for (let m = 0; m < 60; m += 30) {
-                const hour = String(h).padStart(2, '0');
-                const minute = String(m).padStart(2, '0');
-                const time = `${hour}:${minute}`;
-                options += `<option value="${time}">${time}</option>`;
-            }
-        }
-        
-        // Aggiungi le opzioni ai menu
-        if (startTimeSelect) {
-            startTimeSelect.innerHTML += options;
-        }
-        if (endTimeSelect) {
-            endTimeSelect.innerHTML += options;
-        }
-        
-        // Imposta un valore predefinito per il calcolo iniziale
-        startTimeSelect.value = '08:00';
-        endTimeSelect.value = '17:00';
-
-        console.log("Generazione opzioni orario completata.");
-    }
+    const
     
-    // Funzione per formattare la data da YYYY-MM-DD a DD-MM-YY
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const [year, month, day] = dateString.split('-');
-        if (year && year.length >= 2) {
-            return `${day}-${month}-${year.substring(2)}`;
-        }
-        return dateString;
-    }
-
-    // Funzione per calcolare le ore
-    function calculateHours() {
-        const startTime = startTimeSelect.value;
-        const endTime = endTimeSelect.value;
-        const lunchBreak = lunchBreakCheckbox.checked;
-
-        if (startTime && endTime) {
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-
-            if (end < start) {
-                end.setDate(end.getDate() + 1);
-            }
-
-            let totalMilliseconds = end - start;
-            let totalHours = totalMilliseconds / (1000 * 60 * 60);
-
-            if (lunchBreak) {
-                totalHours -= 1;
-            }
-            
-            const totalHoursFixed = totalHours.toFixed(2);
-            let overtimeHours = 0;
-            if (totalHours > standardWorkDay) {
-                overtimeHours = totalHours - standardWorkDay;
-            }
-
-            totalHoursSpan.textContent = totalHoursFixed;
-            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
-        } else {
-            totalHoursSpan.textContent = '0';
-            overtimeHoursSpan.textContent = '0';
-        }
-    }
-
-    // Funzione per salvare i dati nel registro
-    function saveEntry() {
-        const date = dateInput.value;
-        const startTime = startTimeSelect.value;
-        const endTime = endTimeSelect.value;
-        const lunchBreak = lunchBreakCheckbox.checked;
-        const businessTrip = businessTripCheckbox.checked;
-        const location = locationInput.value;
-        const totalHours = parseFloat(totalHoursSpan.textContent);
-        const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
-
-        if (!date || !startTime || !endTime) {
-            alert('Per favore, compila tutti i campi obbligatori (Data, Orario inizio, Orario fine).');
-            return;
-        }
-
-        const newEntry = {
-            date: date,
-            startTime: startTime,
-            endTime: endTime,
-            totalHours: totalHours,
-            overtimeHours: overtimeHours,
-            businessTrip: businessTrip,
-            lunchBreak: lunchBreak,
-            location: location
-        };
-
-        const existingIndex = registerData.findIndex(entry => entry.date === date);
-        if (existingIndex !== -1) {
-            registerData[existingIndex] = newEntry;
-        } else {
-            registerData.push(newEntry);
-            registerData.sort((a, b) => new Date(a.date) - new Date(b.date));
-        }
-
-        try {
-            localStorage.setItem('registroOrario', JSON.stringify(registerData));
-        } catch (e) {
-            alert('ERRORE: Impossibile salvare in localStorage. Potrebbe essere un problema di spazio o autorizzazioni del browser.');
-            console.error(e);
-            return;
-        }
-        
-        renderRegister();
-        renderMonthlySummary();
-        updateLocationSuggestions();
-        alert('Dati salvati nel registro!');
-        
-        // Reset dei campi del form
-        dateInput.value = '';
-        startTimeSelect.value = '';
-        endTimeSelect.value = '';
-        lunchBreakCheckbox.checked = false;
-        businessTripCheckbox.checked = false;
-        locationInput.value = '';
-        calculateHours();
-    }
-    
-    // Funzione per cancellare una riga
-    function deleteEntry(date) {
-        if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${date}?`)) {
-            registerData = registerData.filter(entry => entry.date !== date);
-            localStorage.setItem('registroOrario', JSON.stringify(registerData));
-            renderRegister();
-            renderMonthlySummary();
-            updateLocationSuggestions();
-        }
-    }
