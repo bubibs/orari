@@ -417,6 +417,8 @@
 
     // Funzione per salvare i dati nel registro
     function saveEntry() {
+        alert('DEBUG: Inizio funzione saveEntry.');
+
         const date = dateInput.value;
         const startTime = startTimeInput.value;
         const endTime = endTimeInput.value;
@@ -430,6 +432,8 @@
             alert('Per favore, compila tutti i campi obbligatori (Data, Orario inizio, Orario fine).');
             return;
         }
+
+        alert('DEBUG: Dati validati. Creazione nuovo record...');
 
         const newEntry = {
             date: date,
@@ -450,7 +454,17 @@
             registerData.sort((a, b) => new Date(a.date) - new Date(b.date));
         }
 
-        localStorage.setItem('registroOrario', JSON.stringify(registerData));
+        try {
+            alert('DEBUG: Tentativo di salvare in localStorage.');
+            
+            localStorage.setItem('registroOrario', JSON.stringify(registerData));
+            
+            alert('DEBUG: Salvataggio in localStorage riuscito!');
+        } catch (e) {
+            alert('ERRORE: Impossibile salvare in localStorage. Potrebbe essere un problema di spazio o autorizzazioni del browser.');
+            console.error(e);
+            return;
+        }
         
         renderRegister();
         renderMonthlySummary();
@@ -504,4 +518,128 @@
                 <td>${entry.endTime}</td>
                 <td>${entry.totalHours.toFixed(2)}</td>
                 <td>${entry.overtimeHours.toFixed(2)}</td>
-                <td>${entry.businessTrip ? 'Sì'
+                <td>${entry.businessTrip ? 'Sì' : 'No'}</td>
+                <td>${entry.location}</td>
+                <td class="action-buttons-cell">
+                    <button class="btn-small btn-edit" onclick="editEntry('${entry.date}')">Modifica</button>
+                    <button class="btn-small btn-delete" onclick="deleteEntry('${entry.date}')">Cancella</button>
+                </td>
+            `;
+            registerBody.appendChild(row);
+        });
+    }
+
+    // Funzione per visualizzare il riepilogo mensile
+    function renderMonthlySummary() {
+        monthlySummaryBody.innerHTML = '';
+        const summary = {};
+        
+        registerData.forEach(entry => {
+            const date = new Date(entry.date);
+            const monthKey = date.getFullYear() + '-' + date.getMonth();
+            const monthName = date.toLocaleString('it-IT', { month: 'long' });
+
+            if (!summary[monthKey]) {
+                summary[monthKey] = {
+                    monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+                    totalHours: 0,
+                    overtimeHours: 0,
+                    businessTripDays: 0
+                };
+            }
+            summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
+            summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
+            if (entry.businessTrip) {
+                summary[monthKey].businessTripDays += 1;
+            }
+        });
+
+        const sortedMonths = Object.keys(summary).sort((a, b) => {
+            const [yearA, monthA] = a.split('-').map(Number);
+            const [yearB, monthB] = b.split('-').map(Number);
+            if (yearA !== yearB) return yearA - yearB;
+            return monthA - monthB;
+        });
+
+        sortedMonths.forEach(monthKey => {
+            const monthSummary = summary[monthKey];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${monthSummary.monthName}</td>
+                <td>${monthSummary.totalHours.toFixed(2)}</td>
+                <td>${monthSummary.overtimeHours.toFixed(2)}</td>
+                <td>${monthSummary.businessTripDays}</td>
+            `;
+            monthlySummaryBody.appendChild(row);
+        });
+    }
+
+    // Funzione per aggiornare i suggerimenti del luogo
+    function updateLocationSuggestions() {
+        const uniqueLocations = [...new Set(registerData.map(entry => entry.location).filter(Boolean))];
+        locationDatalist.innerHTML = uniqueLocations.map(location => `<option value="${location}">`).join('');
+    }
+
+    // Funzione per esportare il registro in CSV
+    function exportToCsv() {
+        const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Luogo\n";
+        const rows = registerData.map(entry => 
+            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.location}`
+        ).join('\n');
+        
+        const csvContent = header + rows;
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "registro_orario_completo.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    // Funzione per il toggle del registro completo
+    function toggleRegister() {
+        registerContent.classList.toggle('open');
+        toggleRegisterHeader.classList.toggle('open');
+    }
+
+    // Carica i dati all'avvio
+    function loadRegister() {
+        const savedData = localStorage.getItem('registroOrario');
+        if (savedData) {
+            registerData = JSON.parse(savedData);
+            registerData = registerData.map(entry => ({
+                ...entry,
+                totalHours: parseFloat(entry.totalHours) || 0,
+                overtimeHours: parseFloat(entry.overtimeHours) || 0,
+                lunchBreak: entry.lunchBreak === true,
+                businessTrip: entry.businessTrip === true
+            }));
+            renderRegister();
+            renderMonthlySummary();
+            updateLocationSuggestions();
+        }
+    }
+
+    // Event Listeners
+    startTimeInput.addEventListener('change', calculateHours);
+    endTimeInput.addEventListener('change', calculateHours);
+    lunchBreakCheckbox.addEventListener('change', calculateHours);
+    saveButton.addEventListener('click', saveEntry);
+    exportButton.addEventListener('click', exportToCsv);
+    toggleRegisterHeader.addEventListener('click', toggleRegister);
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${year}-${month}-${day}`;
+
+    // Carica il registro all'apertura della pagina
+    loadRegister();
+</script>
+
+</body>
+</html>
