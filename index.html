@@ -82,7 +82,7 @@
 
         input[type="date"],
         input[type="text"],
-        select {
+        input[type="time"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -94,15 +94,6 @@
             appearance: none;
         }
         
-        select {
-            background-color: #fff;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 8px top 50%;
-            background-size: 18px 18px;
-            padding-right: 30px;
-        }
-
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -251,7 +242,7 @@
             }
             input[type="date"],
             input[type="text"],
-            select {
+            input[type="time"] {
                 padding: 12px;
                 font-size: 16px;
             }
@@ -288,47 +279,12 @@
     </div>
     <div class="form-group">
         <label for="startTime">Orario Inizio:</label>
-        <select id="startTime"></select>
+        <input type="time" id="startTime" step="1800">
     </div>
     <div class="form-group">
         <label for="endTime">Orario Fine:</label>
-        <select id="endTime"></select>
+        <input type="time" id="endTime" step="1800">
     </div>
     <div class="checkbox-group">
         <input type="checkbox" id="lunchBreak">
         <label for="lunchBreak">Pausa pranzo (1 ora)</label>
-    </div>
-    <div class="checkbox-group">
-        <input type="checkbox" id="businessTrip">
-        <label for="businessTrip">In trasferta</label>
-    </div>
-    <div class="form-group">
-        <label for="location">Luogo Intervento:</label>
-        <input type="text" id="location" list="location-suggestions">
-        <datalist id="location-suggestions"></datalist>
-    </div>
-
-    <div id="results">
-        <h3>Riepilogo giornaliero</h3>
-        <p><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
-        <p><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
-    </div>
-    
-    <button id="save-btn" class="btn">Salva nel registro</button>
-    <button id="export-btn" class="btn">Esporta Registro in CSV</button>
-
-    <h2>Riepilogo Mensile</h2>
-    <div class="table-container">
-        <table id="monthly-summary-table">
-            <thead>
-                <tr>
-                    <th>Mese</th>
-                    <th>Ore Tot.</th>
-                    <th>Ore Straordinarie</th>
-                    <th>Trasferte</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
-        </table>
-    </div>
