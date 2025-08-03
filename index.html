@@ -159,6 +159,7 @@
         }
         #save-btn {
             background-color: #00a2e3;
+            font-size: 20px;
         }
         #save-btn:hover {
             background-color: #007bb6;
@@ -309,6 +310,10 @@
         <input type="checkbox" id="businessTrip">
         <label for="businessTrip">In trasferta</label>
     </div>
+    <div class="checkbox-group">
+        <input type="checkbox" id="onSite">
+        <label for="onSite">In sede</label>
+    </div>
     <div class="form-group">
         <label for="location">Luogo Intervento:</label>
         <input type="text" id="location" list="location-suggestions">
@@ -321,7 +326,7 @@
         <p><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
     </div>
     
-    <button id="save-btn" class="btn">Salva nel registro</button>
+    <button id="save-btn" class="btn">Salva</button>
     <button id="export-btn" class="btn">Esporta Registro in CSV</button>
 
     <h2>Riepilogo Mensile</h2>
@@ -333,6 +338,7 @@
                     <th>Ore Tot.</th>
                     <th>Ore Str.</th>
                     <th>Trasf.</th>
+                    <th>Sede</th>
                 </tr>
             </thead>
             <tbody>
@@ -352,6 +358,7 @@
                         <th>Totali</th>
                         <th>Str.</th>
                         <th>Trasf.</th>
+                        <th>Sede</th>
                         <th>Luogo</th>
                         <th>Azione</th>
                     </tr>
@@ -371,6 +378,7 @@
     const endTimeOptions = document.getElementById('endTimeOptions');
     const lunchBreakCheckbox = document.getElementById('lunchBreak');
     const businessTripCheckbox = document.getElementById('businessTrip');
+    const onSiteCheckbox = document.getElementById('onSite'); // Nuova spunta
     const locationInput = document.getElementById('location');
     const totalHoursSpan = document.getElementById('totalHours');
     const overtimeHoursSpan = document.getElementById('overtimeHours');
@@ -437,16 +445,15 @@
         const endTime = endTimeDisplay.getAttribute('data-value');
         const lunchBreak = lunchBreakCheckbox.checked;
         const businessTrip = businessTripCheckbox.checked;
+        const onSite = onSiteCheckbox.checked; // Recupero il valore della nuova spunta
         const location = locationInput.value;
         const totalHours = parseFloat(totalHoursSpan.textContent);
         const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
 
-        // Questo controllo impedisce il salvataggio se i campi obbligatori sono vuoti
         if (!date || !startTime || !endTime) {
             alert('Per favore, compila tutti i campi obbligatori (Data, Orario inizio, Orario fine).');
             return;
         }
-
         const newEntry = {
             date: date,
             startTime: startTime,
@@ -454,6 +461,7 @@
             totalHours: totalHours,
             overtimeHours: overtimeHours,
             businessTrip: businessTrip,
+            onSite: onSite, // Aggiungo il valore al nuovo oggetto
             lunchBreak: lunchBreak,
             location: location
         };
@@ -483,6 +491,7 @@
         endTimeDisplay.setAttribute('data-value', '');
         lunchBreakCheckbox.checked = false;
         businessTripCheckbox.checked = false;
+        onSiteCheckbox.checked = false; // Resetto la nuova spunta
         locationInput.value = '';
         calculateHours();
     }
@@ -505,6 +514,7 @@
             endTimeDisplay.setAttribute('data-value', entryToEdit.endTime);
             lunchBreakCheckbox.checked = entryToEdit.lunchBreak;
             businessTripCheckbox.checked = entryToEdit.businessTrip;
+            onSiteCheckbox.checked = entryToEdit.onSite; // Carico il valore della spunta
             locationInput.value = entryToEdit.location;
             calculateHours();
             window.scrollTo(0, 0);
@@ -521,10 +531,11 @@
                 <td>${entry.totalHours.toFixed(2)}</td>
                 <td>${entry.overtimeHours.toFixed(2)}</td>
                 <td>${entry.businessTrip ? 'Sì' : 'No'}</td>
+                <td>${entry.onSite ? 'Sì' : 'No'}</td>
                 <td>${entry.location}</td>
                 <td class="action-buttons-cell">
-                    <button class="btn-small btn-edit" onclick="editEntry('${entry.date}')">Modifica</button>
-                    <button class="btn-small btn-delete" onclick="deleteEntry('${entry.date}')">Cancella</button>
+                    <button class="btn-small btn-edit" onclick="editEntry('${entry.date}')">✏️</button>
+                    <button class="btn-small btn-delete" onclick="deleteEntry('${entry.date}')">🗑️</button>
                 </td>
             `;
             registerBody.appendChild(row);
@@ -542,13 +553,17 @@
                     monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
                     totalHours: 0,
                     overtimeHours: 0,
-                    businessTripDays: 0
+                    businessTripDays: 0,
+                    onSiteDays: 0 // Inizializzo il contatore per "In sede"
                 };
             }
             summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
             summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
             if (entry.businessTrip) {
                 summary[monthKey].businessTripDays += 1;
+            }
+            if (entry.onSite) { // Aumento il contatore per "In sede"
+                summary[monthKey].onSiteDays += 1;
             }
         });
         const sortedMonths = Object.keys(summary).sort((a, b) => {
@@ -565,6 +580,7 @@
                 <td>${monthSummary.totalHours.toFixed(2)}</td>
                 <td>${monthSummary.overtimeHours.toFixed(2)}</td>
                 <td>${monthSummary.businessTripDays}</td>
+                <td>${monthSummary.onSiteDays}</td>
             `;
             monthlySummaryBody.appendChild(row);
         });
@@ -574,9 +590,9 @@
         locationDatalist.innerHTML = uniqueLocations.map(location => `<option value="${location}">`).join('');
     }
     function exportToCsv() {
-        const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Luogo\n";
+        const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo\n";
         const rows = registerData.map(entry => 
-            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.location}`
+            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},${entry.location}`
         ).join('\n');
         const csvContent = header + rows;
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -602,7 +618,8 @@
                 totalHours: parseFloat(entry.totalHours) || 0,
                 overtimeHours: parseFloat(entry.overtimeHours) || 0,
                 lunchBreak: entry.lunchBreak === true,
-                businessTrip: entry.businessTrip === true
+                businessTrip: entry.businessTrip === true,
+                onSite: entry.onSite === true // Assicuro che la spunta sia un booleano
             }));
             registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
             renderRegister();
