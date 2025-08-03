@@ -417,8 +417,6 @@
 
     // Funzione per salvare i dati nel registro
     function saveEntry() {
-        alert('DEBUG: Inizio funzione saveEntry.');
-
         const date = dateInput.value;
         const startTime = startTimeInput.value;
         const endTime = endTimeInput.value;
@@ -432,8 +430,6 @@
             alert('Per favore, compila tutti i campi obbligatori (Data, Orario inizio, Orario fine).');
             return;
         }
-
-        alert('DEBUG: Dati validati. Creazione nuovo record...');
 
         const newEntry = {
             date: date,
@@ -455,11 +451,7 @@
         }
 
         try {
-            alert('DEBUG: Tentativo di salvare in localStorage.');
-            
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
-            
-            alert('DEBUG: Salvataggio in localStorage riuscito!');
         } catch (e) {
             alert('ERRORE: Impossibile salvare in localStorage. Potrebbe essere un problema di spazio o autorizzazioni del browser.');
             console.error(e);
@@ -601,45 +593,3 @@
     
     // Funzione per il toggle del registro completo
     function toggleRegister() {
-        registerContent.classList.toggle('open');
-        toggleRegisterHeader.classList.toggle('open');
-    }
-
-    // Carica i dati all'avvio
-    function loadRegister() {
-        const savedData = localStorage.getItem('registroOrario');
-        if (savedData) {
-            registerData = JSON.parse(savedData);
-            registerData = registerData.map(entry => ({
-                ...entry,
-                totalHours: parseFloat(entry.totalHours) || 0,
-                overtimeHours: parseFloat(entry.overtimeHours) || 0,
-                lunchBreak: entry.lunchBreak === true,
-                businessTrip: entry.businessTrip === true
-            }));
-            renderRegister();
-            renderMonthlySummary();
-            updateLocationSuggestions();
-        }
-    }
-
-    // Event Listeners
-    startTimeInput.addEventListener('change', calculateHours);
-    endTimeInput.addEventListener('change', calculateHours);
-    lunchBreakCheckbox.addEventListener('change', calculateHours);
-    saveButton.addEventListener('click', saveEntry);
-    exportButton.addEventListener('click', exportToCsv);
-    toggleRegisterHeader.addEventListener('click', toggleRegister);
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    dateInput.value = `${year}-${month}-${day}`;
-
-    // Carica il registro all'apertura della pagina
-    loadRegister();
-</script>
-
-</body>
-</html>
