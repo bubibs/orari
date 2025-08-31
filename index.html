@@ -278,12 +278,11 @@
             align-items: center;
             justify-content: space-between;
         }
-        
-        .export-options-container > select {
-            width: 130px; /* Larghezza fissa per l'anno */
-        }
+
+        .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            flex-grow: 1; /* Riempi lo spazio rimanente */
+            width: auto;
+            flex-grow: 1;
         }
         
         select {
