@@ -143,40 +143,35 @@
             padding: 12px;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 8px; /* Raggio più moderato */
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             margin-top: 10px;
-            -webkit-appearance: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
         .btn-small {
             padding: 5px 8px;
             font-size: 12px;
             margin: 0;
             display: inline-block;
             width: auto;
+            border-radius: 6px; /* Raggio per pulsanti piccoli */
         }
-        #save-btn {
-            background-color: #00a2e3;
-            font-size: 20px;
-        }
-        #save-btn:hover {
-            background-color: #007bb6;
-        }
-        #export-btn {
-            background-color: #22a36b;
-            margin-top: 15px;
-        }
-        #export-btn:hover {
-            background-color: #1a7e52;
-        }
+        
         .btn-delete {
             background-color: #f08080;
         }
         .btn-delete:hover {
             background-color: #e06666;
         }
+        
         .btn-edit {
             background-color: #ffc107;
             color: #212529;
@@ -184,6 +179,23 @@
         .btn-edit:hover {
             background-color: #e0a800;
         }
+        
+        #save-btn {
+            background-color: #00a2e3;
+            font-size: 20px;
+        }
+        #save-btn:hover {
+            background-color: #007bb6;
+        }
+        
+        #export-btn {
+            background-color: #22a36b;
+            margin-top: 15px;
+        }
+        #export-btn:hover {
+            background-color: #1a7e52;
+        }
+        
         #results {
             margin-top: 20px;
             padding: 12px;
@@ -557,6 +569,7 @@
         businessTripCheckbox.checked = false;
         onSiteCheckbox.checked = false;
         locationInput.value = '';
+        locationInput.disabled = false; // Riabilita il campo dopo il salvataggio
         calculateHours();
     }
     
@@ -584,6 +597,12 @@
             locationInput.value = entryToEdit.location;
             calculateHours();
             window.scrollTo(0, 0);
+            if (onSiteCheckbox.checked) {
+                locationInput.value = 'Tecnosistem';
+                locationInput.disabled = true;
+            } else {
+                locationInput.disabled = false;
+            }
         }
     }
     
@@ -723,6 +742,11 @@
     onSiteCheckbox.addEventListener('change', () => {
         if (onSiteCheckbox.checked) {
             businessTripCheckbox.checked = false;
+            locationInput.value = 'Tecnosistem';
+            locationInput.disabled = true;
+        } else {
+            locationInput.value = '';
+            locationInput.disabled = false;
         }
     });
     const today = new Date();
