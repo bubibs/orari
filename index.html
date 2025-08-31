@@ -274,7 +274,7 @@
         
         .export-options-container {
             display: flex;
-            gap: 10px;
+            gap: 5px; /* Spazio ridotto tra le caselle */
             align-items: center;
             justify-content: space-between;
         }
@@ -286,7 +286,7 @@
         }
 
         select {
-            padding: 0 10px; /* Rimuovi il padding verticale */
+            padding: 0 10px;
             border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
@@ -295,7 +295,7 @@
             -moz-appearance: none;
             appearance: none;
             background-color: #fff;
-            height: 40px; /* Altezza fissa */
+            height: 40px;
         }
         
         /* Multiselect dropdown */
@@ -306,20 +306,20 @@
         }
         .multiselect-selected {
             width: 100%;
-            padding: 0 10px; /* Rimuovi il padding verticale */
+            padding: 0 10px;
             border: 1px solid #ccc;
             border-radius: 8px;
             background-color: #fff;
-            height: 40px; /* Altezza fissa */
+            height: 40px;
             font-size: 14px;
             display: flex;
             align-items: center;
-            flex-wrap: nowrap; /* Evita il wrap del testo */
+            flex-wrap: nowrap;
             gap: 5px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            line-height: 40px; /* Centra il testo verticalmente */
+            line-height: 40px;
         }
         .multiselect-selected:after {
             content: '▼';
