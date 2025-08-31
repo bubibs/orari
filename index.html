@@ -584,17 +584,10 @@
             location: location
         };
         const existingIndex = registerData.findIndex(entry => entry.date === date);
-        const existingRow = document.querySelector(`tr[data-date="${date}"]`);
         if (existingIndex !== -1) {
             registerData[existingIndex] = newEntry;
-            const updatedRow = createRow(newEntry);
-            if (existingRow) {
-                existingRow.replaceWith(updatedRow);
-            }
         } else {
             registerData.push(newEntry);
-            const newRow = createRow(newEntry);
-            registerBody.prepend(newRow);
         }
         registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
         
@@ -605,6 +598,7 @@
             console.error(e);
             return;
         }
+        renderRegister(); // Richiama la funzione per aggiornare la tabella
         renderMonthlySummary();
         updateLocationSuggestions();
         updateExportOptions();
@@ -666,6 +660,7 @@
             const row = createRow(entry);
             registerBody.appendChild(row);
         });
+        // Aggiungi gli event listener dopo che le righe sono state aggiunte
         registerBody.querySelectorAll('.btn-edit').forEach(button => {
             button.addEventListener('click', (e) => editEntry(e.target.dataset.date));
         });
