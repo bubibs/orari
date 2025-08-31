@@ -274,15 +274,19 @@
         
         .export-options-container {
             display: flex;
-            gap: 10px;
+            gap: 10px; /* Spazio tra le caselle */
             align-items: center;
+            justify-content: space-between; /* Distribuisce lo spazio uniformemente */
         }
         
-        /* Modifica qui per ridurre le dimensioni */
+        /* Modifica qui per ridurre le dimensioni e sistemare l'altezza */
         .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            width: 48%; /* Riduzione della larghezza */
+            width: 45%; /* Riduzione della larghezza */
             flex-grow: 0;
+            min-height: 40px; /* Altezza minima uniforme */
+            display: flex; /* Per centrare il testo verticalmente nel multiselect */
+            align-items: center; /* Per centrare il testo verticalmente nel multiselect */
         }
 
         select {
@@ -309,7 +313,7 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             background-color: #fff;
-            min-height: 40px;
+            min-height: 40px; /* Altezza minima uniforme */
             font-size: 14px;
             display: flex;
             align-items: center;
