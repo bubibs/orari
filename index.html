@@ -277,10 +277,10 @@
             gap: 10px;
             align-items: center;
         }
+        
         .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            width: 100%;
-            max-width: 50%;
+            flex: 1; /* Assicura che entrambe le caselle occupino lo stesso spazio */
         }
         
         /* Multiselect dropdown */
@@ -341,7 +341,8 @@
             pointer-events: none;
         }
         @media (min-width: 600px) {
-            .multiselect-selected {
+            .multiselect-selected,
+            .export-options-container > select {
                 padding: 12px;
                 font-size: 16px;
             }
