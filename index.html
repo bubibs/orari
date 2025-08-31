@@ -271,47 +271,67 @@
         #notification.error {
             background-color: #dc3545;
         }
+        /* Multiselect dropdown */
+        .multiselect-dropdown {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            width: 100%;
+        }
+        .multiselect-selected {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            min-height: 40px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .multiselect-selected:after {
+            content: '▼';
+            font-size: 12px;
+            margin-left: auto;
+        }
+        .multiselect-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+        .multiselect-options.visible {
+            display: block;
+        }
+        .multiselect-option {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .multiselect-option input[type="checkbox"] {
+            margin-right: 10px;
+            -webkit-appearance: checkbox;
+        }
+        .multiselect-option:hover {
+            background-color: #f0f0f5;
+        }
         @media (min-width: 600px) {
-            body {
-                padding: 20px;
-            }
-            .container {
-                padding: 20px;
-            }
-            .logo-text {
-                font-size: 2.5em;
-            }
-            h2 {
-                margin-top: 40px;
-            }
-            label {
-                font-size: 1em;
-            }
-            input[type="date"],
-            input[type="text"],
-            .time-display {
+            .multiselect-selected {
                 padding: 12px;
                 font-size: 16px;
             }
-            .btn-small {
-                padding: 5px 10px;
-                font-size: 14px;
-                min-width: 70px;
-            }
-            #results {
-                padding: 15px;
-            }
-            #results h3 {
-                font-size: 1.2em;
-            }
-            #results p {
-                font-size: 18px;
-            }
-            table {
-                font-size: 14px;
-            }
-            th, td {
-                padding: 10px;
+            .multiselect-option {
+                font-size: 16px;
             }
         }
     </style>
@@ -365,14 +385,15 @@
     <button id="save-btn" class="btn">💾 Salva</button>
 
     <div class="form-group" style="margin-top: 20px;">
-        <label for="export-month">Esporta per Mese o Anno:</label>
+        <label for="export-month-year">Esporta per Mese(i) o Anno:</label>
         <div style="display: flex; gap: 10px;">
             <select id="export-year" style="flex: 1; padding: 10px; border-radius: 8px;">
                 <option value="">Seleziona Anno</option>
             </select>
-            <select id="export-month" style="flex: 1; padding: 10px; border-radius: 8px;">
-                <option value="">Seleziona Mese</option>
-            </select>
+            <div class="multiselect-dropdown" id="multiselect-month-container">
+                <div class="multiselect-selected">Seleziona Mese(i)</div>
+                <div class="multiselect-options" id="multiselect-month-options"></div>
+            </div>
         </div>
     </div>
     <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
@@ -443,9 +464,10 @@
     const standardWorkDay = 8;
     let registerData = [];
 
-    // Nuovi elementi per l'esportazione
     const exportYearSelect = document.getElementById('export-year');
-    const exportMonthSelect = document.getElementById('export-month');
+    const multiselectMonthContainer = document.getElementById('multiselect-month-container');
+    const multiselectMonthSelected = document.querySelector('#multiselect-month-container .multiselect-selected');
+    const multiselectMonthOptions = document.getElementById('multiselect-month-options');
     const exportSelectedButton = document.getElementById('export-selected-btn');
     const exportAllButton = document.getElementById('export-all-btn');
 
@@ -585,7 +607,7 @@
         }
         renderMonthlySummary();
         updateLocationSuggestions();
-        updateExportOptions(); // Aggiorna le opzioni di esportazione
+        updateExportOptions();
         showNotification('Dati salvati nel registro!', 'success');
         dateInput.value = '';
         startTimeDisplay.textContent = 'Seleziona orario';
@@ -610,7 +632,7 @@
             }
             renderMonthlySummary();
             updateLocationSuggestions();
-            updateExportOptions(); // Aggiorna le opzioni di esportazione
+            updateExportOptions();
             showNotification(`Inserimento per il giorno ${formatDate(date)} cancellato.`, 'success');
         }
     }
@@ -643,6 +665,12 @@
         registerData.forEach(entry => {
             const row = createRow(entry);
             registerBody.appendChild(row);
+        });
+        registerBody.querySelectorAll('.btn-edit').forEach(button => {
+            button.addEventListener('click', (e) => editEntry(e.target.dataset.date));
+        });
+        registerBody.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', (e) => deleteEntry(e.target.dataset.date));
         });
     }
 
@@ -699,7 +727,7 @@
     function exportToCsv(data, filename) {
         const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo\n";
         const rows = data.map(entry => 
-            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},${entry.location}`
+            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}"`
         ).join('\n');
         const csvContent = header + rows;
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -715,7 +743,8 @@
 
     function exportSelectedToCsv() {
         const selectedYear = exportYearSelect.value;
-        const selectedMonth = exportMonthSelect.value;
+        const selectedMonths = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(checkbox => parseInt(checkbox.value));
+        
         let filteredData = registerData;
         let filename = 'registro_orario_selezionato.csv';
 
@@ -723,11 +752,16 @@
             filteredData = filteredData.filter(entry => new Date(entry.date).getFullYear() == selectedYear);
             filename = `registro_${selectedYear}.csv`;
         }
-        if (selectedMonth) {
-            filteredData = filteredData.filter(entry => new Date(entry.date).getMonth() == selectedMonth && new Date(entry.date).getFullYear() == selectedYear);
-            const monthName = new Date(selectedYear, selectedMonth).toLocaleString('it-IT', { month: 'long' });
-            filename = `registro_${monthName}_${selectedYear}.csv`;
+
+        if (selectedMonths.length > 0) {
+            filteredData = filteredData.filter(entry => {
+                const entryMonth = new Date(entry.date).getMonth();
+                return selectedMonths.includes(entryMonth);
+            });
+            const monthNames = selectedMonths.map(m => new Date(2000, m).toLocaleString('it-IT', { month: 'short' }));
+            filename = `registro_${monthNames.join('-')}_${selectedYear}.csv`;
         }
+        
         if (filteredData.length > 0) {
             exportToCsv(filteredData, filename);
             showNotification('Dati selezionati esportati con successo!', 'success');
@@ -742,24 +776,52 @@
     }
 
     function updateExportOptions() {
-        const uniqueYears = [...new Set(registerData.map(entry => new Date(entry.date).getFullYear()))].sort((a,b) => b-a);
+        const uniqueYears = [...new Set(registerData.map(entry => new Date(entry.date).getFullYear()))].sort((a, b) => b - a);
         exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
         
-        exportMonthSelect.innerHTML = '<option value="">Seleziona Mese</option>';
-        exportYearSelect.addEventListener('change', () => {
-            const selectedYear = exportYearSelect.value;
-            if (selectedYear) {
-                const months = registerData.filter(entry => new Date(entry.date).getFullYear() == selectedYear).map(entry => new Date(entry.date).getMonth());
-                const uniqueMonths = [...new Set(months)].sort((a, b) => a - b);
-                exportMonthSelect.innerHTML = '<option value="">Seleziona Mese</option>' + uniqueMonths.map(monthIndex => {
-                    const monthName = new Date(selectedYear, monthIndex).toLocaleString('it-IT', { month: 'long' });
-                    return `<option value="${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</option>`;
-                }).join('');
-            } else {
-                exportMonthSelect.innerHTML = '<option value="">Seleziona Mese</option>';
-            }
-        });
+        multiselectMonthOptions.innerHTML = '';
+        const selectedYear = exportYearSelect.value;
+        if (selectedYear) {
+            const months = registerData.filter(entry => new Date(entry.date).getFullYear() == selectedYear).map(entry => new Date(entry.date).getMonth());
+            const uniqueMonths = [...new Set(months)].sort((a, b) => a - b);
+            
+            uniqueMonths.forEach(monthIndex => {
+                const monthName = new Date(selectedYear, monthIndex).toLocaleString('it-IT', { month: 'long' });
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'multiselect-option';
+                optionDiv.innerHTML = `<input type="checkbox" value="${monthIndex}" id="month-${monthIndex}"> <label for="month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
+                multiselectMonthOptions.appendChild(optionDiv);
+            });
+        }
+        updateMultiselectSelectedText();
     }
+
+    function updateMultiselectSelectedText() {
+        const checkboxes = multiselectMonthOptions.querySelectorAll('input[type="checkbox"]');
+        const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        if (selectedCount === 0) {
+            multiselectMonthSelected.textContent = 'Seleziona Mese(i)';
+        } else if (selectedCount === 1) {
+            multiselectMonthSelected.textContent = multiselectMonthOptions.querySelector('input:checked + label').textContent;
+        } else {
+            multiselectMonthSelected.textContent = `${selectedCount} Mesi selezionati`;
+        }
+    }
+
+    multiselectMonthContainer.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.target.closest('.multiselect-selected')) {
+            multiselectMonthOptions.classList.toggle('visible');
+        }
+    });
+
+    multiselectMonthOptions.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+            updateMultiselectSelectedText();
+        }
+    });
+
+    exportYearSelect.addEventListener('change', updateExportOptions);
 
     function toggleRegister() {
         registerContent.classList.toggle('open');
@@ -782,24 +844,28 @@
             renderRegister();
             renderMonthlySummary();
             updateLocationSuggestions();
-            updateExportOptions(); // Aggiorna le opzioni di esportazione all'avvio
+            updateExportOptions();
         }
     }
+
     function closeAllDropdowns() {
         startTimeOptions.classList.remove('visible');
         endTimeOptions.classList.remove('visible');
+        multiselectMonthOptions.classList.remove('visible');
     }
 
     startTimeDisplay.addEventListener('click', (event) => {
         event.stopPropagation();
         startTimeOptions.classList.toggle('visible');
         endTimeOptions.classList.remove('visible');
+        multiselectMonthOptions.classList.remove('visible');
     });
 
     endTimeDisplay.addEventListener('click', (event) => {
         event.stopPropagation();
         endTimeOptions.classList.toggle('visible');
         startTimeOptions.classList.remove('visible');
+        multiselectMonthOptions.classList.remove('visible');
     });
 
     startTimeOptions.addEventListener('click', (event) => {
@@ -818,7 +884,15 @@
             calculateHours();
         }
     });
-    document.addEventListener('click', closeAllDropdowns);
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.multiselect-dropdown')) {
+            multiselectMonthOptions.classList.remove('visible');
+        }
+        if (!event.target.closest('.time-dropdown-container')) {
+            startTimeOptions.classList.remove('visible');
+            endTimeOptions.classList.remove('visible');
+        }
+    });
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
     exportSelectedButton.addEventListener('click', exportSelectedToCsv);
