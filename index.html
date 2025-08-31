@@ -280,7 +280,19 @@
         
         .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            flex: 1; /* Assicura che entrambe le caselle occupino lo stesso spazio */
+            flex: 1; 
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #fff;
         }
         
         /* Multiselect dropdown */
@@ -293,7 +305,7 @@
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 8px; /* Arrotondamento per la casella */
             background-color: #fff;
             min-height: 40px;
             font-size: 14px;
@@ -301,6 +313,9 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .multiselect-selected:after {
             content: '▼';
@@ -811,7 +826,8 @@
             const selectedLabel = multiselectMonthOptions.querySelector('input:checked + label').textContent;
             multiselectMonthSelected.textContent = selectedLabel;
         } else {
-            multiselectMonthSelected.textContent = `${selectedCount} Mesi selezionati`;
+            const selectedLabels = Array.from(checkboxes).filter(cb => cb.checked).map(cb => multiselectMonthOptions.querySelector(`label[for="${cb.id}"]`).textContent);
+            multiselectMonthSelected.textContent = selectedLabels.join(', ');
         }
     }
 
