@@ -278,9 +278,11 @@
             align-items: center;
         }
         
+        /* Modifica qui per ridurre le dimensioni */
         .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            flex: 1;
+            width: 48%; /* Riduzione della larghezza */
+            flex-grow: 0;
         }
 
         select {
@@ -325,7 +327,7 @@
         }
         .multiselect-options {
             position: absolute;
-            width: 100%; /* La tendina ha la stessa larghezza della casella */
+            width: 100%;
             top: 100%;
             left: 0;
             right: 0;
