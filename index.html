@@ -68,7 +68,7 @@
             font-weight: 600;
             font-size: 0.9em;
         }
-        input[type="date"], input[type="text"], select {
+        input[type="date"], input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -271,15 +271,23 @@
         #notification.error {
             background-color: #dc3545;
         }
+        
+        .export-options-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .export-options-container > select,
+        .export-options-container > .multiselect-dropdown {
+            width: 100%;
+            max-width: 50%;
+        }
+        
         /* Multiselect dropdown */
         .multiselect-dropdown {
             position: relative;
             cursor: pointer;
             user-select: none;
-            flex-grow: 1;
-            flex-shrink: 0;
-            flex-basis: auto;
-            max-width: 200px; /* Limita la larghezza massima per evitare che sia troppo grande */
         }
         .multiselect-selected {
             width: 100%;
@@ -393,8 +401,8 @@
 
     <div class="form-group" style="margin-top: 20px;">
         <label for="export-month-year">Esporta per Mese(i) o Anno:</label>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <select id="export-year" style="flex: 1; padding: 10px; border-radius: 8px;">
+        <div class="export-options-container">
+            <select id="export-year">
                 <option value="">Seleziona Anno</option>
             </select>
             <div class="multiselect-dropdown" id="multiselect-month-container">
