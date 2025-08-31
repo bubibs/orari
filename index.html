@@ -387,7 +387,7 @@
     <div class="form-group" style="margin-top: 20px;">
         <label for="export-month-year">Esporta per Mese(i) o Anno:</label>
         <div style="display: flex; gap: 10px;">
-            <select id="export-year" style="flex: 1; padding: 10px; border-radius: 8px;">
+            <select id="export-year" style="flex: 1; padding: 10px; border-radius: 8px; width: 50%;">
                 <option value="">Seleziona Anno</option>
             </select>
             <div class="multiselect-dropdown" id="multiselect-month-container">
@@ -598,7 +598,7 @@
             console.error(e);
             return;
         }
-        renderRegister(); // Richiama la funzione per aggiornare la tabella
+        renderRegister();
         renderMonthlySummary();
         updateLocationSuggestions();
         updateExportOptions();
@@ -660,7 +660,6 @@
             const row = createRow(entry);
             registerBody.appendChild(row);
         });
-        // Aggiungi gli event listener dopo che le righe sono state aggiunte
         registerBody.querySelectorAll('.btn-edit').forEach(button => {
             button.addEventListener('click', (e) => editEntry(e.target.dataset.date));
         });
@@ -747,14 +746,15 @@
             filteredData = filteredData.filter(entry => new Date(entry.date).getFullYear() == selectedYear);
             filename = `registro_${selectedYear}.csv`;
         }
-
+        
         if (selectedMonths.length > 0) {
             filteredData = filteredData.filter(entry => {
                 const entryMonth = new Date(entry.date).getMonth();
-                return selectedMonths.includes(entryMonth);
+                const entryYear = new Date(entry.date).getFullYear();
+                return selectedMonths.includes(entryMonth) && (!selectedYear || entryYear == selectedYear);
             });
             const monthNames = selectedMonths.map(m => new Date(2000, m).toLocaleString('it-IT', { month: 'short' }));
-            filename = `registro_${monthNames.join('-')}_${selectedYear}.csv`;
+            filename = `registro_${monthNames.join('-')}_${selectedYear || 'tutti_gli_anni'}.csv`;
         }
         
         if (filteredData.length > 0) {
@@ -775,19 +775,14 @@
         exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
         
         multiselectMonthOptions.innerHTML = '';
-        const selectedYear = exportYearSelect.value;
-        if (selectedYear) {
-            const months = registerData.filter(entry => new Date(entry.date).getFullYear() == selectedYear).map(entry => new Date(entry.date).getMonth());
-            const uniqueMonths = [...new Set(months)].sort((a, b) => a - b);
-            
-            uniqueMonths.forEach(monthIndex => {
-                const monthName = new Date(selectedYear, monthIndex).toLocaleString('it-IT', { month: 'long' });
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'multiselect-option';
-                optionDiv.innerHTML = `<input type="checkbox" value="${monthIndex}" id="month-${monthIndex}"> <label for="month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
-                multiselectMonthOptions.appendChild(optionDiv);
-            });
-        }
+        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a,b) => a-b);
+        allMonths.forEach(monthIndex => {
+            const monthName = new Date(2000, monthIndex).toLocaleString('it-IT', { month: 'long' });
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'multiselect-option';
+            optionDiv.innerHTML = `<input type="checkbox" value="${monthIndex}" id="month-${monthIndex}"> <label for="month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
+            multiselectMonthOptions.appendChild(optionDiv);
+        });
         updateMultiselectSelectedText();
     }
 
@@ -797,7 +792,8 @@
         if (selectedCount === 0) {
             multiselectMonthSelected.textContent = 'Seleziona Mese(i)';
         } else if (selectedCount === 1) {
-            multiselectMonthSelected.textContent = multiselectMonthOptions.querySelector('input:checked + label').textContent;
+            const selectedLabel = multiselectMonthOptions.querySelector('input:checked + label').textContent;
+            multiselectMonthSelected.textContent = selectedLabel;
         } else {
             multiselectMonthSelected.textContent = `${selectedCount} Mesi selezionati`;
         }
@@ -805,9 +801,7 @@
 
     multiselectMonthContainer.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (e.target.closest('.multiselect-selected')) {
-            multiselectMonthOptions.classList.toggle('visible');
-        }
+        multiselectMonthOptions.classList.toggle('visible');
     });
 
     multiselectMonthOptions.addEventListener('change', (e) => {
@@ -816,7 +810,11 @@
         }
     });
 
-    exportYearSelect.addEventListener('change', updateExportOptions);
+    exportYearSelect.addEventListener('change', () => {
+        // Resetta la selezione dei mesi quando cambia l'anno per evitare incongruenze
+        multiselectMonthOptions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        updateMultiselectSelectedText();
+    });
 
     function toggleRegister() {
         registerContent.classList.toggle('open');
@@ -880,12 +878,8 @@
         }
     });
     document.addEventListener('click', (event) => {
-        if (!event.target.closest('.multiselect-dropdown')) {
-            multiselectMonthOptions.classList.remove('visible');
-        }
-        if (!event.target.closest('.time-dropdown-container')) {
-            startTimeOptions.classList.remove('visible');
-            endTimeOptions.classList.remove('visible');
+        if (!event.target.closest('.multiselect-dropdown') && !event.target.closest('.time-dropdown-container')) {
+            closeAllDropdowns();
         }
     });
     lunchBreakCheckbox.addEventListener('change', calculateHours);
