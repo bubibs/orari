@@ -325,6 +325,10 @@
         .multiselect-option:hover {
             background-color: #f0f0f5;
         }
+        .multiselect-dropdown.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
         @media (min-width: 600px) {
             .multiselect-selected {
                 padding: 12px;
@@ -799,10 +803,26 @@
         }
     }
 
-    multiselectMonthContainer.addEventListener('click', (e) => {
+    function toggleMonthDropdown(e) {
         e.stopPropagation();
-        multiselectMonthOptions.classList.toggle('visible');
-    });
+        if (!multiselectMonthContainer.classList.contains('disabled')) {
+            multiselectMonthOptions.classList.toggle('visible');
+        }
+    }
+
+    function handleYearChange() {
+        const selectedYear = exportYearSelect.value;
+        if (selectedYear) {
+            multiselectMonthContainer.classList.remove('disabled');
+        } else {
+            multiselectMonthContainer.classList.add('disabled');
+            multiselectMonthOptions.classList.remove('visible');
+            multiselectMonthOptions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateMultiselectSelectedText();
+        }
+    }
+
+    multiselectMonthContainer.addEventListener('click', toggleMonthDropdown);
 
     multiselectMonthOptions.addEventListener('change', (e) => {
         if (e.target.type === 'checkbox') {
@@ -810,11 +830,7 @@
         }
     });
 
-    exportYearSelect.addEventListener('change', () => {
-        // Resetta la selezione dei mesi quando cambia l'anno per evitare incongruenze
-        multiselectMonthOptions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        updateMultiselectSelectedText();
-    });
+    exportYearSelect.addEventListener('change', handleYearChange);
 
     function toggleRegister() {
         registerContent.classList.toggle('open');
@@ -838,6 +854,7 @@
             renderMonthlySummary();
             updateLocationSuggestions();
             updateExportOptions();
+            handleYearChange();
         }
     }
 
