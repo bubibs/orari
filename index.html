@@ -280,7 +280,7 @@
         
         .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            flex: 1; 
+            flex: 1;
         }
 
         select {
@@ -305,7 +305,7 @@
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 8px; /* Arrotondamento per la casella */
+            border-radius: 8px;
             background-color: #fff;
             min-height: 40px;
             font-size: 14px;
@@ -321,9 +321,11 @@
             content: '▼';
             font-size: 12px;
             margin-left: auto;
+            flex-shrink: 0;
         }
         .multiselect-options {
             position: absolute;
+            width: 100%; /* La tendina ha la stessa larghezza della casella */
             top: 100%;
             left: 0;
             right: 0;
@@ -335,6 +337,7 @@
             overflow-y: auto;
             z-index: 10;
             display: none;
+            box-sizing: border-box;
         }
         .multiselect-options.visible {
             display: block;
