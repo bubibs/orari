@@ -274,17 +274,17 @@
         
         .export-options-container {
             display: flex;
-            gap: 2px; /* Spazio ridotto tra le caselle */
+            gap: 2px;
             align-items: center;
             justify-content: space-between;
         }
         
         .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            width: 45%;
-            flex-grow: 0;
+            width: auto;
+            flex-grow: 1; /* Riempi lo spazio uniformemente */
         }
-
+        
         select {
             padding: 0 10px;
             border: 1px solid #ccc;
