@@ -276,7 +276,7 @@
             position: relative;
             cursor: pointer;
             user-select: none;
-            width: 100%;
+            flex: 1; /* Aggiunto per bilanciare lo spazio con l'anno */
         }
         .multiselect-selected {
             width: 100%;
@@ -386,8 +386,8 @@
 
     <div class="form-group" style="margin-top: 20px;">
         <label for="export-month-year">Esporta per Mese(i) o Anno:</label>
-        <div style="display: flex; gap: 10px;">
-            <select id="export-year" style="flex: 1; padding: 10px; border-radius: 8px; width: 50%;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="export-year" style="flex: 1; padding: 10px; border-radius: 8px;">
                 <option value="">Seleziona Anno</option>
             </select>
             <div class="multiselect-dropdown" id="multiselect-month-container">
