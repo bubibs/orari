@@ -274,23 +274,19 @@
         
         .export-options-container {
             display: flex;
-            gap: 10px; /* Spazio tra le caselle */
+            gap: 10px;
             align-items: center;
-            justify-content: space-between; /* Distribuisce lo spazio uniformemente */
+            justify-content: space-between;
         }
         
-        /* Modifica qui per ridurre le dimensioni e sistemare l'altezza */
         .export-options-container > select,
         .export-options-container > .multiselect-dropdown {
-            width: 45%; /* Riduzione della larghezza */
+            width: 45%;
             flex-grow: 0;
-            min-height: 40px; /* Altezza minima uniforme */
-            display: flex; /* Per centrare il testo verticalmente nel multiselect */
-            align-items: center; /* Per centrare il testo verticalmente nel multiselect */
         }
 
         select {
-            padding: 10px;
+            padding: 0 10px; /* Rimuovi il padding verticale */
             border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
@@ -299,6 +295,7 @@
             -moz-appearance: none;
             appearance: none;
             background-color: #fff;
+            height: 40px; /* Altezza fissa */
         }
         
         /* Multiselect dropdown */
@@ -309,19 +306,20 @@
         }
         .multiselect-selected {
             width: 100%;
-            padding: 10px;
+            padding: 0 10px; /* Rimuovi il padding verticale */
             border: 1px solid #ccc;
             border-radius: 8px;
             background-color: #fff;
-            min-height: 40px; /* Altezza minima uniforme */
+            height: 40px; /* Altezza fissa */
             font-size: 14px;
             display: flex;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* Evita il wrap del testo */
             gap: 5px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            line-height: 40px; /* Centra il testo verticalmente */
         }
         .multiselect-selected:after {
             content: '▼';
@@ -367,8 +365,9 @@
         @media (min-width: 600px) {
             .multiselect-selected,
             .export-options-container > select {
-                padding: 12px;
                 font-size: 16px;
+                height: 48px;
+                line-height: 48px;
             }
             .multiselect-option {
                 font-size: 16px;
