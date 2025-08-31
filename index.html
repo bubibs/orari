@@ -68,7 +68,7 @@
             font-weight: 600;
             font-size: 0.9em;
         }
-        input[type="date"], input[type="text"] {
+        input[type="date"], input[type="text"], select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -143,7 +143,7 @@
             padding: 12px;
             color: white;
             border: none;
-            border-radius: 8px; /* Raggio più moderato */
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -162,7 +162,7 @@
             margin: 0;
             display: inline-block;
             width: auto;
-            border-radius: 6px; /* Raggio per pulsanti piccoli */
+            border-radius: 6px;
         }
         
         .btn-delete {
@@ -188,14 +188,14 @@
             background-color: #007bb6;
         }
         
-        #export-btn {
+        #export-selected-btn, #export-all-btn {
             background-color: #22a36b;
             margin-top: 15px;
         }
-        #export-btn:hover {
+        #export-selected-btn:hover, #export-all-btn:hover {
             background-color: #1a7e52;
         }
-        
+
         #results {
             margin-top: 20px;
             padding: 12px;
@@ -363,7 +363,20 @@
     </div>
     
     <button id="save-btn" class="btn">💾 Salva</button>
-    <button id="export-btn" class="btn">Esporta Registro in CSV</button>
+
+    <div class="form-group" style="margin-top: 20px;">
+        <label for="export-month">Esporta per Mese o Anno:</label>
+        <div style="display: flex; gap: 10px;">
+            <select id="export-year" style="flex: 1; padding: 10px; border-radius: 8px;">
+                <option value="">Seleziona Anno</option>
+            </select>
+            <select id="export-month" style="flex: 1; padding: 10px; border-radius: 8px;">
+                <option value="">Seleziona Mese</option>
+            </select>
+        </div>
+    </div>
+    <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
+    <button id="export-all-btn" class="btn">Esporta Registro Completo</button>
 
     <h2>Riepilogo Mensile</h2>
     <div class="table-container">
@@ -421,7 +434,6 @@
     const totalHoursSpan = document.getElementById('totalHours');
     const overtimeHoursSpan = document.getElementById('overtimeHours');
     const saveButton = document.getElementById('save-btn');
-    const exportButton = document.getElementById('export-btn');
     const registerBody = document.querySelector('#register-table tbody');
     const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
     const locationDatalist = document.getElementById('location-suggestions');
@@ -430,7 +442,13 @@
     const notification = document.getElementById('notification');
     const standardWorkDay = 8;
     let registerData = [];
-    
+
+    // Nuovi elementi per l'esportazione
+    const exportYearSelect = document.getElementById('export-year');
+    const exportMonthSelect = document.getElementById('export-month');
+    const exportSelectedButton = document.getElementById('export-selected-btn');
+    const exportAllButton = document.getElementById('export-all-btn');
+
     function showNotification(message, type) {
         notification.textContent = message;
         notification.className = '';
@@ -439,7 +457,7 @@
             notification.classList.remove('show');
         }, 3000);
     }
-    
+
     function generateTimeOptions() {
         let optionsHtml = '';
         for (let h = 0; h < 24; h++) {
@@ -453,6 +471,7 @@
         startTimeOptions.innerHTML = optionsHtml;
         endTimeOptions.innerHTML = optionsHtml;
     }
+
     function formatDate(dateString) {
         if (!dateString) return '';
         const [year, month, day] = dateString.split('-');
@@ -461,6 +480,7 @@
         }
         return dateString;
     }
+
     function calculateHours() {
         const startTime = startTimeDisplay.getAttribute('data-value');
         const endTime = endTimeDisplay.getAttribute('data-value');
@@ -488,6 +508,7 @@
             overtimeHoursSpan.textContent = '0';
         }
     }
+
     function createRow(entry) {
         const row = document.createElement('tr');
         row.setAttribute('data-date', entry.date);
@@ -501,12 +522,13 @@
             <td>${entry.onSite ? 'Sì' : 'No'}</td>
             <td>${entry.location}</td>
             <td class="action-buttons-cell">
-                <button class="btn-small btn-edit" onclick="editEntry('${entry.date}')">✏️</button>
-                <button class="btn-small btn-delete" onclick="deleteEntry('${entry.date}')">🗑️</button>
+                <button class="btn-small btn-edit" data-date="${entry.date}">✏️</button>
+                <button class="btn-small btn-delete" data-date="${entry.date}">🗑️</button>
             </td>
         `;
         return row;
     }
+
     function saveEntry() {
         const date = dateInput.value;
         const startTime = startTimeDisplay.getAttribute('data-value');
@@ -540,10 +562,17 @@
             location: location
         };
         const existingIndex = registerData.findIndex(entry => entry.date === date);
+        const existingRow = document.querySelector(`tr[data-date="${date}"]`);
         if (existingIndex !== -1) {
             registerData[existingIndex] = newEntry;
+            const updatedRow = createRow(newEntry);
+            if (existingRow) {
+                existingRow.replaceWith(updatedRow);
+            }
         } else {
             registerData.push(newEntry);
+            const newRow = createRow(newEntry);
+            registerBody.prepend(newRow);
         }
         registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
         
@@ -554,12 +583,10 @@
             console.error(e);
             return;
         }
-        
-        renderRegister();
         renderMonthlySummary();
         updateLocationSuggestions();
+        updateExportOptions(); // Aggiorna le opzioni di esportazione
         showNotification('Dati salvati nel registro!', 'success');
-        
         dateInput.value = '';
         startTimeDisplay.textContent = 'Seleziona orario';
         startTimeDisplay.setAttribute('data-value', '');
@@ -569,20 +596,25 @@
         businessTripCheckbox.checked = false;
         onSiteCheckbox.checked = false;
         locationInput.value = '';
-        locationInput.disabled = false; // Riabilita il campo dopo il salvataggio
+        locationInput.disabled = false;
         calculateHours();
     }
-    
+
     function deleteEntry(date) {
         if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
             registerData = registerData.filter(entry => entry.date !== date);
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
-            renderRegister();
+            const rowToRemove = document.querySelector(`tr[data-date="${date}"]`);
+            if (rowToRemove) {
+                rowToRemove.remove();
+            }
             renderMonthlySummary();
             updateLocationSuggestions();
+            updateExportOptions(); // Aggiorna le opzioni di esportazione
             showNotification(`Inserimento per il giorno ${formatDate(date)} cancellato.`, 'success');
         }
     }
+
     function editEntry(date) {
         const entryToEdit = registerData.find(entry => entry.date === date);
         if (entryToEdit) {
@@ -605,7 +637,7 @@
             }
         }
     }
-    
+
     function renderRegister() {
         registerBody.innerHTML = '';
         registerData.forEach(entry => {
@@ -613,6 +645,7 @@
             registerBody.appendChild(row);
         });
     }
+
     function renderMonthlySummary() {
         monthlySummaryBody.innerHTML = '';
         const summary = {};
@@ -657,13 +690,15 @@
             monthlySummaryBody.appendChild(row);
         });
     }
+
     function updateLocationSuggestions() {
         const uniqueLocations = [...new Set(registerData.map(entry => entry.location).filter(Boolean))];
         locationDatalist.innerHTML = uniqueLocations.map(location => `<option value="${location}">`).join('');
     }
-    function exportToCsv() {
+
+    function exportToCsv(data, filename) {
         const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo\n";
-        const rows = registerData.map(entry => 
+        const rows = data.map(entry => 
             `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},${entry.location}`
         ).join('\n');
         const csvContent = header + rows;
@@ -671,16 +706,66 @@
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "registro_orario_completo.csv");
+        link.setAttribute("download", filename);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
+
+    function exportSelectedToCsv() {
+        const selectedYear = exportYearSelect.value;
+        const selectedMonth = exportMonthSelect.value;
+        let filteredData = registerData;
+        let filename = 'registro_orario_selezionato.csv';
+
+        if (selectedYear) {
+            filteredData = filteredData.filter(entry => new Date(entry.date).getFullYear() == selectedYear);
+            filename = `registro_${selectedYear}.csv`;
+        }
+        if (selectedMonth) {
+            filteredData = filteredData.filter(entry => new Date(entry.date).getMonth() == selectedMonth && new Date(entry.date).getFullYear() == selectedYear);
+            const monthName = new Date(selectedYear, selectedMonth).toLocaleString('it-IT', { month: 'long' });
+            filename = `registro_${monthName}_${selectedYear}.csv`;
+        }
+        if (filteredData.length > 0) {
+            exportToCsv(filteredData, filename);
+            showNotification('Dati selezionati esportati con successo!', 'success');
+        } else {
+            showNotification('Nessun dato da esportare per la selezione corrente.', 'error');
+        }
+    }
+
+    function exportAllToCsv() {
+        exportToCsv(registerData, 'registro_orario_completo.csv');
+        showNotification('Registro completo esportato con successo!', 'success');
+    }
+
+    function updateExportOptions() {
+        const uniqueYears = [...new Set(registerData.map(entry => new Date(entry.date).getFullYear()))].sort((a,b) => b-a);
+        exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
+        
+        exportMonthSelect.innerHTML = '<option value="">Seleziona Mese</option>';
+        exportYearSelect.addEventListener('change', () => {
+            const selectedYear = exportYearSelect.value;
+            if (selectedYear) {
+                const months = registerData.filter(entry => new Date(entry.date).getFullYear() == selectedYear).map(entry => new Date(entry.date).getMonth());
+                const uniqueMonths = [...new Set(months)].sort((a, b) => a - b);
+                exportMonthSelect.innerHTML = '<option value="">Seleziona Mese</option>' + uniqueMonths.map(monthIndex => {
+                    const monthName = new Date(selectedYear, monthIndex).toLocaleString('it-IT', { month: 'long' });
+                    return `<option value="${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</option>`;
+                }).join('');
+            } else {
+                exportMonthSelect.innerHTML = '<option value="">Seleziona Mese</option>';
+            }
+        });
+    }
+
     function toggleRegister() {
         registerContent.classList.toggle('open');
         toggleRegisterHeader.classList.toggle('open');
     }
+
     function loadRegister() {
         const savedData = localStorage.getItem('registroOrario');
         if (savedData) {
@@ -697,22 +782,26 @@
             renderRegister();
             renderMonthlySummary();
             updateLocationSuggestions();
+            updateExportOptions(); // Aggiorna le opzioni di esportazione all'avvio
         }
     }
     function closeAllDropdowns() {
         startTimeOptions.classList.remove('visible');
         endTimeOptions.classList.remove('visible');
     }
+
     startTimeDisplay.addEventListener('click', (event) => {
         event.stopPropagation();
         startTimeOptions.classList.toggle('visible');
         endTimeOptions.classList.remove('visible');
     });
+
     endTimeDisplay.addEventListener('click', (event) => {
         event.stopPropagation();
         endTimeOptions.classList.toggle('visible');
         startTimeOptions.classList.remove('visible');
     });
+
     startTimeOptions.addEventListener('click', (event) => {
         if (event.target.classList.contains('time-option')) {
             startTimeDisplay.textContent = event.target.getAttribute('data-value');
@@ -732,7 +821,8 @@
     document.addEventListener('click', closeAllDropdowns);
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
-    exportButton.addEventListener('click', exportToCsv);
+    exportSelectedButton.addEventListener('click', exportSelectedToCsv);
+    exportAllButton.addEventListener('click', exportAllToCsv);
     toggleRegisterHeader.addEventListener('click', toggleRegister);
     businessTripCheckbox.addEventListener('change', () => {
         if (businessTripCheckbox.checked) {
