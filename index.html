@@ -1,150 +1,968 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro Orario Lavoro</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f7fa;
-      color: #333;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Orario Lavoro</title>
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f0f5;
+            margin: 0;
+            padding: 10px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .logo-text {
+            text-align: center;
+            font-size: 2em;
+            font-weight: 700;
+            color: #00a2e3;
+            margin-bottom: 15px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #00a2e3;
+            margin-bottom: 15px;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-bottom: 0;
+            font-size: 1.2em;
+        }
+        .collapsible-header .arrow {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+        .collapsible-header.open .arrow {
+            transform: rotate(180deg);
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .collapsible-content.open {
+            max-height: 2000px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        input[type="date"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .time-dropdown-container {
+            position: relative;
+        }
+        .time-display {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .time-display:after {
+            content: '▼';
+            font-size: 12px;
+        }
+        .time-options {
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            z-index: 10;
+            margin-top: 4px;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .time-options.visible {
+            display: block;
+        }
+        .time-option {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .time-option:hover {
+            background-color: #f0f0f5;
+        }
+        .time-option.selected {
+            background-color: #e6f7ff;
+            font-weight: 600;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 8px;
+            -webkit-appearance: checkbox;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-small {
+            padding: 5px 8px;
+            font-size: 12px;
+            margin: 0;
+            display: inline-block;
+            width: auto;
+            border-radius: 6px;
+        }
+        
+        .btn-delete {
+            background-color: #f08080;
+        }
+        .btn-delete:hover {
+            background-color: #e06666;
+        }
+        
+        .btn-edit {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+        
+        #save-btn {
+            background-color: #00a2e3;
+            font-size: 20px;
+        }
+        #save-btn:hover {
+            background-color: #007bb6;
+        }
+        
+        #export-selected-btn, #export-all-btn {
+            background-color: #22a36b;
+            margin-top: 15px;
+        }
+        #export-selected-btn:hover, #export-all-btn:hover {
+            background-color: #1a7e52;
+        }
 
-    h1 {
-      text-align: center;
-      color: #222;
-    }
-
-    .controls {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    /* ✅ Selezione mese più compatta */
-    #month {
-      width: auto;           /* si adatta al contenuto */
-      min-width: 160px;      /* non più piccola di così */
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      background-color: #fff;
-      cursor: pointer;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #f4f4f4;
-    }
-
-    tr:nth-child(even) {
-      background-color: #fafafa;
-    }
-
-    .saturday {
-      background-color: #fff6cc !important; /* giallo */
-    }
-
-    .sunday {
-      background-color: #ffcccc !important; /* rosso */
-    }
-
-    .checkbox {
-      transform: scale(1.2);
-      cursor: pointer;
-    }
-  </style>
+        #results {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+        #results h3 {
+            margin-top: 0;
+            color: #00a2e3;
+            font-size: 1.1em;
+        }
+        #results p {
+            margin: 4px 0;
+            font-size: 16px;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #fff;
+            font-size: 12px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        th:last-child {
+            text-align: center;
+        }
+        td:first-child {
+            white-space: nowrap;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .action-buttons-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        #notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #notification.success {
+            background-color: #28a745;
+        }
+        #notification.error {
+            background-color: #dc3545;
+        }
+        
+        .export-options-container {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .export-options-container > select {
+            width: 130px; /* Larghezza fissa per l'anno */
+        }
+        .export-options-container > .multiselect-dropdown {
+            flex-grow: 1; /* Riempi lo spazio rimanente */
+        }
+        
+        select {
+            padding: 0 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #fff;
+            height: 40px;
+        }
+        
+        /* Multiselect dropdown */
+        .multiselect-dropdown {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+        .multiselect-selected {
+            width: 100%;
+            padding: 0 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            height: 40px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 40px;
+        }
+        .multiselect-selected:after {
+            content: '▼';
+            font-size: 12px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .multiselect-options {
+            position: absolute;
+            width: 100%;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+            box-sizing: border-box;
+        }
+        .multiselect-options.visible {
+            display: block;
+        }
+        .multiselect-option {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .multiselect-option input[type="checkbox"] {
+            margin-right: 10px;
+            -webkit-appearance: checkbox;
+        }
+        .multiselect-option:hover {
+            background-color: #f0f0f5;
+        }
+        .multiselect-dropdown.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        @media (min-width: 600px) {
+            .multiselect-selected,
+            .export-options-container > select {
+                font-size: 16px;
+                height: 48px;
+                line-height: 48px;
+            }
+            .multiselect-option {
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Registro Orario Lavoro</h1>
 
-  <div class="controls">
-    <label for="month">Seleziona mese: </label>
-    <select id="month" onchange="generateTable()">
-      <option value="0">Gennaio</option>
-      <option value="1">Febbraio</option>
-      <option value="2">Marzo</option>
-      <option value="3">Aprile</option>
-      <option value="4">Maggio</option>
-      <option value="5">Giugno</option>
-      <option value="6">Luglio</option>
-      <option value="7">Agosto</option>
-      <option value="8">Settembre</option>
-      <option value="9">Ottobre</option>
-      <option value="10">Novembre</option>
-      <option value="11">Dicembre</option>
-    </select>
-  </div>
+<div class="container">
+    <div class="logo-text">TECNOSISTEM</div>
+    <div class="form-group">
+        <label for="date">Seleziona Giorno:</label>
+        <input type="date" id="date">
+    </div>
+    <div class="form-group">
+        <label>Orario Inizio:</label>
+        <div class="time-dropdown-container">
+            <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+            <div id="startTimeOptions" class="time-options"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Orario Fine:</label>
+        <div class="time-dropdown-container">
+            <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+            <div id="endTimeOptions" class="time-options"></div>
+        </div>
+    </div>
+    <div class="checkbox-group">
+        <input type="checkbox" id="lunchBreak">
+        <label for="lunchBreak">Pausa pranzo (1 ora)</label>
+    </div>
+    <div class="checkbox-group">
+        <input type="checkbox" id="businessTrip">
+        <label for="businessTrip">In trasferta</label>
+    </div>
+    <div class="checkbox-group">
+        <input type="checkbox" id="onSite">
+        <label for="onSite">In sede</label>
+    </div>
+    <div class="form-group">
+        <label for="location">Luogo Intervento:</label>
+        <input type="text" id="location" list="location-suggestions">
+        <datalist id="location-suggestions"></datalist>
+    </div>
 
-  <table id="workTable">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Giorno</th>
-        <th>Ora Inizio</th>
-        <th>Ora Fine</th>
-        <th>Ore Lavorate</th>
-        <th>Straordinarie</th>
-        <th>Pausa Pranzo (1h)</th>
-        <th>Trasferta</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <div id="results">
+        <h3>Riepilogo giornaliero</h3>
+        <p><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
+        <p><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
+    </div>
+    
+    <button id="save-btn" class="btn">💾 Salva</button>
 
-  <script>
-    function generateTable() {
-      const month = parseInt(document.getElementById("month").value);
-      const year = new Date().getFullYear();
-      const tbody = document.querySelector("#workTable tbody");
-      tbody.innerHTML = "";
+    <div class="form-group" style="margin-top: 20px;">
+        <label for="export-month-year">Esporta per Mese(i) o Anno:</label>
+        <div class="export-options-container">
+            <select id="export-year">
+                <option value="">Seleziona Anno</option>
+            </select>
+            <div class="multiselect-dropdown" id="multiselect-month-container">
+                <div class="multiselect-selected">Seleziona Mese(i)</div>
+                <div class="multiselect-options" id="multiselect-month-options"></div>
+            </div>
+        </div>
+    </div>
+    <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
+    <button id="export-all-btn" class="btn">Esporta Registro Completo</button>
 
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const giorni = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+    <h2>Riepilogo Mensile</h2>
+    <div class="table-container">
+        <table id="monthly-summary-table">
+            <thead>
+                <tr>
+                    <th>Mese</th>
+                    <th>Ore Tot.</th>
+                    <th>Ore Str.</th>
+                    <th>Trasf.</th>
+                    <th>Sede</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dayName = giorni[date.getDay()];
-        const row = document.createElement("tr");
+    <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="register-content">
+        <div class="table-container">
+            <table id="register-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Inizio</th>
+                        <th>Fine</th>
+                        <th>Totali</th>
+                        <th>Str.</th>
+                        <th>Trasf.</th>
+                        <th>Sede</th>
+                        <th>Luogo</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-        if (date.getDay() === 0) row.classList.add("sunday");
-        if (date.getDay() === 6) row.classList.add("saturday");
+<div id="notification"></div>
 
+<script>
+    const dateInput = document.getElementById('date');
+    const startTimeDisplay = document.getElementById('startTimeDisplay');
+    const startTimeOptions = document.getElementById('startTimeOptions');
+    const endTimeDisplay = document.getElementById('endTimeDisplay');
+    const endTimeOptions = document.getElementById('endTimeOptions');
+    const lunchBreakCheckbox = document.getElementById('lunchBreak');
+    const businessTripCheckbox = document.getElementById('businessTrip');
+    const onSiteCheckbox = document.getElementById('onSite');
+    const locationInput = document.getElementById('location');
+    const totalHoursSpan = document.getElementById('totalHours');
+    const overtimeHoursSpan = document.getElementById('overtimeHours');
+    const saveButton = document.getElementById('save-btn');
+    const registerBody = document.querySelector('#register-table tbody');
+    const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
+    const locationDatalist = document.getElementById('location-suggestions');
+    const toggleRegisterHeader = document.getElementById('toggle-register');
+    const registerContent = document.getElementById('register-content');
+    const notification = document.getElementById('notification');
+    const standardWorkDay = 8;
+    let registerData = [];
+
+    const exportYearSelect = document.getElementById('export-year');
+    const multiselectMonthContainer = document.getElementById('multiselect-month-container');
+    const multiselectMonthSelected = document.querySelector('#multiselect-month-container .multiselect-selected');
+    const multiselectMonthOptions = document.getElementById('multiselect-month-options');
+    const exportSelectedButton = document.getElementById('export-selected-btn');
+    const exportAllButton = document.getElementById('export-all-btn');
+
+    function showNotification(message, type) {
+        notification.textContent = message;
+        notification.className = '';
+        notification.classList.add('show', type);
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    function generateTimeOptions() {
+        let optionsHtml = '';
+        for (let h = 0; h < 24; h++) {
+            for (let m = 0; m < 60; m += 30) {
+                const hour = String(h).padStart(2, '0');
+                const minute = String(m).padStart(2, '0');
+                const time = `${hour}:${minute}`;
+                optionsHtml += `<div class="time-option" data-value="${time}">${time}</div>`;
+            }
+        }
+        startTimeOptions.innerHTML = optionsHtml;
+        endTimeOptions.innerHTML = optionsHtml;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const [year, month, day] = dateString.split('-');
+        if (year && year.length >= 2) {
+            return `${day}-${month}-${year.substring(2)}`;
+        }
+        return dateString;
+    }
+
+    function calculateHours() {
+        const startTime = startTimeDisplay.getAttribute('data-value');
+        const endTime = endTimeDisplay.getAttribute('data-value');
+        const lunchBreak = lunchBreakCheckbox.checked;
+        if (startTime && endTime) {
+            const start = new Date(`2025-01-01T${startTime}:00`);
+            const end = new Date(`2025-01-01T${endTime}:00`);
+            if (end < start) {
+                end.setDate(end.getDate() + 1);
+            }
+            let totalMilliseconds = end - start;
+            let totalHours = totalMilliseconds / (1000 * 60 * 60);
+            if (lunchBreak) {
+                totalHours -= 1;
+            }
+            const totalHoursFixed = totalHours.toFixed(2);
+            let overtimeHours = 0;
+            if (totalHours > standardWorkDay) {
+                overtimeHours = totalHours - standardWorkDay;
+            }
+            totalHoursSpan.textContent = totalHoursFixed;
+            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
+        } else {
+            totalHoursSpan.textContent = '0';
+            overtimeHoursSpan.textContent = '0';
+        }
+    }
+
+    function createRow(entry) {
+        const row = document.createElement('tr');
+        row.setAttribute('data-date', entry.date);
         row.innerHTML = `
-          <td>${day}/${month + 1}/${year}</td>
-          <td>${dayName}</td>
-          <td><input type="time"></td>
-          <td><input type="time"></td>
-          <td>-</td>
-          <td>-</td>
-          <td><input type="checkbox" class="checkbox"></td>
-          <td><input type="checkbox" class="checkbox"></td>
+            <td>${formatDate(entry.date)}</td>
+            <td>${entry.startTime}</td>
+            <td>${entry.endTime}</td>
+            <td>${entry.totalHours.toFixed(2)}</td>
+            <td>${entry.overtimeHours.toFixed(2)}</td>
+            <td>${entry.businessTrip ? 'Sì' : 'No'}</td>
+            <td>${entry.onSite ? 'Sì' : 'No'}</td>
+            <td>${entry.location}</td>
+            <td class="action-buttons-cell">
+                <button class="btn-small btn-edit" data-date="${entry.date}">✏️</button>
+                <button class="btn-small btn-delete" data-date="${entry.date}">🗑️</button>
+            </td>
         `;
-        tbody.appendChild(row);
-      }
+        return row;
     }
 
-    // Genera il mese corrente al caricamento
-    window.onload = () => {
-      const oggi = new Date();
-      document.getElementById("month").value = oggi.getMonth();
-      generateTable();
+    function saveEntry() {
+        const date = dateInput.value;
+        const startTime = startTimeDisplay.getAttribute('data-value');
+        const endTime = endTimeDisplay.getAttribute('data-value');
+        const lunchBreak = lunchBreakCheckbox.checked;
+        const businessTrip = businessTripCheckbox.checked;
+        const onSite = onSiteCheckbox.checked;
+        const location = locationInput.value;
+        const totalHours = parseFloat(totalHoursSpan.textContent);
+        const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
+        
+        if (!date || !startTime || !endTime) {
+            showNotification('Per favore, compila tutti i campi obbligatori.', 'error');
+            return;
+        }
+        const start = new Date(`2025-01-01T${startTime}:00`);
+        const end = new Date(`2025-01-01T${endTime}:00`);
+        if (end < start) {
+            showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
+            return;
+        }
+        const newEntry = {
+            date: date,
+            startTime: startTime,
+            endTime: endTime,
+            totalHours: totalHours,
+            overtimeHours: overtimeHours,
+            businessTrip: businessTrip,
+            onSite: onSite,
+            lunchBreak: lunchBreak,
+            location: location
+        };
+        const existingIndex = registerData.findIndex(entry => entry.date === date);
+        if (existingIndex !== -1) {
+            registerData[existingIndex] = newEntry;
+        } else {
+            registerData.push(newEntry);
+        }
+        registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        try {
+            localStorage.setItem('registroOrario', JSON.stringify(registerData));
+        } catch (e) {
+            showNotification('ERRORE: Impossibile salvare i dati.', 'error');
+            console.error(e);
+            return;
+        }
+        renderRegister();
+        renderMonthlySummary();
+        updateLocationSuggestions();
+        updateExportOptions();
+        showNotification('Dati salvati nel registro!', 'success');
+        dateInput.value = '';
+        startTimeDisplay.textContent = 'Seleziona orario';
+        startTimeDisplay.setAttribute('data-value', '');
+        endTimeDisplay.textContent = 'Seleziona orario';
+        endTimeDisplay.setAttribute('data-value', '');
+        lunchBreakCheckbox.checked = false;
+        businessTripCheckbox.checked = false;
+        onSiteCheckbox.checked = false;
+        locationInput.value = '';
+        locationInput.disabled = false;
+        calculateHours();
     }
-  </script>
+
+    function deleteEntry(date) {
+        if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
+            registerData = registerData.filter(entry => entry.date !== date);
+            localStorage.setItem('registroOrario', JSON.stringify(registerData));
+            const rowToRemove = document.querySelector(`tr[data-date="${date}"]`);
+            if (rowToRemove) {
+                rowToRemove.remove();
+            }
+            renderMonthlySummary();
+            updateLocationSuggestions();
+            updateExportOptions();
+            showNotification(`Inserimento per il giorno ${formatDate(date)} cancellato.`, 'success');
+        }
+    }
+
+    function editEntry(date) {
+        const entryToEdit = registerData.find(entry => entry.date === date);
+        if (entryToEdit) {
+            dateInput.value = entryToEdit.date;
+            startTimeDisplay.textContent = entryToEdit.startTime;
+            startTimeDisplay.setAttribute('data-value', entryToEdit.startTime);
+            endTimeDisplay.textContent = entryToEdit.endTime;
+            endTimeDisplay.setAttribute('data-value', entryToEdit.endTime);
+            lunchBreakCheckbox.checked = entryToEdit.lunchBreak;
+            businessTripCheckbox.checked = entryToEdit.businessTrip;
+            onSiteCheckbox.checked = entryToEdit.onSite;
+            locationInput.value = entryToEdit.location;
+            calculateHours();
+            window.scrollTo(0, 0);
+            if (onSiteCheckbox.checked) {
+                locationInput.value = 'Tecnosistem';
+                locationInput.disabled = true;
+            } else {
+                locationInput.disabled = false;
+            }
+        }
+    }
+
+    function renderRegister() {
+        registerBody.innerHTML = '';
+        registerData.forEach(entry => {
+            const row = createRow(entry);
+            registerBody.appendChild(row);
+        });
+        registerBody.querySelectorAll('.btn-edit').forEach(button => {
+            button.addEventListener('click', (e) => editEntry(e.target.dataset.date));
+        });
+        registerBody.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', (e) => deleteEntry(e.target.dataset.date));
+        });
+    }
+
+    function renderMonthlySummary() {
+        monthlySummaryBody.innerHTML = '';
+        const summary = {};
+        registerData.forEach(entry => {
+            const date = new Date(entry.date);
+            const monthKey = date.getFullYear() + '-' + date.getMonth();
+            const monthName = date.toLocaleString('it-IT', { month: 'long' });
+            if (!summary[monthKey]) {
+                summary[monthKey] = {
+                    monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+                    totalHours: 0,
+                    overtimeHours: 0,
+                    businessTripDays: 0,
+                    onSiteDays: 0
+                };
+            }
+            summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
+            summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
+            if (entry.businessTrip) {
+                summary[monthKey].businessTripDays += 1;
+            }
+            if (entry.onSite) {
+                summary[monthKey].onSiteDays += 1;
+            }
+        });
+        const sortedMonths = Object.keys(summary).sort((a, b) => {
+            const [yearA, monthA] = a.split('-').map(Number);
+            const [yearB, monthB] = b.split('-').map(Number);
+            if (yearA !== yearB) return yearA - yearB;
+            return monthA - monthB;
+        });
+        sortedMonths.forEach(monthKey => {
+            const monthSummary = summary[monthKey];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${monthSummary.monthName}</td>
+                <td>${monthSummary.totalHours.toFixed(2)}</td>
+                <td>${monthSummary.overtimeHours.toFixed(2)}</td>
+                <td>${monthSummary.businessTripDays}</td>
+                <td>${monthSummary.onSiteDays}</td>
+            `;
+            monthlySummaryBody.appendChild(row);
+        });
+    }
+
+    function updateLocationSuggestions() {
+        const uniqueLocations = [...new Set(registerData.map(entry => entry.location).filter(Boolean))];
+        locationDatalist.innerHTML = uniqueLocations.map(location => `<option value="${location}">`).join('');
+    }
+
+    function exportToCsv(data, filename) {
+        const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo\n";
+        const rows = data.map(entry => 
+            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}"`
+        ).join('\n');
+        const csvContent = header + rows;
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportSelectedToCsv() {
+        const selectedYear = exportYearSelect.value;
+        const selectedMonths = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(checkbox => parseInt(checkbox.value));
+        
+        let filteredData = registerData;
+        let filename = 'registro_orario_selezionato.csv';
+
+        if (selectedYear) {
+            filteredData = filteredData.filter(entry => new Date(entry.date).getFullYear() == selectedYear);
+            filename = `registro_${selectedYear}.csv`;
+        }
+        
+        if (selectedMonths.length > 0) {
+            filteredData = filteredData.filter(entry => {
+                const entryMonth = new Date(entry.date).getMonth();
+                const entryYear = new Date(entry.date).getFullYear();
+                return selectedMonths.includes(entryMonth) && (!selectedYear || entryYear == selectedYear);
+            });
+            const monthNames = selectedMonths.map(m => new Date(2000, m).toLocaleString('it-IT', { month: 'short' }));
+            filename = `registro_${monthNames.join('-')}_${selectedYear || 'tutti_gli_anni'}.csv`;
+        }
+        
+        if (filteredData.length > 0) {
+            exportToCsv(filteredData, filename);
+            showNotification('Dati selezionati esportati con successo!', 'success');
+        } else {
+            showNotification('Nessun dato da esportare per la selezione corrente.', 'error');
+        }
+    }
+
+    function exportAllToCsv() {
+        exportToCsv(registerData, 'registro_orario_completo.csv');
+        showNotification('Registro completo esportato con successo!', 'success');
+    }
+
+    function updateExportOptions() {
+        const uniqueYears = [...new Set(registerData.map(entry => new Date(entry.date).getFullYear()))].sort((a, b) => b - a);
+        exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
+        
+        multiselectMonthOptions.innerHTML = '';
+        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a,b) => a-b);
+        allMonths.forEach(monthIndex => {
+            const monthName = new Date(2000, monthIndex).toLocaleString('it-IT', { month: 'long' });
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'multiselect-option';
+            optionDiv.innerHTML = `<input type="checkbox" value="${monthIndex}" id="month-${monthIndex}"> <label for="month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
+            multiselectMonthOptions.appendChild(optionDiv);
+        });
+        updateMultiselectSelectedText();
+    }
+
+    function updateMultiselectSelectedText() {
+        const checkboxes = multiselectMonthOptions.querySelectorAll('input[type="checkbox"]');
+        const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        if (selectedCount === 0) {
+            multiselectMonthSelected.textContent = 'Seleziona Mese(i)';
+        } else if (selectedCount === 1) {
+            const selectedLabel = multiselectMonthOptions.querySelector('input:checked + label').textContent;
+            multiselectMonthSelected.textContent = selectedLabel;
+        } else {
+            const selectedLabels = Array.from(checkboxes).filter(cb => cb.checked).map(cb => multiselectMonthOptions.querySelector(`label[for="${cb.id}"]`).textContent);
+            multiselectMonthSelected.textContent = selectedLabels.join(', ');
+        }
+    }
+
+    function toggleMonthDropdown(e) {
+        e.stopPropagation();
+        if (!multiselectMonthContainer.classList.contains('disabled')) {
+            multiselectMonthOptions.classList.toggle('visible');
+        }
+    }
+
+    function handleYearChange() {
+        const selectedYear = exportYearSelect.value;
+        if (selectedYear) {
+            multiselectMonthContainer.classList.remove('disabled');
+        } else {
+            multiselectMonthContainer.classList.add('disabled');
+            multiselectMonthOptions.classList.remove('visible');
+            multiselectMonthOptions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateMultiselectSelectedText();
+        }
+    }
+
+    multiselectMonthContainer.addEventListener('click', toggleMonthDropdown);
+
+    multiselectMonthOptions.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+            updateMultiselectSelectedText();
+        }
+    });
+
+    exportYearSelect.addEventListener('change', handleYearChange);
+
+    function toggleRegister() {
+        registerContent.classList.toggle('open');
+        toggleRegisterHeader.classList.toggle('open');
+    }
+
+    function loadRegister() {
+        const savedData = localStorage.getItem('registroOrario');
+        if (savedData) {
+            registerData = JSON.parse(savedData);
+            registerData = registerData.map(entry => ({
+                ...entry,
+                totalHours: parseFloat(entry.totalHours) || 0,
+                overtimeHours: parseFloat(entry.overtimeHours) || 0,
+                lunchBreak: entry.lunchBreak === true,
+                businessTrip: entry.businessTrip === true,
+                onSite: entry.onSite === true
+            }));
+            registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderRegister();
+            renderMonthlySummary();
+            updateLocationSuggestions();
+            updateExportOptions();
+            handleYearChange();
+        }
+    }
+
+    function closeAllDropdowns() {
+        startTimeOptions.classList.remove('visible');
+        endTimeOptions.classList.remove('visible');
+        multiselectMonthOptions.classList.remove('visible');
+    }
+
+    startTimeDisplay.addEventListener('click', (event) => {
+        event.stopPropagation();
+        startTimeOptions.classList.toggle('visible');
+        endTimeOptions.classList.remove('visible');
+        multiselectMonthOptions.classList.remove('visible');
+    });
+
+    endTimeDisplay.addEventListener('click', (event) => {
+        event.stopPropagation();
+        endTimeOptions.classList.toggle('visible');
+        startTimeOptions.classList.remove('visible');
+        multiselectMonthOptions.classList.remove('visible');
+    });
+
+    startTimeOptions.addEventListener('click', (event) => {
+        if (event.target.classList.contains('time-option')) {
+            startTimeDisplay.textContent = event.target.getAttribute('data-value');
+            startTimeDisplay.setAttribute('data-value', event.target.getAttribute('data-value'));
+            startTimeOptions.classList.remove('visible');
+            calculateHours();
+        }
+    });
+    endTimeOptions.addEventListener('click', (event) => {
+        if (event.target.classList.contains('time-option')) {
+            endTimeDisplay.textContent = event.target.getAttribute('data-value');
+            endTimeDisplay.setAttribute('data-value', event.target.getAttribute('data-value'));
+            endTimeOptions.classList.remove('visible');
+            calculateHours();
+        }
+    });
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.multiselect-dropdown') && !event.target.closest('.time-dropdown-container')) {
+            closeAllDropdowns();
+        }
+    });
+    lunchBreakCheckbox.addEventListener('change', calculateHours);
+    saveButton.addEventListener('click', saveEntry);
+    exportSelectedButton.addEventListener('click', exportSelectedToCsv);
+    exportAllButton.addEventListener('click', exportAllToCsv);
+    toggleRegisterHeader.addEventListener('click', toggleRegister);
+    businessTripCheckbox.addEventListener('change', () => {
+        if (businessTripCheckbox.checked) {
+            onSiteCheckbox.checked = false;
+        }
+    });
+    onSiteCheckbox.addEventListener('change', () => {
+        if (onSiteCheckbox.checked) {
+            businessTripCheckbox.checked = false;
+            locationInput.value = 'Tecnosistem';
+            locationInput.disabled = true;
+        } else {
+            locationInput.value = '';
+            locationInput.disabled = false;
+        }
+    });
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${year}-${month}-${day}`;
+    generateTimeOptions();
+    loadRegister();
+</script>
 </body>
 </html>
