@@ -511,9 +511,21 @@
         <label for="search-input">Cerca nel registro:</label>
         <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
     </div>
-
+    
     <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="register-content">
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="filter-month-year">Filtra per Mese(i) o Anno:</label>
+            <div class="export-options-container">
+                <select id="filter-year">
+                    <option value="">Tutti gli Anni</option>
+                </select>
+                <div class="multiselect-dropdown" id="filter-month-container">
+                    <div class="multiselect-selected">Tutti i Mesi</div>
+                    <div class="multiselect-options" id="filter-month-options"></div>
+                </div>
+            </div>
+        </div>
         <div class="table-container">
             <table id="register-table">
                 <thead>
@@ -573,6 +585,11 @@
     const exportSelectedPdfButton = document.getElementById('export-selected-pdf-btn');
     const exportAllButton = document.getElementById('export-all-btn');
     const exportPdfButton = document.getElementById('export-pdf-btn');
+
+    const filterYearSelect = document.getElementById('filter-year');
+    const filterMonthContainer = document.getElementById('filter-month-container');
+    const filterMonthSelected = document.querySelector('#filter-month-container .multiselect-selected');
+    const filterMonthOptions = document.getElementById('filter-month-options');
 
 
     function showNotification(message, type) {
@@ -708,7 +725,7 @@
         renderRegister();
         renderMonthlySummary();
         updateLocationSuggestions();
-        updateExportOptions();
+        updateExportAndFilterOptions();
         showNotification('Dati salvati nel registro!', 'success');
         dateInput.value = '';
         startTimeDisplay.textContent = 'Seleziona orario';
@@ -728,13 +745,10 @@
         if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
             registerData = registerData.filter(entry => entry.date !== date);
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
-            const rowToRemove = document.querySelector(`tr[data-date="${date}"]`);
-            if (rowToRemove) {
-                rowToRemove.remove();
-            }
+            renderRegister();
             renderMonthlySummary();
             updateLocationSuggestions();
-            updateExportOptions();
+            updateExportAndFilterOptions();
             showNotification(`Inserimento per il giorno ${formatDate(date)} cancellato.`, 'success');
         }
     }
@@ -1014,78 +1028,107 @@
             showNotification('Nessun dato da esportare.', 'error');
         }
     }
-
-    function updateExportOptions() {
+    
+    function updateExportAndFilterOptions() {
         const uniqueYears = [...new Set(registerData.map(entry => new Date(entry.date).getFullYear()))].sort((a, b) => b - a);
         exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
+        filterYearSelect.innerHTML = '<option value="">Tutti gli Anni</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
+        
+        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => b - a);
         
         multiselectMonthOptions.innerHTML = '';
-        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => b - a);
+        filterMonthOptions.innerHTML = '';
         allMonths.forEach(monthIndex => {
             const monthName = new Date(2000, monthIndex).toLocaleString('it-IT', { month: 'long' });
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'multiselect-option';
-            optionDiv.innerHTML = `<input type="checkbox" value="${monthIndex}" id="month-${monthIndex}"> <label for="month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
-            multiselectMonthOptions.appendChild(optionDiv);
+            const optionDivExport = document.createElement('div');
+            optionDivExport.className = 'multiselect-option';
+            optionDivExport.innerHTML = `<input type="checkbox" value="${monthIndex}" id="export-month-${monthIndex}"> <label for="export-month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
+            multiselectMonthOptions.appendChild(optionDivExport);
+
+            const optionDivFilter = document.createElement('div');
+            optionDivFilter.className = 'multiselect-option';
+            optionDivFilter.innerHTML = `<input type="checkbox" value="${monthIndex}" id="filter-month-${monthIndex}"> <label for="filter-month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
+            filterMonthOptions.appendChild(optionDivFilter);
         });
-        updateMultiselectSelectedText();
+        updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
+        updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
     }
 
-    function updateMultiselectSelectedText() {
-        const checkboxes = multiselectMonthOptions.querySelectorAll('input[type="checkbox"]');
+    function updateMultiselectSelectedText(optionsContainer, selectedDisplay, defaultText = 'Seleziona Mese(i)') {
+        const checkboxes = optionsContainer.querySelectorAll('input[type="checkbox"]');
         const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
         if (selectedCount === 0) {
-            multiselectMonthSelected.textContent = 'Seleziona Mese(i)';
+            selectedDisplay.textContent = defaultText;
         } else if (selectedCount === 1) {
-            const selectedLabel = multiselectMonthOptions.querySelector('input:checked + label').textContent;
-            multiselectMonthSelected.textContent = selectedLabel;
+            const selectedLabel = optionsContainer.querySelector('input:checked + label').textContent;
+            selectedDisplay.textContent = selectedLabel;
         } else {
-            const selectedLabels = Array.from(checkboxes).filter(cb => cb.checked).map(cb => multiselectMonthOptions.querySelector(`label[for="${cb.id}"]`).textContent);
-            multiselectMonthSelected.textContent = selectedLabels.join(', ');
+            const selectedLabels = Array.from(checkboxes).filter(cb => cb.checked).map(cb => optionsContainer.querySelector(`label[for="${cb.id}"]`).textContent);
+            selectedDisplay.textContent = selectedLabels.join(', ');
         }
     }
-
-    function toggleMonthDropdown(e) {
-        e.stopPropagation();
-        if (!multiselectMonthContainer.classList.contains('disabled')) {
-            multiselectMonthOptions.classList.toggle('visible');
-        }
-    }
-
-    function handleYearChange() {
-        const selectedYear = exportYearSelect.value;
-        if (selectedYear) {
-            multiselectMonthContainer.classList.remove('disabled');
-        } else {
-            multiselectMonthContainer.classList.add('disabled');
-            multiselectMonthOptions.classList.remove('visible');
-            multiselectMonthOptions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-            updateMultiselectSelectedText();
-        }
-    }
-
-    multiselectMonthContainer.addEventListener('click', toggleMonthDropdown);
-
-    multiselectMonthOptions.addEventListener('change', (e) => {
-        if (e.target.type === 'checkbox') {
-            updateMultiselectSelectedText();
-        }
-    });
-
-    exportYearSelect.addEventListener('change', handleYearChange);
     
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredData = registerData.filter(entry => {
+    function toggleMonthDropdown(e, container, options) {
+        e.stopPropagation();
+        if (!container.classList.contains('disabled')) {
+            options.classList.toggle('visible');
+        }
+    }
+
+    function handleYearChange(yearSelect, monthContainer, monthOptions) {
+        const selectedYear = yearSelect.value;
+        if (selectedYear) {
+            monthContainer.classList.remove('disabled');
+        } else {
+            monthContainer.classList.add('disabled');
+            monthOptions.classList.remove('visible');
+            monthOptions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+    }
+
+    function applyFiltersAndSearch() {
+        const filterYear = filterYearSelect.value;
+        const filterMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(checkbox => parseInt(checkbox.value));
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        let filteredData = registerData.filter(entry => {
+            const entryDate = new Date(entry.date);
+            const entryYear = entryDate.getFullYear();
+            const entryMonth = entryDate.getMonth();
             const formattedDate = formatDate(entry.date).toLowerCase();
             const location = entry.location.toLowerCase();
             const notes = (entry.notes || '').toLowerCase();
-            return formattedDate.includes(searchTerm) || 
-                   location.includes(searchTerm) || 
-                   notes.includes(searchTerm);
+            
+            const matchesYear = !filterYear || entryYear == filterYear;
+            const matchesMonth = filterMonths.length === 0 || filterMonths.includes(entryMonth);
+            const matchesSearch = formattedDate.includes(searchTerm) || location.includes(searchTerm) || notes.includes(searchTerm);
+            
+            return matchesYear && matchesMonth && matchesSearch;
         });
         renderRegister(filteredData);
+    }
+    
+    multiselectMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, multiselectMonthContainer, multiselectMonthOptions));
+    multiselectMonthOptions.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+            updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
+        }
     });
+    exportYearSelect.addEventListener('change', () => handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions));
+
+    filterMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, filterMonthContainer, filterMonthOptions));
+    filterMonthOptions.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+            updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
+            applyFiltersAndSearch();
+        }
+    });
+    filterYearSelect.addEventListener('change', () => {
+        handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
+        applyFiltersAndSearch();
+    });
+
+    searchInput.addEventListener('input', applyFiltersAndSearch);
 
     function toggleRegister() {
         registerContent.classList.toggle('open');
@@ -1109,8 +1152,9 @@
             renderRegister();
             renderMonthlySummary();
             updateLocationSuggestions();
-            updateExportOptions();
-            handleYearChange();
+            updateExportAndFilterOptions();
+            handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions);
+            handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
         }
     }
 
@@ -1118,6 +1162,7 @@
         startTimeOptions.classList.remove('visible');
         endTimeOptions.classList.remove('visible');
         multiselectMonthOptions.classList.remove('visible');
+        filterMonthOptions.classList.remove('visible');
     }
 
     startTimeDisplay.addEventListener('click', (event) => {
@@ -1125,6 +1170,7 @@
         startTimeOptions.classList.toggle('visible');
         endTimeOptions.classList.remove('visible');
         multiselectMonthOptions.classList.remove('visible');
+        filterMonthOptions.classList.remove('visible');
     });
 
     endTimeDisplay.addEventListener('click', (event) => {
@@ -1132,6 +1178,7 @@
         endTimeOptions.classList.toggle('visible');
         startTimeOptions.classList.remove('visible');
         multiselectMonthOptions.classList.remove('visible');
+        filterMonthOptions.classList.remove('visible');
     });
 
     startTimeOptions.addEventListener('click', (event) => {
