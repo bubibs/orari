@@ -256,38 +256,10 @@
         }
         
         .button-group-responsive {
-            display: flex;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 10px;
             margin-top: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .button-group-responsive .btn {
-            flex: 1 1 48%; /* 2 per riga con gap */
-            margin-top: 0;
-            box-sizing: border-box; /* Aggiunto per un controllo più preciso del layout */
-        }
-        
-        @media (max-width: 480px) {
-            .button-group-responsive .btn {
-                flex: 1 1 calc(50% - 5px); /* Regolazione per schermi piccoli */
-                margin-right: 5px; /* Aggiunto margine per la spaziatura */
-            }
-            .button-group-responsive .btn:nth-child(2n) {
-                margin-right: 0; /* Rimuovi il margine dall'ultimo pulsante */
-            }
-        }
-        
-        @media (min-width: 481px) {
-            .button-group-responsive .btn {
-                width: 50%;
-                margin-right: 5px;
-                flex: none;
-            }
-            .button-group-responsive .btn:last-child {
-                margin-right: 0;
-            }
         }
         
         #results {
