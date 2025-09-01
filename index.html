@@ -192,13 +192,21 @@
             background-color: #007bb6;
         }
         
-        #export-selected-btn, #export-all-btn, #export-pdf-btn {
+        #export-selected-btn, #export-all-btn {
             background-color: #22a36b;
             margin-top: 15px;
         }
-        #export-selected-btn:hover, #export-all-btn:hover, #export-pdf-btn:hover {
+        #export-selected-btn:hover, #export-all-btn:hover {
             background-color: #1a7e52;
         }
+
+        #export-pdf-btn {
+            background-color: #b30000;
+        }
+        #export-pdf-btn:hover {
+            background-color: #800000;
+        }
+        
 
         #results {
             margin-top: 20px;
@@ -446,7 +454,7 @@
     </div>
     <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
     <button id="export-all-btn" class="btn">Esporta Registro Completo in CSV</button>
-    <button id="export-pdf-btn" class="btn">Esporta Registro Completo in PDF</button>
+    <button id="export-pdf-btn" class="btn">Esporta Registro Completo in PDF 📄</button>
 
     <h2>Riepilogo Mensile</h2>
     <div class="table-container">
@@ -830,10 +838,27 @@
         const dataForPdf = [...registerData].sort((a, b) => new Date(b.date) - new Date(a.date));
 
         const tableColumn = ["Data", "Inizio", "Fine", "Ore Tot.", "Ore Str.", "Trasf.", "Sede", "Luogo", "Note"];
-        const tableRows = [];
-
+        
+        let groupedData = {};
         dataForPdf.forEach(entry => {
-            const rowData = [
+            const monthKey = new Date(entry.date).toLocaleString('it-IT', { year: 'numeric', month: 'long' });
+            if (!groupedData[monthKey]) {
+                groupedData[monthKey] = [];
+            }
+            groupedData[monthKey].push(entry);
+        });
+
+        const sortedMonths = Object.keys(groupedData).sort((a, b) => new Date(b) - new Date(a));
+        
+        let startY = 20;
+
+        sortedMonths.forEach(monthKey => {
+            const monthData = groupedData[monthKey];
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Mese di ${monthKey.charAt(0).toUpperCase() + monthKey.slice(1)}`, 105, startY, null, null, "center");
+            
+            const tableRows = monthData.map(entry => [
                 formatDate(entry.date),
                 entry.startTime,
                 entry.endTime,
@@ -843,28 +868,27 @@
                 entry.onSite ? 'Sì' : 'No',
                 entry.location,
                 entry.notes || ''
-            ];
-            tableRows.push(rowData);
-        });
+            ]);
 
-        doc.setFontSize(18);
-        doc.text("Registro Orario Lavoro - TECNOSISTEM", 105, 15, null, null, "center");
-        doc.setFontSize(12);
-
-        doc.autoTable({
-            startY: 25,
-            head: [tableColumn],
-            body: tableRows,
-            theme: 'striped',
-            headStyles: { fillColor: [0, 162, 227] },
-            didDrawPage: function (data) {
-                // Header
-                doc.setFontSize(10);
-                doc.text("Registro Completo", data.settings.margin.left, 10);
-                // Footer
-                let str = "Pagina " + doc.internal.getNumberOfPages();
-                doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
-            }
+            doc.autoTable({
+                startY: startY + 5,
+                head: [tableColumn],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: { fillColor: [0, 162, 227] },
+                didDrawPage: (data) => {
+                    if (data.pageNumber > 1) {
+                         doc.setFontSize(10);
+                         doc.text("Pagina " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
+                    }
+                },
+                didDrawCell: (data) => {
+                    if (data.column.index === 0 && data.cell.section === 'body') {
+                        doc.setFont('times', 'bold');
+                    }
+                }
+            });
+            startY = doc.lastAutoTable.finalY + 10;
         });
 
         doc.save('Registro_Orario_Lavoro.pdf');
