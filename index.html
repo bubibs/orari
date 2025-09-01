@@ -266,11 +266,27 @@
         .button-group-responsive .btn {
             flex: 1 1 48%; /* 2 per riga con gap */
             margin-top: 0;
+            box-sizing: border-box; /* Aggiunto per un controllo più preciso del layout */
         }
         
         @media (max-width: 480px) {
             .button-group-responsive .btn {
-                flex: 1 1 100%; /* 1 per riga su schermi molto piccoli */
+                flex: 1 1 calc(50% - 5px); /* Regolazione per schermi piccoli */
+                margin-right: 5px; /* Aggiunto margine per la spaziatura */
+            }
+            .button-group-responsive .btn:nth-child(2n) {
+                margin-right: 0; /* Rimuovi il margine dall'ultimo pulsante */
+            }
+        }
+        
+        @media (min-width: 481px) {
+            .button-group-responsive .btn {
+                width: 50%;
+                margin-right: 5px;
+                flex: none;
+            }
+            .button-group-responsive .btn:last-child {
+                margin-right: 0;
             }
         }
         
@@ -536,8 +552,8 @@
         </div>
     </div>
     <div class="button-group-responsive">
-        <button id="export-selected-btn" class="btn btn-green">Selezione CSV</button>
-        <button id="export-selected-pdf-btn" class="btn btn-pdf">Selezione PDF 📄</button>
+        <button id="export-selected-btn" class="btn btn-green">CSV</button>
+        <button id="export-selected-pdf-btn" class="btn btn-pdf">PDF 📄</button>
     </div>
     <div class="button-group-responsive">
         <button id="export-all-btn" class="btn btn-green">Completo CSV</button>
