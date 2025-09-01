@@ -68,7 +68,7 @@
             font-weight: 600;
             font-size: 0.9em;
         }
-        input[type="date"], input[type="text"] {
+        input[type="date"], input[type="text"], textarea, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -78,6 +78,10 @@
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
         }
         .time-dropdown-container {
             position: relative;
@@ -415,6 +419,10 @@
         <input type="text" id="location" list="location-suggestions">
         <datalist id="location-suggestions"></datalist>
     </div>
+    <div class="form-group">
+        <label for="notes">Note:</label>
+        <textarea id="notes"></textarea>
+    </div>
 
     <div id="results">
         <h3>Riepilogo giornaliero</h3>
@@ -423,7 +431,7 @@
     </div>
     
     <button id="save-btn" class="btn">💾 Salva</button>
-
+    
     <div class="form-group" style="margin-top: 20px;">
         <label for="export-month-year">Esporta per Mese(i) o Anno:</label>
         <div class="export-options-container">
@@ -455,6 +463,11 @@
                 </tbody>
         </table>
     </div>
+    
+    <div class="form-group" style="margin-top: 20px;">
+        <label for="search-input">Cerca nel registro:</label>
+        <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
+    </div>
 
     <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="register-content">
@@ -470,6 +483,7 @@
                         <th>Trasf.</th>
                         <th>Sede</th>
                         <th>Luogo</th>
+                        <th>Note</th>
                         <th>Azione</th>
                     </tr>
                 </thead>
@@ -492,6 +506,7 @@
     const businessTripCheckbox = document.getElementById('businessTrip');
     const onSiteCheckbox = document.getElementById('onSite');
     const locationInput = document.getElementById('location');
+    const notesInput = document.getElementById('notes');
     const totalHoursSpan = document.getElementById('totalHours');
     const overtimeHoursSpan = document.getElementById('overtimeHours');
     const saveButton = document.getElementById('save-btn');
@@ -501,9 +516,10 @@
     const toggleRegisterHeader = document.getElementById('toggle-register');
     const registerContent = document.getElementById('register-content');
     const notification = document.getElementById('notification');
+    const searchInput = document.getElementById('search-input');
     const standardWorkDay = 8;
     let registerData = [];
-
+    
     const exportYearSelect = document.getElementById('export-year');
     const multiselectMonthContainer = document.getElementById('multiselect-month-container');
     const multiselectMonthSelected = document.querySelector('#multiselect-month-container .multiselect-selected');
@@ -583,6 +599,7 @@
             <td>${entry.businessTrip ? 'Sì' : 'No'}</td>
             <td>${entry.onSite ? 'Sì' : 'No'}</td>
             <td>${entry.location}</td>
+            <td>${entry.notes || ''}</td>
             <td class="action-buttons-cell">
                 <button class="btn-small btn-edit" data-date="${entry.date}">✏️</button>
                 <button class="btn-small btn-delete" data-date="${entry.date}">🗑️</button>
@@ -599,6 +616,7 @@
         const businessTrip = businessTripCheckbox.checked;
         const onSite = onSiteCheckbox.checked;
         const location = locationInput.value;
+        const notes = notesInput.value;
         const totalHours = parseFloat(totalHoursSpan.textContent);
         const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
         
@@ -621,7 +639,8 @@
             businessTrip: businessTrip,
             onSite: onSite,
             lunchBreak: lunchBreak,
-            location: location
+            location: location,
+            notes: notes
         };
         const existingIndex = registerData.findIndex(entry => entry.date === date);
         if (existingIndex !== -1) {
@@ -652,6 +671,7 @@
         businessTripCheckbox.checked = false;
         onSiteCheckbox.checked = false;
         locationInput.value = '';
+        notesInput.value = '';
         locationInput.disabled = false;
         calculateHours();
     }
@@ -683,6 +703,7 @@
             businessTripCheckbox.checked = entryToEdit.businessTrip;
             onSiteCheckbox.checked = entryToEdit.onSite;
             locationInput.value = entryToEdit.location;
+            notesInput.value = entryToEdit.notes || '';
             calculateHours();
             window.scrollTo(0, 0);
             if (onSiteCheckbox.checked) {
@@ -694,9 +715,9 @@
         }
     }
 
-    function renderRegister() {
+    function renderRegister(dataToRender = registerData) {
         registerBody.innerHTML = '';
-        registerData.forEach(entry => {
+        dataToRender.forEach(entry => {
             const row = createRow(entry);
             registerBody.appendChild(row);
         });
@@ -759,11 +780,29 @@
     }
 
     function exportToCsv(data, filename) {
-        const header = "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo\n";
-        const rows = data.map(entry => 
-            `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}"`
-        ).join('\n');
-        const csvContent = header + rows;
+        // Ordina i dati per data in ordine crescente per garantire la corretta sequenza dei mesi
+        data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        let csvContent = "";
+        let currentMonth = null;
+
+        data.forEach(entry => {
+            const entryDate = new Date(entry.date);
+            const entryMonth = entryDate.getMonth();
+
+            // Se il mese cambia, aggiungi un'intestazione
+            if (entryMonth !== currentMonth) {
+                const monthName = entryDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+                csvContent += `\n**--- Mese di ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ---**\n`;
+                csvContent += "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo,Note\n";
+                currentMonth = entryMonth;
+            }
+
+            // Aggiungi la riga dei dati
+            const row = `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}", "${(entry.notes || '').replace(/"/g, '""')}"`;
+            csvContent += row + '\n';
+        });
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
@@ -868,6 +907,19 @@
     });
 
     exportYearSelect.addEventListener('change', handleYearChange);
+    
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredData = registerData.filter(entry => {
+            const formattedDate = formatDate(entry.date).toLowerCase();
+            const location = entry.location.toLowerCase();
+            const notes = (entry.notes || '').toLowerCase();
+            return formattedDate.includes(searchTerm) || 
+                   location.includes(searchTerm) || 
+                   notes.includes(searchTerm);
+        });
+        renderRegister(filteredData);
+    });
 
     function toggleRegister() {
         registerContent.classList.toggle('open');
@@ -884,7 +936,8 @@
                 overtimeHours: parseFloat(entry.overtimeHours) || 0,
                 lunchBreak: entry.lunchBreak === true,
                 businessTrip: entry.businessTrip === true,
-                onSite: entry.onSite === true
+                onSite: entry.onSite === true,
+                notes: entry.notes || ''
             }));
             registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
             renderRegister();
@@ -941,11 +994,19 @@
     exportSelectedButton.addEventListener('click', exportSelectedToCsv);
     exportAllButton.addEventListener('click', exportAllToCsv);
     toggleRegisterHeader.addEventListener('click', toggleRegister);
+    
+    // Assicurarsi che solo una delle due checkbox sia selezionata alla volta
     businessTripCheckbox.addEventListener('change', () => {
         if (businessTripCheckbox.checked) {
             onSiteCheckbox.checked = false;
         }
     });
+    onSiteCheckbox.addEventListener('change', () => {
+        if (onSiteCheckbox.checked) {
+            businessTripCheckbox.checked = false;
+        }
+    });
+    
     onSiteCheckbox.addEventListener('change', () => {
         if (onSiteCheckbox.checked) {
             locationInput.value = 'Tecnosistem';
@@ -955,11 +1016,14 @@
             locationInput.disabled = false;
         }
     });
+    
+    // Imposta la data di default su quella odierna
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     dateInput.value = `${year}-${month}-${day}`;
+
     generateTimeOptions();
     loadRegister();
 </script>
