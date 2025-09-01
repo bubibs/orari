@@ -194,7 +194,6 @@
         
         #export-selected-btn, #export-all-btn {
             background-color: #22a36b;
-            margin-top: 15px;
         }
         #export-selected-btn:hover, #export-all-btn:hover {
             background-color: #1a7e52;
@@ -207,6 +206,16 @@
             background-color: #800000;
         }
         
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-group .btn {
+            width: 50%;
+            margin-top: 0;
+        }
 
         #results {
             margin-top: 20px;
@@ -452,10 +461,14 @@
             </div>
         </div>
     </div>
-    <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
-    <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta Selezionato in PDF 📄</button>
-    <button id="export-all-btn" class="btn">Esporta Registro Completo in CSV</button>
-    <button id="export-pdf-btn" class="btn btn-pdf">Esporta Registro Completo in PDF 📄</button>
+    <div class="btn-group">
+        <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
+        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta Selezionato in PDF 📄</button>
+    </div>
+    <div class="btn-group">
+        <button id="export-all-btn" class="btn">Esporta Registro Completo in CSV</button>
+        <button id="export-pdf-btn" class="btn btn-pdf">Esporta Registro Completo in PDF 📄</button>
+    </div>
 
     <h2>Riepilogo Mensile</h2>
     <div class="table-container">
@@ -945,7 +958,8 @@
         
         if (selectedYear) {
             filteredData = filteredData.filter(entry => new Date(entry.date).getFullYear() == selectedYear);
-            filename = `registro_${selectedYear}.pdf`;
+            const yearText = ` ${selectedYear}`;
+            filename = `registro${yearText}.pdf`;
         }
         
         if (selectedMonths.length > 0) {
@@ -955,7 +969,8 @@
                 return selectedMonths.includes(entryMonth) && (!selectedYear || entryYear == selectedYear);
             });
             const monthNames = selectedMonths.map(m => new Date(2000, m).toLocaleString('it-IT', { month: 'short' }));
-            filename = `registro_${monthNames.join('-')}_${selectedYear || 'tutti_gli_anni'}.pdf`;
+            const yearText = selectedYear ? `_${selectedYear}` : '';
+            filename = `registro_${monthNames.join('-')}${yearText}.pdf`;
         }
         
         generatePdfFromData(filteredData, filename);
