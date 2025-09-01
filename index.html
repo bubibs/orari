@@ -192,11 +192,11 @@
             background-color: #007bb6;
         }
         
-        #export-selected-btn, #export-all-btn {
+        #export-selected-btn, #export-all-btn, #export-pdf-btn {
             background-color: #22a36b;
             margin-top: 15px;
         }
-        #export-selected-btn:hover, #export-all-btn:hover {
+        #export-selected-btn:hover, #export-all-btn:hover, #export-pdf-btn:hover {
             background-color: #1a7e52;
         }
 
@@ -445,7 +445,8 @@
         </div>
     </div>
     <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
-    <button id="export-all-btn" class="btn">Esporta Registro Completo</button>
+    <button id="export-all-btn" class="btn">Esporta Registro Completo in CSV</button>
+    <button id="export-pdf-btn" class="btn">Esporta Registro Completo in PDF</button>
 
     <h2>Riepilogo Mensile</h2>
     <div class="table-container">
@@ -496,6 +497,8 @@
 
 <div id="notification"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script>
     const dateInput = document.getElementById('date');
     const startTimeDisplay = document.getElementById('startTimeDisplay');
@@ -526,6 +529,7 @@
     const multiselectMonthOptions = document.getElementById('multiselect-month-options');
     const exportSelectedButton = document.getElementById('export-selected-btn');
     const exportAllButton = document.getElementById('export-all-btn');
+    const exportPdfButton = document.getElementById('export-pdf-btn');
 
     function showNotification(message, type) {
         notification.textContent = message;
@@ -780,7 +784,6 @@
     }
 
     function exportToCsv(data, filename) {
-        // Ordina i dati per data in ordine decrescente (dal più recente al più vecchio)
         data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         let csvContent = "";
@@ -792,7 +795,6 @@
             const entryMonth = entryDate.getMonth();
             const entryYear = entryDate.getFullYear();
 
-            // Se il mese o l'anno cambiano, aggiungi un'intestazione
             if (entryMonth !== currentMonth || entryYear !== currentYear) {
                 const monthName = entryDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
                 csvContent += `\n**--- Mese di ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ---**\n`;
@@ -801,7 +803,6 @@
                 currentYear = entryYear;
             }
 
-            // Aggiungi la riga dei dati
             const row = `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}", "${(entry.notes || '').replace(/"/g, '""')}"`;
             csvContent += row + '\n';
         });
@@ -815,6 +816,59 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+    
+    function exportToPdf() {
+        if (registerData.length === 0) {
+            showNotification('Nessun dato da esportare.', 'error');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const dataForPdf = [...registerData].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const tableColumn = ["Data", "Inizio", "Fine", "Ore Tot.", "Ore Str.", "Trasf.", "Sede", "Luogo", "Note"];
+        const tableRows = [];
+
+        dataForPdf.forEach(entry => {
+            const rowData = [
+                formatDate(entry.date),
+                entry.startTime,
+                entry.endTime,
+                entry.totalHours.toFixed(2),
+                entry.overtimeHours.toFixed(2),
+                entry.businessTrip ? 'Sì' : 'No',
+                entry.onSite ? 'Sì' : 'No',
+                entry.location,
+                entry.notes || ''
+            ];
+            tableRows.push(rowData);
+        });
+
+        doc.setFontSize(18);
+        doc.text("Registro Orario Lavoro - TECNOSISTEM", 105, 15, null, null, "center");
+        doc.setFontSize(12);
+
+        doc.autoTable({
+            startY: 25,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [0, 162, 227] },
+            didDrawPage: function (data) {
+                // Header
+                doc.setFontSize(10);
+                doc.text("Registro Completo", data.settings.margin.left, 10);
+                // Footer
+                let str = "Pagina " + doc.internal.getNumberOfPages();
+                doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
+            }
+        });
+
+        doc.save('Registro_Orario_Lavoro.pdf');
+        showNotification('Registro completo esportato in PDF!', 'success');
     }
 
     function exportSelectedToCsv() {
@@ -996,6 +1050,7 @@
     saveButton.addEventListener('click', saveEntry);
     exportSelectedButton.addEventListener('click', exportSelectedToCsv);
     exportAllButton.addEventListener('click', exportAllToCsv);
+    exportPdfButton.addEventListener('click', exportToPdf);
     toggleRegisterHeader.addEventListener('click', toggleRegister);
     
     // Assicurarsi che solo una delle due checkbox sia selezionata alla volta
