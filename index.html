@@ -200,10 +200,10 @@
             background-color: #1a7e52;
         }
 
-        #export-pdf-btn {
+        .btn-pdf {
             background-color: #b30000;
         }
-        #export-pdf-btn:hover {
+        .btn-pdf:hover {
             background-color: #800000;
         }
         
@@ -453,8 +453,9 @@
         </div>
     </div>
     <button id="export-selected-btn" class="btn">Esporta Selezionato in CSV</button>
+    <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta Selezionato in PDF 📄</button>
     <button id="export-all-btn" class="btn">Esporta Registro Completo in CSV</button>
-    <button id="export-pdf-btn" class="btn">Esporta Registro Completo in PDF 📄</button>
+    <button id="export-pdf-btn" class="btn btn-pdf">Esporta Registro Completo in PDF 📄</button>
 
     <h2>Riepilogo Mensile</h2>
     <div class="table-container">
@@ -536,6 +537,7 @@
     const multiselectMonthSelected = document.querySelector('#multiselect-month-container .multiselect-selected');
     const multiselectMonthOptions = document.getElementById('multiselect-month-options');
     const exportSelectedButton = document.getElementById('export-selected-btn');
+    const exportSelectedPdfButton = document.getElementById('export-selected-pdf-btn');
     const exportAllButton = document.getElementById('export-all-btn');
     const exportPdfButton = document.getElementById('export-pdf-btn');
 
@@ -826,16 +828,16 @@
         document.body.removeChild(link);
     }
     
-    function exportToPdf() {
-        if (registerData.length === 0) {
+    function generatePdfFromData(data, filename) {
+        if (data.length === 0) {
             showNotification('Nessun dato da esportare.', 'error');
             return;
         }
-
+        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        const dataForPdf = [...registerData].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const dataForPdf = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
 
         const tableColumn = ["Data", "Inizio", "Fine", "Ore Tot.", "Ore Str.", "Trasf.", "Sede", "Luogo", "Note"];
         
@@ -854,6 +856,10 @@
 
         sortedMonths.forEach(monthKey => {
             const monthData = groupedData[monthKey];
+            if (doc.internal.pageSize.height - startY < 30) {
+                doc.addPage();
+                startY = 20;
+            }
             doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
             doc.text(`Mese di ${monthKey.charAt(0).toUpperCase() + monthKey.slice(1)}`, 105, startY, null, null, "center");
@@ -891,8 +897,8 @@
             startY = doc.lastAutoTable.finalY + 10;
         });
 
-        doc.save('Registro_Orario_Lavoro.pdf');
-        showNotification('Registro completo esportato in PDF!', 'success');
+        doc.save(filename);
+        showNotification(`${filename} generato con successo!`, 'success');
     }
 
     function exportSelectedToCsv() {
@@ -924,11 +930,47 @@
             showNotification('Nessun dato da esportare per la selezione corrente.', 'error');
         }
     }
+    
+    function exportSelectedToPdf() {
+        const selectedYear = exportYearSelect.value;
+        const selectedMonths = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(checkbox => parseInt(checkbox.value));
+        
+        let filteredData = registerData;
+        let filename = 'registro_orario_selezionato.pdf';
+
+        if (!selectedYear && selectedMonths.length === 0) {
+             showNotification('Seleziona un anno o almeno un mese per l\'esportazione.', 'error');
+             return;
+        }
+        
+        if (selectedYear) {
+            filteredData = filteredData.filter(entry => new Date(entry.date).getFullYear() == selectedYear);
+            filename = `registro_${selectedYear}.pdf`;
+        }
+        
+        if (selectedMonths.length > 0) {
+            filteredData = filteredData.filter(entry => {
+                const entryMonth = new Date(entry.date).getMonth();
+                const entryYear = new Date(entry.date).getFullYear();
+                return selectedMonths.includes(entryMonth) && (!selectedYear || entryYear == selectedYear);
+            });
+            const monthNames = selectedMonths.map(m => new Date(2000, m).toLocaleString('it-IT', { month: 'short' }));
+            filename = `registro_${monthNames.join('-')}_${selectedYear || 'tutti_gli_anni'}.pdf`;
+        }
+        
+        generatePdfFromData(filteredData, filename);
+    }
+
 
     function exportAllToCsv() {
         exportToCsv(registerData, 'registro_orario_completo.csv');
         showNotification('Registro completo esportato con successo!', 'success');
     }
+    
+    function exportAllToPdf() {
+        generatePdfFromData(registerData, 'registro_orario_completo.pdf');
+    }
+
 
     function updateExportOptions() {
         const uniqueYears = [...new Set(registerData.map(entry => new Date(entry.date).getFullYear()))].sort((a, b) => b - a);
@@ -1073,8 +1115,9 @@
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
     exportSelectedButton.addEventListener('click', exportSelectedToCsv);
+    exportSelectedPdfButton.addEventListener('click', exportSelectedToPdf);
     exportAllButton.addEventListener('click', exportAllToCsv);
-    exportPdfButton.addEventListener('click', exportToPdf);
+    exportPdfButton.addEventListener('click', exportAllToPdf);
     toggleRegisterHeader.addEventListener('click', toggleRegister);
     
     // Assicurarsi che solo una delle due checkbox sia selezionata alla volta
