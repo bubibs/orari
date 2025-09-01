@@ -482,12 +482,12 @@
         </div>
     </div>
     <div class="btn-group-three">
-        <button id="export-selected-btn" class="btn">CSV</button>
-        <button id="export-selected-pdf-btn" class="btn btn-pdf">PDF 📄</button>
+        <button id="export-selected-btn" class="btn">Esporta Selezione CSV</button>
+        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta Selezione PDF 📄</button>
     </div>
     <div class="btn-group-three">
-        <button id="export-all-btn" class="btn">CSV Completo</button>
-        <button id="export-pdf-btn" class="btn btn-pdf">PDF Completo 📄</button>
+        <button id="export-all-btn" class="btn">Esporta Completo CSV</button>
+        <button id="export-pdf-btn" class="btn btn-pdf">Esporta Completo PDF 📄</button>
     </div>
 
     <h2>Riepilogo Mensile</h2>
@@ -1114,7 +1114,10 @@
             updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
         }
     });
-    exportYearSelect.addEventListener('change', () => handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions));
+    exportYearSelect.addEventListener('change', () => {
+        handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions);
+        updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
+    });
 
     filterMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, filterMonthContainer, filterMonthOptions));
     filterMonthOptions.addEventListener('change', (e) => {
@@ -1125,6 +1128,7 @@
     });
     filterYearSelect.addEventListener('change', () => {
         handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
+        updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
         applyFiltersAndSearch();
     });
 
@@ -1153,8 +1157,6 @@
             renderMonthlySummary();
             updateLocationSuggestions();
             updateExportAndFilterOptions();
-            handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions);
-            handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
         }
     }
 
