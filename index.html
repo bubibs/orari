@@ -81,7 +81,6 @@
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
         
-        /* Aggiunta animazione focus per input */
         input[type="date"]:focus, input[type="text"]:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #00a2e3;
@@ -109,7 +108,6 @@
             align-items: center;
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
-        /* Animazione focus per dropdown orario */
         .time-dropdown-container:focus-within .time-display {
             border-color: #00a2e3;
             box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
@@ -202,13 +200,12 @@
         #save-btn {
             background-color: #00a2e3;
             font-size: 20px;
-            position: relative; /* Necessario per l'animazione */
+            position: relative;
         }
         #save-btn:hover {
             background-color: #007bb6;
         }
 
-        /* Animazione pulsante Salva */
         .btn-save-anim {
             display: flex;
             align-items: center;
@@ -251,34 +248,27 @@
             background-color: #800000;
         }
         
-        .btn-group {
+        .btn-backup {
+            background-color: #337ab7;
+        }
+        .btn-backup:hover {
+            background-color: #286090;
+        }
+        
+        .button-group-responsive {
             display: flex;
             gap: 10px;
             margin-top: 15px;
         }
         
-        .btn-group .btn {
-            width: 50%;
+        .button-group-responsive .btn {
+            flex: 1;
             margin-top: 0;
         }
-
-        .btn-group-three {
-            display: flex;
-            gap: 5px;
-            margin-top: 15px;
-            flex-wrap: wrap; 
-        }
-
-        .btn-group-three .btn {
-            flex: 1 1 30%; 
-            min-width: 100px;
-            margin-top: 0;
-            font-size: 14px;
-        }
-
-        @media (min-width: 600px) {
-            .btn-group-three .btn {
-                font-size: 16px;
+        
+        @media (max-width: 600px) {
+            .button-group-responsive {
+                flex-direction: column;
             }
         }
         
@@ -543,13 +533,18 @@
             </div>
         </div>
     </div>
-    <div class="btn-group-three">
+    <div class="button-group-responsive">
         <button id="export-selected-btn" class="btn">Esporta Selezione CSV</button>
         <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta Selezione PDF 📄</button>
     </div>
-    <div class="btn-group-three">
+    <div class="button-group-responsive">
         <button id="export-all-btn" class="btn">Esporta Completo CSV</button>
         <button id="export-pdf-btn" class="btn btn-pdf">Esporta Completo PDF 📄</button>
+    </div>
+    <div class="button-group-responsive" style="margin-top: 5px;">
+        <button id="export-data-btn" class="btn btn-backup">Salva Backup</button>
+        <button id="import-data-btn" class="btn btn-backup" type="button">Carica Backup</button>
+        <input type="file" id="import-file" accept=".json" style="display:none;">
     </div>
 
     <h2>Riepilogo Mensile</h2>
@@ -652,6 +647,10 @@
     const filterMonthContainer = document.getElementById('filter-month-container');
     const filterMonthSelected = document.querySelector('#filter-month-container .multiselect-selected');
     const filterMonthOptions = document.getElementById('filter-month-options');
+
+    const exportDataBtn = document.getElementById('export-data-btn');
+    const importDataBtn = document.getElementById('import-data-btn');
+    const importFile = document.getElementById('import-file');
 
 
     function showNotification(message, type) {
@@ -1004,11 +1003,6 @@
                          doc.setFontSize(10);
                          doc.text("Pagina " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
                     }
-                },
-                didDrawCell: (data) => {
-                    if (data.column.index === 0 && data.cell.section === 'body') {
-                        doc.setFont('times', 'bold');
-                    }
                 }
             });
             startY = doc.lastAutoTable.finalY + 10;
@@ -1096,6 +1090,46 @@
         } else {
             showNotification('Nessun dato da esportare.', 'error');
         }
+    }
+
+    // Funzioni per il backup JSON
+    function downloadJSON() {
+        const dataStr = JSON.stringify(registerData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'registro_orario_backup.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showNotification('Dati salvati in file JSON!', 'success');
+    }
+
+    function uploadJSON(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData && Array.isArray(importedData)) {
+                    registerData = importedData;
+                    localStorage.setItem('registroOrario', JSON.stringify(registerData));
+                    loadRegister();
+                    showNotification('Dati ripristinati da file JSON!', 'success');
+                } else {
+                    showNotification('Formato file non valido.', 'error');
+                }
+            } catch (error) {
+                showNotification('Errore nella lettura del file.', 'error');
+                console.error(error);
+            }
+        };
+        reader.readAsText(file);
     }
     
     function updateExportAndFilterOptions() {
@@ -1280,6 +1314,9 @@
     exportAllButton.addEventListener('click', exportAllToCsv);
     exportPdfButton.addEventListener('click', exportAllToPdf);
     toggleRegisterHeader.addEventListener('click', toggleRegister);
+    exportDataBtn.addEventListener('click', downloadJSON);
+    importDataBtn.addEventListener('click', () => importFile.click());
+    importFile.addEventListener('change', uploadJSON);
     
     // Assicurarsi che solo una delle due checkbox sia selezionata alla volta
     businessTripCheckbox.addEventListener('change', () => {
