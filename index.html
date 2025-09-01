@@ -780,22 +780,25 @@
     }
 
     function exportToCsv(data, filename) {
-        // Ordina i dati per data in ordine crescente per garantire la corretta sequenza dei mesi
-        data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Ordina i dati per data in ordine decrescente (dal più recente al più vecchio)
+        data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         let csvContent = "";
         let currentMonth = null;
+        let currentYear = null;
 
         data.forEach(entry => {
             const entryDate = new Date(entry.date);
             const entryMonth = entryDate.getMonth();
+            const entryYear = entryDate.getFullYear();
 
-            // Se il mese cambia, aggiungi un'intestazione
-            if (entryMonth !== currentMonth) {
+            // Se il mese o l'anno cambiano, aggiungi un'intestazione
+            if (entryMonth !== currentMonth || entryYear !== currentYear) {
                 const monthName = entryDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
                 csvContent += `\n**--- Mese di ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ---**\n`;
                 csvContent += "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo,Note\n";
                 currentMonth = entryMonth;
+                currentYear = entryYear;
             }
 
             // Aggiungi la riga dei dati
@@ -854,7 +857,7 @@
         exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
         
         multiselectMonthOptions.innerHTML = '';
-        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => b - a); // Ordinamento dal più recente al più vecchio
+        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => b - a);
         allMonths.forEach(monthIndex => {
             const monthName = new Date(2000, monthIndex).toLocaleString('it-IT', { month: 'long' });
             const optionDiv = document.createElement('div');
