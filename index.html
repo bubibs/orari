@@ -854,7 +854,7 @@
         exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
         
         multiselectMonthOptions.innerHTML = '';
-        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a,b) => a-b);
+        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => b - a); // Ordinamento dal più recente al più vecchio
         allMonths.forEach(monthIndex => {
             const monthName = new Date(2000, monthIndex).toLocaleString('it-IT', { month: 'long' });
             const optionDiv = document.createElement('div');
