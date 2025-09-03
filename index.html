@@ -1257,20 +1257,22 @@
         exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
         filterYearSelect.innerHTML = '<option value="">Tutti gli Anni</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
         
-        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => b - a);
+        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => a - b);
         
         multiselectMonthOptions.innerHTML = '';
         filterMonthOptions.innerHTML = '';
+        const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+
         allMonths.forEach(monthIndex => {
-            const monthName = new Date(2000, monthIndex).toLocaleString('it-IT', { month: 'long' });
+            const monthName = monthNames[monthIndex];
             const optionDivExport = document.createElement('div');
             optionDivExport.className = 'multiselect-option';
-            optionDivExport.innerHTML = `<input type="checkbox" value="${monthIndex}" id="export-month-${monthIndex}"> <label for="export-month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
+            optionDivExport.innerHTML = `<input type="checkbox" value="${monthIndex}" id="export-month-${monthIndex}"> <label for="export-month-${monthIndex}">${monthName}</label>`;
             multiselectMonthOptions.appendChild(optionDivExport);
 
             const optionDivFilter = document.createElement('div');
             optionDivFilter.className = 'multiselect-option';
-            optionDivFilter.innerHTML = `<input type="checkbox" value="${monthIndex}" id="filter-month-${monthIndex}"> <label for="filter-month-${monthIndex}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</label>`;
+            optionDivFilter.innerHTML = `<input type="checkbox" value="${monthIndex}" id="filter-month-${monthIndex}"> <label for="filter-month-${monthIndex}">${monthName}</label>`;
             filterMonthOptions.appendChild(optionDivFilter);
         });
         updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
@@ -1287,7 +1289,7 @@
             selectedDisplay.textContent = selectedLabel;
         } else {
             const selectedLabels = Array.from(checkboxes).filter(cb => cb.checked).map(cb => optionsContainer.querySelector(`label[for="${cb.id}"]`).textContent);
-            selectedDisplay.textContent = selectedLabels.join(', ');
+            selectedDisplay.textContent = `${selectedCount} mesi selezionati`;
         }
     }
     
@@ -1468,6 +1470,25 @@
             closeAllDropdowns();
         }
     });
+
+    // Aggiungi event listener per l'apertura e la gestione dei dropdown dei mesi
+    multiselectMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, multiselectMonthContainer, multiselectMonthOptions));
+    filterMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, filterMonthContainer, filterMonthOptions));
+
+    // Aggiungi event listener per la selezione delle opzioni nei dropdown dei mesi
+    multiselectMonthOptions.addEventListener('change', () => updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected));
+    filterMonthOptions.addEventListener('change', () => {
+        updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
+        applyFiltersAndSearch();
+    });
+
+    // Aggiungi event listener per la selezione dell'anno
+    exportYearSelect.addEventListener('change', () => handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions));
+    filterYearSelect.addEventListener('change', () => {
+        handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
+        applyFiltersAndSearch();
+    });
+
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
     
