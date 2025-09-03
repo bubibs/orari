@@ -461,6 +461,10 @@
                 font-size: 16px;
             }
         }
+        .chart-container {
+            margin: 20px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -526,7 +530,9 @@
     <hr>
     
     <h2>Riepilogo Mensile</h2>
-    <canvas id="monthlyChart"></canvas>
+    <div class="chart-container">
+        <canvas id="monthlyChart"></canvas>
+    </div>
     
     <div class="table-container">
         <table id="monthly-summary-table">
