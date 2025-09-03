@@ -87,7 +87,7 @@
             font-weight: 600;
             font-size: 0.9em;
         }
-        input[type="date"], input[type="text"], textarea, select {
+        input[type="date"], input[type="text"], input[type="number"], textarea, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -100,7 +100,7 @@
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
         
-        input[type="date"]:focus, input[type="text"]:focus, textarea:focus, select:focus {
+        input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #00a2e3;
             box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
@@ -542,32 +542,8 @@
         <span class="btn-icon">✅</span>
     </button>
     
-    <div class="form-group" style="margin-top: 20px;">
-        <label for="export-month-year">Esporta per Mese(i) o Anno:</label>
-        <div class="export-options-container">
-            <select id="export-year">
-                <option value="">Seleziona Anno</option>
-            </select>
-            <div class="multiselect-dropdown" id="multiselect-month-container">
-                <div class="multiselect-selected">Seleziona Mese(i)</div>
-                <div class="multiselect-options" id="multiselect-month-options"></div>
-            </div>
-        </div>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-selected-btn" class="btn btn-green">CSV</button>
-        <button id="export-selected-pdf-btn" class="btn btn-pdf">PDF 📄</button>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-all-btn" class="btn btn-green">Completo CSV</button>
-        <button id="export-pdf-btn" class="btn btn-pdf">Completo PDF 📄</button>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-data-btn" class="btn btn-backup">Salva Backup</button>
-        <button id="import-data-btn" class="btn btn-backup" type="button">Carica Backup</button>
-        <input type="file" id="import-file" accept=".json" style="display:none;">
-    </div>
-
+    <hr>
+    
     <h2>Riepilogo Mensile</h2>
     <div class="table-container">
         <table id="monthly-summary-table">
@@ -579,20 +555,51 @@
                     <th>Rientro</th>
                     <th>Pernott.</th>
                     <th>Sede</th>
+                    <th>Lordo Tot.</th>
                 </tr>
             </thead>
             <tbody>
                 </tbody>
         </table>
     </div>
+
+    <hr>
+    
+    <h2>Esporta e gestisci i dati</h2>
     
     <div class="form-group" style="margin-top: 20px;">
-        <label for="search-input">Cerca nel registro:</label>
-        <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
+        <label>Esporta un periodo specifico:</label>
+        <div class="export-options-container">
+            <select id="export-year">
+                <option value="">Seleziona Anno</option>
+            </select>
+            <div class="multiselect-dropdown" id="multiselect-month-container">
+                <div class="multiselect-selected">Seleziona Mese(i)</div>
+                <div class="multiselect-options" id="multiselect-month-options"></div>
+            </div>
+        </div>
+    </div>
+    <div class="button-group-responsive">
+        <button id="export-selected-btn" class="btn btn-green">Esporta in CSV</button>
+        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta in PDF</button>
+    </div>
+    <div class="button-group-responsive">
+        <button id="export-all-btn" class="btn btn-green">Esporta tutto in CSV</button>
+        <button id="export-pdf-btn" class="btn btn-pdf">Esporta tutto in PDF</button>
+    </div>
+    
+    <div class="button-group-responsive" style="margin-top: 20px;">
+        <button id="export-data-btn" class="btn btn-backup">Crea Backup JSON</button>
+        <button id="import-data-btn" class="btn btn-backup">Importa Backup JSON</button>
+        <input type="file" id="import-file" accept=".json" style="display: none;">
     </div>
     
     <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="register-content">
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="search-input">Cerca nel registro:</label>
+            <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
+        </div>
         <div class="form-group" style="margin-top: 20px;">
             <label for="filter-month-year">Filtra per Mese(i) o Anno:</label>
             <div class="export-options-container">
@@ -656,6 +663,12 @@
     const standardWorkDay = 8;
     let registerData = [];
     
+    // Valori per il calcolo della retribuzione
+    const grossBaseSalary = 3480.79; 
+    const overtimeRate = 21.53;
+    const dayTripAllowance = 30.00;
+    const overnightTripAllowance = 60.00;
+    
     const exportYearSelect = document.getElementById('export-year');
     const multiselectMonthContainer = document.getElementById('multiselect-month-container');
     const multiselectMonthSelected = document.querySelector('#multiselect-month-container .multiselect-selected');
@@ -673,7 +686,6 @@
     const exportDataBtn = document.getElementById('export-data-btn');
     const importDataBtn = document.getElementById('import-data-btn');
     const importFile = document.getElementById('import-file');
-
 
     function showNotification(message, type) {
         notification.innerHTML = message;
@@ -936,8 +948,14 @@
             if (yearA !== yearB) return yearB - yearA;
             return monthB - monthA;
         });
+
         sortedMonths.forEach(monthKey => {
             const monthSummary = summary[monthKey];
+            
+            const totalOvertimeEarnings = monthSummary.overtimeHours * overtimeRate;
+            const totalTripEarnings = (monthSummary.tripWithReturnDays * dayTripAllowance) + (monthSummary.tripOvernightDays * overnightTripAllowance);
+            const totalGross = grossBaseSalary + totalOvertimeEarnings + totalTripEarnings;
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${monthSummary.monthName}</td>
@@ -946,6 +964,7 @@
                 <td>${monthSummary.tripWithReturnDays}</td>
                 <td>${monthSummary.tripOvernightDays}</td>
                 <td>${monthSummary.onSiteDays}</td>
+                <td>${totalGross.toFixed(2)} €</td>
             `;
             monthlySummaryBody.appendChild(row);
         });
@@ -1141,7 +1160,9 @@
 
     // Funzioni per il backup JSON
     function downloadJSON() {
-        const dataStr = JSON.stringify(registerData, null, 2);
+        const dataStr = JSON.stringify({
+            register: registerData
+        }, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -1163,10 +1184,10 @@
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                if (importedData && Array.isArray(importedData)) {
-                    registerData = importedData;
+                if (importedData && importedData.register && Array.isArray(importedData.register)) {
+                    registerData = importedData.register;
                     localStorage.setItem('registroOrario', JSON.stringify(registerData));
-                    loadRegister();
+                    loadAllData();
                     showNotification('Dati ripristinati da file JSON!', 'success');
                 } else {
                     showNotification('Formato file non valido.', 'error');
@@ -1257,32 +1278,6 @@
         });
         renderRegister(filteredData);
     }
-    
-    multiselectMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, multiselectMonthContainer, multiselectMonthOptions));
-    multiselectMonthOptions.addEventListener('change', (e) => {
-        if (e.target.type === 'checkbox') {
-            updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
-        }
-    });
-    exportYearSelect.addEventListener('change', () => {
-        handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions);
-        updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
-    });
-
-    filterMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, filterMonthContainer, filterMonthOptions));
-    filterMonthOptions.addEventListener('change', (e) => {
-        if (e.target.type === 'checkbox') {
-            updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
-            applyFiltersAndSearch();
-        }
-    });
-    filterYearSelect.addEventListener('change', () => {
-        handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
-        updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
-        applyFiltersAndSearch();
-    });
-
-    searchInput.addEventListener('input', applyFiltersAndSearch);
 
     function toggleRegister() {
         registerContent.classList.toggle('open');
@@ -1309,11 +1304,15 @@
                 return updatedEntry;
             });
             registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            renderRegister();
-            renderMonthlySummary();
-            updateLocationSuggestions();
-            updateExportAndFilterOptions();
         }
+    }
+
+    function loadAllData() {
+        loadRegister();
+        renderRegister();
+        renderMonthlySummary();
+        updateLocationSuggestions();
+        updateExportAndFilterOptions();
     }
 
     function closeAllDropdowns() {
@@ -1405,7 +1404,7 @@
     dateInput.value = `${year}-${month}-${day}`;
 
     generateTimeOptions();
-    loadRegister();
+    loadAllData();
 </script>
 </body>
 </html>
