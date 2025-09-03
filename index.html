@@ -31,21 +31,6 @@
             background: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            
-            /* Altre opzioni di stile che puoi attivare */
-            /*
-            
-            // Effetto 3D con sfumatura
-            color: transparent;
-            background: linear-gradient(45deg, #00a2e3, #007bb6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            transform: perspective(1px) translateZ(0);
-            
-            // Ombra leggera (quello che hai trovato offuscato)
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            */
         }
         h1, h2 {
             text-align: center;
@@ -555,12 +540,32 @@
                     <th>Rientro</th>
                     <th>Pernott.</th>
                     <th>Sede</th>
-                    <th>Lordo Tot.</th>
                 </tr>
             </thead>
             <tbody>
                 </tbody>
         </table>
+    </div>
+
+    <h2 class="collapsible-header" id="toggle-gross-net">Riepilogo Retributivo Lordo/Netto <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="gross-net-content">
+        <div class="form-group">
+            <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
+            <input type="number" id="taxRateInput" value="30" step="0.1" min="0" max="100">
+        </div>
+        <div class="table-container">
+            <table id="gross-net-table">
+                <thead>
+                    <tr>
+                        <th>Mese</th>
+                        <th>Lordo</th>
+                        <th>Netto (stimato)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
     </div>
 
     <hr>
@@ -589,8 +594,8 @@
     </div>
     
     <div class="button-group-responsive" style="margin-top: 20px;">
-        <button id="export-data-btn" class="btn btn-backup">Crea Backup JSON</button>
-        <button id="import-data-btn" class="btn btn-backup">Importa Backup JSON</button>
+        <button id="export-data-btn" class="btn btn-backup">Crea Backup</button>
+        <button id="import-data-btn" class="btn btn-backup">Importa Backup</button>
         <input type="file" id="import-file" accept=".json" style="display: none;">
     </div>
     
@@ -668,6 +673,8 @@
     const overtimeRate = 21.53;
     const dayTripAllowance = 30.00;
     const overnightTripAllowance = 60.00;
+    const socialSecurityRate = 0.0949; // Aliquota contributiva (9.49%)
+    let taxRate = 0.30; // Aliquota fiscale (30%) - Ora variabile
     
     const exportYearSelect = document.getElementById('export-year');
     const multiselectMonthContainer = document.getElementById('multiselect-month-container');
@@ -686,6 +693,14 @@
     const exportDataBtn = document.getElementById('export-data-btn');
     const importDataBtn = document.getElementById('import-data-btn');
     const importFile = document.getElementById('import-file');
+    
+    const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
+    const grossNetContent = document.getElementById('gross-net-content');
+    const grossNetBody = document.querySelector('#gross-net-table tbody');
+
+    // Nuova casella di testo per l'aliquota
+    const taxRateInput = document.getElementById('taxRateInput');
+    const TAX_RATE_STORAGE_KEY = 'taxRate';
 
     function showNotification(message, type) {
         notification.innerHTML = message;
@@ -837,6 +852,7 @@
         }
         renderRegister();
         renderMonthlySummary();
+        renderGrossNetSummary();
         updateLocationSuggestions();
         updateExportAndFilterOptions();
         showNotification('Dati salvati nel registro!', 'success');
@@ -866,6 +882,7 @@
             localStorage.setItem('registroOrario', JSON.stringify(registerData));
             renderRegister();
             renderMonthlySummary();
+            renderGrossNetSummary();
             updateLocationSuggestions();
             updateExportAndFilterOptions();
             showNotification(`Inserimento per il giorno ${formatDate(date)} cancellato.`, 'success');
@@ -952,10 +969,6 @@
         sortedMonths.forEach(monthKey => {
             const monthSummary = summary[monthKey];
             
-            const totalOvertimeEarnings = monthSummary.overtimeHours * overtimeRate;
-            const totalTripEarnings = (monthSummary.tripWithReturnDays * dayTripAllowance) + (monthSummary.tripOvernightDays * overnightTripAllowance);
-            const totalGross = grossBaseSalary + totalOvertimeEarnings + totalTripEarnings;
-
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${monthSummary.monthName}</td>
@@ -964,9 +977,59 @@
                 <td>${monthSummary.tripWithReturnDays}</td>
                 <td>${monthSummary.tripOvernightDays}</td>
                 <td>${monthSummary.onSiteDays}</td>
-                <td>${totalGross.toFixed(2)} €</td>
             `;
             monthlySummaryBody.appendChild(row);
+        });
+    }
+    
+    function renderGrossNetSummary() {
+        grossNetBody.innerHTML = '';
+        const summary = {};
+        registerData.forEach(entry => {
+            const date = new Date(entry.date);
+            const monthKey = date.getFullYear() + '-' + date.getMonth();
+            const monthName = date.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            if (!summary[monthKey]) {
+                summary[monthKey] = {
+                    monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+                    overtimeHours: 0,
+                    tripWithReturnDays: 0,
+                    tripOvernightDays: 0
+                };
+            }
+            summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
+            if (entry.tripType === 'Rientro') {
+                summary[monthKey].tripWithReturnDays += 1;
+            }
+            if (entry.tripType === 'Pernottamento') {
+                summary[monthKey].tripOvernightDays += 1;
+            }
+        });
+        const sortedMonths = Object.keys(summary).sort((a, b) => {
+            const [yearA, monthA] = a.split('-').map(Number);
+            const [yearB, monthB] = b.split('-').map(Number);
+            if (yearA !== yearB) return yearB - yearA;
+            return monthB - monthA;
+        });
+
+        sortedMonths.forEach(monthKey => {
+            const monthSummary = summary[monthKey];
+            
+            const totalOvertimeEarnings = monthSummary.overtimeHours * overtimeRate;
+            const totalTripEarnings = (monthSummary.tripWithReturnDays * dayTripAllowance) + (monthSummary.tripOvernightDays * overnightTripAllowance);
+            const totalGross = grossBaseSalary + totalOvertimeEarnings + totalTripEarnings;
+            
+            // Calcolo del netto:
+            const grossAfterSocialSecurity = totalGross * (1 - socialSecurityRate);
+            const estimatedNet = grossAfterSocialSecurity * (1 - taxRate);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${monthSummary.monthName}</td>
+                <td>${totalGross.toFixed(2)} €</td>
+                <td>${estimatedNet.toFixed(2)} €</td>
+            `;
+            grossNetBody.appendChild(row);
         });
     }
 
@@ -1161,7 +1224,10 @@
     // Funzioni per il backup JSON
     function downloadJSON() {
         const dataStr = JSON.stringify({
-            register: registerData
+            register: registerData,
+            settings: {
+                taxRate: taxRate
+            }
         }, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -1187,6 +1253,10 @@
                 if (importedData && importedData.register && Array.isArray(importedData.register)) {
                     registerData = importedData.register;
                     localStorage.setItem('registroOrario', JSON.stringify(registerData));
+                    if (importedData.settings && importedData.settings.taxRate !== undefined) {
+                        taxRate = importedData.settings.taxRate;
+                        localStorage.setItem(TAX_RATE_STORAGE_KEY, taxRate);
+                    }
                     loadAllData();
                     showNotification('Dati ripristinati da file JSON!', 'success');
                 } else {
@@ -1279,9 +1349,32 @@
         renderRegister(filteredData);
     }
 
-    function toggleRegister() {
-        registerContent.classList.toggle('open');
-        toggleRegisterHeader.classList.toggle('open');
+    function toggleCollapsible(header, content) {
+        content.classList.toggle('open');
+        header.classList.toggle('open');
+    }
+
+    function loadSettings() {
+        const savedTaxRate = localStorage.getItem(TAX_RATE_STORAGE_KEY);
+        if (savedTaxRate) {
+            taxRate = parseFloat(savedTaxRate);
+            taxRateInput.value = (taxRate * 100).toFixed(1);
+        } else {
+            taxRateInput.value = (taxRate * 100).toFixed(1);
+        }
+    }
+
+    function saveTaxRate() {
+        const newRate = parseFloat(taxRateInput.value);
+        if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) {
+            taxRate = newRate / 100;
+            localStorage.setItem(TAX_RATE_STORAGE_KEY, taxRate);
+            renderGrossNetSummary();
+            showNotification('Aliquota fiscale aggiornata!', 'success');
+        } else {
+            showNotification('Valore aliquota non valido.', 'error');
+            taxRateInput.value = (taxRate * 100).toFixed(1);
+        }
     }
 
     function loadRegister() {
@@ -1308,9 +1401,11 @@
     }
 
     function loadAllData() {
+        loadSettings();
         loadRegister();
         renderRegister();
         renderMonthlySummary();
+        renderGrossNetSummary();
         updateLocationSuggestions();
         updateExportAndFilterOptions();
     }
@@ -1365,11 +1460,16 @@
     exportSelectedPdfButton.addEventListener('click', exportSelectedToPdf);
     exportAllButton.addEventListener('click', exportAllToCsv);
     exportPdfButton.addEventListener('click', exportAllToPdf);
-    toggleRegisterHeader.addEventListener('click', toggleRegister);
+    toggleRegisterHeader.addEventListener('click', () => toggleCollapsible(toggleRegisterHeader, registerContent));
+    toggleGrossNetHeader.addEventListener('click', () => toggleCollapsible(toggleGrossNetHeader, grossNetContent));
     exportDataBtn.addEventListener('click', downloadJSON);
     importDataBtn.addEventListener('click', () => importFile.click());
     importFile.addEventListener('change', uploadJSON);
     
+    // Gestione dell'aliquota
+    taxRateInput.addEventListener('change', saveTaxRate);
+    taxRateInput.addEventListener('input', renderGrossNetSummary); // Aggiorna in tempo reale
+
     // Assicurarsi che le opzioni si escludano a vicenda
     for (const radio of tripTypeRadios) {
         radio.addEventListener('change', () => {
