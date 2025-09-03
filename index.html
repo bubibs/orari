@@ -985,10 +985,13 @@
         data.forEach(entry => {
             const date = new Date(entry.date);
             const monthKey = date.getFullYear() + '-' + date.getMonth();
-            const monthName = date.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            const monthNumber = (date.getMonth() + 1).toString().padStart(2, '0');
+            const yearShort = date.getFullYear().toString().slice(-2);
+            const monthLabel = `${monthNumber}/${yearShort}`;
+            
             if (!summary[monthKey]) {
                 summary[monthKey] = {
-                    monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+                    monthLabel: monthLabel,
                     totalHours: 0,
                     overtimeHours: 0,
                     tripWithReturnDays: 0,
@@ -1025,7 +1028,7 @@
             const monthSummary = summary[monthKey];
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${monthSummary.monthName}</td>
+                <td>${monthSummary.monthLabel}</td>
                 <td>${monthSummary.totalHours.toFixed(2)}</td>
                 <td>${monthSummary.overtimeHours.toFixed(2)}</td>
                 <td>${monthSummary.tripWithReturnDays}</td>
@@ -1056,7 +1059,7 @@
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${monthSummary.monthName}</td>
+                <td>${monthSummary.monthLabel}</td>
                 <td>${totalGross.toFixed(2)} €</td>
                 <td>${estimatedNet.toFixed(2)} €</td>
             `;
@@ -1337,9 +1340,7 @@
             return monthA - monthB;
         });
 
-        const labels = sortedMonths.map(key => summary[key].monthName);
-        const overtimeHours = sortedMonths.map(key => summary[key].overtimeHours.toFixed(2));
-        const totalHours = sortedMonths.map(key => summary[key].totalHours.toFixed(2));
+        const labels = sortedMonths.map(key => summary[key].monthLabel);
         const rientroDays = sortedMonths.map(key => summary[key].tripWithReturnDays);
         const pernottamentoDays = sortedMonths.map(key => summary[key].tripOvernightDays);
         const onSiteDays = sortedMonths.map(key => summary[key].onSiteDays);
@@ -1348,38 +1349,24 @@
             labels: labels,
             datasets: [
                 {
-                    label: 'Ore Totali',
-                    data: totalHours,
-                    backgroundColor: '#00a2e3',
-                    borderColor: '#007bb6',
+                    label: 'Giorni in Sede',
+                    data: onSiteDays,
+                    backgroundColor: '#9966cc',
+                    borderColor: '#800080',
                     borderWidth: 1
                 },
                 {
-                    label: 'Ore Straordinario',
-                    data: overtimeHours,
-                    backgroundColor: '#22a36b',
-                    borderColor: '#1a7e52',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Trasferte (Rientro)',
+                    label: 'Giorni con Rientro',
                     data: rientroDays,
                     backgroundColor: '#ffc107',
                     borderColor: '#e0a800',
                     borderWidth: 1
                 },
                 {
-                    label: 'Trasferte (Pernottamento)',
+                    label: 'Giorni con Pernottamento',
                     data: pernottamentoDays,
                     backgroundColor: '#f08080',
                     borderColor: '#e06666',
-                    borderWidth: 1
-                },
-                 {
-                    label: 'Giorni in Sede',
-                    data: onSiteDays,
-                    backgroundColor: '#9966cc',
-                    borderColor: '#800080',
                     borderWidth: 1
                 }
             ]
@@ -1401,7 +1388,7 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Quantità'
+                            text: 'Numero di Giorni'
                         }
                     }
                 }
