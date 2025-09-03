@@ -163,15 +163,22 @@
             background-color: #e6f7ff;
             font-weight: 600;
         }
-        .checkbox-group {
+        .radio-group, .checkbox-group {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
-        .checkbox-group input {
+        .radio-group label, .checkbox-group label {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 0;
+        }
+        .radio-group input, .checkbox-group input {
             width: auto;
             margin-right: 8px;
-            -webkit-appearance: checkbox;
+            -webkit-appearance: radio;
+            -moz-appearance: radio;
+            appearance: radio;
         }
         .btn {
             display: block;
@@ -501,10 +508,15 @@
         <input type="checkbox" id="lunchBreak">
         <label for="lunchBreak">Pausa pranzo (1 ora)</label>
     </div>
-    <div class="checkbox-group">
-        <input type="checkbox" id="businessTrip">
-        <label for="businessTrip">In trasferta</label>
+    
+    <div class="form-group radio-group">
+        <label>Tipo di Trasferta:</label>
+        <input type="radio" id="tripWithReturn" name="tripType" value="Rientro">
+        <label for="tripWithReturn">Con Rientro</label>
+        <input type="radio" id="tripOvernight" name="tripType" value="Pernottamento">
+        <label for="tripOvernight">Con Pernottamento</label>
     </div>
+
     <div class="checkbox-group">
         <input type="checkbox" id="onSite">
         <label for="onSite">In sede</label>
@@ -564,7 +576,8 @@
                     <th>Mese</th>
                     <th>Ore Tot.</th>
                     <th>Ore Str.</th>
-                    <th>Trasf.</th>
+                    <th>Rientro</th>
+                    <th>Pernott.</th>
                     <th>Sede</th>
                 </tr>
             </thead>
@@ -601,9 +614,10 @@
                         <th>Fine</th>
                         <th>Totali</th>
                         <th>Str.</th>
-                        <th>Trasf.</th>
+                        <th>Tipo Trasf.</th>
                         <th>Sede</th>
                         <th>Luogo</th>
+                        <th>Note</th>
                         <th>Azione</th>
                     </tr>
                 </thead>
@@ -625,7 +639,7 @@
     const endTimeDisplay = document.getElementById('endTimeDisplay');
     const endTimeOptions = document.getElementById('endTimeOptions');
     const lunchBreakCheckbox = document.getElementById('lunchBreak');
-    const businessTripCheckbox = document.getElementById('businessTrip');
+    const tripTypeRadios = document.querySelectorAll('input[name="tripType"]');
     const onSiteCheckbox = document.getElementById('onSite');
     const locationInput = document.getElementById('location');
     const notesInput = document.getElementById('notes');
@@ -730,9 +744,10 @@
             <td>${entry.endTime}</td>
             <td>${entry.totalHours.toFixed(2)}</td>
             <td>${entry.overtimeHours.toFixed(2)}</td>
-            <td>${entry.businessTrip ? 'Sì' : 'No'}</td>
+            <td>${entry.tripType || '-'}</td>
             <td>${entry.onSite ? 'Sì' : 'No'}</td>
             <td>${entry.location}</td>
+            <td>${entry.notes || ''}</td>
             <td class="action-buttons-cell">
                 <button class="btn-small btn-edit" data-date="${entry.date}">✏️</button>
                 <button class="btn-small btn-delete" data-date="${entry.date}">🗑️</button>
@@ -746,12 +761,19 @@
         const startTime = startTimeDisplay.getAttribute('data-value');
         const endTime = endTimeDisplay.getAttribute('data-value');
         const lunchBreak = lunchBreakCheckbox.checked;
-        const businessTrip = businessTripCheckbox.checked;
         const onSite = onSiteCheckbox.checked;
         const location = locationInput.value;
         const notes = notesInput.value;
         const totalHours = parseFloat(totalHoursSpan.textContent);
         const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
+        
+        let tripType = null;
+        for (const radio of tripTypeRadios) {
+            if (radio.checked) {
+                tripType = radio.value;
+                break;
+            }
+        }
         
         if (!date || !startTime || !endTime) {
             showNotification('Per favore, compila tutti i campi obbligatori.', 'error');
@@ -763,6 +785,14 @@
             showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
             return;
         }
+        
+        // Disabilita la selezione del tipo di trasferta se 'In sede' è selezionato
+        if (onSite) {
+            tripType = null;
+        }
+        if (tripType) {
+            onSiteCheckbox.checked = false;
+        }
 
         saveButton.classList.add('saved');
 
@@ -772,7 +802,7 @@
             endTime: endTime,
             totalHours: totalHours,
             overtimeHours: overtimeHours,
-            businessTrip: businessTrip,
+            tripType: tripType,
             onSite: onSite,
             lunchBreak: lunchBreak,
             location: location,
@@ -807,7 +837,9 @@
             endTimeDisplay.textContent = 'Seleziona orario';
             endTimeDisplay.setAttribute('data-value', '');
             lunchBreakCheckbox.checked = false;
-            businessTripCheckbox.checked = false;
+            for (const radio of tripTypeRadios) {
+                radio.checked = false;
+            }
             onSiteCheckbox.checked = false;
             locationInput.value = '';
             notesInput.value = '';
@@ -837,7 +869,10 @@
             endTimeDisplay.textContent = entryToEdit.endTime;
             endTimeDisplay.setAttribute('data-value', entryToEdit.endTime);
             lunchBreakCheckbox.checked = entryToEdit.lunchBreak;
-            businessTripCheckbox.checked = entryToEdit.businessTrip;
+            
+            for (const radio of tripTypeRadios) {
+                radio.checked = (entryToEdit.tripType === radio.value);
+            }
             onSiteCheckbox.checked = entryToEdit.onSite;
             locationInput.value = entryToEdit.location;
             notesInput.value = entryToEdit.notes || '';
@@ -878,14 +913,18 @@
                     monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
                     totalHours: 0,
                     overtimeHours: 0,
-                    businessTripDays: 0,
+                    tripWithReturnDays: 0,
+                    tripOvernightDays: 0,
                     onSiteDays: 0
                 };
             }
             summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
             summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
-            if (entry.businessTrip) {
-                summary[monthKey].businessTripDays += 1;
+            if (entry.tripType === 'Rientro') {
+                summary[monthKey].tripWithReturnDays += 1;
+            }
+            if (entry.tripType === 'Pernottamento') {
+                summary[monthKey].tripOvernightDays += 1;
             }
             if (entry.onSite) {
                 summary[monthKey].onSiteDays += 1;
@@ -904,7 +943,8 @@
                 <td>${monthSummary.monthName}</td>
                 <td>${monthSummary.totalHours.toFixed(2)}</td>
                 <td>${monthSummary.overtimeHours.toFixed(2)}</td>
-                <td>${monthSummary.businessTripDays}</td>
+                <td>${monthSummary.tripWithReturnDays}</td>
+                <td>${monthSummary.tripOvernightDays}</td>
                 <td>${monthSummary.onSiteDays}</td>
             `;
             monthlySummaryBody.appendChild(row);
@@ -931,12 +971,12 @@
             if (entryMonth !== currentMonth || entryYear !== currentYear) {
                 const monthName = entryDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
                 csvContent += `\n**--- Mese di ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ---**\n`;
-                csvContent += "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Trasferta,Sede,Luogo,Note\n";
+                csvContent += "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Tipo trasferta,Sede,Luogo,Note\n";
                 currentMonth = entryMonth;
                 currentYear = entryYear;
             }
 
-            const row = `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.businessTrip ? 'Sì' : 'No'},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}", "${(entry.notes || '').replace(/"/g, '""')}"`;
+            const row = `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours},${entry.overtimeHours},${entry.tripType || ''},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}", "${(entry.notes || '').replace(/"/g, '""')}"`;
             csvContent += row + '\n';
         });
 
@@ -962,7 +1002,7 @@
         
         const dataForPdf = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        const tableColumn = ["Data", "Inizio", "Fine", "Ore Tot.", "Ore Str.", "Trasf.", "Sede", "Luogo", "Note"];
+        const tableColumn = ["Data", "Inizio", "Fine", "Ore Tot.", "Ore Str.", "Tipo Trasf.", "Sede", "Luogo", "Note"];
         
         let groupedData = {};
         dataForPdf.forEach(entry => {
@@ -993,7 +1033,7 @@
                 entry.endTime,
                 entry.totalHours.toFixed(2),
                 entry.overtimeHours.toFixed(2),
-                entry.businessTrip ? 'Sì' : 'No',
+                entry.tripType || '-',
                 entry.onSite ? 'Sì' : 'No',
                 entry.location,
                 entry.notes || ''
@@ -1253,15 +1293,21 @@
         const savedData = localStorage.getItem('registroOrario');
         if (savedData) {
             registerData = JSON.parse(savedData);
-            registerData = registerData.map(entry => ({
-                ...entry,
-                totalHours: parseFloat(entry.totalHours) || 0,
-                overtimeHours: parseFloat(entry.overtimeHours) || 0,
-                lunchBreak: entry.lunchBreak === true,
-                businessTrip: entry.businessTrip === true,
-                onSite: entry.onSite === true,
-                notes: entry.notes || ''
-            }));
+            registerData = registerData.map(entry => {
+                const updatedEntry = {
+                    ...entry,
+                    totalHours: parseFloat(entry.totalHours) || 0,
+                    overtimeHours: parseFloat(entry.overtimeHours) || 0,
+                    lunchBreak: entry.lunchBreak === true,
+                    onSite: entry.onSite === true,
+                    notes: entry.notes || ''
+                };
+                // Retro-compatibilità per vecchi dati senza tripType
+                if (entry.businessTrip !== undefined) {
+                    updatedEntry.tripType = entry.businessTrip ? 'Rientro' : null;
+                }
+                return updatedEntry;
+            });
             registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
             renderRegister();
             renderMonthlySummary();
@@ -1325,15 +1371,19 @@
     importDataBtn.addEventListener('click', () => importFile.click());
     importFile.addEventListener('change', uploadJSON);
     
-    // Assicurarsi che solo una delle due checkbox sia selezionata alla volta
-    businessTripCheckbox.addEventListener('change', () => {
-        if (businessTripCheckbox.checked) {
-            onSiteCheckbox.checked = false;
-        }
-    });
+    // Assicurarsi che le opzioni si escludano a vicenda
+    for (const radio of tripTypeRadios) {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                onSiteCheckbox.checked = false;
+            }
+        });
+    }
     onSiteCheckbox.addEventListener('change', () => {
         if (onSiteCheckbox.checked) {
-            businessTripCheckbox.checked = false;
+            for (const radio of tripTypeRadios) {
+                radio.checked = false;
+            }
         }
     });
     
