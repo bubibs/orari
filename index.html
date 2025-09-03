@@ -497,9 +497,9 @@
     <div class="form-group radio-group">
         <label>Tipo di Trasferta:</label>
         <input type="radio" id="tripWithReturn" name="tripType" value="Rientro">
-        <label for="tripWithReturn">Con Rientro</label>
+        <label for="tripWithReturn">Rientro</label>
         <input type="radio" id="tripOvernight" name="tripType" value="Pernottamento">
-        <label for="tripOvernight">Con Pernottamento</label>
+        <label for="tripOvernight">Pernottamento</label>
     </div>
 
     <div class="checkbox-group">
@@ -714,7 +714,7 @@
     function generateTimeOptions() {
         let optionsHtml = '';
         for (let h = 0; h < 24; h++) {
-            for (let m = 0; m += 30) {
+            for (let m = 0; m < 60; m += 30) {
                 const hour = String(h).padStart(2, '0');
                 const minute = String(m).padStart(2, '0');
                 const time = `${hour}:${minute}`;
