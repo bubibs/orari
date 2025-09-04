@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro Orario Lavoro</title>
     <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -259,19 +260,56 @@
             margin-top: 15px;
         }
         #results {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             margin-top: 20px;
             padding: 12px;
             background-color: #e9ecef;
             border-radius: 8px;
+            text-align: center;
         }
-        #results h3 {
-            margin-top: 0;
+        #results-header {
+            width: 100%;
+            text-align: center;
             color: #00a2e3;
             font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        #results-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+        #results-text {
+            flex-grow: 1;
         }
         #results p {
             margin: 4px 0;
             font-size: 16px;
+        }
+        .progress-bar-container {
+            width: 25px;
+            height: 150px;
+            background-color: #ddd;
+            border-radius: 12.5px;
+            overflow: hidden;
+            position: relative;
+            transform: scaleY(-1);
+            margin-left: auto;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 0;
+            background-color: #00a2e3;
+            transition: height 0.5s ease-out, background-color 0.5s ease-out;
+            position: absolute;
+            bottom: 0;
+        }
+        #totalHoursSpan {
+            font-size: 1.2em;
+            font-weight: bold;
         }
         .table-container {
             overflow-x: auto;
@@ -447,6 +485,12 @@
             margin: 20px 0;
             text-align: center;
         }
+        .monthly-summary-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -510,10 +554,17 @@
     </div>
     
     <div id="results">
-        <h3>Riepilogo giornaliero</h3>
-        <p id="totalHoursContainer"><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
-        <p id="overtimeHoursContainer"><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
-        <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHours">0</span></p>
+        <h3 id="results-header">Riepilogo giornaliero</h3>
+        <div id="results-content">
+            <div id="results-text">
+                <p id="totalHoursContainer"><strong>Ore totali:</strong> <span id="totalHoursSpan">0</span></p>
+                <p id="overtimeHoursContainer"><strong>Ore straordinarie:</strong> <span id="overtimeHoursSpan">0</span></p>
+                <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHoursSpan">0</span></p>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
     </div>
     
     <button id="save-btn" class="btn btn-save-anim">
@@ -524,17 +575,10 @@
     <hr>
     
     <h2>Grafici e Riepiloghi</h2>
-    <div class="form-group">
-        <label for="graphMonth">Filtra grafico per Mese:</label>
-        <select id="graphMonth"></select>
-    </div>
+
     <div class="chart-container">
-        <h3>Andamento Mensile</h3>
+        <h3>Grafico Riepilogo Mensile</h3>
         <canvas id="monthlyChart"></canvas>
-    </div>
-    <div class="chart-container">
-        <h3>Dettaglio Giornaliero</h3>
-        <canvas id="dailyChart"></canvas>
     </div>
 
     <div class="table-container">
@@ -675,7 +719,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Selezioni elementi del DOM
     const dateInput = document.getElementById('date');
@@ -689,12 +732,13 @@
     const lunchBreakCheckbox = document.getElementById('lunchBreak');
     const locationInput = document.getElementById('location');
     const notesInput = document.getElementById('notes');
-    const totalHoursSpan = document.getElementById('totalHours');
-    const overtimeHoursSpan = document.getElementById('overtimeHours');
-    const absenceHoursSpan = document.getElementById('absenceHours');
+    const totalHoursSpan = document.getElementById('totalHoursSpan');
+    const overtimeHoursSpan = document.getElementById('overtimeHoursSpan');
+    const absenceHoursSpan = document.getElementById('absenceHoursSpan');
     const totalHoursContainer = document.getElementById('totalHoursContainer');
     const overtimeHoursContainer = document.getElementById('overtimeHoursContainer');
     const absenceHoursContainer = document.getElementById('absenceHoursContainer');
+    const progressBar = document.getElementById('progressBar');
     const saveButton = document.getElementById('save-btn');
     const registerBody = document.querySelector('#register-table tbody');
     const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
@@ -703,11 +747,13 @@
     const registerContent = document.getElementById('register-content');
     const notification = document.getElementById('notification');
     const searchInput = document.getElementById('search-input');
+    const monthlyChartCanvas = document.getElementById('monthlyChart');
     const standardWorkDay = 8;
     const standardStartTime = '08:00';
     const standardEndTime = '17:00';
     let registerData = [];
-    
+    let monthlyChart = null;
+
     // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79;
     let overtimeRate = 21.53;
@@ -744,13 +790,6 @@
     const importDataBtn = document.getElementById('import-data-btn');
     const importFile = document.getElementById('import-file');
     
-    // Elementi del grafico
-    const monthlyChartCanvas = document.getElementById('monthlyChart');
-    const dailyChartCanvas = document.getElementById('dailyChart');
-    const graphMonthSelect = document.getElementById('graphMonth');
-    let monthlyChart = null;
-    let dailyChart = null;
-
     // Elementi del riepilogo lordo/netto
     const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
     const grossNetContent = document.getElementById('gross-net-content');
@@ -818,33 +857,47 @@
             totalHoursContainer.style.display = 'none';
             overtimeHoursContainer.style.display = 'none';
             absenceHoursContainer.style.display = 'block';
+            progressBar.style.height = '0%';
+            progressBar.style.backgroundColor = '#00a2e3';
         } else {
             totalHoursContainer.style.display = 'block';
             overtimeHoursContainer.style.display = 'block';
             absenceHoursContainer.style.display = 'none';
-        }
 
-        if (startTime && endTime) {
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-            if (end < start) {
-                end.setDate(end.getDate() + 1);
+            if (startTime && endTime) {
+                const start = new Date(`2025-01-01T${startTime}:00`);
+                const end = new Date(`2025-01-01T${endTime}:00`);
+                if (end < start) {
+                    end.setDate(end.getDate() + 1);
+                }
+                let totalMilliseconds = end - start;
+                let totalHours = totalMilliseconds / (1000 * 60 * 60);
+                if (lunchBreak) {
+                    totalHours -= 1;
+                }
+                const totalHoursFixed = totalHours.toFixed(2);
+                let overtimeHours = 0;
+                if (totalHours > standardWorkDay) {
+                    overtimeHours = totalHours - standardWorkDay;
+                }
+                totalHoursSpan.textContent = totalHoursFixed;
+                overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
+                
+                const maxHours = 12;
+                const percentage = (totalHours / maxHours) * 100;
+                progressBar.style.height = `${Math.min(percentage, 100)}%`;
+                
+                if (totalHours > standardWorkDay) {
+                    progressBar.style.backgroundColor = '#ff8c00';
+                } else {
+                    progressBar.style.backgroundColor = '#00a2e3';
+                }
+            } else {
+                totalHoursSpan.textContent = '0';
+                overtimeHoursSpan.textContent = '0';
+                progressBar.style.height = '0%';
+                progressBar.style.backgroundColor = '#00a2e3';
             }
-            let totalMilliseconds = end - start;
-            let totalHours = totalMilliseconds / (1000 * 60 * 60);
-            if (lunchBreak) {
-                totalHours -= 1;
-            }
-            const totalHoursFixed = totalHours.toFixed(2);
-            let overtimeHours = 0;
-            if (totalHours > standardWorkDay) {
-                overtimeHours = totalHours - standardWorkDay;
-            }
-            totalHoursSpan.textContent = totalHoursFixed;
-            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
-        } else {
-            totalHoursSpan.textContent = '0';
-            overtimeHoursSpan.textContent = '0';
         }
     }
 
@@ -881,7 +934,6 @@
         }
 
         if (absenceType) {
-            // Selezionata un'assenza, i dati vengono presi dal setup automatico
             startTime = standardStartTime;
             endTime = standardEndTime;
             lunchBreak = true;
@@ -1008,23 +1060,53 @@
                 monthlySummary[monthYear] = {
                     totalHours: 0,
                     overtimeHours: 0,
+                    onSiteHours: 0,
+                    returnTripHours: 0,
+                    overnightTripHours: 0,
+                    absenceHours: 0,
                     onSiteCount: 0,
-                    tripCount: 0,
+                    returnTripCount: 0,
+                    overnightTripCount: 0,
                     absenceCount: 0
                 };
             }
             monthlySummary[monthYear].totalHours += entry.totalHours;
             monthlySummary[monthYear].overtimeHours += entry.overtimeHours;
-            if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
-            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].tripCount++;
-            if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
+            if (entry.workMode === 'In Sede') {
+                monthlySummary[monthYear].onSiteHours += entry.totalHours;
+                monthlySummary[monthYear].onSiteCount++;
+            }
+            if (entry.workMode === 'Rientro') {
+                monthlySummary[monthYear].returnTripHours += entry.totalHours;
+                monthlySummary[monthYear].returnTripCount++;
+            }
+            if (entry.workMode === 'Pernottamento') {
+                monthlySummary[monthYear].overnightTripHours += entry.totalHours;
+                monthlySummary[monthYear].overnightTripCount++;
+            }
+            if (entry.absenceType) {
+                monthlySummary[monthYear].absenceHours += entry.absenceHours;
+                monthlySummary[monthYear].absenceCount++;
+            }
             if (entry.location) locations.add(entry.location);
         });
+        
+        // Per il riepilogo tabellare, sommiamo i due tipi di trasferta
+        const simplifiedMonthlySummary = {};
+        Object.keys(monthlySummary).forEach(monthYear => {
+            simplifiedMonthlySummary[monthYear] = {
+                totalHours: monthlySummary[monthYear].totalHours,
+                overtimeHours: monthlySummary[monthYear].overtimeHours,
+                onSiteCount: monthlySummary[monthYear].onSiteCount,
+                tripCount: monthlySummary[monthYear].returnTripCount + monthlySummary[monthYear].overnightTripCount,
+                absenceCount: monthlySummary[monthYear].absenceCount
+            };
+        });
 
-        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
+        const sortedMonths = Object.keys(simplifiedMonthlySummary).sort().reverse();
         monthlySummaryBody.innerHTML = '';
         sortedMonths.forEach(monthYear => {
-            const summary = monthlySummary[monthYear];
+            const summary = simplifiedMonthlySummary[monthYear];
             const [year, month] = monthYear.split('-');
             const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
             const row = document.createElement('tr');
@@ -1041,7 +1123,89 @@
 
         const sortedLocations = [...locations].sort();
         locationDatalist.innerHTML = sortedLocations.map(loc => `<option value="${loc}"></option>`).join('');
-        updateChartOptions(monthlySummary);
+        
+        updateMonthlyChart(monthlySummary);
+    }
+    
+    function updateMonthlyChart(monthlySummary) {
+        if (monthlyChart) {
+            monthlyChart.destroy();
+        }
+
+        const sortedMonths = Object.keys(monthlySummary).sort();
+        const labels = sortedMonths.map(monthYear => {
+            const [year, month] = monthYear.split('-');
+            return new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'short', year: '2-digit' });
+        });
+        
+        const onSiteData = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteHours);
+        const returnTripData = sortedMonths.map(monthYear => monthlySummary[monthYear].returnTripHours);
+        const overnightTripData = sortedMonths.map(monthYear => monthlySummary[monthYear].overnightTripHours);
+        const absenceData = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceHours);
+
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'In Sede',
+                    data: onSiteData,
+                    backgroundColor: 'rgba(0, 162, 227, 0.8)',
+                    borderColor: 'rgba(0, 162, 227, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Trasferta (Rientro)',
+                    data: returnTripData,
+                    backgroundColor: 'rgba(255, 165, 0, 0.8)',
+                    borderColor: 'rgba(255, 165, 0, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Trasferta (Pernottamento)',
+                    data: overnightTripData,
+                    backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Assenze',
+                    data: absenceData,
+                    backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: false,
+                    },
+                    y: {
+                        stacked: false,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Ore Totali'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        };
+
+        monthlyChart = new Chart(monthlyChartCanvas, config);
     }
 
     function calculateGrossNetSummary() {
@@ -1113,185 +1277,6 @@
         calculateGrossNetSummary();
         updateFilterOptions();
         updateExportOptions();
-        
-        const lastMonth = registerData.length > 0 ? registerData[0].date.substring(0, 7) : new Date().toISOString().substring(0, 7);
-        graphMonthSelect.value = lastMonth;
-        updateCharts();
-    }
-
-    function updateChartOptions(monthlySummary) {
-        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
-        const optionsHtml = sortedMonths.map(monthYear => {
-            const [year, month] = monthYear.split('-');
-            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            return `<option value="${monthYear}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</option>`;
-        }).join('');
-        graphMonthSelect.innerHTML = optionsHtml;
-    }
-
-    function updateCharts() {
-        updateMonthlyChart();
-        updateDailyChart();
-    }
-
-    // Aggiunta di una funzione di controllo per evitare valori non numerici
-    function isNumeric(n) {
-        return !isNaN(parseFloat(n)) && isFinite(n);
-    }
-    
-    function updateMonthlyChart() {
-        const monthlySummary = {};
-        registerData.forEach(entry => {
-            const monthYear = entry.date.substring(0, 7);
-            if (!monthlySummary[monthYear]) {
-                monthlySummary[monthYear] = { onSiteCount: 0, rientroCount: 0, pernottamentoCount: 0, absenceCount: 0 };
-            }
-            if (entry.absenceType) {
-                monthlySummary[monthYear].absenceCount++;
-            } else {
-                // Aggiornamento per utilizzare un controllo numerico
-                if (isNumeric(entry.workMode) || entry.workMode === 'In Sede') {
-                    monthlySummary[monthYear].onSiteCount++;
-                } else if (entry.workMode === 'Rientro') {
-                    monthlySummary[monthYear].rientroCount++;
-                } else if (entry.workMode === 'Pernottamento') {
-                    monthlySummary[monthYear].pernottamentoCount++;
-                }
-            }
-        });
-
-        const sortedMonths = Object.keys(monthlySummary).sort();
-        const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
-        const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
-        const rientroCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].rientroCount);
-        const pernottamentoCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].pernottamentoCount);
-        const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
-
-        if (monthlyChart) {
-            monthlyChart.destroy();
-        }
-
-        const data = {
-            labels: labels,
-            datasets: [{
-                label: 'In Sede',
-                data: onSiteCounts,
-                backgroundColor: 'rgba(0, 162, 227, 0.7)',
-                borderColor: 'rgba(0, 162, 227, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Trasferta (Rientro)',
-                data: rientroCounts,
-                backgroundColor: 'rgba(255, 165, 0, 0.7)',
-                borderColor: 'rgba(255, 165, 0, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Trasferta (Pernottamento)',
-                data: pernottamentoCounts,
-                backgroundColor: 'rgba(50, 205, 50, 0.7)',
-                borderColor: 'rgba(50, 205, 50, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Assenza',
-                data: absenceCounts,
-                backgroundColor: 'rgba(220, 53, 69, 0.7)',
-                borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 1
-            }]
-        };
-
-        const config = {
-            type: 'bar',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        stacked: false
-                    },
-                    y: {
-                        beginAtZero: true,
-                        stacked: false,
-                        title: {
-                            display: true,
-                            text: 'Numero di Giorni'
-                        }
-                    }
-                }
-            }
-        };
-
-        monthlyChart = new Chart(monthlyChartCanvas, config);
-    }
-    
-    function updateDailyChart() {
-        const selectedMonthYear = graphMonthSelect.value;
-        const filteredData = registerData.filter(entry => entry.date.startsWith(selectedMonthYear)).sort((a,b) => new Date(a.date) - new Date(b.date));
-        
-        const labels = filteredData.map(entry => entry.date.substring(8));
-        const totalHours = filteredData.map(entry => entry.totalHours);
-        const overtimeHours = filteredData.map(entry => entry.overtimeHours);
-        const absenceHours = filteredData.map(entry => entry.absenceHours);
-
-        if (dailyChart) {
-            dailyChart.destroy();
-        }
-
-        const data = {
-            labels: labels,
-            datasets: [{
-                label: 'Ore Totali Lavorate',
-                data: totalHours,
-                backgroundColor: 'rgba(0, 162, 227, 0.7)',
-                borderColor: 'rgba(0, 162, 227, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Ore Straordinarie',
-                data: overtimeHours,
-                backgroundColor: 'rgba(255, 165, 0, 0.7)',
-                borderColor: 'rgba(255, 165, 0, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Ore di Assenza',
-                data: absenceHours,
-                backgroundColor: 'rgba(220, 53, 69, 0.7)',
-                borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 1
-            }]
-        };
-
-        const config = {
-            type: 'bar',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Giorno del Mese'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Ore'
-                        }
-                    }
-                }
-            }
-        };
-        dailyChart = new Chart(dailyChartCanvas, config);
     }
     
     function filterRegister() {
@@ -1479,7 +1464,7 @@
             const options = display === startTimeDisplay ? startTimeOptions : endTimeOptions;
             const otherOptions = display === startTimeDisplay ? endTimeOptions : startTimeOptions;
             options.classList.toggle('visible');
-            otherOptions.classList.remove('visible');
+            otherOptions.classList.classList.remove('visible');
             if (options.classList.contains('visible')) {
                 const selected = options.querySelector('.selected');
                 if (selected) {
@@ -1540,8 +1525,6 @@
     searchInput.addEventListener('input', filterRegister);
     filterYearSelect.addEventListener('change', filterRegister);
     filterMonthOptions.addEventListener('change', filterRegister);
-
-    graphMonthSelect.addEventListener('change', updateDailyChart);
     
     multiselectMonthContainer.addEventListener('click', (e) => {
         e.stopPropagation();
