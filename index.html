@@ -478,6 +478,9 @@
             flex: 1;
         }
         @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
             .button-group-responsive {
                 grid-template-columns: 1fr;
             }
@@ -487,9 +490,6 @@
             }
             .export-options-container > select, .export-options-container > .multiselect-dropdown {
                 width: 100%;
-            }
-            .input-group {
-                flex-direction: column;
             }
             .radio-group, .checkbox-group {
                 flex-direction: column;
