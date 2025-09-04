@@ -82,13 +82,11 @@
             appearance: none;
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
-        
         input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #00a2e3;
             box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
         }
-        
         textarea {
             resize: vertical;
             min-height: 80px;
@@ -176,12 +174,10 @@
             margin-top: 10px;
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
-        
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
-        
         .btn-small {
             padding: 5px 8px;
             font-size: 12px;
@@ -190,14 +186,12 @@
             width: auto;
             border-radius: 6px;
         }
-        
         .btn-delete {
             background-color: #f08080;
         }
         .btn-delete:hover {
             background-color: #e06666;
         }
-        
         .btn-edit {
             background-color: #ffc107;
             color: #212529;
@@ -205,7 +199,6 @@
         .btn-edit:hover {
             background-color: #e0a800;
         }
-        
         #save-btn {
             background-color: #00a2e3;
             font-size: 20px;
@@ -214,7 +207,6 @@
         #save-btn:hover {
             background-color: #007bb6;
         }
-
         .btn-save-anim {
             display: flex;
             align-items: center;
@@ -242,35 +234,30 @@
             opacity: 1;
             transform: translateY(0);
         }
-        
         .btn-green {
             background-color: #22a36b;
         }
         .btn-green:hover {
             background-color: #1a7e52;
         }
-
         .btn-pdf {
             background-color: #b30000;
         }
         .btn-pdf:hover {
             background-color: #800000;
         }
-        
         .btn-backup {
             background-color: #337ab7;
         }
         .btn-backup:hover {
             background-color: #286090;
         }
-        
         .button-group-responsive {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-top: 15px;
         }
-        
         #results {
             margin-top: 20px;
             padding: 12px;
@@ -326,7 +313,6 @@
                 transform: translateY(0);
             }
         }
-
         .action-buttons-cell {
             display: flex;
             justify-content: center;
@@ -358,21 +344,18 @@
         #notification.error {
             background-color: #dc3545;
         }
-        
         .export-options-container {
             display: flex;
             gap: 10px;
             align-items: center;
             justify-content: flex-start;
         }
-        
         .export-options-container > select {
-            width: 45%; 
+            width: 45%;
         }
         .export-options-container > .multiselect-dropdown {
             width: 45%;
         }
-        
         select {
             padding: 0 10px;
             border: 1px solid #ccc;
@@ -385,7 +368,6 @@
             background-color: #fff;
             height: 40px;
         }
-        
         .multiselect-dropdown {
             position: relative;
             cursor: pointer;
@@ -475,37 +457,48 @@
         <label for="date">Seleziona Giorno:</label>
         <input type="date" id="date">
     </div>
+
     <div class="form-group">
-        <label>Orario Inizio:</label>
-        <div class="time-dropdown-container">
-            <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
-            <div id="startTimeOptions" class="time-options"></div>
-        </div>
-    </div>
-    <div class="form-group">
-        <label>Orario Fine:</label>
-        <div class="time-dropdown-container">
-            <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
-            <div id="endTimeOptions" class="time-options"></div>
-        </div>
-    </div>
-    <div class="checkbox-group">
-        <input type="checkbox" id="lunchBreak">
-        <label for="lunchBreak">Pausa pranzo (1 ora)</label>
-    </div>
-    
-    <div class="form-group radio-group">
-        <label>Tipo di Trasferta:</label>
-        <input type="radio" id="tripWithReturn" name="tripType" value="Rientro">
-        <label for="tripWithReturn">Rientro</label>
-        <input type="radio" id="tripOvernight" name="tripType" value="Pernottamento">
-        <label for="tripOvernight">Pernottamento</label>
+        <label for="workModeSelect">Modalità di lavoro:</label>
+        <select id="workModeSelect">
+            <option value="">Seleziona...</option>
+            <option value="In Sede">In sede</option>
+            <option value="Rientro">Trasferta (Rientro)</option>
+            <option value="Pernottamento">Trasferta (Pernottamento)</option>
+        </select>
     </div>
 
-    <div class="checkbox-group">
-        <input type="checkbox" id="onSite">
-        <label for="onSite">In sede</label>
+    <div class="form-group">
+        <label for="absenceType">Tipo di Assenza:</label>
+        <select id="absenceType">
+            <option value="">Nessuna assenza</option>
+            <option value="Ferie">Ferie</option>
+            <option value="Permesso">Permesso</option>
+            <option value="Malattia">Malattia</option>
+        </select>
     </div>
+
+    <div id="work-fields">
+        <div class="form-group">
+            <label>Orario Inizio:</label>
+            <div class="time-dropdown-container">
+                <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                <div id="startTimeOptions" class="time-options"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Orario Fine:</label>
+            <div class="time-dropdown-container">
+                <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                <div id="endTimeOptions" class="time-options"></div>
+            </div>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="lunchBreak">
+            <label for="lunchBreak">Pausa pranzo (1 ora)</label>
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="location">Luogo Intervento:</label>
         <input type="text" id="location" list="location-suggestions">
@@ -515,11 +508,12 @@
         <label for="notes">Note:</label>
         <textarea id="notes"></textarea>
     </div>
-
+    
     <div id="results">
         <h3>Riepilogo giornaliero</h3>
-        <p><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
-        <p><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
+        <p id="totalHoursContainer"><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
+        <p id="overtimeHoursContainer"><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
+        <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHours">0</span></p>
     </div>
     
     <button id="save-btn" class="btn btn-save-anim">
@@ -541,16 +535,18 @@
                     <th>Mese</th>
                     <th>Ore Tot.</th>
                     <th>Ore Str.</th>
-                    <th>Rientro</th>
-                    <th>Pernott.</th>
+                    <th>Trasferta</th>
                     <th>Sede</th>
+                    <th>Assenze</th>
                 </tr>
             </thead>
             <tbody>
-                </tbody>
+            </tbody>
         </table>
     </div>
-
+    
+    <hr>
+    
     <h2 class="collapsible-header" id="toggle-settings">⚙️ Impostazioni Avanzate <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="settings-content">
         <p>Modifica i valori usati per i calcoli economici. I cambiamenti verranno salvati.</p>
@@ -563,18 +559,16 @@
             <input type="number" id="overtimeRateInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="dayTripAllowanceInput">Diaria Rientro (€):</label>
-            <input type="number" id="dayTripAllowanceInput" step="0.01" min="0">
-        </div>
-        <div class="form-group">
-            <label for="overnightTripAllowanceInput">Diaria Pernottamento (€):</label>
-            <input type="number" id="overnightTripAllowanceInput" step="0.01" min="0">
+            <label for="tripAllowanceInput">Diaria Trasferta (€):</label>
+            <input type="number" id="tripAllowanceInput" step="0.01" min="0">
         </div>
         <div class="form-group">
             <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
             <input type="number" id="taxRateInput" step="0.1" min="0" max="100">
         </div>
     </div>
+    
+    <hr>
     
     <h2 class="collapsible-header" id="toggle-gross-net">💰 Riepilogo Lordo/Netto <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="gross-net-content">
@@ -588,7 +582,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
@@ -620,17 +614,17 @@
                         <th>Data</th>
                         <th>Inizio</th>
                         <th>Fine</th>
+                        <th>Assenza</th>
                         <th>Totali</th>
                         <th>Str.</th>
-                        <th>Tipo Trasf.</th>
-                        <th>Sede</th>
+                        <th>Modalità</th>
                         <th>Luogo</th>
                         <th>Note</th>
                         <th>Azione</th>
                     </tr>
                 </thead>
                 <tbody>
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
@@ -676,17 +670,22 @@
 <script>
     // Selezioni elementi del DOM
     const dateInput = document.getElementById('date');
+    const workModeSelect = document.getElementById('workModeSelect');
+    const absenceTypeSelect = document.getElementById('absenceType');
+    const workFields = document.getElementById('work-fields');
     const startTimeDisplay = document.getElementById('startTimeDisplay');
     const startTimeOptions = document.getElementById('startTimeOptions');
     const endTimeDisplay = document.getElementById('endTimeDisplay');
     const endTimeOptions = document.getElementById('endTimeOptions');
     const lunchBreakCheckbox = document.getElementById('lunchBreak');
-    const tripTypeRadios = document.querySelectorAll('input[name="tripType"]');
-    const onSiteCheckbox = document.getElementById('onSite');
     const locationInput = document.getElementById('location');
     const notesInput = document.getElementById('notes');
     const totalHoursSpan = document.getElementById('totalHours');
     const overtimeHoursSpan = document.getElementById('overtimeHours');
+    const absenceHoursSpan = document.getElementById('absenceHours');
+    const totalHoursContainer = document.getElementById('totalHoursContainer');
+    const overtimeHoursContainer = document.getElementById('overtimeHoursContainer');
+    const absenceHoursContainer = document.getElementById('absenceHoursContainer');
     const saveButton = document.getElementById('save-btn');
     const registerBody = document.querySelector('#register-table tbody');
     const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
@@ -696,13 +695,14 @@
     const notification = document.getElementById('notification');
     const searchInput = document.getElementById('search-input');
     const standardWorkDay = 8;
+    const standardStartTime = '08:00';
+    const standardEndTime = '17:00';
     let registerData = [];
     
     // Variabili per i calcoli economici (ora personalizzabili)
-    let grossBaseSalary = 3480.79; 
+    let grossBaseSalary = 3480.79;
     let overtimeRate = 21.53;
-    let dayTripAllowance = 30.00;
-    let overnightTripAllowance = 60.00;
+    let tripAllowance = 60.00;
     let taxRate = 0.30;
     const socialSecurityRate = 0.0949;
     
@@ -711,8 +711,7 @@
     const settingsContent = document.getElementById('settings-content');
     const grossBaseSalaryInput = document.getElementById('grossBaseSalaryInput');
     const overtimeRateInput = document.getElementById('overtimeRateInput');
-    const dayTripAllowanceInput = document.getElementById('dayTripAllowanceInput');
-    const overnightTripAllowanceInput = document.getElementById('overnightTripAllowanceInput');
+    const tripAllowanceInput = document.getElementById('tripAllowanceInput');
     const taxRateInput = document.getElementById('taxRateInput');
 
     // Chiavi per localStorage
@@ -752,7 +751,7 @@
         notification.classList.add('show', type);
         setTimeout(() => {
             notification.classList.remove('show');
-        }, 8000); 
+        }, 8000);
     }
 
     function generateTimeOptions() {
@@ -772,16 +771,47 @@
     function formatDate(dateString) {
         if (!dateString) return '';
         const [year, month, day] = dateString.split('-');
-        if (year && year.length >= 2) {
-            return `${day}-${month}-${year.substring(2)}`;
-        }
-        return dateString;
+        return `${day}-${month}-${year.substring(2)}`;
+    }
+
+    function setTimeDropdown(display, options, time) {
+        display.textContent = time;
+        display.setAttribute('data-value', time);
+        options.querySelectorAll('.time-option').forEach(option => {
+            if (option.getAttribute('data-value') === time) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+        });
+    }
+
+    function clearTimeDropdowns() {
+        setTimeDropdown(startTimeDisplay, startTimeOptions, 'Seleziona orario');
+        startTimeDisplay.setAttribute('data-value', '');
+        setTimeDropdown(endTimeDisplay, endTimeOptions, 'Seleziona orario');
+        endTimeDisplay.setAttribute('data-value', '');
     }
 
     function calculateHours() {
+        const absenceType = absenceTypeSelect.value;
         const startTime = startTimeDisplay.getAttribute('data-value');
         const endTime = endTimeDisplay.getAttribute('data-value');
         const lunchBreak = lunchBreakCheckbox.checked;
+
+        if (absenceType) {
+            totalHoursSpan.textContent = '0';
+            overtimeHoursSpan.textContent = '0';
+            absenceHoursSpan.textContent = '8';
+            totalHoursContainer.style.display = 'none';
+            overtimeHoursContainer.style.display = 'none';
+            absenceHoursContainer.style.display = 'block';
+        } else {
+            totalHoursContainer.style.display = 'block';
+            overtimeHoursContainer.style.display = 'block';
+            absenceHoursContainer.style.display = 'none';
+        }
+
         if (startTime && endTime) {
             const start = new Date(`2025-01-01T${startTime}:00`);
             const end = new Date(`2025-01-01T${endTime}:00`);
@@ -811,12 +841,12 @@
         row.setAttribute('data-date', entry.date);
         row.innerHTML = `
             <td>${formatDate(entry.date)}</td>
-            <td>${entry.startTime}</td>
-            <td>${entry.endTime}</td>
+            <td>${entry.startTime || '-'}</td>
+            <td>${entry.endTime || '-'}</td>
+            <td>${entry.absenceType || '-'}</td>
             <td>${entry.totalHours.toFixed(2)}</td>
             <td>${entry.overtimeHours.toFixed(2)}</td>
-            <td>${entry.tripType || '-'}</td>
-            <td>${entry.onSite ? 'Sì' : 'No'}</td>
+            <td>${entry.workMode || '-'}</td>
             <td>${entry.location}</td>
             <td>${entry.notes || ''}</td>
             <td class="action-buttons-cell">
@@ -827,44 +857,49 @@
         return row;
     }
 
-    // Funzione principale di salvataggio
     function saveEntry() {
         const date = dateInput.value;
-        const startTime = startTimeDisplay.getAttribute('data-value');
-        const endTime = endTimeDisplay.getAttribute('data-value');
-        const lunchBreak = lunchBreakCheckbox.checked;
-        const onSite = onSiteCheckbox.checked;
-        const location = locationInput.value;
-        const notes = notesInput.value;
-        const totalHours = parseFloat(totalHoursSpan.textContent);
-        const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
-        
-        let tripType = null;
-        for (const radio of tripTypeRadios) {
-            if (radio.checked) {
-                tripType = radio.value;
-                break;
+        const absenceType = absenceTypeSelect.value;
+        const workMode = workModeSelect.value;
+        let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours, absenceHours;
+
+        if (!date) {
+            showNotification('Per favore, seleziona una data.', 'error');
+            return;
+        }
+
+        if (absenceType) {
+            // Selezionata un'assenza, i dati vengono presi dal setup automatico
+            startTime = standardStartTime;
+            endTime = standardEndTime;
+            lunchBreak = true;
+            location = locationInput.value;
+            notes = notesInput.value;
+            totalHours = 0;
+            overtimeHours = 0;
+            absenceHours = 8;
+        } else {
+            startTime = startTimeDisplay.getAttribute('data-value');
+            endTime = endTimeDisplay.getAttribute('data-value');
+            lunchBreak = lunchBreakCheckbox.checked;
+            location = locationInput.value;
+            notes = notesInput.value;
+            totalHours = parseFloat(totalHoursSpan.textContent);
+            overtimeHours = parseFloat(overtimeHoursSpan.textContent);
+            absenceHours = 0;
+            
+            if (!startTime || !endTime || !workMode) {
+                showNotification('Per favore, compila tutti i campi richiesti.', 'error');
+                return;
+            }
+            const start = new Date(`2025-01-01T${startTime}:00`);
+            const end = new Date(`2025-01-01T${endTime}:00`);
+            if (end < start) {
+                showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
+                return;
             }
         }
         
-        if (!date || !startTime || !endTime) {
-            showNotification('Per favore, compila tutti i campi obbligatori.', 'error');
-            return;
-        }
-        const start = new Date(`2025-01-01T${startTime}:00`);
-        const end = new Date(`2025-01-01T${endTime}:00`);
-        if (end < start) {
-            showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
-            return;
-        }
-        
-        if (onSite) {
-            tripType = null;
-        }
-        if (tripType) {
-            onSiteCheckbox.checked = false;
-        }
-
         saveButton.classList.add('saved');
 
         const newEntry = {
@@ -873,12 +908,14 @@
             endTime: endTime,
             totalHours: totalHours,
             overtimeHours: overtimeHours,
-            tripType: tripType,
-            onSite: onSite,
+            workMode: workMode,
             lunchBreak: lunchBreak,
             location: location,
-            notes: notes
+            notes: notes,
+            absenceType: absenceType,
+            absenceHours: absenceHours
         };
+
         const existingIndex = registerData.findIndex(entry => entry.date === date);
         if (existingIndex !== -1) {
             registerData[existingIndex] = newEntry;
@@ -899,30 +936,23 @@
         
         setTimeout(() => {
             saveButton.classList.remove('saved');
-            dateInput.value = '';
-            startTimeDisplay.textContent = 'Seleziona orario';
-            startTimeDisplay.setAttribute('data-value', '');
-            endTimeDisplay.textContent = 'Seleziona orario';
-            endTimeDisplay.setAttribute('data-value', '');
+            dateInput.value = new Date().toISOString().split('T')[0];
+            workModeSelect.value = '';
+            absenceTypeSelect.value = '';
+            clearTimeDropdowns();
             lunchBreakCheckbox.checked = false;
-            for (const radio of tripTypeRadios) {
-                radio.checked = false;
-            }
-            onSiteCheckbox.checked = false;
             locationInput.value = '';
             notesInput.value = '';
-            locationInput.disabled = false;
             calculateHours();
         }, 1000);
     }
 
-    // Gestione dati (modifica, cancella, carica)
     function deleteEntry(date) {
         if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
             registerData = registerData.filter(entry => entry.date !== date);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
             renderAllData();
-            showNotification(`Inserimento per il giorno ${formatDate(date)} cancellato.`, 'success');
+            showNotification('Dato cancellato.', 'success');
         }
     }
 
@@ -930,672 +960,599 @@
         const entryToEdit = registerData.find(entry => entry.date === date);
         if (entryToEdit) {
             dateInput.value = entryToEdit.date;
-            startTimeDisplay.textContent = entryToEdit.startTime;
-            startTimeDisplay.setAttribute('data-value', entryToEdit.startTime);
-            endTimeDisplay.textContent = entryToEdit.endTime;
-            endTimeDisplay.setAttribute('data-value', entryToEdit.endTime);
-            lunchBreakCheckbox.checked = entryToEdit.lunchBreak;
-            for (const radio of tripTypeRadios) {
-                radio.checked = (entryToEdit.tripType === radio.value);
-            }
-            onSiteCheckbox.checked = entryToEdit.onSite;
-            locationInput.value = entryToEdit.location;
+            workModeSelect.value = entryToEdit.workMode || '';
+            absenceTypeSelect.value = entryToEdit.absenceType || '';
+            setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime || 'Seleziona orario');
+            startTimeDisplay.setAttribute('data-value', entryToEdit.startTime || '');
+            setTimeDropdown(endTimeDisplay, endTimeOptions, entryToEdit.endTime || 'Seleziona orario');
+            endTimeDisplay.setAttribute('data-value', entryToEdit.endTime || '');
+            lunchBreakCheckbox.checked = entryToEdit.lunchBreak || false;
+            locationInput.value = entryToEdit.location || '';
             notesInput.value = entryToEdit.notes || '';
             calculateHours();
-            window.scrollTo(0, 0);
-            if (onSiteCheckbox.checked) {
-                locationInput.value = 'Tecnosistem';
-                locationInput.disabled = true;
-            } else {
-                locationInput.disabled = false;
-            }
         }
     }
 
-    function loadRegisterData() {
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        if (savedData) {
-            registerData = JSON.parse(savedData);
-            registerData = registerData.map(entry => {
-                const updatedEntry = {
-                    ...entry,
-                    totalHours: parseFloat(entry.totalHours) || 0,
-                    overtimeHours: parseFloat(entry.overtimeHours) || 0,
-                    lunchBreak: entry.lunchBreak === true,
-                    onSite: entry.onSite === true,
-                    notes: entry.notes || ''
-                };
-                if (entry.businessTrip !== undefined) {
-                    updatedEntry.tripType = entry.businessTrip ? 'Rientro' : null;
-                }
-                return updatedEntry;
-            });
-            registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
-        }
-    }
-
-    // Funzioni di rendering delle tabelle
-    function renderRegister(dataToRender = registerData) {
+    function renderRegisterTable(data) {
         registerBody.innerHTML = '';
-        dataToRender.forEach(entry => {
+        if (data.length === 0) {
+            const noDataRow = document.createElement('tr');
+            noDataRow.innerHTML = `<td colspan="10" style="text-align:center;">Nessun dato presente nel registro.</td>`;
+            registerBody.appendChild(noDataRow);
+            return;
+        }
+        data.forEach(entry => {
             const row = createRow(entry);
             registerBody.appendChild(row);
         });
-        registerBody.querySelectorAll('.btn-edit').forEach(button => {
-            button.addEventListener('click', (e) => editEntry(e.target.dataset.date));
-        });
-        registerBody.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', (e) => deleteEntry(e.target.dataset.date));
-        });
     }
 
-    function getMonthlySummaryData(data) {
-        const summary = {};
-        data.forEach(entry => {
-            const date = new Date(entry.date);
-            const monthKey = date.getFullYear() + '-' + date.getMonth();
-            const monthNumber = (date.getMonth() + 1).toString().padStart(2, '0');
-            const yearShort = date.getFullYear().toString().slice(-2);
-            const monthLabel = `${monthNumber}/${yearShort}`;
-            
-            if (!summary[monthKey]) {
-                summary[monthKey] = {
-                    monthLabel: monthLabel,
+    function updateMonthlySummary() {
+        const monthlySummary = {};
+        const locations = new Set();
+        registerData.forEach(entry => {
+            const monthYear = entry.date.substring(0, 7);
+            if (!monthlySummary[monthYear]) {
+                monthlySummary[monthYear] = {
                     totalHours: 0,
                     overtimeHours: 0,
-                    tripWithReturnDays: 0,
-                    tripOvernightDays: 0,
-                    onSiteDays: 0
+                    onSiteCount: 0,
+                    tripCount: 0,
+                    absenceCount: 0
                 };
             }
-            summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
-            summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
-            if (entry.tripType === 'Rientro') {
-                summary[monthKey].tripWithReturnDays += 1;
-            }
-            if (entry.tripType === 'Pernottamento') {
-                summary[monthKey].tripOvernightDays += 1;
-            }
-            if (entry.onSite) {
-                summary[monthKey].onSiteDays += 1;
-            }
+            monthlySummary[monthYear].totalHours += entry.totalHours;
+            monthlySummary[monthYear].overtimeHours += entry.overtimeHours;
+            if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
+            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].tripCount++;
+            if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
+            if (entry.location) locations.add(entry.location);
         });
-        return summary;
-    }
 
-    function renderMonthlySummary() {
+        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
         monthlySummaryBody.innerHTML = '';
-        const summary = getMonthlySummaryData(registerData);
-        const sortedMonths = Object.keys(summary).sort((a, b) => {
-            const [yearA, monthA] = a.split('-').map(Number);
-            const [yearB, monthB] = b.split('-').map(Number);
-            if (yearA !== yearB) return yearB - yearA;
-            return monthB - monthA;
-        });
-
-        sortedMonths.forEach(monthKey => {
-            const monthSummary = summary[monthKey];
+        sortedMonths.forEach(monthYear => {
+            const summary = monthlySummary[monthYear];
+            const [year, month] = monthYear.split('-');
+            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${monthSummary.monthLabel}</td>
-                <td>${monthSummary.totalHours.toFixed(2)}</td>
-                <td>${monthSummary.overtimeHours.toFixed(2)}</td>
-                <td>${monthSummary.tripWithReturnDays}</td>
-                <td>${monthSummary.tripOvernightDays}</td>
-                <td>${monthSummary.onSiteDays}</td>
+                <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
+                <td>${summary.totalHours.toFixed(2)}</td>
+                <td>${summary.overtimeHours.toFixed(2)}</td>
+                <td>${summary.tripCount}</td>
+                <td>${summary.onSiteCount}</td>
+                <td>${summary.absenceCount}</td>
             `;
             monthlySummaryBody.appendChild(row);
         });
+
+        const sortedLocations = [...locations].sort();
+        locationDatalist.innerHTML = sortedLocations.map(loc => `<option value="${loc}"></option>`).join('');
+        updateChart(monthlySummary);
     }
-    
-    function renderGrossNetSummary() {
-        grossNetBody.innerHTML = '';
-        const summary = getMonthlySummaryData(registerData);
-        const sortedMonths = Object.keys(summary).sort((a, b) => {
-            const [yearA, monthA] = a.split('-').map(Number);
-            const [yearB, monthB] = b.split('-').map(Number);
-            if (yearA !== yearB) return yearB - yearA;
-            return monthB - monthA;
+
+    function calculateGrossNetSummary() {
+        const monthlySummary = {};
+        registerData.forEach(entry => {
+            const monthYear = entry.date.substring(0, 7);
+            if (!monthlySummary[monthYear]) {
+                monthlySummary[monthYear] = {
+                    totalOvertimeHours: 0,
+                    totalTripCount: 0
+                };
+            }
+            monthlySummary[monthYear].totalOvertimeHours += entry.overtimeHours;
+            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalTripCount++;
         });
 
-        sortedMonths.forEach(monthKey => {
-            const monthSummary = summary[monthKey];
-            const totalOvertimeEarnings = monthSummary.overtimeHours * overtimeRate;
-            const totalTripEarnings = (monthSummary.tripWithReturnDays * dayTripAllowance) + (monthSummary.tripOvernightDays * overnightTripAllowance);
-            const totalGross = grossBaseSalary + totalOvertimeEarnings + totalTripEarnings;
-            const grossAfterSocialSecurity = totalGross * (1 - socialSecurityRate);
-            const estimatedNet = grossAfterSocialSecurity * (1 - taxRate);
-
+        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
+        grossNetBody.innerHTML = '';
+        sortedMonths.forEach(monthYear => {
+            const summary = monthlySummary[monthYear];
+            const [year, month] = monthYear.split('-');
+            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            
+            const grossOvertime = summary.totalOvertimeHours * overtimeRate;
+            const grossTripAllowance = summary.totalTripCount * tripAllowance;
+            
+            const totalGross = grossBaseSalary + grossOvertime + grossTripAllowance;
+            
+            const socialSecurity = (grossBaseSalary + grossOvertime) * socialSecurityRate;
+            const taxableIncome = (grossBaseSalary + grossOvertime) - socialSecurity;
+            const netIncome = taxableIncome * (1 - taxRate) + grossTripAllowance;
+            
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${monthSummary.monthLabel}</td>
-                <td>${totalGross.toFixed(2)} €</td>
-                <td>${estimatedNet.toFixed(2)} €</td>
+                <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
+                <td>€ ${totalGross.toFixed(2)}</td>
+                <td>€ ${netIncome.toFixed(2)}</td>
             `;
             grossNetBody.appendChild(row);
         });
     }
 
-    // Funzioni per la gestione delle impostazioni
-    function loadSettings() {
+    function loadData() {
         try {
-            const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-            if (savedSettings) {
-                grossBaseSalary = savedSettings.grossBaseSalary || grossBaseSalary;
-                overtimeRate = savedSettings.overtimeRate || overtimeRate;
-                dayTripAllowance = savedSettings.dayTripAllowance || dayTripAllowance;
-                overnightTripAllowance = savedSettings.overnightTripAllowance || overnightTripAllowance;
-                taxRate = savedSettings.taxRate !== undefined ? savedSettings.taxRate : taxRate;
+            const storedData = localStorage.getItem(STORAGE_KEY);
+            if (storedData) {
+                registerData = JSON.parse(storedData);
             }
+            const storedSettings = localStorage.getItem(SETTINGS_KEY);
+            if (storedSettings) {
+                const settings = JSON.parse(storedSettings);
+                grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
+                overtimeRate = settings.overtimeRate || overtimeRate;
+                tripAllowance = settings.tripAllowance || tripAllowance;
+                taxRate = settings.taxRate || taxRate;
+            }
+            loadSettings();
+            renderAllData();
         } catch (e) {
-            console.error("Errore nel caricamento delle impostazioni:", e);
-        }
-        
-        grossBaseSalaryInput.value = grossBaseSalary.toFixed(2);
-        overtimeRateInput.value = overtimeRate.toFixed(2);
-        dayTripAllowanceInput.value = dayTripAllowance.toFixed(2);
-        overnightTripAllowanceInput.value = overnightTripAllowance.toFixed(2);
-        taxRateInput.value = (taxRate * 100).toFixed(1);
-    }
-
-    function saveSettings() {
-        const newSettings = {
-            grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
-            overtimeRate: parseFloat(overtimeRateInput.value) || 0,
-            dayTripAllowance: parseFloat(dayTripAllowanceInput.value) || 0,
-            overnightTripAllowance: parseFloat(overnightTripAllowanceInput.value) || 0,
-            taxRate: parseFloat(taxRateInput.value) / 100 || 0
-        };
-        
-        grossBaseSalary = newSettings.grossBaseSalary;
-        overtimeRate = newSettings.overtimeRate;
-        dayTripAllowance = newSettings.dayTripAllowance;
-        overnightTripAllowance = newSettings.overnightTripAllowance;
-        taxRate = newSettings.taxRate;
-
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
-        renderAllData();
-        showNotification('Impostazioni salvate!', 'success');
-    }
-
-    // Funzioni di esportazione e backup
-    function calculateSummary(data) {
-        let totalHours = 0;
-        let totalOvertimeHours = 0;
-        let totalRientroDays = 0;
-        let totalPernottamentoDays = 0;
-        data.forEach(entry => {
-            totalHours += entry.totalHours;
-            totalOvertimeHours += entry.overtimeHours;
-            if (entry.tripType === 'Rientro') totalRientroDays++;
-            if (entry.tripType === 'Pernottamento') totalPernottamentoDays++;
-        });
-        return {
-            totalHours: totalHours.toFixed(2),
-            totalOvertimeHours: totalOvertimeHours.toFixed(2),
-            totalRientroDays,
-            totalPernottamentoDays
-        };
-    }
-
-    function exportToCsv(data, filename) {
-        if (data.length === 0) {
-            showNotification('Nessun dato da esportare.', 'error');
-            return;
-        }
-        data.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const summary = calculateSummary(data);
-
-        let csvContent = `Riepilogo del periodo:\n`;
-        csvContent += `Totale Ore: ${summary.totalHours}\n`;
-        csvContent += `Totale Ore Straordinarie: ${summary.totalOvertimeHours}\n`;
-        csvContent += `Giorni con Rientro: ${summary.totalRientroDays}\n`;
-        csvContent += `Giorni con Pernottamento: ${summary.totalPernottamentoDays}\n\n`;
-
-        csvContent += "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Tipo trasferta,Sede,Luogo,Note\n";
-        data.forEach(entry => {
-            const row = `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours.toFixed(2)},${entry.overtimeHours.toFixed(2)},${entry.tripType || ''},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}", "${(entry.notes || '').replace(/"/g, '""')}"`;
-            csvContent += row + '\n';
-        });
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showNotification(`**${filename}** generato e salvato!`, 'success');
-    }
-    
-    function generatePdfFromData(data, filename) {
-        if (data.length === 0) {
-            showNotification('Nessun dato da esportare.', 'error');
-            return;
-        }
-        
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        const dataForPdf = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-        const tableColumn = ["Data", "Inizio", "Fine", "Totali", "Str.", "Tipo Trasf.", "Sede", "Luogo", "Note"];
-        
-        const summary = calculateSummary(dataForPdf);
-        let startY = 20;
-
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Riepilogo del Periodo`, 105, startY, null, null, "center");
-        startY += 10;
-        doc.setFontSize(10);
-        doc.text(`Totale Ore Lavorate: ${summary.totalHours}`, 15, startY);
-        doc.text(`Totale Ore Straordinarie: ${summary.totalOvertimeHours}`, 15, startY + 5);
-        doc.text(`Giorni con Rientro: ${summary.totalRientroDays}`, 15, startY + 10);
-        doc.text(`Giorni con Pernottamento: ${summary.totalPernottamentoDays}`, 15, startY + 15);
-        startY += 25;
-        
-        doc.autoTable({
-            startY: startY,
-            head: [tableColumn],
-            body: dataForPdf.map(entry => [
-                formatDate(entry.date),
-                entry.startTime,
-                entry.endTime,
-                entry.totalHours.toFixed(2),
-                entry.overtimeHours.toFixed(2),
-                entry.tripType || '-',
-                entry.onSite ? 'Sì' : 'No',
-                entry.location,
-                entry.notes || ''
-            ]),
-            theme: 'striped',
-            headStyles: { fillColor: [0, 162, 227] },
-            didDrawPage: (data) => {
-                doc.setFontSize(10);
-                doc.text("Pagina " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
-            }
-        });
-
-        doc.save(filename);
-        showNotification(`**${filename}** generato e salvato!`, 'success');
-    }
-
-    function exportSelected() {
-        const selectedYear = exportYearSelect.value;
-        const selectedMonths = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(checkbox => parseInt(checkbox.value));
-        
-        let filteredData = registerData;
-        let filenameBase = 'registro_orario';
-
-        if (selectedYear) {
-            filteredData = filteredData.filter(entry => new Date(entry.date).getFullYear() == selectedYear);
-            filenameBase = `${filenameBase}_${selectedYear}`;
-        }
-        
-        if (selectedMonths.length > 0) {
-            filteredData = filteredData.filter(entry => {
-                const entryMonth = new Date(entry.date).getMonth();
-                return selectedMonths.includes(entryMonth);
-            });
-            const monthNames = selectedMonths.map(m => new Date(2000, m).toLocaleString('it-IT', { month: 'short' }));
-            filenameBase = `${filenameBase}_${monthNames.join('-')}`;
-        }
-        
-        if (filteredData.length > 0) {
-            return { data: filteredData, filename: filenameBase };
-        }
-        showNotification('Nessun dato da esportare per la selezione corrente.', 'error');
-        return null;
-    }
-
-    function updateLocationSuggestions() {
-        const uniqueLocations = [...new Set(registerData.map(entry => entry.location).filter(Boolean))];
-        locationDatalist.innerHTML = uniqueLocations.map(location => `<option value="${location}">`).join('');
-    }
-
-    function updateExportAndFilterOptions() {
-        const uniqueYears = [...new Set(registerData.map(entry => new Date(entry.date).getFullYear()))].sort((a, b) => b - a);
-        exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
-        filterYearSelect.innerHTML = '<option value="">Tutti gli Anni</option>' + uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
-        
-        const allMonths = [...new Set(registerData.map(entry => new Date(entry.date).getMonth()))].sort((a, b) => a - b);
-        
-        multiselectMonthOptions.innerHTML = '';
-        filterMonthOptions.innerHTML = '';
-        const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-
-        allMonths.forEach(monthIndex => {
-            const monthName = monthNames[monthIndex];
-            const optionDivExport = document.createElement('div');
-            optionDivExport.className = 'multiselect-option';
-            optionDivExport.innerHTML = `<input type="checkbox" value="${monthIndex}" id="export-month-${monthIndex}"> <label for="export-month-${monthIndex}">${monthName}</label>`;
-            multiselectMonthOptions.appendChild(optionDivExport);
-
-            const optionDivFilter = document.createElement('div');
-            optionDivFilter.className = 'multiselect-option';
-            optionDivFilter.innerHTML = `<input type="checkbox" value="${monthIndex}" id="filter-month-${monthIndex}"> <label for="filter-month-${monthIndex}">${monthName}</label>`;
-            filterMonthOptions.appendChild(optionDivFilter);
-        });
-        updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected);
-        updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
-    }
-
-    function updateMultiselectSelectedText(optionsContainer, selectedDisplay, defaultText = 'Seleziona Mese(i)') {
-        const checkboxes = optionsContainer.querySelectorAll('input[type="checkbox"]');
-        const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-        if (selectedCount === 0) {
-            selectedDisplay.textContent = defaultText;
-        } else if (selectedCount === 1) {
-            const selectedLabel = optionsContainer.querySelector('input:checked + label').textContent;
-            selectedDisplay.textContent = selectedLabel;
-        } else {
-            const selectedLabels = Array.from(checkboxes).filter(cb => cb.checked).map(cb => optionsContainer.querySelector(`label[for="${cb.id}"]`).textContent);
-            selectedDisplay.textContent = `${selectedCount} mesi selezionati`;
-        }
-    }
-    
-    function toggleMonthDropdown(e, container, options) {
-        e.stopPropagation();
-        if (!container.classList.contains('disabled')) {
-            options.classList.toggle('visible');
+            showNotification('ERRORE: Impossibile caricare i dati. Il backup potrebbe essere corrotto.', 'error');
+            console.error(e);
         }
     }
 
-    function handleYearChange(yearSelect, monthContainer, monthOptions) {
-        const selectedYear = yearSelect.value;
-        if (selectedYear) {
-            monthContainer.classList.remove('disabled');
-        } else {
-            monthContainer.classList.add('disabled');
-            monthOptions.classList.remove('visible');
-            monthOptions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        }
+    function renderAllData() {
+        renderRegisterTable(registerData);
+        updateMonthlySummary();
+        calculateGrossNetSummary();
+        updateFilterOptions();
+        updateExportOptions();
     }
 
-    function applyFiltersAndSearch() {
-        const filterYear = filterYearSelect.value;
-        const filterMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(checkbox => parseInt(checkbox.value));
-        const searchTerm = searchInput.value.toLowerCase();
-        
-        let filteredData = registerData.filter(entry => {
-            const entryDate = new Date(entry.date);
-            const entryYear = entryDate.getFullYear();
-            const entryMonth = entryDate.getMonth();
-            const formattedDate = formatDate(entry.date).toLowerCase();
-            const location = entry.location.toLowerCase();
-            const notes = (entry.notes || '').toLowerCase();
-            
-            const matchesYear = !filterYear || entryYear == filterYear;
-            const matchesMonth = filterMonths.length === 0 || filterMonths.includes(entryMonth);
-            const matchesSearch = formattedDate.includes(searchTerm) || location.includes(searchTerm) || notes.includes(searchTerm);
-            
-            return matchesYear && matchesMonth && matchesSearch;
-        });
-        renderRegister(filteredData);
-    }
-
-    function toggleCollapsible(header, content) {
-        content.classList.toggle('open');
-        header.classList.toggle('open');
-    }
-    
-    // Funzioni per la gestione del grafico
-    function renderChart() {
-        const summary = getMonthlySummaryData(registerData);
-        const sortedMonths = Object.keys(summary).sort((a, b) => {
-            const [yearA, monthA] = a.split('-').map(Number);
-            const [yearB, monthB] = b.split('-').map(Number);
-            if (yearA !== yearB) return yearA - yearB;
-            return monthA - monthB;
-        });
-
-        const labels = sortedMonths.map(key => summary[key].monthLabel);
-        const rientroDays = sortedMonths.map(key => summary[key].tripWithReturnDays);
-        const pernottamentoDays = sortedMonths.map(key => summary[key].tripOvernightDays);
-        const onSiteDays = sortedMonths.map(key => summary[key].onSiteDays);
-        
-        const chartData = {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Sede',
-                    data: onSiteDays,
-                    backgroundColor: '#9966cc',
-                    borderColor: '#800080',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Rientro',
-                    data: rientroDays,
-                    backgroundColor: '#ffc107',
-                    borderColor: '#e0a800',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Pernottamento',
-                    data: pernottamentoDays,
-                    backgroundColor: '#f08080',
-                    borderColor: '#e06666',
-                    borderWidth: 1
-                }
-            ]
-        };
-
-        const config = {
-            type: 'bar',
-            data: chartData,
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Mese'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Giorni'
-                        }
-                    }
-                }
-            }
-        };
+    function updateChart(monthlySummary) {
+        const sortedMonths = Object.keys(monthlySummary).sort();
+        const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
+        const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
+        const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].tripCount);
+        const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
 
         if (monthlyChart) {
             monthlyChart.destroy();
         }
+
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'In Sede',
+                data: onSiteCounts,
+                backgroundColor: 'rgba(0, 162, 227, 0.7)',
+                borderColor: 'rgba(0, 162, 227, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Trasferta',
+                data: tripCounts,
+                backgroundColor: 'rgba(255, 165, 0, 0.7)',
+                borderColor: 'rgba(255, 165, 0, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Assenza',
+                data: absenceCounts,
+                backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                borderColor: 'rgba(220, 53, 69, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: false
+                    },
+                    y: {
+                        beginAtZero: true,
+                        stacked: false,
+                        title: {
+                            display: true,
+                            text: 'Numero di Giorni'
+                        }
+                    }
+                }
+            }
+        };
+
         monthlyChart = new Chart(monthlyChartCanvas, config);
     }
     
-    // Funzione di gestione generale del rendering
-    function renderAllData() {
-        renderRegister();
-        renderMonthlySummary();
-        renderGrossNetSummary();
-        renderChart();
-        updateLocationSuggestions();
-        updateExportAndFilterOptions();
+    function filterRegister() {
+        const query = searchInput.value.toLowerCase();
+        const selectedYear = filterYearSelect.value;
+        const selectedMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
+
+        const filteredData = registerData.filter(entry => {
+            const matchQuery = !query || 
+                                formatDate(entry.date).includes(query) || 
+                                (entry.location && entry.location.toLowerCase().includes(query)) || 
+                                (entry.notes && entry.notes.toLowerCase().includes(query));
+            const matchYear = !selectedYear || entry.date.startsWith(selectedYear);
+            const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(entry.date.substring(5, 7));
+            return matchQuery && matchYear && matchMonth;
+        });
+        renderRegisterTable(filteredData);
     }
     
-    // Caricamento iniziale e gestione eventi
-    function loadAllData() {
-        loadSettings();
-        loadRegisterData();
-        renderAllData();
+    function updateFilterOptions() {
+        const years = [...new Set(registerData.map(entry => entry.date.substring(0, 4)))].sort().reverse();
+        filterYearSelect.innerHTML = `<option value="">Tutti gli Anni</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
+        exportYearSelect.innerHTML = `<option value="">Seleziona Anno</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
+
+        const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+        const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+        
+        filterMonthOptions.innerHTML = months.map((month, index) =>
+            `<div class="multiselect-option">
+                <input type="checkbox" id="filter-month-${month}" value="${month}">
+                <label for="filter-month-${month}">${monthNames[index]}</label>
+            </div>`).join('');
+
+        multiselectMonthOptions.innerHTML = months.map((month, index) =>
+            `<div class="multiselect-option">
+                <input type="checkbox" id="export-month-${month}" value="${month}">
+                <label for="export-month-${month}">${monthNames[index]}</label>
+            </div>`).join('');
+    }
+
+    function updateExportOptions() {
+        const selectedYear = exportYearSelect.value;
+        const multiselect = document.getElementById('multiselect-month-container');
+        if (selectedYear) {
+            multiselect.classList.remove('disabled');
+        } else {
+            multiselect.classList.add('disabled');
+        }
     }
     
-    function closeAllDropdowns() {
-        startTimeOptions.classList.remove('visible');
-        endTimeOptions.classList.remove('visible');
-        multiselectMonthOptions.classList.remove('visible');
-        filterMonthOptions.classList.remove('visible');
+    function generateCsvData(data) {
+        const headers = ["Data", "Orario Inizio", "Orario Fine", "Assenza", "Ore Totali", "Ore Straordinarie", "Modalità", "Luogo Intervento", "Note"];
+        let csv = headers.join(";") + "\n";
+        data.forEach(entry => {
+            const row = [
+                `"${formatDate(entry.date)}"`,
+                `"${entry.startTime || '-'}"`,
+                `"${entry.endTime || '-'}"`,
+                `"${entry.absenceType || '-'}"`,
+                `"${entry.totalHours.toFixed(2)}"`,
+                `"${entry.overtimeHours.toFixed(2)}"`,
+                `"${entry.workMode || '-'}"`,
+                `"${entry.location || ''}"`,
+                `"${entry.notes || ''}"`
+            ];
+            csv += row.join(";") + "\n";
+        });
+        return csv;
     }
-
-    startTimeDisplay.addEventListener('click', (event) => {
-        event.stopPropagation();
-        startTimeOptions.classList.toggle('visible');
-        endTimeOptions.classList.remove('visible');
-        multiselectMonthOptions.classList.remove('visible');
-        filterMonthOptions.classList.remove('visible');
-    });
-
-    endTimeDisplay.addEventListener('click', (event) => {
-        event.stopPropagation();
-        endTimeOptions.classList.toggle('visible');
-        startTimeOptions.classList.remove('visible');
-        multiselectMonthOptions.classList.remove('visible');
-        filterMonthOptions.classList.remove('visible');
-    });
-
-    startTimeOptions.addEventListener('click', (event) => {
-        if (event.target.classList.contains('time-option')) {
-            startTimeDisplay.textContent = event.target.getAttribute('data-value');
-            startTimeDisplay.setAttribute('data-value', event.target.getAttribute('data-value'));
-            startTimeOptions.classList.remove('visible');
-            calculateHours();
-        }
-    });
-    endTimeOptions.addEventListener('click', (event) => {
-        if (event.target.classList.contains('time-option')) {
-            endTimeDisplay.textContent = event.target.getAttribute('data-value');
-            endTimeDisplay.setAttribute('data-value', event.target.getAttribute('data-value'));
-            endTimeOptions.classList.remove('visible');
-            calculateHours();
-        }
-    });
-    document.addEventListener('click', (event) => {
-        if (!event.target.closest('.multiselect-dropdown') && !event.target.closest('.time-dropdown-container')) {
-            closeAllDropdowns();
-        }
-    });
-
-    // Aggiungi event listener per l'apertura e la gestione dei dropdown dei mesi
-    multiselectMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, multiselectMonthContainer, multiselectMonthOptions));
-    filterMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, filterMonthContainer, filterMonthOptions));
-
-    // Aggiungi event listener per la selezione delle opzioni nei dropdown dei mesi
-    multiselectMonthOptions.addEventListener('change', () => updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected));
-    filterMonthOptions.addEventListener('change', () => {
-        updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
-        applyFiltersAndSearch();
-    });
-
-    // Aggiungi event listener per la selezione dell'anno
-    exportYearSelect.addEventListener('change', () => handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions));
-    filterYearSelect.addEventListener('change', () => {
-        handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
-        applyFiltersAndSearch();
-    });
-
-    lunchBreakCheckbox.addEventListener('change', calculateHours);
-    saveButton.addEventListener('click', saveEntry);
     
-    // Eventi pulsanti di esportazione
-    exportSelectedButton.addEventListener('click', () => {
-        const result = exportSelected();
-        if (result) exportToCsv(result.data, result.filename + '.csv');
-    });
-    exportSelectedPdfButton.addEventListener('click', () => {
-        const result = exportSelected();
-        if (result) generatePdfFromData(result.data, result.filename + '.pdf');
-    });
-    exportAllButton.addEventListener('click', () => exportToCsv(registerData, 'registro_orario_completo.csv'));
-    exportPdfButton.addEventListener('click', () => generatePdfFromData(registerData, 'registro_orario_completo.pdf'));
-    
-    // Eventi menu collassabili
-    toggleRegisterHeader.addEventListener('click', () => toggleCollapsible(toggleRegisterHeader, registerContent));
-    toggleGrossNetHeader.addEventListener('click', () => toggleCollapsible(toggleGrossNetHeader, grossNetContent));
-    toggleSettingsHeader.addEventListener('click', () => toggleCollapsible(toggleSettingsHeader, settingsContent));
-    
-    // Eventi backup
-    exportDataBtn.addEventListener('click', () => {
-        const dataStr = JSON.stringify({
-            register: registerData,
-            settings: {
-                grossBaseSalary, overtimeRate, dayTripAllowance, overnightTripAllowance, taxRate
-            }
-        }, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
+    function exportCsv(data, filename) {
+        const csv = generateCsvData(data);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        link.href = url;
-        link.download = 'registro_orario_backup.json';
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        showNotification('Esportazione CSV completata!', 'success');
+    }
+    
+    function generatePdf(data) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'pt', 'a4');
+        const tableData = data.map(entry => [
+            formatDate(entry.date),
+            entry.startTime || '-',
+            entry.endTime || '-',
+            entry.absenceType || '-',
+            entry.totalHours.toFixed(2),
+            entry.overtimeHours.toFixed(2),
+            entry.workMode || '-',
+            entry.location || '',
+            entry.notes || ''
+        ]);
+        const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
+        doc.autoTable({
+            head: head,
+            body: tableData,
+            startY: 50,
+            styles: { fontSize: 8, cellPadding: 4 },
+            headStyles: { fillColor: '#00a2e3' }
+        });
+        doc.save('Registro_Lavoro.pdf');
+    }
+    
+    function saveSettings() {
+        const settings = {
+            grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
+            overtimeRate: parseFloat(overtimeRateInput.value) || 0,
+            tripAllowance: parseFloat(tripAllowanceInput.value) || 0,
+            taxRate: parseFloat(taxRateInput.value) / 100 || 0
+        };
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        grossBaseSalary = settings.grossBaseSalary;
+        overtimeRate = settings.overtimeRate;
+        tripAllowance = settings.tripAllowance;
+        taxRate = settings.taxRate;
+        calculateGrossNetSummary();
+        showNotification('Impostazioni salvate!', 'success');
+    }
+    
+    function loadSettings() {
+        const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+        grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
+        overtimeRateInput.value = storedSettings.overtimeRate || overtimeRate;
+        tripAllowanceInput.value = storedSettings.tripAllowance || tripAllowance;
+        taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
+    }
+
+    // Event Listeners
+    dateInput.addEventListener('change', () => {
+        const today = new Date().toISOString().split('T')[0];
+        if (dateInput.value > today) {
+            dateInput.value = today;
+            showNotification('Non puoi registrare dati per il futuro!', 'error');
+        }
+    });
+
+    workModeSelect.addEventListener('change', () => {
+        const mode = workModeSelect.value;
+        if (mode === 'In Sede') {
+            absenceTypeSelect.value = '';
+            locationInput.value = 'Tecnosistem';
+            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
+            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            lunchBreakCheckbox.checked = true;
+        } else if (mode === 'Rientro' || mode === 'Pernottamento') {
+            absenceTypeSelect.value = '';
+            locationInput.value = '';
+            clearTimeDropdowns();
+            lunchBreakCheckbox.checked = false;
+        } else {
+            locationInput.value = '';
+            clearTimeDropdowns();
+            lunchBreakCheckbox.checked = false;
+        }
+        calculateHours();
+    });
+
+    absenceTypeSelect.addEventListener('change', () => {
+        const absence = absenceTypeSelect.value;
+        if (absence) {
+            workModeSelect.value = '';
+            locationInput.value = 'Tecnosistem';
+            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
+            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            lunchBreakCheckbox.checked = true;
+        } else {
+            locationInput.value = '';
+            clearTimeDropdowns();
+            lunchBreakCheckbox.checked = false;
+        }
+        calculateHours();
+    });
+    
+    [startTimeDisplay, endTimeDisplay].forEach(display => {
+        display.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const options = display === startTimeDisplay ? startTimeOptions : endTimeOptions;
+            const otherOptions = display === startTimeDisplay ? endTimeOptions : startTimeOptions;
+            options.classList.toggle('visible');
+            otherOptions.classList.remove('visible');
+            if (options.classList.contains('visible')) {
+                const selected = options.querySelector('.selected');
+                if (selected) {
+                    selected.scrollIntoView({ block: 'center' });
+                }
+            }
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.time-dropdown-container')) {
+            startTimeOptions.classList.remove('visible');
+            endTimeOptions.classList.remove('visible');
+        }
+    });
+
+    [startTimeOptions, endTimeOptions].forEach(options => {
+        options.addEventListener('click', (e) => {
+            const display = options === startTimeOptions ? startTimeDisplay : endTimeDisplay;
+            if (e.target.classList.contains('time-option')) {
+                const selectedOption = e.target;
+                const value = selectedOption.getAttribute('data-value');
+                display.textContent = value;
+                display.setAttribute('data-value', value);
+                options.classList.remove('visible');
+                options.querySelectorAll('.time-option').forEach(option => option.classList.remove('selected'));
+                selectedOption.classList.add('selected');
+                calculateHours();
+            }
+        });
+    });
+    
+    lunchBreakCheckbox.addEventListener('change', calculateHours);
+    
+    saveButton.addEventListener('click', saveEntry);
+
+    registerBody.addEventListener('click', (e) => {
+        const date = e.target.getAttribute('data-date');
+        if (e.target.classList.contains('btn-delete')) {
+            deleteEntry(date);
+        } else if (e.target.classList.contains('btn-edit')) {
+            editEntry(date);
+        }
+    });
+    
+    [toggleRegisterHeader, toggleSettingsHeader, toggleGrossNetHeader].forEach(header => {
+        header.addEventListener('click', () => {
+            const content = document.getElementById(header.id.replace('toggle-', '') + '-content');
+            const arrow = header.querySelector('.arrow');
+            header.classList.toggle('open');
+            content.classList.toggle('open');
+            if (content.classList.contains('open') && header.id === 'toggle-register') {
+                filterRegister();
+            }
+        });
+    });
+
+    searchInput.addEventListener('input', filterRegister);
+    filterYearSelect.addEventListener('change', filterRegister);
+    filterMonthOptions.addEventListener('change', filterRegister);
+    
+    multiselectMonthContainer.addEventListener('click', (e) => {
+        e.stopPropagation();
+        multiselectMonthOptions.classList.toggle('visible');
+    });
+    multiselectMonthOptions.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const selected = Array.from(multiselectMonthOptions.querySelectorAll('input:checked'));
+        if (selected.length === 0) {
+            multiselectMonthSelected.textContent = 'Seleziona Mese(i)';
+        } else if (selected.length === 12) {
+            multiselectMonthSelected.textContent = 'Tutti i Mesi';
+        } else {
+            multiselectMonthSelected.textContent = `Selezionati: ${selected.length}`;
+        }
+    });
+
+    filterMonthContainer.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterMonthOptions.classList.toggle('visible');
+    });
+    filterMonthOptions.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const selected = Array.from(filterMonthOptions.querySelectorAll('input:checked'));
+        if (selected.length === 0) {
+            filterMonthSelected.textContent = 'Tutti i Mesi';
+        } else if (selected.length === 12) {
+            filterMonthSelected.textContent = 'Tutti i Mesi';
+        } else {
+            filterMonthSelected.textContent = `Selezionati: ${selected.length}`;
+        }
+        filterRegister();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.multiselect-dropdown')) {
+            filterMonthOptions.classList.remove('visible');
+            multiselectMonthOptions.classList.remove('visible');
+        }
+    });
+
+    exportYearSelect.addEventListener('change', updateExportOptions);
+    
+    exportSelectedButton.addEventListener('click', () => {
+        const year = exportYearSelect.value;
+        const months = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
+        if (!year || months.length === 0) {
+            showNotification('Seleziona un anno e almeno un mese per l\'esportazione.', 'error');
+            return;
+        }
+        const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
+        if (filteredData.length > 0) {
+            exportCsv(filteredData, `Registro_${year}_${months.join('-')}.csv`);
+        } else {
+            showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
+        }
+    });
+
+    exportAllButton.addEventListener('click', () => {
+        if (registerData.length > 0) {
+            exportCsv(registerData, 'Registro_Completo.csv');
+        } else {
+            showNotification('Nessun dato da esportare.', 'error');
+        }
+    });
+    
+    exportPdfButton.addEventListener('click', () => {
+        if (registerData.length > 0) {
+            generatePdf(registerData);
+            showNotification('Esportazione PDF avviata!', 'success');
+        } else {
+            showNotification('Nessun dato da esportare.', 'error');
+        }
+    });
+
+    exportSelectedPdfButton.addEventListener('click', () => {
+        const year = exportYearSelect.value;
+        const months = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
+        if (!year || months.length === 0) {
+            showNotification('Seleziona un anno e almeno un mese per l\'esportazione.', 'error');
+            return;
+        }
+        const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
+        if (filteredData.length > 0) {
+            generatePdf(filteredData);
+            showNotification('Esportazione PDF avviata!', 'success');
+        } else {
+            showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
+        }
+    });
+
+    exportDataBtn.addEventListener('click', () => {
+        const dataStr = JSON.stringify(registerData);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        const link = document.createElement('a');
+        link.setAttribute('href', dataUri);
+        link.setAttribute('download', 'registro_lavoro_backup.json');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        showNotification('Dati salvati in file JSON!', 'success');
+        showNotification('Backup creato con successo!', 'success');
     });
-    importDataBtn.addEventListener('click', () => importFile.click());
+
+    importDataBtn.addEventListener('click', () => {
+        importFile.click();
+    });
+
     importFile.addEventListener('change', (event) => {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            return;
+        }
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                if (importedData && importedData.register && Array.isArray(importedData.register)) {
-                    registerData = importedData.register;
+                if (Array.isArray(importedData)) {
+                    registerData = importedData;
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-                    if (importedData.settings) {
-                        localStorage.setItem(SETTINGS_KEY, JSON.stringify(importedData.settings));
-                    }
-                    loadAllData();
-                    showNotification('Dati ripristinati da file JSON!', 'success');
+                    renderAllData();
+                    showNotification('Dati importati con successo!', 'success');
                 } else {
-                    showNotification('Formato file non valido.', 'error');
+                    showNotification('Il file importato non è in un formato valido.', 'error');
                 }
             } catch (error) {
-                showNotification('Errore nella lettura del file.', 'error');
+                showNotification('Errore durante l\'importazione del file.', 'error');
                 console.error(error);
             }
         };
         reader.readAsText(file);
     });
 
-    // Eventi menu impostazioni
-    grossBaseSalaryInput.addEventListener('change', saveSettings);
-    overtimeRateInput.addEventListener('change', saveSettings);
-    dayTripAllowanceInput.addEventListener('change', saveSettings);
-    overnightTripAllowanceInput.addEventListener('change', saveSettings);
-    taxRateInput.addEventListener('change', saveSettings);
-
-    // Gestione radio/checkbox
-    for (const radio of tripTypeRadios) {
-        radio.addEventListener('change', () => {
-            if (radio.checked) {
-                onSiteCheckbox.checked = false;
-            }
-        });
-    }
-    onSiteCheckbox.addEventListener('change', () => {
-        if (onSiteCheckbox.checked) {
-            for (const radio of tripTypeRadios) {
-                radio.checked = false;
-            }
-            locationInput.value = 'Tecnosistem';
-            locationInput.disabled = true;
-        } else {
-            locationInput.value = '';
-            locationInput.disabled = false;
-        }
+    [grossBaseSalaryInput, overtimeRateInput, tripAllowanceInput, taxRateInput].forEach(input => {
+        input.addEventListener('change', saveSettings);
     });
-    
-    // Imposta la data di default su quella odierna
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    dateInput.value = `${year}-${month}-${day}`;
 
-    // Carica tutto all'avvio
-    generateTimeOptions();
-    loadAllData();
+    // Inizializzazione
+    function initialize() {
+        generateTimeOptions();
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        loadData();
+    }
+    initialize();
 </script>
 </body>
 </html>
