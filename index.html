@@ -8,35 +8,37 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f0f5;
+            background-color: #f0f2f5;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             color: #333;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 25px;
             background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
         .logo-text {
             text-align: center;
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: 700;
-            margin-bottom: 15px;
-            background: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #007bff, #00bcd4, #e91e63, #ff9800);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         h1, h2 {
             text-align: center;
-            color: #00a2e3;
+            color: #007bff;
             margin-bottom: 15px;
+            font-weight: 600;
         }
         h2 {
             margin-top: 30px;
+            font-size: 1.5em;
         }
         .collapsible-header {
             display: flex;
@@ -45,6 +47,7 @@
             cursor: pointer;
             margin-bottom: 0;
             font-size: 1.2em;
+            color: #555;
         }
         .collapsible-header .arrow {
             margin-left: 8px;
@@ -56,39 +59,40 @@
         .collapsible-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.5s ease-out;
+            transition: max-height 0.5s cubic-bezier(0.2, 0.8, 0.4, 1.2);
         }
         .collapsible-content.open {
             max-height: 2000px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
             font-size: 0.9em;
+            color: #555;
         }
         input[type="date"], input[type="text"], input[type="number"], textarea, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
             box-sizing: border-box;
-            font-size: 14px;
+            font-size: 16px;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            transition: all 0.3s ease;
+            background-color: #f9f9f9;
         }
-        
         input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #00a2e3;
-            box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
+            border-color: #007bff;
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
+            background-color: #fff;
         }
-        
         textarea {
             resize: vertical;
             min-height: 80px;
@@ -98,63 +102,82 @@
         }
         .time-display {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
             box-sizing: border-box;
-            font-size: 14px;
-            background-color: #fff;
+            font-size: 16px;
+            background-color: #f9f9f9;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            transition: all 0.3s ease;
         }
-        .time-dropdown-container:focus-within .time-display {
-            border-color: #00a2e3;
-            box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
+        .time-dropdown-container:focus-within .time-display,
+        .time-display.open {
+            border-color: #007bff;
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
+            background-color: #fff;
         }
         .time-display:after {
             content: '▼';
             font-size: 12px;
+            color: #888;
         }
         .time-options {
             position: absolute;
             width: 100%;
-            max-height: 200px;
-            overflow-y: scroll;
+            max-height: 250px;
+            overflow-y: auto;
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 10px;
             background-color: #fff;
             z-index: 10;
-            margin-top: 4px;
+            margin-top: 8px;
             display: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            scrollbar-width: thin;
+            scrollbar-color: #007bff #f0f0f5;
+        }
+        .time-options::-webkit-scrollbar {
+            width: 8px;
+        }
+        .time-options::-webkit-scrollbar-thumb {
+            background-color: #007bff;
+            border-radius: 10px;
         }
         .time-options.visible {
             display: block;
         }
         .time-option {
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
             border-bottom: 1px solid #eee;
+            font-size: 16px;
+        }
+        .time-option:last-child {
+            border-bottom: none;
         }
         .time-option:hover {
-            background-color: #f0f0f5;
+            background-color: #eaf6ff;
         }
         .time-option.selected {
-            background-color: #e6f7ff;
+            background-color: #eaf6ff;
             font-weight: 600;
+            color: #007bff;
         }
         .radio-group, .checkbox-group {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
         }
         .radio-group label, .checkbox-group label {
             display: inline-block;
-            margin-right: 20px;
+            margin-right: 25px;
             margin-bottom: 0;
+            cursor: pointer;
         }
         .radio-group input, .checkbox-group input {
             width: auto;
@@ -162,42 +185,39 @@
             -webkit-appearance: radio;
             -moz-appearance: radio;
             appearance: radio;
+            cursor: pointer;
         }
         .btn {
             display: block;
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 15px;
+            transition: all 0.3s ease;
         }
-        
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
-        
         .btn-small {
-            padding: 5px 8px;
-            font-size: 12px;
+            padding: 8px 12px;
+            font-size: 14px;
             margin: 0;
             display: inline-block;
             width: auto;
-            border-radius: 6px;
+            border-radius: 8px;
         }
-        
         .btn-delete {
-            background-color: #f08080;
+            background-color: #dc3545;
         }
         .btn-delete:hover {
-            background-color: #e06666;
+            background-color: #c82333;
         }
-        
         .btn-edit {
             background-color: #ffc107;
             color: #212529;
@@ -205,21 +225,19 @@
         .btn-edit:hover {
             background-color: #e0a800;
         }
-        
         #save-btn {
-            background-color: #00a2e3;
+            background-color: #007bff;
             font-size: 20px;
             position: relative;
+            overflow: hidden;
         }
         #save-btn:hover {
-            background-color: #007bb6;
+            background-color: #0056b3;
         }
-
         .btn-save-anim {
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
         }
         .btn-save-anim .btn-text, .btn-save-anim .btn-icon {
             transition: transform 0.3s ease, opacity 0.3s ease;
@@ -242,48 +260,44 @@
             opacity: 1;
             transform: translateY(0);
         }
-        
         .btn-green {
-            background-color: #22a36b;
+            background-color: #28a745;
         }
         .btn-green:hover {
-            background-color: #1a7e52;
+            background-color: #218838;
         }
-
         .btn-pdf {
             background-color: #b30000;
         }
         .btn-pdf:hover {
             background-color: #800000;
         }
-        
         .btn-backup {
             background-color: #337ab7;
         }
         .btn-backup:hover {
             background-color: #286090;
         }
-        
         .button-group-responsive {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        #results {
+            gap: 15px;
             margin-top: 20px;
-            padding: 12px;
-            background-color: #e9ecef;
-            border-radius: 8px;
+        }
+        #results {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #eaf6ff;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
         }
         #results h3 {
             margin-top: 0;
-            color: #00a2e3;
-            font-size: 1.1em;
+            color: #007bff;
+            font-size: 1.2em;
         }
         #results p {
-            margin: 4px 0;
+            margin: 6px 0;
             font-size: 16px;
         }
         .table-container {
@@ -292,19 +306,23 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 20px;
             background-color: #fff;
-            font-size: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         th, td {
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 1px solid #eee;
             text-align: left;
+            font-size: 14px;
         }
         th {
             background-color: #f8f9fa;
             font-weight: 600;
             white-space: nowrap;
+            color: #444;
         }
         th:last-child {
             text-align: center;
@@ -313,7 +331,7 @@
             white-space: nowrap;
         }
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #fdfdfd;
         }
         #register-table tbody tr {
             opacity: 0;
@@ -326,27 +344,27 @@
                 transform: translateY(0);
             }
         }
-
         .action-buttons-cell {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
             white-space: nowrap;
         }
         #notification {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
+            bottom: 25px;
+            right: 25px;
+            padding: 18px 30px;
+            border-radius: 12px;
             color: white;
             font-weight: 600;
             opacity: 0;
             transform: translateY(100px);
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            font-size: 16px;
         }
         #notification.show {
             opacity: 1;
@@ -358,56 +376,53 @@
         #notification.error {
             background-color: #dc3545;
         }
-        
         .export-options-container {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
             justify-content: flex-start;
         }
-        
-        .export-options-container > select {
-            width: 45%; 
+        .export-options-container > select, .export-options-container > .multiselect-dropdown {
+            flex: 1;
         }
-        .export-options-container > .multiselect-dropdown {
-            width: 45%;
-        }
-        
         select {
-            padding: 0 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
             box-sizing: border-box;
-            font-size: 14px;
+            font-size: 16px;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            background-color: #fff;
-            height: 40px;
+            background-color: #f9f9f9;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23888" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
         }
-        
         .multiselect-dropdown {
             position: relative;
             cursor: pointer;
             user-select: none;
+            width: 100%;
         }
         .multiselect-selected {
             width: 100%;
-            padding: 0 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
-            height: 40px;
-            font-size: 14px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            font-size: 16px;
             display: flex;
             align-items: center;
             flex-wrap: nowrap;
-            gap: 5px;
+            gap: 8px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            line-height: 40px;
-            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            line-height: 24px;
+            min-height: 50px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         }
         .multiselect-selected:after {
             content: '▼';
@@ -424,23 +439,24 @@
             background-color: #fff;
             border: 1px solid #ccc;
             border-top: none;
-            border-radius: 0 0 8px 8px;
+            border-radius: 0 0 10px 10px;
             max-height: 200px;
             overflow-y: auto;
             z-index: 10;
             display: none;
             box-sizing: border-box;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         .multiselect-options.visible {
             display: block;
         }
         .multiselect-option {
-            padding: 10px;
+            padding: 12px;
             display: flex;
             align-items: center;
         }
         .multiselect-option input[type="checkbox"] {
-            margin-right: 10px;
+            margin-right: 12px;
             -webkit-appearance: checkbox;
         }
         .multiselect-option:hover {
@@ -450,20 +466,38 @@
             opacity: 0.6;
             pointer-events: none;
         }
-        @media (min-width: 600px) {
-            .multiselect-selected,
-            .export-options-container > select {
-                font-size: 16px;
-                height: 48px;
-                line-height: 48px;
-            }
-            .multiselect-option {
-                font-size: 16px;
-            }
-        }
         .chart-container {
             margin: 20px 0;
             text-align: center;
+        }
+        .input-group {
+            display: flex;
+            gap: 15px;
+        }
+        .input-group > div {
+            flex: 1;
+        }
+        @media (max-width: 600px) {
+            .button-group-responsive {
+                grid-template-columns: 1fr;
+            }
+            .export-options-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .export-options-container > select, .export-options-container > .multiselect-dropdown {
+                width: 100%;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+            .radio-group, .checkbox-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .radio-group label, .checkbox-group label {
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
@@ -471,41 +505,59 @@
 
 <div class="container">
     <div class="logo-text">TECNOSISTEM</div>
+    
     <div class="form-group">
         <label for="date">Seleziona Giorno:</label>
         <input type="date" id="date">
     </div>
+    
     <div class="form-group">
-        <label>Orario Inizio:</label>
-        <div class="time-dropdown-container">
-            <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
-            <div id="startTimeOptions" class="time-options"></div>
-        </div>
-    </div>
-    <div class="form-group">
-        <label>Orario Fine:</label>
-        <div class="time-dropdown-container">
-            <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
-            <div id="endTimeOptions" class="time-options"></div>
-        </div>
-    </div>
-    <div class="checkbox-group">
-        <input type="checkbox" id="lunchBreak">
-        <label for="lunchBreak">Pausa pranzo (1 ora)</label>
+        <label for="absenceType">Tipo di Assenza:</label>
+        <select id="absenceType">
+            <option value="">Nessuna assenza</option>
+            <option value="Ferie">Ferie</option>
+            <option value="Permesso">Permesso</option>
+            <option value="Malattia">Malattia</option>
+        </select>
     </div>
     
-    <div class="form-group radio-group">
-        <label>Tipo di Trasferta:</label>
-        <input type="radio" id="tripWithReturn" name="tripType" value="Rientro">
-        <label for="tripWithReturn">Rientro</label>
-        <input type="radio" id="tripOvernight" name="tripType" value="Pernottamento">
-        <label for="tripOvernight">Pernottamento</label>
+    <div id="work-fields">
+        <div class="input-group">
+            <div class="form-group">
+                <label>Orario Inizio:</label>
+                <div class="time-dropdown-container">
+                    <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                    <div id="startTimeOptions" class="time-options"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Orario Fine:</label>
+                <div class="time-dropdown-container">
+                    <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                    <div id="endTimeOptions" class="time-options"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="lunchBreak">
+            <label for="lunchBreak">Pausa pranzo (1 ora)</label>
+        </div>
+        
+        <div class="form-group radio-group">
+            <label>Tipo di Trasferta:</label>
+            <input type="radio" id="tripWithReturn" name="tripType" value="Rientro">
+            <label for="tripWithReturn">Rientro</label>
+            <input type="radio" id="tripOvernight" name="tripType" value="Pernottamento">
+            <label for="tripOvernight">Pernottamento</label>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="onSite">
+            <label for="onSite">In sede</label>
+        </div>
     </div>
 
-    <div class="checkbox-group">
-        <input type="checkbox" id="onSite">
-        <label for="onSite">In sede</label>
-    </div>
     <div class="form-group">
         <label for="location">Luogo Intervento:</label>
         <input type="text" id="location" list="location-suggestions">
@@ -518,8 +570,9 @@
 
     <div id="results">
         <h3>Riepilogo giornaliero</h3>
-        <p><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
-        <p><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
+        <p id="totalHoursContainer"><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
+        <p id="overtimeHoursContainer"><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
+        <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHours">0</span></p>
     </div>
     
     <button id="save-btn" class="btn btn-save-anim">
@@ -544,12 +597,76 @@
                     <th>Rientro</th>
                     <th>Pernott.</th>
                     <th>Sede</th>
+                    <th>Assenze</th>
                 </tr>
             </thead>
             <tbody>
-                </tbody>
+            </tbody>
         </table>
     </div>
+    
+    <hr>
+    
+    <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="register-content">
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="search-input">Cerca nel registro:</label>
+            <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
+        </div>
+        <div class="form-group">
+            <label for="filter-month-year">Filtra per Mese(i) o Anno:</label>
+            <div class="export-options-container">
+                <select id="filter-year">
+                    <option value="">Tutti gli Anni</option>
+                </select>
+                <div class="multiselect-dropdown" id="filter-month-container">
+                    <div class="multiselect-selected">Tutti i Mesi</div>
+                    <div class="multiselect-options" id="filter-month-options"></div>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <table id="register-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Inizio</th>
+                        <th>Fine</th>
+                        <th>Ore Tot.</th>
+                        <th>Ore Str.</th>
+                        <th>Tipo Trasf.</th>
+                        <th>Assenza</th>
+                        <th>Luogo</th>
+                        <th>Note</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <h2 class="collapsible-header" id="toggle-gross-net">💰 Riepilogo Lordo/Netto <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="gross-net-content">
+        <div class="table-container">
+            <table id="gross-net-table">
+                <thead>
+                    <tr>
+                        <th>Mese</th>
+                        <th>Lordo</th>
+                        <th>Netto (stimato)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <hr>
 
     <h2 class="collapsible-header" id="toggle-settings">⚙️ Impostazioni Avanzate <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="settings-content">
@@ -575,70 +692,10 @@
             <input type="number" id="taxRateInput" step="0.1" min="0" max="100">
         </div>
     </div>
-    
-    <h2 class="collapsible-header" id="toggle-gross-net">💰 Riepilogo Lordo/Netto <span class="arrow">▼</span></h2>
-    <div class="collapsible-content" id="gross-net-content">
-        <div class="table-container">
-            <table id="gross-net-table">
-                <thead>
-                    <tr>
-                        <th>Mese</th>
-                        <th>Lordo</th>
-                        <th>Netto (stimato)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <hr>
-    
-    <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
-    <div class="collapsible-content" id="register-content">
-        <div class="form-group" style="margin-top: 20px;">
-            <label for="search-input">Cerca nel registro:</label>
-            <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
-        </div>
-        <div class="form-group" style="margin-top: 20px;">
-            <label for="filter-month-year">Filtra per Mese(i) o Anno:</label>
-            <div class="export-options-container">
-                <select id="filter-year">
-                    <option value="">Tutti gli Anni</option>
-                </select>
-                <div class="multiselect-dropdown" id="filter-month-container">
-                    <div class="multiselect-selected">Tutti i Mesi</div>
-                    <div class="multiselect-options" id="filter-month-options"></div>
-                </div>
-            </div>
-        </div>
-        <div class="table-container">
-            <table id="register-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Inizio</th>
-                        <th>Fine</th>
-                        <th>Totali</th>
-                        <th>Str.</th>
-                        <th>Tipo Trasf.</th>
-                        <th>Sede</th>
-                        <th>Luogo</th>
-                        <th>Note</th>
-                        <th>Azione</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-        </div>
-    </div>
-    
+
     <hr>
     
     <h2>Esporta e gestisci i dati</h2>
-    
     <div class="form-group" style="margin-top: 20px;">
         <label>Esporta un periodo specifico:</label>
         <div class="export-options-container">
@@ -674,8 +731,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Selezioni elementi del DOM
     const dateInput = document.getElementById('date');
+    const absenceTypeSelect = document.getElementById('absenceType');
+    const workFields = document.getElementById('work-fields');
     const startTimeDisplay = document.getElementById('startTimeDisplay');
     const startTimeOptions = document.getElementById('startTimeOptions');
     const endTimeDisplay = document.getElementById('endTimeDisplay');
@@ -687,6 +745,10 @@
     const notesInput = document.getElementById('notes');
     const totalHoursSpan = document.getElementById('totalHours');
     const overtimeHoursSpan = document.getElementById('overtimeHours');
+    const absenceHoursSpan = document.getElementById('absenceHours');
+    const totalHoursContainer = document.getElementById('totalHoursContainer');
+    const overtimeHoursContainer = document.getElementById('overtimeHoursContainer');
+    const absenceHoursContainer = document.getElementById('absenceHoursContainer');
     const saveButton = document.getElementById('save-btn');
     const registerBody = document.querySelector('#register-table tbody');
     const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
@@ -696,9 +758,10 @@
     const notification = document.getElementById('notification');
     const searchInput = document.getElementById('search-input');
     const standardWorkDay = 8;
+    const standardStartTime = '08:00';
+    const standardEndTime = '17:00';
     let registerData = [];
     
-    // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79; 
     let overtimeRate = 21.53;
     let dayTripAllowance = 30.00;
@@ -706,7 +769,6 @@
     let taxRate = 0.30;
     const socialSecurityRate = 0.0949;
     
-    // Elementi del menu impostazioni
     const toggleSettingsHeader = document.getElementById('toggle-settings');
     const settingsContent = document.getElementById('settings-content');
     const grossBaseSalaryInput = document.getElementById('grossBaseSalaryInput');
@@ -715,11 +777,9 @@
     const overnightTripAllowanceInput = document.getElementById('overnightTripAllowanceInput');
     const taxRateInput = document.getElementById('taxRateInput');
 
-    // Chiavi per localStorage
     const STORAGE_KEY = 'registroOrario';
     const SETTINGS_KEY = 'registroSettings';
 
-    // Elementi di esportazione e filtro
     const exportYearSelect = document.getElementById('export-year');
     const multiselectMonthContainer = document.getElementById('multiselect-month-container');
     const multiselectMonthSelected = document.querySelector('#multiselect-month-container .multiselect-selected');
@@ -736,16 +796,13 @@
     const importDataBtn = document.getElementById('import-data-btn');
     const importFile = document.getElementById('import-file');
     
-    // Elementi del grafico
     const monthlyChartCanvas = document.getElementById('monthlyChart');
     let monthlyChart = null;
 
-    // Elementi del riepilogo lordo/netto
     const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
     const grossNetContent = document.getElementById('gross-net-content');
     const grossNetBody = document.querySelector('#gross-net-table tbody');
-
-    // Funzioni di utilità
+    
     function showNotification(message, type) {
         notification.innerHTML = message;
         notification.className = '';
@@ -779,9 +836,26 @@
     }
 
     function calculateHours() {
+        const absenceType = absenceTypeSelect.value;
         const startTime = startTimeDisplay.getAttribute('data-value');
         const endTime = endTimeDisplay.getAttribute('data-value');
-        const lunchBreak = lunchBreakCheckbox.checked;
+
+        if (absenceType) {
+            workFields.style.display = 'block'; 
+            totalHoursContainer.style.display = 'none';
+            overtimeHoursContainer.style.display = 'none';
+            absenceHoursContainer.style.display = 'block';
+            locationInput.value = 'Tecnosistem';
+            locationInput.disabled = false;
+        } else {
+            workFields.style.display = 'block'; 
+            totalHoursContainer.style.display = 'block';
+            overtimeHoursContainer.style.display = 'block';
+            absenceHoursContainer.style.display = 'none';
+            notesInput.value = '';
+            locationInput.disabled = false;
+        }
+
         if (startTime && endTime) {
             const start = new Date(`2025-01-01T${startTime}:00`);
             const end = new Date(`2025-01-01T${endTime}:00`);
@@ -790,35 +864,60 @@
             }
             let totalMilliseconds = end - start;
             let totalHours = totalMilliseconds / (1000 * 60 * 60);
-            if (lunchBreak) {
+            
+            if (lunchBreakCheckbox.checked) {
                 totalHours -= 1;
             }
+            
             const totalHoursFixed = totalHours.toFixed(2);
             let overtimeHours = 0;
             if (totalHours > standardWorkDay) {
                 overtimeHours = totalHours - standardWorkDay;
             }
-            totalHoursSpan.textContent = totalHoursFixed;
-            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
+
+            if (absenceType) {
+                 absenceHoursSpan.textContent = totalHoursFixed;
+            } else {
+                 totalHoursSpan.textContent = totalHoursFixed;
+                 overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
+            }
+
         } else {
             totalHoursSpan.textContent = '0';
             overtimeHoursSpan.textContent = '0';
+            absenceHoursSpan.textContent = '0';
         }
     }
 
     function createRow(entry) {
         const row = document.createElement('tr');
         row.setAttribute('data-date', entry.date);
+        let absenceType = entry.absenceType || '';
+        let tripType = entry.tripType || '-';
+        let onSite = entry.onSite ? 'Sì' : 'No';
+        let totalHours = (entry.totalHours !== undefined) ? entry.totalHours.toFixed(2) : '0.00';
+        let overtimeHours = (entry.overtimeHours !== undefined) ? entry.overtimeHours.toFixed(2) : '0.00';
+        let location = entry.location;
+        let notes = entry.notes || '';
+        let startTime = entry.startTime || '-';
+        let endTime = entry.endTime || '-';
+        
+        if (absenceType) {
+            tripType = '-';
+            onSite = '-';
+            overtimeHours = '0.00';
+        }
+
         row.innerHTML = `
             <td>${formatDate(entry.date)}</td>
-            <td>${entry.startTime}</td>
-            <td>${entry.endTime}</td>
-            <td>${entry.totalHours.toFixed(2)}</td>
-            <td>${entry.overtimeHours.toFixed(2)}</td>
-            <td>${entry.tripType || '-'}</td>
-            <td>${entry.onSite ? 'Sì' : 'No'}</td>
-            <td>${entry.location}</td>
-            <td>${entry.notes || ''}</td>
+            <td>${startTime}</td>
+            <td>${endTime}</td>
+            <td>${totalHours}</td>
+            <td>${overtimeHours}</td>
+            <td>${tripType}</td>
+            <td>${absenceType || '-'}</td>
+            <td>${location}</td>
+            <td>${notes}</td>
             <td class="action-buttons-cell">
                 <button class="btn-small btn-edit" data-date="${entry.date}">✏️</button>
                 <button class="btn-small btn-delete" data-date="${entry.date}">🗑️</button>
@@ -827,58 +926,61 @@
         return row;
     }
 
-    // Funzione principale di salvataggio
     function saveEntry() {
         const date = dateInput.value;
-        const startTime = startTimeDisplay.getAttribute('data-value');
-        const endTime = endTimeDisplay.getAttribute('data-value');
-        const lunchBreak = lunchBreakCheckbox.checked;
-        const onSite = onSiteCheckbox.checked;
+        const absenceType = absenceTypeSelect.value;
         const location = locationInput.value;
         const notes = notesInput.value;
-        const totalHours = parseFloat(totalHoursSpan.textContent);
-        const overtimeHours = parseFloat(overtimeHoursSpan.textContent);
+        const startTime = startTimeDisplay.getAttribute('data-value');
+        const endTime = endTimeDisplay.getAttribute('data-value');
         
-        let tripType = null;
-        for (const radio of tripTypeRadios) {
-            if (radio.checked) {
-                tripType = radio.value;
-                break;
-            }
-        }
-        
-        if (!date || !startTime || !endTime) {
+        if (!date || !startTime || !endTime || !location) {
             showNotification('Per favore, compila tutti i campi obbligatori.', 'error');
             return;
         }
+
         const start = new Date(`2025-01-01T${startTime}:00`);
         const end = new Date(`2025-01-01T${endTime}:00`);
         if (end < start) {
             showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
             return;
         }
-        
-        if (onSite) {
-            tripType = null;
-        }
-        if (tripType) {
-            onSiteCheckbox.checked = false;
-        }
 
-        saveButton.classList.add('saved');
+        let totalHours = parseFloat(totalHoursSpan.textContent);
+        let overtimeHours = parseFloat(overtimeHoursSpan.textContent);
 
-        const newEntry = {
+        let newEntry = {
             date: date,
             startTime: startTime,
             endTime: endTime,
             totalHours: totalHours,
             overtimeHours: overtimeHours,
-            tripType: tripType,
-            onSite: onSite,
-            lunchBreak: lunchBreak,
+            lunchBreak: lunchBreakCheckbox.checked,
             location: location,
-            notes: notes
+            notes: notes,
+            absenceType: absenceType || null,
         };
+
+        if (absenceType) {
+            newEntry.tripType = null;
+            newEntry.onSite = false;
+            newEntry.overtimeHours = 0;
+            newEntry.totalHours = parseFloat(absenceHoursSpan.textContent);
+        } else {
+            let tripType = null;
+            for (const radio of tripTypeRadios) {
+                if (radio.checked) {
+                    tripType = radio.value;
+                    break;
+                }
+            }
+            const onSite = onSiteCheckbox.checked;
+            newEntry.tripType = tripType;
+            newEntry.onSite = onSite;
+        }
+        
+        saveButton.classList.add('saved');
+
         const existingIndex = registerData.findIndex(entry => entry.date === date);
         if (existingIndex !== -1) {
             registerData[existingIndex] = newEntry;
@@ -900,6 +1002,7 @@
         setTimeout(() => {
             saveButton.classList.remove('saved');
             dateInput.value = '';
+            absenceTypeSelect.value = '';
             startTimeDisplay.textContent = 'Seleziona orario';
             startTimeDisplay.setAttribute('data-value', '');
             endTimeDisplay.textContent = 'Seleziona orario';
@@ -916,7 +1019,6 @@
         }, 1000);
     }
 
-    // Gestione dati (modifica, cancella, carica)
     function deleteEntry(date) {
         if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
             registerData = registerData.filter(entry => entry.date !== date);
@@ -930,25 +1032,39 @@
         const entryToEdit = registerData.find(entry => entry.date === date);
         if (entryToEdit) {
             dateInput.value = entryToEdit.date;
+            absenceTypeSelect.value = entryToEdit.absenceType || '';
+            
             startTimeDisplay.textContent = entryToEdit.startTime;
             startTimeDisplay.setAttribute('data-value', entryToEdit.startTime);
             endTimeDisplay.textContent = entryToEdit.endTime;
             endTimeDisplay.setAttribute('data-value', entryToEdit.endTime);
             lunchBreakCheckbox.checked = entryToEdit.lunchBreak;
-            for (const radio of tripTypeRadios) {
-                radio.checked = (entryToEdit.tripType === radio.value);
+            
+            if (entryToEdit.absenceType) {
+                for (const radio of tripTypeRadios) {
+                    radio.checked = false;
+                }
+                onSiteCheckbox.checked = false;
+                locationInput.disabled = false;
+                locationInput.value = entryToEdit.location;
+                notesInput.value = entryToEdit.notes || '';
+            } else {
+                for (const radio of tripTypeRadios) {
+                    radio.checked = (entryToEdit.tripType === radio.value);
+                }
+                onSiteCheckbox.checked = entryToEdit.onSite;
+                if (entryToEdit.onSite) {
+                    locationInput.value = 'Tecnosistem';
+                    locationInput.disabled = true;
+                } else {
+                    locationInput.value = entryToEdit.location;
+                    locationInput.disabled = false;
+                }
+                notesInput.value = entryToEdit.notes || '';
             }
-            onSiteCheckbox.checked = entryToEdit.onSite;
-            locationInput.value = entryToEdit.location;
-            notesInput.value = entryToEdit.notes || '';
+            
             calculateHours();
             window.scrollTo(0, 0);
-            if (onSiteCheckbox.checked) {
-                locationInput.value = 'Tecnosistem';
-                locationInput.disabled = true;
-            } else {
-                locationInput.disabled = false;
-            }
         }
     }
 
@@ -963,7 +1079,8 @@
                     overtimeHours: parseFloat(entry.overtimeHours) || 0,
                     lunchBreak: entry.lunchBreak === true,
                     onSite: entry.onSite === true,
-                    notes: entry.notes || ''
+                    notes: entry.notes || '',
+                    absenceType: entry.absenceType || null
                 };
                 if (entry.businessTrip !== undefined) {
                     updatedEntry.tripType = entry.businessTrip ? 'Rientro' : null;
@@ -974,7 +1091,6 @@
         }
     }
 
-    // Funzioni di rendering delle tabelle
     function renderRegister(dataToRender = registerData) {
         registerBody.innerHTML = '';
         dataToRender.forEach(entry => {
@@ -1005,9 +1121,14 @@
                     overtimeHours: 0,
                     tripWithReturnDays: 0,
                     tripOvernightDays: 0,
-                    onSiteDays: 0
+                    onSiteDays: 0,
+                    absenceDays: 0
                 };
             }
+            if (entry.absenceType) {
+                summary[monthKey].absenceDays += 1;
+            }
+            
             summary[monthKey].totalHours += parseFloat(entry.totalHours) || 0;
             summary[monthKey].overtimeHours += parseFloat(entry.overtimeHours) || 0;
             if (entry.tripType === 'Rientro') {
@@ -1043,6 +1164,7 @@
                 <td>${monthSummary.tripWithReturnDays}</td>
                 <td>${monthSummary.tripOvernightDays}</td>
                 <td>${monthSummary.onSiteDays}</td>
+                <td>${monthSummary.absenceDays}</td>
             `;
             monthlySummaryBody.appendChild(row);
         });
@@ -1076,7 +1198,6 @@
         });
     }
 
-    // Funzioni per la gestione delle impostazioni
     function loadSettings() {
         try {
             const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
@@ -1118,13 +1239,16 @@
         showNotification('Impostazioni salvate!', 'success');
     }
 
-    // Funzioni di esportazione e backup
     function calculateSummary(data) {
         let totalHours = 0;
         let totalOvertimeHours = 0;
         let totalRientroDays = 0;
         let totalPernottamentoDays = 0;
+        let totalAbsenceDays = 0;
         data.forEach(entry => {
+            if (entry.absenceType) {
+                totalAbsenceDays++;
+            }
             totalHours += entry.totalHours;
             totalOvertimeHours += entry.overtimeHours;
             if (entry.tripType === 'Rientro') totalRientroDays++;
@@ -1134,7 +1258,8 @@
             totalHours: totalHours.toFixed(2),
             totalOvertimeHours: totalOvertimeHours.toFixed(2),
             totalRientroDays,
-            totalPernottamentoDays
+            totalPernottamentoDays,
+            totalAbsenceDays
         };
     }
 
@@ -1147,14 +1272,15 @@
         const summary = calculateSummary(data);
 
         let csvContent = `Riepilogo del periodo:\n`;
-        csvContent += `Totale Ore: ${summary.totalHours}\n`;
+        csvContent += `Totale Ore Lavorate: ${summary.totalHours}\n`;
         csvContent += `Totale Ore Straordinarie: ${summary.totalOvertimeHours}\n`;
         csvContent += `Giorni con Rientro: ${summary.totalRientroDays}\n`;
-        csvContent += `Giorni con Pernottamento: ${summary.totalPernottamentoDays}\n\n`;
+        csvContent += `Giorni con Pernottamento: ${summary.totalPernottamentoDays}\n`;
+        csvContent += `Giorni di Assenza: ${summary.totalAbsenceDays}\n\n`;
 
-        csvContent += "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Tipo trasferta,Sede,Luogo,Note\n";
+        csvContent += "Data,Orario inizio,Orario fine,Ore totali,Ore straordinarie,Tipo trasferta,Assenza,Luogo,Note\n";
         data.forEach(entry => {
-            const row = `${formatDate(entry.date)},${entry.startTime},${entry.endTime},${entry.totalHours.toFixed(2)},${entry.overtimeHours.toFixed(2)},${entry.tripType || ''},${entry.onSite ? 'Sì' : 'No'},"${entry.location.replace(/"/g, '""')}", "${(entry.notes || '').replace(/"/g, '""')}"`;
+            const row = `${formatDate(entry.date)},${entry.startTime || ''},${entry.endTime || ''},${entry.totalHours || ''},${entry.overtimeHours || ''},${entry.tripType || ''},${entry.absenceType || ''},"${entry.location.replace(/"/g, '""')}", "${(entry.notes || '').replace(/"/g, '""')}"`;
             csvContent += row + '\n';
         });
 
@@ -1180,7 +1306,7 @@
         const doc = new jsPDF();
         
         const dataForPdf = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-        const tableColumn = ["Data", "Inizio", "Fine", "Totali", "Str.", "Tipo Trasf.", "Sede", "Luogo", "Note"];
+        const tableColumn = ["Data", "Inizio", "Fine", "Totali", "Str.", "Tipo Trasf.", "Assenza", "Luogo", "Note"];
         
         const summary = calculateSummary(dataForPdf);
         let startY = 20;
@@ -1194,24 +1320,41 @@
         doc.text(`Totale Ore Straordinarie: ${summary.totalOvertimeHours}`, 15, startY + 5);
         doc.text(`Giorni con Rientro: ${summary.totalRientroDays}`, 15, startY + 10);
         doc.text(`Giorni con Pernottamento: ${summary.totalPernottamentoDays}`, 15, startY + 15);
-        startY += 25;
+        doc.text(`Giorni di Assenza: ${summary.totalAbsenceDays}`, 15, startY + 20);
+        startY += 30;
         
         doc.autoTable({
             startY: startY,
             head: [tableColumn],
-            body: dataForPdf.map(entry => [
-                formatDate(entry.date),
-                entry.startTime,
-                entry.endTime,
-                entry.totalHours.toFixed(2),
-                entry.overtimeHours.toFixed(2),
-                entry.tripType || '-',
-                entry.onSite ? 'Sì' : 'No',
-                entry.location,
-                entry.notes || ''
-            ]),
+            body: dataForPdf.map(entry => {
+                let absenceType = entry.absenceType || '';
+                let tripType = entry.tripType || '-';
+                let totalHours = (entry.totalHours !== undefined) ? entry.totalHours.toFixed(2) : '0.00';
+                let overtimeHours = (entry.overtimeHours !== undefined) ? entry.overtimeHours.toFixed(2) : '0.00';
+                let location = entry.location;
+                let notes = entry.notes || '';
+                let startTime = entry.startTime || '-';
+                let endTime = entry.endTime || '-';
+
+                if (absenceType) {
+                    tripType = '-';
+                    overtimeHours = '0.00';
+                }
+                
+                return [
+                    formatDate(entry.date),
+                    startTime,
+                    endTime,
+                    totalHours,
+                    overtimeHours,
+                    tripType,
+                    absenceType || '-',
+                    location,
+                    notes
+                ];
+            }),
             theme: 'striped',
-            headStyles: { fillColor: [0, 162, 227] },
+            headStyles: { fillColor: [0, 123, 255] },
             didDrawPage: (data) => {
                 doc.setFontSize(10);
                 doc.text("Pagina " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
@@ -1324,12 +1467,13 @@
             const entryYear = entryDate.getFullYear();
             const entryMonth = entryDate.getMonth();
             const formattedDate = formatDate(entry.date).toLowerCase();
-            const location = entry.location.toLowerCase();
+            const location = (entry.location || '').toLowerCase();
             const notes = (entry.notes || '').toLowerCase();
+            const absenceType = (entry.absenceType || '').toLowerCase();
             
             const matchesYear = !filterYear || entryYear == filterYear;
             const matchesMonth = filterMonths.length === 0 || filterMonths.includes(entryMonth);
-            const matchesSearch = formattedDate.includes(searchTerm) || location.includes(searchTerm) || notes.includes(searchTerm);
+            const matchesSearch = formattedDate.includes(searchTerm) || location.includes(searchTerm) || notes.includes(searchTerm) || absenceType.includes(searchTerm);
             
             return matchesYear && matchesMonth && matchesSearch;
         });
@@ -1341,7 +1485,6 @@
         header.classList.toggle('open');
     }
     
-    // Funzioni per la gestione del grafico
     function renderChart() {
         const summary = getMonthlySummaryData(registerData);
         const sortedMonths = Object.keys(summary).sort((a, b) => {
@@ -1355,6 +1498,7 @@
         const rientroDays = sortedMonths.map(key => summary[key].tripWithReturnDays);
         const pernottamentoDays = sortedMonths.map(key => summary[key].tripOvernightDays);
         const onSiteDays = sortedMonths.map(key => summary[key].onSiteDays);
+        const absenceDays = sortedMonths.map(key => summary[key].absenceDays);
         
         const chartData = {
             labels: labels,
@@ -1362,22 +1506,29 @@
                 {
                     label: 'Sede',
                     data: onSiteDays,
-                    backgroundColor: '#9966cc',
-                    borderColor: '#800080',
+                    backgroundColor: '#007bff',
+                    borderColor: '#0056b3',
                     borderWidth: 1
                 },
                 {
                     label: 'Rientro',
                     data: rientroDays,
-                    backgroundColor: '#ffc107',
-                    borderColor: '#e0a800',
+                    backgroundColor: '#28a745',
+                    borderColor: '#218838',
                     borderWidth: 1
                 },
                 {
                     label: 'Pernottamento',
                     data: pernottamentoDays,
-                    backgroundColor: '#f08080',
-                    borderColor: '#e06666',
+                    backgroundColor: '#ffc107',
+                    borderColor: '#e0a800',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Assenze',
+                    data: absenceDays,
+                    backgroundColor: '#dc3545',
+                    borderColor: '#c82333',
                     borderWidth: 1
                 }
             ]
@@ -1390,12 +1541,14 @@
                 responsive: true,
                 scales: {
                     x: {
+                        stacked: true,
                         title: {
                             display: true,
                             text: 'Mese'
                         }
                     },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,
@@ -1412,7 +1565,6 @@
         monthlyChart = new Chart(monthlyChartCanvas, config);
     }
     
-    // Funzione di gestione generale del rendering
     function renderAllData() {
         renderRegister();
         renderMonthlySummary();
@@ -1422,7 +1574,6 @@
         updateExportAndFilterOptions();
     }
     
-    // Caricamento iniziale e gestione eventi
     function loadAllData() {
         loadSettings();
         loadRegisterData();
@@ -1474,18 +1625,13 @@
         }
     });
 
-    // Aggiungi event listener per l'apertura e la gestione dei dropdown dei mesi
     multiselectMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, multiselectMonthContainer, multiselectMonthOptions));
     filterMonthContainer.addEventListener('click', (e) => toggleMonthDropdown(e, filterMonthContainer, filterMonthOptions));
-
-    // Aggiungi event listener per la selezione delle opzioni nei dropdown dei mesi
     multiselectMonthOptions.addEventListener('change', () => updateMultiselectSelectedText(multiselectMonthOptions, multiselectMonthSelected));
     filterMonthOptions.addEventListener('change', () => {
         updateMultiselectSelectedText(filterMonthOptions, filterMonthSelected, 'Tutti i Mesi');
         applyFiltersAndSearch();
     });
-
-    // Aggiungi event listener per la selezione dell'anno
     exportYearSelect.addEventListener('change', () => handleYearChange(exportYearSelect, multiselectMonthContainer, multiselectMonthOptions));
     filterYearSelect.addEventListener('change', () => {
         handleYearChange(filterYearSelect, filterMonthContainer, filterMonthOptions);
@@ -1495,7 +1641,33 @@
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
     
-    // Eventi pulsanti di esportazione
+    absenceTypeSelect.addEventListener('change', () => {
+        const absenceType = absenceTypeSelect.value;
+        if (absenceType) {
+            startTimeDisplay.textContent = standardStartTime;
+            startTimeDisplay.setAttribute('data-value', standardStartTime);
+            endTimeDisplay.textContent = standardEndTime;
+            endTimeDisplay.setAttribute('data-value', standardEndTime);
+            lunchBreakCheckbox.checked = true;
+            locationInput.value = 'Tecnosistem';
+            locationInput.disabled = false;
+            notesInput.value = '';
+            for (const radio of tripTypeRadios) {
+                radio.checked = false;
+            }
+            onSiteCheckbox.checked = false;
+        } else {
+            startTimeDisplay.textContent = 'Seleziona orario';
+            startTimeDisplay.setAttribute('data-value', '');
+            endTimeDisplay.textContent = 'Seleziona orario';
+            endTimeDisplay.setAttribute('data-value', '');
+            notesInput.value = '';
+            locationInput.value = '';
+            locationInput.disabled = false;
+        }
+        calculateHours();
+    });
+    
     exportSelectedButton.addEventListener('click', () => {
         const result = exportSelected();
         if (result) exportToCsv(result.data, result.filename + '.csv');
@@ -1507,12 +1679,10 @@
     exportAllButton.addEventListener('click', () => exportToCsv(registerData, 'registro_orario_completo.csv'));
     exportPdfButton.addEventListener('click', () => generatePdfFromData(registerData, 'registro_orario_completo.pdf'));
     
-    // Eventi menu collassabili
     toggleRegisterHeader.addEventListener('click', () => toggleCollapsible(toggleRegisterHeader, registerContent));
     toggleGrossNetHeader.addEventListener('click', () => toggleCollapsible(toggleGrossNetHeader, grossNetContent));
     toggleSettingsHeader.addEventListener('click', () => toggleCollapsible(toggleSettingsHeader, settingsContent));
     
-    // Eventi backup
     exportDataBtn.addEventListener('click', () => {
         const dataStr = JSON.stringify({
             register: registerData,
@@ -1558,18 +1728,17 @@
         reader.readAsText(file);
     });
 
-    // Eventi menu impostazioni
     grossBaseSalaryInput.addEventListener('change', saveSettings);
     overtimeRateInput.addEventListener('change', saveSettings);
     dayTripAllowanceInput.addEventListener('change', saveSettings);
     overnightTripAllowanceInput.addEventListener('change', saveSettings);
     taxRateInput.addEventListener('change', saveSettings);
 
-    // Gestione radio/checkbox
     for (const radio of tripTypeRadios) {
         radio.addEventListener('change', () => {
             if (radio.checked) {
                 onSiteCheckbox.checked = false;
+                calculateHours();
             }
         });
     }
@@ -1581,19 +1750,16 @@
             locationInput.value = 'Tecnosistem';
             locationInput.disabled = true;
         } else {
-            locationInput.value = '';
             locationInput.disabled = false;
         }
     });
-    
-    // Imposta la data di default su quella odierna
+
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     dateInput.value = `${year}-${month}-${day}`;
 
-    // Carica tutto all'avvio
     generateTimeOptions();
     loadAllData();
 </script>
