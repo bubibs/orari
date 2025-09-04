@@ -384,6 +384,7 @@
         }
         .export-options-container > select, .export-options-container > .multiselect-dropdown {
             flex: 1;
+            min-width: 150px; /* Garantisce una larghezza minima per gli elementi in flex */
         }
         select {
             padding: 12px;
@@ -477,26 +478,84 @@
         .input-group > div {
             flex: 1;
         }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) { /* Adattato per schermi più grandi ma comunque mobile */
             .input-group {
                 flex-direction: column;
+                gap: 0; /* Rimuove lo spazio tra gli elementi impilati */
+            }
+            .input-group > div {
+                margin-bottom: 20px; /* Aggiunge spazio sotto ogni div impilato */
+            }
+            .input-group > div:last-child {
+                margin-bottom: 0; /* Nessun margine sotto l'ultimo elemento */
             }
             .button-group-responsive {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr; /* Un elemento per riga su schermi piccoli */
             }
             .export-options-container {
                 flex-direction: column;
                 gap: 15px;
             }
             .export-options-container > select, .export-options-container > .multiselect-dropdown {
-                width: 100%;
+                width: 100%; /* Occupa tutta la larghezza disponibile */
+                min-width: unset; /* Rimuove la larghezza minima */
             }
             .radio-group, .checkbox-group {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: flex-start; /* Allinea a sinistra gli elementi nei gruppi radio/checkbox */
             }
             .radio-group label, .checkbox-group label {
-                margin-bottom: 10px;
+                margin-bottom: 10px; /* Spazio tra le opzioni */
+            }
+            .container {
+                padding: 15px; /* Ridotto il padding sul container */
+            }
+            .logo-text {
+                font-size: 2em; /* Ridotto la dimensione del logo */
+            }
+            h2 {
+                font-size: 1.3em; /* Ridotto la dimensione dei titoli H2 */
+            }
+            .btn {
+                font-size: 16px; /* Ridotto la dimensione dei bottoni principali */
+            }
+            #save-btn {
+                font-size: 18px; /* Dimensione leggermente più grande per il bottone di salvataggio */
+            }
+            th, td {
+                font-size: 12px; /* Ridotto la dimensione del font nelle tabelle */
+                padding: 8px; /* Ridotto il padding nelle celle delle tabelle */
+            }
+        }
+        @media (max-width: 480px) { /* Ulteriori aggiustamenti per schermi molto piccoli */
+            .logo-text {
+                font-size: 1.8em;
+            }
+            h2 {
+                font-size: 1.2em;
+            }
+            .btn {
+                font-size: 15px;
+                padding: 12px;
+            }
+            #save-btn {
+                font-size: 16px;
+            }
+            th, td {
+                font-size: 11px;
+                padding: 6px;
+            }
+            .time-display, input[type="date"], input[type="text"], input[type="number"], textarea, select {
+                padding: 10px;
+                font-size: 14px;
+            }
+            label {
+                font-size: 0.85em;
+            }
+            #notification {
+                bottom: 15px;
+                right: 15px;
+                padding: 15px 20px;
             }
         }
     </style>
