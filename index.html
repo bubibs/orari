@@ -1307,20 +1307,17 @@
 
     workModeSelect.addEventListener('change', () => {
         const mode = workModeSelect.value;
+        absenceTypeSelect.value = ''; // Disabilita l'assenza
         if (mode === 'In Sede') {
-            absenceTypeSelect.value = '';
             locationInput.value = 'Tecnosistem';
-            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            // Imposta l'orario solo se non già impostato
+            if (!startTimeDisplay.getAttribute('data-value') && !endTimeDisplay.getAttribute('data-value')) {
+                setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
+                setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            }
             lunchBreakCheckbox.checked = true;
-        } else if (mode === 'Rientro' || mode === 'Pernottamento') {
-            absenceTypeSelect.value = '';
-            locationInput.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
         } else {
-            locationInput.value = '';
-            clearTimeDropdowns();
+            // Ho rimosso la riga che cancellava il luogo
             lunchBreakCheckbox.checked = false;
         }
         calculateHours();
@@ -1329,7 +1326,7 @@
     absenceTypeSelect.addEventListener('change', () => {
         const absence = absenceTypeSelect.value;
         if (absence) {
-            workModeSelect.value = '';
+            workModeSelect.value = ''; // Disabilita la modalità di lavoro
             locationInput.value = 'Tecnosistem';
             setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
             setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
@@ -1556,4 +1553,3 @@
 </script>
 </body>
 </html>
-
