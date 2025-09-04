@@ -1177,7 +1177,7 @@
             const [yearA, monthA] = a.split('-').map(Number);
             const [yearB, monthB] = b.split('-').map(Number);
             if (yearA !== yearB) return yearB - yearA;
-            return monthB - monthA;
+            return monthA - monthB;
         });
 
         sortedMonths.forEach(monthKey => {
