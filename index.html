@@ -523,11 +523,20 @@
     
     <hr>
     
-    <h2>Riepilogo Mensile</h2>
+    <h2>Grafici e Riepiloghi</h2>
+    <div class="form-group">
+        <label for="graphMonth">Filtra grafico per Mese:</label>
+        <select id="graphMonth"></select>
+    </div>
     <div class="chart-container">
+        <h3>Andamento Mensile</h3>
         <canvas id="monthlyChart"></canvas>
     </div>
-    
+    <div class="chart-container">
+        <h3>Dettaglio Giornaliero</h3>
+        <canvas id="dailyChart"></canvas>
+    </div>
+
     <div class="table-container">
         <table id="monthly-summary-table">
             <thead>
@@ -737,7 +746,10 @@
     
     // Elementi del grafico
     const monthlyChartCanvas = document.getElementById('monthlyChart');
+    const dailyChartCanvas = document.getElementById('dailyChart');
+    const graphMonthSelect = document.getElementById('graphMonth');
     let monthlyChart = null;
+    let dailyChart = null;
 
     // Elementi del riepilogo lordo/netto
     const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
@@ -1029,7 +1041,7 @@
 
         const sortedLocations = [...locations].sort();
         locationDatalist.innerHTML = sortedLocations.map(loc => `<option value="${loc}"></option>`).join('');
-        updateChart(monthlySummary);
+        updateChartOptions(monthlySummary);
     }
 
     function calculateGrossNetSummary() {
@@ -1095,18 +1107,64 @@
     }
 
     function renderAllData() {
+        registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
         renderRegisterTable(registerData);
         updateMonthlySummary();
         calculateGrossNetSummary();
         updateFilterOptions();
         updateExportOptions();
+        
+        const lastMonth = registerData.length > 0 ? registerData[0].date.substring(0, 7) : new Date().toISOString().substring(0, 7);
+        graphMonthSelect.value = lastMonth;
+        updateCharts();
     }
 
-    function updateChart(monthlySummary) {
+    function updateChartOptions(monthlySummary) {
+        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
+        const optionsHtml = sortedMonths.map(monthYear => {
+            const [year, month] = monthYear.split('-');
+            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            return `<option value="${monthYear}">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</option>`;
+        }).join('');
+        graphMonthSelect.innerHTML = optionsHtml;
+    }
+
+    function updateCharts() {
+        updateMonthlyChart();
+        updateDailyChart();
+    }
+
+    // Aggiunta di una funzione di controllo per evitare valori non numerici
+    function isNumeric(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    }
+    
+    function updateMonthlyChart() {
+        const monthlySummary = {};
+        registerData.forEach(entry => {
+            const monthYear = entry.date.substring(0, 7);
+            if (!monthlySummary[monthYear]) {
+                monthlySummary[monthYear] = { onSiteCount: 0, rientroCount: 0, pernottamentoCount: 0, absenceCount: 0 };
+            }
+            if (entry.absenceType) {
+                monthlySummary[monthYear].absenceCount++;
+            } else {
+                // Aggiornamento per utilizzare un controllo numerico
+                if (isNumeric(entry.workMode) || entry.workMode === 'In Sede') {
+                    monthlySummary[monthYear].onSiteCount++;
+                } else if (entry.workMode === 'Rientro') {
+                    monthlySummary[monthYear].rientroCount++;
+                } else if (entry.workMode === 'Pernottamento') {
+                    monthlySummary[monthYear].pernottamentoCount++;
+                }
+            }
+        });
+
         const sortedMonths = Object.keys(monthlySummary).sort();
         const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
         const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
-        const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].tripCount);
+        const rientroCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].rientroCount);
+        const pernottamentoCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].pernottamentoCount);
         const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
 
         if (monthlyChart) {
@@ -1123,10 +1181,17 @@
                 borderWidth: 1
             },
             {
-                label: 'Trasferta',
-                data: tripCounts,
+                label: 'Trasferta (Rientro)',
+                data: rientroCounts,
                 backgroundColor: 'rgba(255, 165, 0, 0.7)',
                 borderColor: 'rgba(255, 165, 0, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Trasferta (Pernottamento)',
+                data: pernottamentoCounts,
+                backgroundColor: 'rgba(50, 205, 50, 0.7)',
+                borderColor: 'rgba(50, 205, 50, 1)',
                 borderWidth: 1
             },
             {
@@ -1161,6 +1226,72 @@
         };
 
         monthlyChart = new Chart(monthlyChartCanvas, config);
+    }
+    
+    function updateDailyChart() {
+        const selectedMonthYear = graphMonthSelect.value;
+        const filteredData = registerData.filter(entry => entry.date.startsWith(selectedMonthYear)).sort((a,b) => new Date(a.date) - new Date(b.date));
+        
+        const labels = filteredData.map(entry => entry.date.substring(8));
+        const totalHours = filteredData.map(entry => entry.totalHours);
+        const overtimeHours = filteredData.map(entry => entry.overtimeHours);
+        const absenceHours = filteredData.map(entry => entry.absenceHours);
+
+        if (dailyChart) {
+            dailyChart.destroy();
+        }
+
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'Ore Totali Lavorate',
+                data: totalHours,
+                backgroundColor: 'rgba(0, 162, 227, 0.7)',
+                borderColor: 'rgba(0, 162, 227, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Ore Straordinarie',
+                data: overtimeHours,
+                backgroundColor: 'rgba(255, 165, 0, 0.7)',
+                borderColor: 'rgba(255, 165, 0, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Ore di Assenza',
+                data: absenceHours,
+                backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                borderColor: 'rgba(220, 53, 69, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Giorno del Mese'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Ore'
+                        }
+                    }
+                }
+            }
+        };
+        dailyChart = new Chart(dailyChartCanvas, config);
     }
     
     function filterRegister() {
@@ -1409,6 +1540,8 @@
     searchInput.addEventListener('input', filterRegister);
     filterYearSelect.addEventListener('change', filterRegister);
     filterMonthOptions.addEventListener('change', filterRegister);
+
+    graphMonthSelect.addEventListener('change', updateDailyChart);
     
     multiselectMonthContainer.addEventListener('click', (e) => {
         e.stopPropagation();
