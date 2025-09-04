@@ -595,35 +595,6 @@
     
     <hr>
     
-    <h2>Esporta e gestisci i dati</h2>
-    
-    <div class="form-group" style="margin-top: 20px;">
-        <label>Esporta un periodo specifico:</label>
-        <div class="export-options-container">
-            <select id="export-year">
-                <option value="">Seleziona Anno</option>
-            </select>
-            <div class="multiselect-dropdown" id="multiselect-month-container">
-                <div class="multiselect-selected">Seleziona Mese(i)</div>
-                <div class="multiselect-options" id="multiselect-month-options"></div>
-            </div>
-        </div>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-selected-btn" class="btn btn-green">Esporta in CSV</button>
-        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta in PDF</button>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-all-btn" class="btn btn-green">Esporta tutto in CSV</button>
-        <button id="export-pdf-btn" class="btn btn-pdf">Esporta tutto in PDF</button>
-    </div>
-    
-    <div class="button-group-responsive" style="margin-top: 20px;">
-        <button id="export-data-btn" class="btn btn-backup">Crea Backup</button>
-        <button id="import-data-btn" class="btn btn-backup">Importa Backup</button>
-        <input type="file" id="import-file" accept=".json" style="display: none;">
-    </div>
-    
     <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="register-content">
         <div class="form-group" style="margin-top: 20px;">
@@ -663,6 +634,38 @@
             </table>
         </div>
     </div>
+    
+    <hr>
+    
+    <h2>Esporta e gestisci i dati</h2>
+    
+    <div class="form-group" style="margin-top: 20px;">
+        <label>Esporta un periodo specifico:</label>
+        <div class="export-options-container">
+            <select id="export-year">
+                <option value="">Seleziona Anno</option>
+            </select>
+            <div class="multiselect-dropdown" id="multiselect-month-container">
+                <div class="multiselect-selected">Seleziona Mese(i)</div>
+                <div class="multiselect-options" id="multiselect-month-options"></div>
+            </div>
+        </div>
+    </div>
+    <div class="button-group-responsive">
+        <button id="export-selected-btn" class="btn btn-green">Esporta in CSV</button>
+        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta in PDF</button>
+    </div>
+    <div class="button-group-responsive">
+        <button id="export-all-btn" class="btn btn-green">Esporta tutto in CSV</button>
+        <button id="export-pdf-btn" class="btn btn-pdf">Esporta tutto in PDF</button>
+    </div>
+    
+    <div class="button-group-responsive" style="margin-top: 20px;">
+        <button id="export-data-btn" class="btn btn-backup">Crea Backup</button>
+        <button id="import-data-btn" class="btn btn-backup">Importa Backup</button>
+        <input type="file" id="import-file" accept=".json" style="display: none;">
+    </div>
+    
 </div>
 
 <div id="notification"></div>
