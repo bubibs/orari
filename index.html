@@ -781,6 +781,14 @@
         const [year, month, day] = dateString.split('-');
         return `${day}-${month}-${year.substring(2)}`;
     }
+    
+    function formatDateFull(dateString) {
+        if (!dateString) return '';
+        const [year, month, day] = dateString.split('-');
+        const date = new Date(year, month - 1, day);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('it-IT', options);
+    }
 
     function setTimeDropdown(display, options, time) {
         display.textContent = time;
@@ -877,9 +885,9 @@
         }
 
         if (absenceType) {
-            startTime = startTimeDisplay.getAttribute('data-value') || standardStartTime;
-            endTime = endTimeDisplay.getAttribute('data-value') || standardEndTime;
-            lunchBreak = lunchBreakCheckbox.checked;
+            startTime = '08:00';
+            endTime = '17:00';
+            lunchBreak = true;
             location = locationInput.value;
             notes = notesInput.value;
             totalHours = 0;
@@ -999,10 +1007,9 @@
         });
     }
 
-    function updateMonthlySummary() {
+    function getMonthlySummary(data) {
         const monthlySummary = {};
-        const locations = new Set();
-        registerData.forEach(entry => {
+        data.forEach(entry => {
             const monthYear = entry.date.substring(0, 7);
             if (!monthlySummary[monthYear]) {
                 monthlySummary[monthYear] = {
@@ -1018,6 +1025,14 @@
             if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
             if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].tripCount++;
             if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
+        });
+        return monthlySummary;
+    }
+
+    function updateMonthlySummary() {
+        const monthlySummary = getMonthlySummary(registerData);
+        const locations = new Set();
+        registerData.forEach(entry => {
             if (entry.location) locations.add(entry.location);
         });
 
@@ -1265,10 +1280,55 @@
         }
         showNotification('Esportazione CSV completata!', 'success');
     }
-    
-    function generatePdf(data) {
+
+    // Nuova funzione per ottenere la data formattata
+    function getCurrentDateForFilename() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function generatePdfWithSummary(data, filename) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
+
+        // Aggiungi il titolo
+        doc.setFontSize(16);
+        doc.text("Riepilogo e Registro Orario", 40, 40);
+
+        // Genera la tabella di riepilogo
+        const summaryHeaders = [["Mese", "Ore Tot.", "Ore Str.", "Trasferta", "Sede", "Assenze"]];
+        const monthlySummary = getMonthlySummary(data);
+        const sortedMonths = Object.keys(monthlySummary).sort();
+        const summaryData = sortedMonths.map(monthYear => {
+            const summary = monthlySummary[monthYear];
+            const [year, month] = monthYear.split('-');
+            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long' });
+            return [
+                monthName.charAt(0).toUpperCase() + monthName.slice(1) + ' ' + year,
+                summary.totalHours.toFixed(2),
+                summary.overtimeHours.toFixed(2),
+                summary.tripCount,
+                summary.onSiteCount,
+                summary.absenceCount
+            ];
+        });
+        doc.autoTable({
+            startY: 60,
+            head: summaryHeaders,
+            body: summaryData,
+            styles: { fontSize: 8, cellPadding: 4 },
+            headStyles: { fillColor: '#00a2e3' }
+        });
+
+        // Aggiungi un secondo titolo per il registro dettagliato
+        doc.setFontSize(14);
+        const finalY = doc.autoTable.previous.finalY;
+        doc.text("Registro Dettagliato", 40, finalY + 30);
+
+        // Genera la tabella dettagliata
         const tableData = data.map(entry => [
             formatDate(entry.date),
             entry.startTime || '-',
@@ -1282,13 +1342,14 @@
         ]);
         const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
         doc.autoTable({
+            startY: finalY + 45,
             head: head,
             body: tableData,
-            startY: 50,
             styles: { fontSize: 8, cellPadding: 4 },
             headStyles: { fillColor: '#00a2e3' }
         });
-        doc.save('Registro_Lavoro.pdf');
+
+        doc.save(filename);
     }
     
     function saveSettings() {
@@ -1339,9 +1400,6 @@
         const absence = absenceTypeSelect.value;
         if (absence) {
             workModeSelect.value = '';
-            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
-            lunchBreakCheckbox.checked = true;
         }
         calculateHours();
     }
@@ -1481,7 +1539,8 @@
     
     exportPdfButton.addEventListener('click', () => {
         if (registerData.length > 0) {
-            generatePdf(registerData);
+            const filename = `Registro_Lavoro_${getCurrentDateForFilename()}.pdf`;
+            generatePdfWithSummary(registerData, filename);
             showNotification('Esportazione PDF avviata!', 'success');
         } else {
             showNotification('Nessun dato da esportare.', 'error');
@@ -1497,7 +1556,8 @@
         }
         const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
         if (filteredData.length > 0) {
-            generatePdf(filteredData);
+            const filename = `Registro_Lavoro_${year}_${months.join('-')}_${getCurrentDateForFilename()}.pdf`;
+            generatePdfWithSummary(filteredData, filename);
             showNotification('Esportazione PDF avviata!', 'success');
         } else {
             showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
