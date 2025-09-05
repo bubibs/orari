@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro Orario Lavoro</title>
     <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -671,6 +672,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     // Selezioni elementi del DOM
     const dateInput = document.getElementById('date');
@@ -863,7 +865,7 @@
         return row;
     }
 
-    function saveEntry(isEdit = false) {
+    function saveEntry() {
         const date = dateInput.value;
         const absenceType = absenceTypeSelect.value;
         const workMode = workModeSelect.value;
@@ -875,7 +877,6 @@
         }
 
         if (absenceType) {
-            // Selezionata un'assenza, i dati vengono presi dal setup automatico
             startTime = startTimeDisplay.getAttribute('data-value') || standardStartTime;
             endTime = endTimeDisplay.getAttribute('data-value') || standardEndTime;
             lunchBreak = lunchBreakCheckbox.checked;
@@ -895,7 +896,7 @@
             absenceHours = 0;
             
             if (!startTime || !endTime || !workMode) {
-                showNotification('Per favor, compila tutti i campi richiesti.', 'error');
+                showNotification('Per favore, compila tutti i campi richiesti.', 'error');
                 return;
             }
             const start = new Date(`2025-01-01T${startTime}:00`);
@@ -938,19 +939,23 @@
         renderAllData();
         showNotification('Dati salvati nel registro!', 'success');
         
+        saveButton.classList.add('saved');
         setTimeout(() => {
             saveButton.classList.remove('saved');
-            if (!isEdit) {
-                dateInput.value = new Date().toISOString().split('T')[0];
-                workModeSelect.value = '';
-                absenceTypeSelect.value = '';
-                clearTimeDropdowns();
-                lunchBreakCheckbox.checked = false;
-                locationInput.value = '';
-                notesInput.value = '';
-                calculateHours();
-            }
         }, 1000);
+        
+        resetForm();
+    }
+
+    function resetForm() {
+        dateInput._flatpickr.setDate(new Date().toISOString().split('T')[0]);
+        workModeSelect.value = '';
+        absenceTypeSelect.value = '';
+        clearTimeDropdowns();
+        lunchBreakCheckbox.checked = false;
+        locationInput.value = '';
+        notesInput.value = '';
+        calculateHours();
     }
 
     function deleteEntry(date) {
@@ -966,7 +971,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const entryToEdit = registerData.find(entry => entry.date === date);
         if (entryToEdit) {
-            dateInput.value = entryToEdit.date;
+            dateInput._flatpickr.setDate(entryToEdit.date);
             workModeSelect.value = entryToEdit.workMode || '';
             absenceTypeSelect.value = entryToEdit.absenceType || '';
             setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime || 'Seleziona orario');
@@ -1314,50 +1319,33 @@
     }
 
     // Event Listeners
-    dateInput.addEventListener('change', () => {
-        const today = new Date().toISOString().split('T')[0];
-        if (dateInput.value > today) {
-            dateInput.value = today;
-            showNotification('Non puoi registrare dati per il futuro!', 'error');
-        }
-    });
+    function setupEventListeners() {
+        workModeSelect.addEventListener('change', handleWorkModeChange);
+        absenceTypeSelect.addEventListener('change', handleAbsenceTypeChange);
+    }
 
-    workModeSelect.addEventListener('change', () => {
+    function handleWorkModeChange() {
         const mode = workModeSelect.value;
-        absenceTypeSelect.value = '';
-        if (mode === 'In Sede') {
+        if (mode) {
+            absenceTypeSelect.value = '';
+        }
+        if (mode === 'In Sede' && !locationInput.value) {
             locationInput.value = 'Tecnosistem';
-            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
-            lunchBreakCheckbox.checked = true;
-        } else if (mode === 'Rientro' || mode === 'Pernottamento') {
-            locationInput.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
-        } else {
-            locationInput.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
         }
         calculateHours();
-    });
+    }
 
-    absenceTypeSelect.addEventListener('change', () => {
+    function handleAbsenceTypeChange() {
         const absence = absenceTypeSelect.value;
-        workModeSelect.value = '';
         if (absence) {
-            locationInput.value = '';
+            workModeSelect.value = '';
             setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
             setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
             lunchBreakCheckbox.checked = true;
-        } else {
-            locationInput.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
         }
         calculateHours();
-    });
-    
+    }
+
     [startTimeDisplay, endTimeDisplay].forEach(display => {
         display.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1399,7 +1387,7 @@
     
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     
-    saveButton.addEventListener('click', () => saveEntry(false));
+    saveButton.addEventListener('click', () => saveEntry());
 
     registerBody.addEventListener('click', (e) => {
         const date = e.target.getAttribute('data-date');
@@ -1564,9 +1552,24 @@
     // Inizializzazione
     function initialize() {
         generateTimeOptions();
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
+        flatpickr("#date", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            locale: {
+                firstDayOfWeek: 1, // L'Italia inizia la settimana di lunedì
+                weekdays: {
+                    shorthand: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
+                    longhand: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"]
+                },
+                months: {
+                    shorthand: ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
+                    longhand: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"]
+                },
+            }
+        });
+        dateInput._flatpickr.setDate(new Date().toISOString().split('T')[0]);
         loadData();
+        setupEventListeners();
     }
     initialize();
 </script>
