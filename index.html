@@ -889,7 +889,7 @@
             absenceHours = 0;
             
             if (!startTime || !endTime || !workMode) {
-                showNotification('Per favore, compila tutti i campi richiesti.', 'error');
+                showNotification('Per favora, compila tutti i campi richiesti.', 'error');
                 return;
             }
             const start = new Date(`2025-01-01T${startTime}:00`);
@@ -1428,6 +1428,8 @@
             deleteEntry(date);
         } else if (e.target.classList.contains('btn-edit')) {
             editEntry(date);
+            // SCROLLA LA PAGINA ALL'INIZIO DOPO LA MODIFICA
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
     
