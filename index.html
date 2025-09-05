@@ -450,7 +450,6 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="logo-text">TECNOSISTEM</div>
     <div class="form-group">
@@ -1078,9 +1077,9 @@
             
             const totalGross = grossBaseSalary + grossOvertime + grossReturnTripAllowance + grossOvernightTripAllowance;
             
-            const socialSecurity = (grossBaseSalary + grossOvertime) * socialSecurityRate;
-            const taxableIncome = (grossBaseSalary + grossOvertime) - socialSecurity;
-            const netIncome = taxableIncome * (1 - taxRate) + grossReturnTripAllowance + grossOvernightTripAllowance;
+            // Calcolo del Netto secondo la formula richiesta
+            const afterSocialSecurity = totalGross - (totalGross * socialSecurityRate);
+            const netIncome = afterSocialSecurity - (afterSocialSecurity * taxRate);
             
             const row = document.createElement('tr');
             row.innerHTML = `
