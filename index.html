@@ -559,12 +559,8 @@
             <input type="number" id="overtimeRateInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceRientroInput">Diaria Trasferta (Rientro) (€):</label>
-            <input type="number" id="tripAllowanceRientroInput" step="0.01" min="0">
-        </div>
-        <div class="form-group">
-            <label for="tripAllowancePernottamentoInput">Diaria Trasferta (Pernottamento) (€):</label>
-            <input type="number" id="tripAllowancePernottamentoInput" step="0.01" min="0">
+            <label for="tripAllowanceInput">Diaria Trasferta (€):</label>
+            <input type="number" id="tripAllowanceInput" step="0.01" min="0">
         </div>
         <div class="form-group">
             <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
@@ -583,7 +579,6 @@
                         <th>Mese</th>
                         <th>Lordo</th>
                         <th>Netto (stimato)</th>
-                        <th>Diaria (€)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -707,8 +702,7 @@
     // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79;
     let overtimeRate = 21.53;
-    let tripAllowanceRientro = 60.00;
-    let tripAllowancePernottamento = 120.00; // Valore aggiunto
+    let tripAllowance = 60.00;
     let taxRate = 0.30;
     const socialSecurityRate = 0.0949;
     
@@ -717,8 +711,7 @@
     const settingsContent = document.getElementById('settings-content');
     const grossBaseSalaryInput = document.getElementById('grossBaseSalaryInput');
     const overtimeRateInput = document.getElementById('overtimeRateInput');
-    const tripAllowanceRientroInput = document.getElementById('tripAllowanceRientroInput'); // Nuovo input
-    const tripAllowancePernottamentoInput = document.getElementById('tripAllowancePernottamentoInput'); // Nuovo input
+    const tripAllowanceInput = document.getElementById('tripAllowanceInput');
     const taxRateInput = document.getElementById('taxRateInput');
 
     // Chiavi per localStorage
@@ -896,7 +889,7 @@
             absenceHours = 0;
             
             if (!startTime || !endTime || !workMode) {
-                showNotification('Per favorer, compila tutti i campi richiesti.', 'error');
+                showNotification('Per favor, compila tutti i campi richiesti.', 'error');
                 return;
             }
             const start = new Date(`2025-01-01T${startTime}:00`);
@@ -966,25 +959,16 @@
     function editEntry(date) {
         const entryToEdit = registerData.find(entry => entry.date === date);
         if (entryToEdit) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             dateInput.value = entryToEdit.date;
             workModeSelect.value = entryToEdit.workMode || '';
             absenceTypeSelect.value = entryToEdit.absenceType || '';
-            locationInput.value = entryToEdit.location || '';
-            notesInput.value = entryToEdit.notes || '';
-            lunchBreakCheckbox.checked = entryToEdit.lunchBreak || false;
-
-            if (entryToEdit.absenceType) {
-                workFields.style.display = 'none';
-            } else {
-                workFields.style.display = 'block';
-            }
-            
             setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime || 'Seleziona orario');
             startTimeDisplay.setAttribute('data-value', entryToEdit.startTime || '');
             setTimeDropdown(endTimeDisplay, endTimeOptions, entryToEdit.endTime || 'Seleziona orario');
             endTimeDisplay.setAttribute('data-value', entryToEdit.endTime || '');
-
+            lunchBreakCheckbox.checked = entryToEdit.lunchBreak || false;
+            locationInput.value = entryToEdit.location || '';
+            notesInput.value = entryToEdit.notes || '';
             calculateHours();
         }
     }
@@ -1055,17 +1039,11 @@
             if (!monthlySummary[monthYear]) {
                 monthlySummary[monthYear] = {
                     totalOvertimeHours: 0,
-                    totalTripRientroCount: 0,
-                    totalTripPernottamentoCount: 0
+                    totalTripCount: 0
                 };
             }
             monthlySummary[monthYear].totalOvertimeHours += entry.overtimeHours;
-            if (entry.workMode === 'Rientro') {
-                monthlySummary[monthYear].totalTripRientroCount++;
-            }
-            if (entry.workMode === 'Pernottamento') {
-                monthlySummary[monthYear].totalTripPernottamentoCount++;
-            }
+            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalTripCount++;
         });
 
         const sortedMonths = Object.keys(monthlySummary).sort().reverse();
@@ -1076,20 +1054,22 @@
             const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
             
             const grossOvertime = summary.totalOvertimeHours * overtimeRate;
-            const grossTripAllowance = (summary.totalTripRientroCount * tripAllowanceRientro) + (summary.totalTripPernottamentoCount * tripAllowancePernottamento);
+            const grossTripAllowance = summary.totalTripCount * tripAllowance;
             
             const totalGross = grossBaseSalary + grossOvertime + grossTripAllowance;
             
-            const socialSecurity = (grossBaseSalary + grossOvertime) * socialSecurityRate;
-            const taxableIncome = (grossBaseSalary + grossOvertime) - socialSecurity;
-            const netIncome = taxableIncome * (1 - taxRate);
+            // LOGICA MODIFICATA SU RICHIESTA DELL'UTENTE:
+            // La diaria è ora inclusa nel calcolo di contributi e imposte.
+            // Si calcola il netto sottraendo i contributi e le imposte direttamente dal lordo totale.
+            const socialSecurity = totalGross * socialSecurityRate;
+            const taxableBase = totalGross - socialSecurity;
+            const netIncome = taxableBase * (1 - taxRate);
             
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
                 <td>€ ${totalGross.toFixed(2)}</td>
                 <td>€ ${netIncome.toFixed(2)}</td>
-                <td>€ ${grossTripAllowance.toFixed(2)}</td>
             `;
             grossNetBody.appendChild(row);
         });
@@ -1106,8 +1086,7 @@
                 const settings = JSON.parse(storedSettings);
                 grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
                 overtimeRate = settings.overtimeRate || overtimeRate;
-                tripAllowanceRientro = settings.tripAllowanceRientro || tripAllowanceRientro;
-                tripAllowancePernottamento = settings.tripAllowancePernottamento || tripAllowancePernottamento;
+                tripAllowance = settings.tripAllowance || tripAllowance;
                 taxRate = settings.taxRate || taxRate;
             }
             loadSettings();
@@ -1255,11 +1234,25 @@
         return csv;
     }
     
+    function exportCsv(data, filename) {
+        const csv = generateCsvData(data);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        showNotification('Esportazione CSV completata!', 'success');
+    }
+    
     function generatePdf(data) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
-        const now = new Date();
-        const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const tableData = data.map(entry => [
             formatDate(entry.date),
             entry.startTime || '-',
@@ -1279,22 +1272,20 @@
             styles: { fontSize: 8, cellPadding: 4 },
             headStyles: { fillColor: '#00a2e3' }
         });
-        doc.save(`Registro_Lavoro_${dateString}.pdf`);
+        doc.save('Registro_Lavoro.pdf');
     }
     
     function saveSettings() {
         const settings = {
             grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
             overtimeRate: parseFloat(overtimeRateInput.value) || 0,
-            tripAllowanceRientro: parseFloat(tripAllowanceRientroInput.value) || 0,
-            tripAllowancePernottamento: parseFloat(tripAllowancePernottamentoInput.value) || 0,
+            tripAllowance: parseFloat(tripAllowanceInput.value) || 0,
             taxRate: parseFloat(taxRateInput.value) / 100 || 0
         };
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
         grossBaseSalary = settings.grossBaseSalary;
         overtimeRate = settings.overtimeRate;
-        tripAllowanceRientro = settings.tripAllowanceRientro;
-        tripAllowancePernottamento = settings.tripAllowancePernottamento;
+        tripAllowance = settings.tripAllowance;
         taxRate = settings.taxRate;
         calculateGrossNetSummary();
         showNotification('Impostazioni salvate!', 'success');
@@ -1304,8 +1295,7 @@
         const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
         grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
         overtimeRateInput.value = storedSettings.overtimeRate || overtimeRate;
-        tripAllowanceRientroInput.value = storedSettings.tripAllowanceRientro || tripAllowanceRientro;
-        tripAllowancePernottamentoInput.value = storedSettings.tripAllowancePernottamento || tripAllowancePernottamento;
+        tripAllowanceInput.value = storedSettings.tripAllowance || tripAllowance;
         taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
     }
 
@@ -1319,48 +1309,38 @@
     });
 
     workModeSelect.addEventListener('change', () => {
-        // Se non siamo in modalità modifica (ovvero l'input della data non ha un valore)
-        // allora resettiamo i campi con i valori predefiniti
-        if (!dateInput.value || registerData.findIndex(entry => entry.date === dateInput.value) === -1) {
-            const mode = workModeSelect.value;
-            if (mode === 'In Sede') {
-                absenceTypeSelect.value = '';
-                locationInput.value = 'Tecnosistem';
-                setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-                setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
-                lunchBreakCheckbox.checked = true;
-            } else if (mode === 'Rientro' || mode === 'Pernottamento') {
-                absenceTypeSelect.value = '';
-                locationInput.value = '';
-                clearTimeDropdowns();
-                lunchBreakCheckbox.checked = false;
-            } else {
-                locationInput.value = '';
-                clearTimeDropdowns();
-                lunchBreakCheckbox.checked = false;
-            }
+        const mode = workModeSelect.value;
+        if (mode === 'In Sede') {
+            absenceTypeSelect.value = '';
+            locationInput.value = 'Tecnosistem';
+            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
+            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            lunchBreakCheckbox.checked = true;
+        } else if (mode === 'Rientro' || mode === 'Pernottamento') {
+            absenceTypeSelect.value = '';
+            locationInput.value = '';
+            clearTimeDropdowns();
+            lunchBreakCheckbox.checked = false;
+        } else {
+            locationInput.value = '';
+            clearTimeDropdowns();
+            lunchBreakCheckbox.checked = false;
         }
         calculateHours();
     });
 
     absenceTypeSelect.addEventListener('change', () => {
-        // Se non siamo in modalità modifica (ovvero l'input della data non ha un valore)
-        // allora resettiamo i campi con i valori predefiniti
-        if (!dateInput.value || registerData.findIndex(entry => entry.date === dateInput.value) === -1) {
-            const absence = absenceTypeSelect.value;
-            if (absence) {
-                workModeSelect.value = '';
-                locationInput.value = 'Tecnosistem';
-                setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-                setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
-                lunchBreakCheckbox.checked = true;
-                workFields.style.display = 'none';
-            } else {
-                locationInput.value = '';
-                clearTimeDropdowns();
-                lunchBreakCheckbox.checked = false;
-                workFields.style.display = 'block';
-            }
+        const absence = absenceTypeSelect.value;
+        if (absence) {
+            workModeSelect.value = '';
+            locationInput.value = 'Tecnosistem';
+            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
+            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            lunchBreakCheckbox.checked = true;
+        } else {
+            locationInput.value = '';
+            clearTimeDropdowns();
+            lunchBreakCheckbox.checked = false;
         }
         calculateHours();
     });
@@ -1564,7 +1544,7 @@
         reader.readAsText(file);
     });
 
-    [grossBaseSalaryInput, overtimeRateInput, tripAllowanceRientroInput, tripAllowancePernottamentoInput, taxRateInput].forEach(input => {
+    [grossBaseSalaryInput, overtimeRateInput, tripAllowanceInput, taxRateInput].forEach(input => {
         input.addEventListener('change', saveSettings);
     });
 
