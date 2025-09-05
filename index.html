@@ -1247,9 +1247,48 @@
         showNotification('Esportazione CSV completata!', 'success');
     }
     
+    function generatePdfSummary(data) {
+        const summary = {
+            totalHours: 0,
+            overtimeHours: 0,
+            onSiteCount: 0,
+            tripCount: 0,
+            absenceCount: 0
+        };
+
+        data.forEach(entry => {
+            summary.totalHours += entry.totalHours;
+            summary.overtimeHours += entry.overtimeHours;
+            if (entry.workMode === 'In Sede') summary.onSiteCount++;
+            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') summary.tripCount++;
+            if (entry.absenceType) summary.absenceCount++;
+        });
+
+        return summary;
+    }
+
     function generatePdf(data) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
+        const summary = generatePdfSummary(data);
+
+        let y = 30;
+        doc.setFontSize(14);
+        doc.text('Riepilogo del Registro', 40, y);
+        y += 20;
+
+        doc.setFontSize(10);
+        doc.text(`Ore Totali: ${summary.totalHours.toFixed(2)}`, 40, y);
+        y += 15;
+        doc.text(`Ore Straordinarie: ${summary.overtimeHours.toFixed(2)}`, 40, y);
+        y += 15;
+        doc.text(`Giorni di Trasferta: ${summary.tripCount}`, 40, y);
+        y += 15;
+        doc.text(`Giorni in Sede: ${summary.onSiteCount}`, 40, y);
+        y += 15;
+        doc.text(`Giorni di Assenza: ${summary.absenceCount}`, 40, y);
+        y += 30;
+        
         const tableData = data.map(entry => [
             formatDate(entry.date),
             entry.startTime || '-',
@@ -1262,10 +1301,11 @@
             entry.notes || ''
         ]);
         const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
+        
         doc.autoTable({
             head: head,
             body: tableData,
-            startY: 50,
+            startY: y,
             styles: { fontSize: 8, cellPadding: 4 },
             headStyles: { fillColor: '#00a2e3' }
         });
