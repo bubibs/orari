@@ -559,8 +559,12 @@
             <input type="number" id="overtimeRateInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceInput">Diaria Trasferta (€):</label>
-            <input type="number" id="tripAllowanceInput" step="0.01" min="0">
+            <label for="tripAllowanceReturnInput">Diaria Trasferta Rientro (€):</label>
+            <input type="number" id="tripAllowanceReturnInput" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+            <label for="tripAllowanceOvernightInput">Diaria Trasferta Pernottamento (€):</label>
+            <input type="number" id="tripAllowanceOvernightInput" step="0.01" min="0">
         </div>
         <div class="form-group">
             <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
@@ -698,12 +702,12 @@
     const standardStartTime = '08:00';
     const standardEndTime = '17:00';
     let registerData = [];
-    let isEditing = false; // Nuova variabile per gestire lo stato di modifica
     
     // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79;
     let overtimeRate = 21.53;
-    let tripAllowance = 60.00;
+    let tripAllowanceReturn = 46.48; // Valore predefinito per diaria rientro
+    let tripAllowanceOvernight = 60.00; // Valore predefinito per diaria pernottamento
     let taxRate = 0.30;
     const socialSecurityRate = 0.0949;
     
@@ -712,7 +716,8 @@
     const settingsContent = document.getElementById('settings-content');
     const grossBaseSalaryInput = document.getElementById('grossBaseSalaryInput');
     const overtimeRateInput = document.getElementById('overtimeRateInput');
-    const tripAllowanceInput = document.getElementById('tripAllowanceInput');
+    const tripAllowanceReturnInput = document.getElementById('tripAllowanceReturnInput');
+    const tripAllowanceOvernightInput = document.getElementById('tripAllowanceOvernightInput');
     const taxRateInput = document.getElementById('taxRateInput');
 
     // Chiavi per localStorage
@@ -958,20 +963,27 @@
     }
 
     function editEntry(date) {
-        isEditing = true; // Imposta la modalità di modifica a true
         const entryToEdit = registerData.find(entry => entry.date === date);
         if (entryToEdit) {
             dateInput.value = entryToEdit.date;
             workModeSelect.value = entryToEdit.workMode || '';
             absenceTypeSelect.value = entryToEdit.absenceType || '';
-            setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime || 'Seleziona orario');
-            startTimeDisplay.setAttribute('data-value', entryToEdit.startTime || '');
-            setTimeDropdown(endTimeDisplay, endTimeOptions, entryToEdit.endTime || 'Seleziona orario');
-            endTimeDisplay.setAttribute('data-value', entryToEdit.endTime || '');
+            
+            // Non resettare i campi, popolarli solo se ci sono dati
+            if (entryToEdit.startTime) {
+                setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime);
+            }
+            if (entryToEdit.endTime) {
+                setTimeDropdown(endTimeDisplay, endTimeOptions, entryToEdit.endTime);
+            }
+            
             lunchBreakCheckbox.checked = entryToEdit.lunchBreak || false;
             locationInput.value = entryToEdit.location || '';
             notesInput.value = entryToEdit.notes || '';
+            
             calculateHours();
+
+            // Scorre in cima alla pagina dopo aver popolato i campi
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
@@ -1000,14 +1012,16 @@
                     totalHours: 0,
                     overtimeHours: 0,
                     onSiteCount: 0,
-                    tripCount: 0,
+                    returnTripCount: 0,
+                    overnightTripCount: 0,
                     absenceCount: 0
                 };
             }
             monthlySummary[monthYear].totalHours += entry.totalHours;
             monthlySummary[monthYear].overtimeHours += entry.overtimeHours;
             if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
-            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].tripCount++;
+            if (entry.workMode === 'Rientro') monthlySummary[monthYear].returnTripCount++;
+            if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].overnightTripCount++;
             if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
             if (entry.location) locations.add(entry.location);
         });
@@ -1023,7 +1037,7 @@
                 <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
                 <td>${summary.totalHours.toFixed(2)}</td>
                 <td>${summary.overtimeHours.toFixed(2)}</td>
-                <td>${summary.tripCount}</td>
+                <td>${summary.returnTripCount + summary.overnightTripCount}</td>
                 <td>${summary.onSiteCount}</td>
                 <td>${summary.absenceCount}</td>
             `;
@@ -1042,11 +1056,13 @@
             if (!monthlySummary[monthYear]) {
                 monthlySummary[monthYear] = {
                     totalOvertimeHours: 0,
-                    totalTripCount: 0
+                    totalReturnTripCount: 0,
+                    totalOvernightTripCount: 0
                 };
             }
             monthlySummary[monthYear].totalOvertimeHours += entry.overtimeHours;
-            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalTripCount++;
+            if (entry.workMode === 'Rientro') monthlySummary[monthYear].totalReturnTripCount++;
+            if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalOvernightTripCount++;
         });
 
         const sortedMonths = Object.keys(monthlySummary).sort().reverse();
@@ -1057,13 +1073,14 @@
             const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
             
             const grossOvertime = summary.totalOvertimeHours * overtimeRate;
-            const grossTripAllowance = summary.totalTripCount * tripAllowance;
+            const grossReturnTripAllowance = summary.totalReturnTripCount * tripAllowanceReturn;
+            const grossOvernightTripAllowance = summary.totalOvernightTripCount * tripAllowanceOvernight;
             
-            const totalGross = grossBaseSalary + grossOvertime + grossTripAllowance;
+            const totalGross = grossBaseSalary + grossOvertime + grossReturnTripAllowance + grossOvernightTripAllowance;
             
             const socialSecurity = (grossBaseSalary + grossOvertime) * socialSecurityRate;
             const taxableIncome = (grossBaseSalary + grossOvertime) - socialSecurity;
-            const netIncome = taxableIncome * (1 - taxRate) + grossTripAllowance;
+            const netIncome = taxableIncome * (1 - taxRate) + grossReturnTripAllowance + grossOvernightTripAllowance;
             
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -1086,13 +1103,14 @@
                 const settings = JSON.parse(storedSettings);
                 grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
                 overtimeRate = settings.overtimeRate || overtimeRate;
-                tripAllowance = settings.tripAllowance || tripAllowance;
+                tripAllowanceReturn = settings.tripAllowanceReturn || tripAllowanceReturn;
+                tripAllowanceOvernight = settings.tripAllowanceOvernight || tripAllowanceOvernight;
                 taxRate = settings.taxRate || taxRate;
             }
             loadSettings();
             renderAllData();
         } catch (e) {
-            showNotification('ERRORE: Impossibile caricare i dati.', 'error');
+            showNotification('ERRORE: Impossibile caricare i dati. Il backup potrebbe essere corrotto.', 'error');
             console.error(e);
         }
     }
@@ -1109,7 +1127,7 @@
         const sortedMonths = Object.keys(monthlySummary).sort();
         const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
         const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
-        const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].tripCount);
+        const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].returnTripCount + monthlySummary[monthYear].overnightTripCount);
         const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
 
         if (monthlyChart) {
@@ -1253,6 +1271,54 @@
     function generatePdf(data) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
+        const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const monthlySummary = {};
+        sortedData.forEach(entry => {
+            const monthYear = entry.date.substring(0, 7);
+            if (!monthlySummary[monthYear]) {
+                monthlySummary[monthYear] = {
+                    totalHours: 0,
+                    overtimeHours: 0,
+                    returnTripCount: 0,
+                    overnightTripCount: 0,
+                    onSiteCount: 0,
+                    absenceCount: 0
+                };
+            }
+            monthlySummary[monthYear].totalHours += entry.totalHours;
+            monthlySummary[monthYear].overtimeHours += entry.overtimeHours;
+            if (entry.workMode === 'Rientro') monthlySummary[monthYear].returnTripCount++;
+            if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].overnightTripCount++;
+            if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
+            if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
+        });
+
+        const summaryData = Object.keys(monthlySummary).sort().map(monthYear => {
+            const summary = monthlySummary[monthYear];
+            const [year, month] = monthYear.split('-');
+            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            return [
+                monthName.charAt(0).toUpperCase() + monthName.slice(1),
+                summary.totalHours.toFixed(2),
+                summary.overtimeHours.toFixed(2),
+                summary.returnTripCount + summary.overnightTripCount,
+                summary.onSiteCount,
+                summary.absenceCount
+            ];
+        });
+
+        if (summaryData.length > 0) {
+            doc.text("Riepilogo Mensile", 40, 40);
+            doc.autoTable({
+                startY: 50,
+                head: [["Mese", "Ore Tot.", "Ore Str.", "Trasferta", "Sede", "Assenze"]],
+                body: summaryData,
+                styles: { fontSize: 8, cellPadding: 4 },
+                headStyles: { fillColor: '#00a2e3' }
+            });
+        }
+        
         const tableData = data.map(entry => [
             formatDate(entry.date),
             entry.startTime || '-',
@@ -1265,27 +1331,32 @@
             entry.notes || ''
         ]);
         const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
+
+        doc.text("Registro Completo", 40, doc.autoTable.previous.finalY + 20);
         doc.autoTable({
+            startY: doc.autoTable.previous.finalY + 30,
             head: head,
             body: tableData,
-            startY: 50,
             styles: { fontSize: 8, cellPadding: 4 },
             headStyles: { fillColor: '#00a2e3' }
         });
         doc.save('Registro_Lavoro.pdf');
+        showNotification('Esportazione PDF avviata!', 'success');
     }
     
     function saveSettings() {
         const settings = {
             grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
             overtimeRate: parseFloat(overtimeRateInput.value) || 0,
-            tripAllowance: parseFloat(tripAllowanceInput.value) || 0,
+            tripAllowanceReturn: parseFloat(tripAllowanceReturnInput.value) || 0,
+            tripAllowanceOvernight: parseFloat(tripAllowanceOvernightInput.value) || 0,
             taxRate: parseFloat(taxRateInput.value) / 100 || 0
         };
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
         grossBaseSalary = settings.grossBaseSalary;
         overtimeRate = settings.overtimeRate;
-        tripAllowance = settings.tripAllowance;
+        tripAllowanceReturn = settings.tripAllowanceReturn;
+        tripAllowanceOvernight = settings.tripAllowanceOvernight;
         taxRate = settings.taxRate;
         calculateGrossNetSummary();
         showNotification('Impostazioni salvate!', 'success');
@@ -1295,7 +1366,8 @@
         const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
         grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
         overtimeRateInput.value = storedSettings.overtimeRate || overtimeRate;
-        tripAllowanceInput.value = storedSettings.tripAllowance || tripAllowance;
+        tripAllowanceReturnInput.value = storedSettings.tripAllowanceReturn || tripAllowanceReturn;
+        tripAllowanceOvernightInput.value = storedSettings.tripAllowanceOvernight || tripAllowanceOvernight;
         taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
     }
 
@@ -1309,48 +1381,37 @@
     });
 
     workModeSelect.addEventListener('change', () => {
-        // Aggiunta del controllo per non resettare i campi in fase di modifica
-        if (isEditing) {
-            isEditing = false;
-            return;
-        }
-
         const mode = workModeSelect.value;
-        // Resetta tutti i campi
-        absenceTypeSelect.value = '';
-        locationInput.value = '';
-        clearTimeDropdowns();
-        lunchBreakCheckbox.checked = false;
-
-        // Se la modalità è "In Sede", imposta i valori predefiniti
         if (mode === 'In Sede') {
             locationInput.value = 'Tecnosistem';
-            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            // Non resettiamo gli orari se sono già stati impostati manualmente
+            if (!startTimeDisplay.getAttribute('data-value')) {
+                setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
+            }
+            if (!endTimeDisplay.getAttribute('data-value')) {
+                setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            }
             lunchBreakCheckbox.checked = true;
         } else if (mode === 'Rientro' || mode === 'Pernottamento') {
-             // In caso di trasferta non ci sono valori predefiniti
+            // Rimuoviamo il valore predefinito del luogo ma non resettiamo gli orari
+            if (locationInput.value === 'Tecnosistem') {
+                locationInput.value = '';
+            }
+            // Manteniamo i valori degli orari inseriti, non li cancelliamo
         }
-
         calculateHours();
     });
 
     absenceTypeSelect.addEventListener('change', () => {
         const absence = absenceTypeSelect.value;
-        // Resetta tutti i campi
-        workModeSelect.value = '';
-        locationInput.value = '';
-        clearTimeDropdowns();
-        lunchBreakCheckbox.checked = false;
-
-        // Se è selezionata un'assenza, imposta i valori predefiniti
         if (absence) {
+            // Manteniamo tutti i campi riempiti, cambiamo solo la visibilità dei risultati
+            workModeSelect.value = '';
             locationInput.value = 'Tecnosistem';
             setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
             setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
             lunchBreakCheckbox.checked = true;
         }
-
         calculateHours();
     });
     
@@ -1358,7 +1419,7 @@
         display.addEventListener('click', (e) => {
             e.stopPropagation();
             const options = display === startTimeDisplay ? startTimeOptions : endTimeOptions;
-            const otherOptions = display === startTimeOptions ? endTimeOptions : startTimeOptions;
+            const otherOptions = display === startTimeDisplay ? endTimeOptions : startTimeOptions;
             options.classList.toggle('visible');
             otherOptions.classList.remove('visible');
             if (options.classList.contains('visible')) {
@@ -1490,7 +1551,6 @@
     exportPdfButton.addEventListener('click', () => {
         if (registerData.length > 0) {
             generatePdf(registerData);
-            showNotification('Esportazione PDF avviata!', 'success');
         } else {
             showNotification('Nessun dato da esportare.', 'error');
         }
@@ -1506,7 +1566,6 @@
         const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
         if (filteredData.length > 0) {
             generatePdf(filteredData);
-            showNotification('Esportazione PDF avviata!', 'success');
         } else {
             showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
         }
@@ -1553,7 +1612,7 @@
         reader.readAsText(file);
     });
 
-    [grossBaseSalaryInput, overtimeRateInput, tripAllowanceInput, taxRateInput].forEach(input => {
+    [grossBaseSalaryInput, overtimeRateInput, tripAllowanceReturnInput, tripAllowanceOvernightInput, taxRateInput].forEach(input => {
         input.addEventListener('change', saveSettings);
     });
 
