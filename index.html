@@ -122,7 +122,7 @@
             max-height: 200px;
             overflow-y: scroll;
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 0 0 8px 8px;
             background-color: #fff;
             z-index: 10;
             margin-top: 4px;
@@ -559,8 +559,12 @@
             <input type="number" id="overtimeRateInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceInput">Diaria Trasferta (€):</label>
-            <input type="number" id="tripAllowanceInput" step="0.01" min="0">
+            <label for="dailyAllowanceRientroInput">Diaria Rientro (€):</label>
+            <input type="number" id="dailyAllowanceRientroInput" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+            <label for="dailyAllowancePernottamentoInput">Diaria Pernottamento (€):</label>
+            <input type="number" id="dailyAllowancePernottamentoInput" step="0.01" min="0">
         </div>
         <div class="form-group">
             <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
@@ -702,7 +706,8 @@
     // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79;
     let overtimeRate = 21.53;
-    let tripAllowance = 60.00;
+    let dailyAllowanceRientro = 60.00;
+    let dailyAllowancePernottamento = 100.00; // Nuovo valore per la diaria con pernottamento
     let taxRate = 0.30;
     const socialSecurityRate = 0.0949;
     
@@ -711,7 +716,8 @@
     const settingsContent = document.getElementById('settings-content');
     const grossBaseSalaryInput = document.getElementById('grossBaseSalaryInput');
     const overtimeRateInput = document.getElementById('overtimeRateInput');
-    const tripAllowanceInput = document.getElementById('tripAllowanceInput');
+    const dailyAllowanceRientroInput = document.getElementById('dailyAllowanceRientroInput');
+    const dailyAllowancePernottamentoInput = document.getElementById('dailyAllowancePernottamentoInput');
     const taxRateInput = document.getElementById('taxRateInput');
 
     // Chiavi per localStorage
@@ -857,7 +863,7 @@
         return row;
     }
 
-    function saveEntry() {
+    function saveEntry(isEdit = false) {
         const date = dateInput.value;
         const absenceType = absenceTypeSelect.value;
         const workMode = workModeSelect.value;
@@ -870,9 +876,9 @@
 
         if (absenceType) {
             // Selezionata un'assenza, i dati vengono presi dal setup automatico
-            startTime = standardStartTime;
-            endTime = standardEndTime;
-            lunchBreak = true;
+            startTime = startTimeDisplay.getAttribute('data-value') || standardStartTime;
+            endTime = endTimeDisplay.getAttribute('data-value') || standardEndTime;
+            lunchBreak = lunchBreakCheckbox.checked;
             location = locationInput.value;
             notes = notesInput.value;
             totalHours = 0;
@@ -900,8 +906,6 @@
             }
         }
         
-        saveButton.classList.add('saved');
-
         const newEntry = {
             date: date,
             startTime: startTime,
@@ -936,14 +940,16 @@
         
         setTimeout(() => {
             saveButton.classList.remove('saved');
-            dateInput.value = new Date().toISOString().split('T')[0];
-            workModeSelect.value = '';
-            absenceTypeSelect.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
-            locationInput.value = '';
-            notesInput.value = '';
-            calculateHours();
+            if (!isEdit) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+                workModeSelect.value = '';
+                absenceTypeSelect.value = '';
+                clearTimeDropdowns();
+                lunchBreakCheckbox.checked = false;
+                locationInput.value = '';
+                notesInput.value = '';
+                calculateHours();
+            }
         }, 1000);
     }
 
@@ -957,6 +963,7 @@
     }
 
     function editEntry(date) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         const entryToEdit = registerData.find(entry => entry.date === date);
         if (entryToEdit) {
             dateInput.value = entryToEdit.date;
@@ -1039,11 +1046,16 @@
             if (!monthlySummary[monthYear]) {
                 monthlySummary[monthYear] = {
                     totalOvertimeHours: 0,
-                    totalTripCount: 0
+                    tripCountRientro: 0,
+                    tripCountPernottamento: 0
                 };
             }
             monthlySummary[monthYear].totalOvertimeHours += entry.overtimeHours;
-            if (entry.workMode === 'Rientro' || entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalTripCount++;
+            if (entry.workMode === 'Rientro') {
+                monthlySummary[monthYear].tripCountRientro++;
+            } else if (entry.workMode === 'Pernottamento') {
+                monthlySummary[monthYear].tripCountPernottamento++;
+            }
         });
 
         const sortedMonths = Object.keys(monthlySummary).sort().reverse();
@@ -1054,13 +1066,11 @@
             const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
             
             const grossOvertime = summary.totalOvertimeHours * overtimeRate;
-            const grossTripAllowance = summary.totalTripCount * tripAllowance;
+            const grossTripAllowanceRientro = summary.tripCountRientro * dailyAllowanceRientro;
+            const grossTripAllowancePernottamento = summary.tripCountPernottamento * dailyAllowancePernottamento;
             
-            const totalGross = grossBaseSalary + grossOvertime + grossTripAllowance;
+            const totalGross = grossBaseSalary + grossOvertime + grossTripAllowanceRientro + grossTripAllowancePernottamento;
             
-            // LOGICA MODIFICATA SU RICHIESTA DELL'UTENTE:
-            // La diaria è ora inclusa nel calcolo di contributi e imposte.
-            // Si calcola il netto sottraendo i contributi e le imposte direttamente dal lordo totale.
             const socialSecurity = totalGross * socialSecurityRate;
             const taxableBase = totalGross - socialSecurity;
             const netIncome = taxableBase * (1 - taxRate);
@@ -1086,13 +1096,14 @@
                 const settings = JSON.parse(storedSettings);
                 grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
                 overtimeRate = settings.overtimeRate || overtimeRate;
-                tripAllowance = settings.tripAllowance || tripAllowance;
+                dailyAllowanceRientro = settings.dailyAllowanceRientro || dailyAllowanceRientro;
+                dailyAllowancePernottamento = settings.dailyAllowancePernottamento || dailyAllowancePernottamento;
                 taxRate = settings.taxRate || taxRate;
             }
             loadSettings();
             renderAllData();
         } catch (e) {
-            showNotification('ERRORE: Impossibile caricare i dati. Il backup potrebbe essere corrotto.', 'error');
+            showNotification('ERRORE: Impossibile caricare i dati.', 'error');
             console.error(e);
         }
     }
@@ -1279,13 +1290,15 @@
         const settings = {
             grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
             overtimeRate: parseFloat(overtimeRateInput.value) || 0,
-            tripAllowance: parseFloat(tripAllowanceInput.value) || 0,
+            dailyAllowanceRientro: parseFloat(dailyAllowanceRientroInput.value) || 0,
+            dailyAllowancePernottamento: parseFloat(dailyAllowancePernottamentoInput.value) || 0,
             taxRate: parseFloat(taxRateInput.value) / 100 || 0
         };
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
         grossBaseSalary = settings.grossBaseSalary;
         overtimeRate = settings.overtimeRate;
-        tripAllowance = settings.tripAllowance;
+        dailyAllowanceRientro = settings.dailyAllowanceRientro;
+        dailyAllowancePernottamento = settings.dailyAllowancePernottamento;
         taxRate = settings.taxRate;
         calculateGrossNetSummary();
         showNotification('Impostazioni salvate!', 'success');
@@ -1295,7 +1308,8 @@
         const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
         grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
         overtimeRateInput.value = storedSettings.overtimeRate || overtimeRate;
-        tripAllowanceInput.value = storedSettings.tripAllowance || tripAllowance;
+        dailyAllowanceRientroInput.value = storedSettings.dailyAllowanceRientro || dailyAllowanceRientro;
+        dailyAllowancePernottamentoInput.value = storedSettings.dailyAllowancePernottamento || dailyAllowancePernottamento;
         taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
     }
 
@@ -1310,14 +1324,13 @@
 
     workModeSelect.addEventListener('change', () => {
         const mode = workModeSelect.value;
+        absenceTypeSelect.value = '';
         if (mode === 'In Sede') {
-            absenceTypeSelect.value = '';
             locationInput.value = 'Tecnosistem';
             setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
             setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
             lunchBreakCheckbox.checked = true;
         } else if (mode === 'Rientro' || mode === 'Pernottamento') {
-            absenceTypeSelect.value = '';
             locationInput.value = '';
             clearTimeDropdowns();
             lunchBreakCheckbox.checked = false;
@@ -1331,9 +1344,9 @@
 
     absenceTypeSelect.addEventListener('change', () => {
         const absence = absenceTypeSelect.value;
+        workModeSelect.value = '';
         if (absence) {
-            workModeSelect.value = '';
-            locationInput.value = 'Tecnosistem';
+            locationInput.value = '';
             setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
             setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
             lunchBreakCheckbox.checked = true;
@@ -1386,7 +1399,7 @@
     
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     
-    saveButton.addEventListener('click', saveEntry);
+    saveButton.addEventListener('click', () => saveEntry(false));
 
     registerBody.addEventListener('click', (e) => {
         const date = e.target.getAttribute('data-date');
@@ -1544,7 +1557,7 @@
         reader.readAsText(file);
     });
 
-    [grossBaseSalaryInput, overtimeRateInput, tripAllowanceInput, taxRateInput].forEach(input => {
+    [grossBaseSalaryInput, overtimeRateInput, dailyAllowanceRientroInput, dailyAllowancePernottamentoInput, taxRateInput].forEach(input => {
         input.addEventListener('change', saveSettings);
     });
 
