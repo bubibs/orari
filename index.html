@@ -1078,11 +1078,11 @@
             const grossOvertime = summary.totalOvertimeHours * overtimeRate;
             const grossTripAllowance = (summary.totalTripRientroCount * tripAllowanceRientro) + (summary.totalTripPernottamentoCount * tripAllowancePernottamento);
             
-            const totalGross = grossBaseSalary + grossOvertime;
+            const totalGross = grossBaseSalary + grossOvertime + grossTripAllowance;
             
             const socialSecurity = (grossBaseSalary + grossOvertime) * socialSecurityRate;
             const taxableIncome = (grossBaseSalary + grossOvertime) - socialSecurity;
-            const netIncome = taxableIncome * (1 - taxRate) + grossTripAllowance;
+            const netIncome = taxableIncome * (1 - taxRate);
             
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -1255,25 +1255,11 @@
         return csv;
     }
     
-    function exportCsv(data, filename) {
-        const csv = generateCsvData(data);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        showNotification('Esportazione CSV completata!', 'success');
-    }
-    
     function generatePdf(data) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
+        const now = new Date();
+        const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const tableData = data.map(entry => [
             formatDate(entry.date),
             entry.startTime || '-',
@@ -1293,7 +1279,7 @@
             styles: { fontSize: 8, cellPadding: 4 },
             headStyles: { fillColor: '#00a2e3' }
         });
-        doc.save('Registro_Lavoro.pdf');
+        doc.save(`Registro_Lavoro_${dateString}.pdf`);
     }
     
     function saveSettings() {
@@ -1335,7 +1321,7 @@
     workModeSelect.addEventListener('change', () => {
         // Se non siamo in modalità modifica (ovvero l'input della data non ha un valore)
         // allora resettiamo i campi con i valori predefiniti
-        if (!dateInput.value || dateInput.value === '') {
+        if (!dateInput.value || registerData.findIndex(entry => entry.date === dateInput.value) === -1) {
             const mode = workModeSelect.value;
             if (mode === 'In Sede') {
                 absenceTypeSelect.value = '';
@@ -1360,7 +1346,7 @@
     absenceTypeSelect.addEventListener('change', () => {
         // Se non siamo in modalità modifica (ovvero l'input della data non ha un valore)
         // allora resettiamo i campi con i valori predefiniti
-        if (!dateInput.value || dateInput.value === '') {
+        if (!dateInput.value || registerData.findIndex(entry => entry.date === dateInput.value) === -1) {
             const absence = absenceTypeSelect.value;
             if (absence) {
                 workModeSelect.value = '';
