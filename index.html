@@ -22,7 +22,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Qui usiamo le animazioni per controllare la posizione */
             animation: fadeInSlide 2s ease-out forwards, fadeOut 0.5s ease-in 2.5s forwards;
         }
 
@@ -55,11 +54,11 @@
         @keyframes fadeInSlide {
             0% {
                 opacity: 0;
-                transform: translateY(50px); /* L'animazione parte da 50px più in basso */
+                transform: translateY(50px);
             }
             100% {
                 opacity: 1;
-                transform: translateY(0); /* L'animazione finisce al centro della pagina */
+                transform: translateY(0);
             }
         }
 
@@ -73,12 +72,19 @@
 
     <div class="splash-container">
         <div class="app-icon">
-            <span class="app-icon-text">Logo</span>
+            <span class="app-icon-text">TS</span>
         </div>
         <div class="splash-text">
-            <span>Caricamento...</span>
+            <span>Tecnosistem</span>
         </div>
     </div>
+
+    <script>
+        // Reindirizza l'utente alla pagina di registro dopo il caricamento
+        setTimeout(function() {
+            window.location.href = 'registro.html';
+        }, 3000); // 3000 millisecondi = 3 secondi
+    </script>
 
 </body>
 </html>
