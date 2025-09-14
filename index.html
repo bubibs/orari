@@ -5,14 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web App - Caricamento</title>
     <style>
+        /* Aggiungi queste due righe per garantire che il body occupi l'intera altezza */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
         body {
             display: flex;
-            justify-content: center; /* Centra orizzontalmente */
-            align-items: center;     /* Centra verticalmente */
+            justify-content: center; /* Centra verticalmente */
+            align-items: center;     /* Centra orizzontalmente */
             flex-direction: column;
-            min-height: 100vh;
             background-color: #f0f2f5;
-            margin: 0;
             overflow: hidden;
         }
 
@@ -54,11 +58,11 @@
         @keyframes fadeInSlide {
             0% {
                 opacity: 0;
-                transform: translateY(20px); /* L'animazione parte da un punto leggermente più in basso */
+                transform: translateY(20px);
             }
             100% {
                 opacity: 1;
-                transform: translateY(0);    /* E si sposta fino alla sua posizione centrata */
+                transform: translateY(0);
             }
         }
 
@@ -82,7 +86,7 @@
     <script>
         setTimeout(function() {
             window.location.href = 'registro.html';
-        }, 3000); // 3000 millisecondi = 3 secondi
+        }, 3000);
     </script>
 
 </body>
