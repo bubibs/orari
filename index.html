@@ -6,17 +6,16 @@
     <title>Web App - Caricamento</title>
     <style>
         body {
-            /* Rimosse le proprietà di centratura verticale */
             display: flex;
-            justify-content: center; /* Centra orizzontalmente */
-            align-items: flex-start; /* Posiziona gli elementi in alto */
+            justify-content: flex-start; /* Posiziona in alto */
+            align-items: flex-start;    /* Posiziona a sinistra */
             flex-direction: column;
             min-height: 100vh;
             background-color: #f0f2f5;
             margin: 0;
             overflow: hidden;
-            /* Aggiungi un po' di padding in alto per distanziare dal bordo */
             padding-top: 50px;
+            padding-left: 20px;
         }
 
         .splash-container {
@@ -85,7 +84,7 @@
     <script>
         setTimeout(function() {
             window.location.href = 'registro.html';
-        }, 3000); // 3000 millisecondi = 3 secondi
+        }, 3000);
     </script>
 
 </body>
