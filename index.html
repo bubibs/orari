@@ -7,15 +7,13 @@
     <style>
         body {
             display: flex;
-            justify-content: flex-start; /* Posiziona in alto */
-            align-items: flex-start;    /* Posiziona a sinistra */
+            justify-content: center; /* Centra orizzontalmente */
+            align-items: center;     /* Centra verticalmente */
             flex-direction: column;
             min-height: 100vh;
             background-color: #f0f2f5;
             margin: 0;
             overflow: hidden;
-            padding-top: 50px;
-            padding-left: 20px;
         }
 
         .splash-container {
@@ -56,11 +54,11 @@
         @keyframes fadeInSlide {
             0% {
                 opacity: 0;
-                transform: translateY(50px);
+                transform: translateY(20px); /* L'animazione parte da un punto leggermente più in basso */
             }
             100% {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0);    /* E si sposta fino alla sua posizione centrata */
             }
         }
 
@@ -84,7 +82,7 @@
     <script>
         setTimeout(function() {
             window.location.href = 'registro.html';
-        }, 3000);
+        }, 3000); // 3000 millisecondi = 3 secondi
     </script>
 
 </body>
