@@ -10,8 +10,8 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            min-height: 55vh; /* Valore modificato per far salire il contenuto */
-            background-colore: #f0f2f5;
+            min-height: 100vh;
+            background-color: #f0f2f5;
             margin: 0;
             overflow: hidden;
         }
@@ -19,11 +19,11 @@
         .splash-container {
             text-align: center;
             opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInSlide 2s ease-out forwards, fadeOut 0.5s ease-in 2.5s forwards;
             display: flex;
             flex-direction: column;
             align-items: center;
+            /* Qui usiamo le animazioni per controllare la posizione */
+            animation: fadeInSlide 2s ease-out forwards, fadeOut 0.5s ease-in 2.5s forwards;
         }
 
         .app-icon {
@@ -53,8 +53,14 @@
         }
 
         @keyframes fadeInSlide {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% {
+                opacity: 0;
+                transform: translateY(50px); /* L'animazione parte da 50px più in basso */
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0); /* L'animazione finisce al centro della pagina */
+            }
         }
 
         @keyframes fadeOut {
@@ -65,18 +71,14 @@
 </head>
 <body>
 
-<div class="splash-container">
-    <div class="app-icon">
-        <span class="app-icon-text">TS</span>
+    <div class="splash-container">
+        <div class="app-icon">
+            <span class="app-icon-text">Logo</span>
+        </div>
+        <div class="splash-text">
+            <span>Caricamento...</span>
+        </div>
     </div>
-    <div class="splash-text">TECNOSISTEM</div>
-</div>
-
-<script>
-    setTimeout(function() {
-        window.location.href = 'registro.html';
-    }, 3000);
-</script>
 
 </body>
 </html>
