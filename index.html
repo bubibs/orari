@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orari-TS</title>
+    <title>Accedi a Orari-TS</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -18,7 +18,8 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 30px;
             margin: 20px auto;
-            max-width: 800px;
+            max-width: 400px;
+            text-align: center;
         }
         h1, h2, h3 {
             color: #007bff;
@@ -34,7 +35,7 @@
             margin-bottom: 5px;
             font-weight: 600;
         }
-        input[type="date"], input[type="time"], input[type="text"] {
+        input[type="email"], input[type="password"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -54,36 +55,10 @@
         .btn:hover {
             background-color: #0056b3;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        #auth-container, #main-app {
-            max-width: 400px;
-            margin: 20px auto;
-            text-align: center;
-        }
-        #main-app {
-            display: none;
-            max-width: 800px;
-        }
-        #auth-container .container {
-            padding: 40px;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Contenitore per il form di autenticazione -->
     <div id="auth-container" class="container">
         <h2>Accedi a Orari-TS</h2>
         <p>Inserisci le tue credenziali per accedere o crearne di nuove.</p>
@@ -100,71 +75,11 @@
         <p id="auth-error" style="color: #dc3545; margin-top: 15px;"></p>
     </div>
 
-    <!-- Contenitore principale dell'applicazione -->
-    <div id="main-app">
-        <div class="container">
-            <h1>Registro Orario</h1>
-            <button id="signOutBtn" class="btn">Esci</button>
-            <div class="form-group">
-                <label for="dateInput">Data:</label>
-                <input type="date" id="dateInput">
-            </div>
-            <div class="form-group">
-                <label for="startTimeInput">Ora di Inizio:</label>
-                <input type="time" id="startTimeInput">
-            </div>
-            <div class="form-group">
-                <label for="endTimeInput">Ora di Fine:</label>
-                <input type="time" id="endTimeInput">
-            </div>
-            <div class="form-group">
-                <label for="locationInput">Sede:</label>
-                <input type="text" id="locationInput" list="locations">
-                <datalist id="locations"></datalist>
-            </div>
-            <button id="addEntryBtn" class="btn">Aggiungi</button>
-        </div>
-
-        <div class="container">
-            <h2>Riepilogo Mensile</h2>
-            <table id="monthlySummaryTable">
-                <thead>
-                    <tr>
-                        <th>Mese</th>
-                        <th>Ore Totalizzate</th>
-                        <th>Ore Straordinario</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-
-        <div class="container">
-            <h2>Tabella Registrazioni</h2>
-            <table id="registerTable">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Inizio</th>
-                        <th>Fine</th>
-                        <th>Sede</th>
-                        <th>Totale Ore</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
-
     <!-- Firebase SDKs e configurazione -->
     <script type="module">
-        // Importa le funzioni necessarie dai moduli Firebase
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, doc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
 
-        // La tua configurazione Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB8gbRE-a8U7ed9IuHIXgxWFj-PEe6_Vg4",
             authDomain: "orari-ts.firebaseapp.com",
@@ -175,40 +90,19 @@
             measurementId: "G-J2H4KV35T1"
         };
 
-        // Inizializza Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        // Riferimenti agli elementi HTML dell'autenticazione
-        const authContainer = document.getElementById('auth-container');
-        const mainApp = document.getElementById('main-app');
         const emailInput = document.getElementById('emailInput');
         const passwordInput = document.getElementById('passwordInput');
         const loginBtn = document.getElementById('loginBtn');
         const registerBtn = document.getElementById('registerBtn');
         const authError = document.getElementById('auth-error');
-        const signOutBtn = document.getElementById('signOutBtn');
 
-        // Riferimenti agli elementi HTML dell'applicazione
-        const dateInput = document.getElementById('dateInput');
-        const startTimeInput = document.getElementById('startTimeInput');
-        const endTimeInput = document.getElementById('endTimeInput');
-        const locationInput = document.getElementById('locationInput');
-        const addEntryBtn = document.getElementById('addEntryBtn');
-        const registerTableBody = document.querySelector('#registerTable tbody');
-        const monthlySummaryTableBody = document.querySelector('#monthlySummaryTable tbody');
-        const locationsDatalist = document.getElementById('locations');
-
-        let registerData = [];
-        const STORAGE_KEY = 'orari-ts_data';
-
-        // Funzione per mostrare messaggi di errore di autenticazione
         const displayError = (message) => {
             authError.textContent = message;
         };
 
-        // Gestisce il login
         loginBtn.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
@@ -220,7 +114,6 @@
             }
         });
 
-        // Gestisce la registrazione
         registerBtn.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
@@ -232,180 +125,9 @@
             }
         });
 
-        // Gestisce il logout
-        signOutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Errore durante il logout:", error);
-            }
-        });
-
-        // Salva una nuova registrazione su Firestore
-        addEntryBtn.addEventListener('click', async () => {
-            const date = dateInput.value;
-            const startTime = startTimeInput.value;
-            const endTime = endTimeInput.value;
-            const location = locationInput.value;
-
-            if (!date || !startTime || !endTime) {
-                alert('Tutti i campi sono obbligatori.');
-                return;
-            }
-
-            const start = new Date(`${date}T${startTime}`);
-            const end = new Date(`${date}T${endTime}`);
-            let totalHours = (end - start) / (1000 * 60 * 60);
-
-            if (totalHours < 0) totalHours += 24; // Gestione notturna
-
-            const user = auth.currentUser;
-            if (!user) {
-                alert('Devi essere loggato per salvare i dati.');
-                return;
-            }
-
-            const newEntry = {
-                userId: user.uid,
-                date,
-                startTime,
-                endTime,
-                totalHours: totalHours.toFixed(2),
-                location,
-                createdAt: serverTimestamp()
-            };
-
-            try {
-                await addDoc(collection(db, "registrations"), newEntry);
-                clearForm();
-                alert('Registrazione salvata con successo!');
-            } catch (e) {
-                console.error("Errore nell'aggiungere il documento: ", e);
-                alert('Errore nel salvataggio. Riprova più tardi.');
-            }
-        });
-
-        // Funzione per caricare i dati da Firestore
-        const loadData = async (userId) => {
-            if (!userId) {
-                registerData = [];
-                renderTables();
-                return;
-            }
-
-            try {
-                const q = query(collection(db, "registrations"), where("userId", "==", userId), orderBy("date", "desc"));
-                const querySnapshot = await getDocs(q);
-
-                registerData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderTables();
-                updateLocationDatalist();
-            } catch (e) {
-                console.error("Errore nel caricamento dei dati: ", e);
-            }
-        };
-
-        // Funzione per la migrazione dei dati da localStorage a Firestore
-        const migrateLocalStorageData = async (userId) => {
-            const localData = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            if (localData && localData.length > 0) {
-                console.log("Dati locali trovati. Avvio la migrazione...");
-                
-                try {
-                    await Promise.all(localData.map(entry => 
-                        addDoc(collection(db, "registrations"), { ...entry, userId: userId, createdAt: serverTimestamp() })
-                    ));
-                    localStorage.removeItem(STORAGE_KEY);
-                    console.log("Migrazione completata con successo!");
-                } catch (e) {
-                    console.error("Errore durante la migrazione: ", e);
-                }
-            }
-        };
-
-        // Renderizza le tabelle
-        const renderTables = () => {
-            renderRegisterTable();
-            renderMonthlySummary();
-        };
-
-        const renderRegisterTable = () => {
-            registerTableBody.innerHTML = '';
-            registerData.forEach(entry => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${entry.date}</td>
-                    <td>${entry.startTime}</td>
-                    <td>${entry.endTime}</td>
-                    <td>${entry.location || ''}</td>
-                    <td>${entry.totalHours}</td>
-                    <td><button onclick="deleteEntry('${entry.id}')">Cancella</button></td>
-                `;
-                registerTableBody.appendChild(row);
-            });
-        };
-
-        const renderMonthlySummary = () => {
-            monthlySummaryTableBody.innerHTML = '';
-            const summary = {};
-            registerData.forEach(entry => {
-                const month = new Date(entry.date).toLocaleString('it-IT', { year: 'numeric', month: 'long' });
-                if (!summary[month]) {
-                    summary[month] = { totalHours: 0, overtimeHours: 0 };
-                }
-                summary[month].totalHours += parseFloat(entry.totalHours);
-            });
-
-            for (const month in summary) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${month}</td>
-                    <td>${summary[month].totalHours.toFixed(2)}</td>
-                    <td>${summary[month].overtimeHours.toFixed(2)}</td>
-                `;
-                monthlySummaryTableBody.appendChild(row);
-            }
-        };
-
-        const updateLocationDatalist = () => {
-            const uniqueLocations = [...new Set(registerData.map(e => e.location))].filter(Boolean);
-            locationsDatalist.innerHTML = uniqueLocations.map(loc => `<option value="${loc}">`).join('');
-        };
-
-        const clearForm = () => {
-            dateInput.value = '';
-            startTimeInput.value = '';
-            endTimeInput.value = '';
-            locationInput.value = '';
-        };
-
-        // Funzione per cancellare una registrazione (accessibile globalmente)
-        window.deleteEntry = async (id) => {
-            if (confirm("Sei sicuro di voler cancellare questa registrazione?")) {
-                try {
-                    await deleteDoc(doc(db, "registrations", id));
-                    alert('Registrazione cancellata!');
-                    loadData(auth.currentUser.uid); // Ricarica i dati
-                } catch (e) {
-                    console.error("Errore nella cancellazione: ", e);
-                    alert('Errore nella cancellazione. Riprova.');
-                }
-            }
-        };
-
-        // Gestisce lo stato dell'autenticazione
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                authContainer.style.display = 'none';
-                mainApp.style.display = 'block';
-                console.log("Utente loggato con ID:", user.uid);
-                await migrateLocalStorageData(user.uid);
-                loadData(user.uid);
-            } else {
-                authContainer.style.display = 'block';
-                mainApp.style.display = 'none';
-                console.log("Nessun utente loggato.");
-                loadData(null); // Pulisci i dati se non c'è utente
+                window.location.href = 'registro.html';
             }
         });
     </script>
