@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orari-TS Login</title>
+    <title>Orari-TS</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             background-color: #f0f2f5;
+            color: #333;
             margin: 0;
             padding: 20px;
         }
@@ -20,69 +17,67 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
+            margin: 20px auto;
+            max-width: 800px;
         }
-        h2 {
-            color: #333;
+        h1, h2, h3 {
+            color: #007bff;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
             margin-bottom: 20px;
-            font-size: 24px;
         }
         .form-group {
             margin-bottom: 15px;
-            text-align: left;
         }
-        .form-group label {
+        label {
             display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
-        .form-group input {
+        input[type="date"], input[type="time"], input[type="text"] {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #007bff;
         }
         .btn {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-        #loginBtn, #registerBtn {
             background-color: #007bff;
             color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
-        #loginBtn:hover, #registerBtn:hover {
+        .btn:hover {
             background-color: #0056b3;
         }
-        #auth-error {
-            color: #dc3545;
-            margin-top: 15px;
-            font-size: 14px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #auth-container, #main-app {
+            max-width: 400px;
+            margin: 20px auto;
+            text-align: center;
         }
         #main-app {
-            display: none; /* Inizialmente nascosto */
-        }
-        #main-app .container {
+            display: none;
             max-width: 800px;
-            text-align: left;
+        }
+        #auth-container .container {
+            padding: 40px;
         }
     </style>
 </head>
@@ -102,15 +97,63 @@
         </div>
         <button id="loginBtn" class="btn">Accedi</button>
         <button id="registerBtn" class="btn">Registrati</button>
-        <p id="auth-error"></p>
+        <p id="auth-error" style="color: #dc3545; margin-top: 15px;"></p>
     </div>
 
-    <!-- Contenitore principale dell'applicazione (inizialmente nascosto) -->
+    <!-- Contenitore principale dell'applicazione -->
     <div id="main-app">
         <div class="container">
-            <h2>Benvenuto in Orari-TS!</h2>
-            <p>Sei entrato con successo. Ora puoi incollare qui tutto il codice della tua applicazione del registro orario, sostituendo questo testo.</p>
-            <p>I dati che salverai da ora in poi saranno associati al tuo account.</p>
+            <h1>Registro Orario</h1>
+            <button id="signOutBtn" class="btn">Esci</button>
+            <div class="form-group">
+                <label for="dateInput">Data:</label>
+                <input type="date" id="dateInput">
+            </div>
+            <div class="form-group">
+                <label for="startTimeInput">Ora di Inizio:</label>
+                <input type="time" id="startTimeInput">
+            </div>
+            <div class="form-group">
+                <label for="endTimeInput">Ora di Fine:</label>
+                <input type="time" id="endTimeInput">
+            </div>
+            <div class="form-group">
+                <label for="locationInput">Sede:</label>
+                <input type="text" id="locationInput" list="locations">
+                <datalist id="locations"></datalist>
+            </div>
+            <button id="addEntryBtn" class="btn">Aggiungi</button>
+        </div>
+
+        <div class="container">
+            <h2>Riepilogo Mensile</h2>
+            <table id="monthlySummaryTable">
+                <thead>
+                    <tr>
+                        <th>Mese</th>
+                        <th>Ore Totalizzate</th>
+                        <th>Ore Straordinario</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="container">
+            <h2>Tabella Registrazioni</h2>
+            <table id="registerTable">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Inizio</th>
+                        <th>Fine</th>
+                        <th>Sede</th>
+                        <th>Totale Ore</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 
@@ -136,7 +179,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Riferimenti agli elementi HTML
+        // Riferimenti agli elementi HTML dell'autenticazione
         const authContainer = document.getElementById('auth-container');
         const mainApp = document.getElementById('main-app');
         const emailInput = document.getElementById('emailInput');
@@ -144,51 +187,231 @@
         const loginBtn = document.getElementById('loginBtn');
         const registerBtn = document.getElementById('registerBtn');
         const authError = document.getElementById('auth-error');
+        const signOutBtn = document.getElementById('signOutBtn');
 
-        // Funzione per mostrare messaggi di errore
+        // Riferimenti agli elementi HTML dell'applicazione
+        const dateInput = document.getElementById('dateInput');
+        const startTimeInput = document.getElementById('startTimeInput');
+        const endTimeInput = document.getElementById('endTimeInput');
+        const locationInput = document.getElementById('locationInput');
+        const addEntryBtn = document.getElementById('addEntryBtn');
+        const registerTableBody = document.querySelector('#registerTable tbody');
+        const monthlySummaryTableBody = document.querySelector('#monthlySummaryTable tbody');
+        const locationsDatalist = document.getElementById('locations');
+
+        let registerData = [];
+        const STORAGE_KEY = 'orari-ts_data';
+
+        // Funzione per mostrare messaggi di errore di autenticazione
         const displayError = (message) => {
             authError.textContent = message;
         };
 
-        // Event listener per il pulsante di login
+        // Gestisce il login
         loginBtn.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
             try {
                 await auth.signInWithEmailAndPassword(email, password);
-                displayError(""); // Cancella eventuali errori
+                displayError("");
             } catch (error) {
                 displayError(error.message);
             }
         });
 
-        // Event listener per il pulsante di registrazione
+        // Gestisce la registrazione
         registerBtn.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
             try {
                 await auth.createUserWithEmailAndPassword(email, password);
-                displayError(""); // Cancella eventuali errori
+                displayError("");
             } catch (error) {
                 displayError(error.message);
             }
         });
 
+        // Gestisce il logout
+        signOutBtn.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error("Errore durante il logout:", error);
+            }
+        });
+
+        // Salva una nuova registrazione su Firestore
+        addEntryBtn.addEventListener('click', async () => {
+            const date = dateInput.value;
+            const startTime = startTimeInput.value;
+            const endTime = endTimeInput.value;
+            const location = locationInput.value;
+
+            if (!date || !startTime || !endTime) {
+                alert('Tutti i campi sono obbligatori.');
+                return;
+            }
+
+            const start = new Date(`${date}T${startTime}`);
+            const end = new Date(`${date}T${endTime}`);
+            let totalHours = (end - start) / (1000 * 60 * 60);
+
+            if (totalHours < 0) totalHours += 24; // Gestione notturna
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Devi essere loggato per salvare i dati.');
+                return;
+            }
+
+            const newEntry = {
+                userId: user.uid,
+                date,
+                startTime,
+                endTime,
+                totalHours: totalHours.toFixed(2),
+                location,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection("registrations").add(newEntry);
+                clearForm();
+                alert('Registrazione salvata con successo!');
+            } catch (e) {
+                console.error("Errore nell'aggiungere il documento: ", e);
+                alert('Errore nel salvataggio. Riprova più tardi.');
+            }
+        });
+
+        // Funzione per caricare i dati da Firestore
+        const loadData = async (userId) => {
+            if (!userId) {
+                registerData = [];
+                renderTables();
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection("registrations")
+                                          .where("userId", "==", userId)
+                                          .orderBy("date", "desc")
+                                          .get();
+
+                registerData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderTables();
+                updateLocationDatalist();
+            } catch (e) {
+                console.error("Errore nel caricamento dei dati: ", e);
+            }
+        };
+
+        // Funzione per la migrazione dei dati da localStorage a Firestore
+        const migrateLocalStorageData = async (userId) => {
+            const localData = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (localData && localData.length > 0) {
+                console.log("Dati locali trovati. Avvio la migrazione...");
+                const batch = db.batch();
+                localData.forEach(entry => {
+                    const newDocRef = db.collection("registrations").doc();
+                    batch.set(newDocRef, { ...entry, userId: userId });
+                });
+
+                try {
+                    await batch.commit();
+                    localStorage.removeItem(STORAGE_KEY);
+                    console.log("Migrazione completata con successo!");
+                } catch (e) {
+                    console.error("Errore durante la migrazione: ", e);
+                }
+            }
+        };
+
+        // Renderizza le tabelle
+        const renderTables = () => {
+            renderRegisterTable();
+            renderMonthlySummary();
+        };
+
+        const renderRegisterTable = () => {
+            registerTableBody.innerHTML = '';
+            registerData.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.startTime}</td>
+                    <td>${entry.endTime}</td>
+                    <td>${entry.location || ''}</td>
+                    <td>${entry.totalHours}</td>
+                    <td><button onclick="deleteEntry('${entry.id}')">Cancella</button></td>
+                `;
+                registerTableBody.appendChild(row);
+            });
+        };
+
+        const renderMonthlySummary = () => {
+            monthlySummaryTableBody.innerHTML = '';
+            const summary = {};
+            registerData.forEach(entry => {
+                const month = new Date(entry.date).toLocaleString('it-IT', { year: 'numeric', month: 'long' });
+                if (!summary[month]) {
+                    summary[month] = { totalHours: 0, overtimeHours: 0 };
+                }
+                summary[month].totalHours += parseFloat(entry.totalHours);
+            });
+
+            for (const month in summary) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${month}</td>
+                    <td>${summary[month].totalHours.toFixed(2)}</td>
+                    <td>${summary[month].overtimeHours.toFixed(2)}</td>
+                `;
+                monthlySummaryTableBody.appendChild(row);
+            }
+        };
+
+        const updateLocationDatalist = () => {
+            const uniqueLocations = [...new Set(registerData.map(e => e.location))].filter(Boolean);
+            locationsDatalist.innerHTML = uniqueLocations.map(loc => `<option value="${loc}">`).join('');
+        };
+
+        const clearForm = () => {
+            dateInput.value = '';
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+            locationInput.value = '';
+        };
+
+        // Funzione per cancellare una registrazione (accessibile globalmente)
+        window.deleteEntry = async (id) => {
+            if (confirm("Sei sicuro di voler cancellare questa registrazione?")) {
+                try {
+                    await db.collection("registrations").doc(id).delete();
+                    alert('Registrazione cancellata!');
+                    loadData(auth.currentUser.uid); // Ricarica i dati
+                } catch (e) {
+                    console.error("Errore nella cancellazione: ", e);
+                    alert('Errore nella cancellazione. Riprova.');
+                }
+            }
+        };
+
         // Gestisce lo stato dell'autenticazione
-        auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Utente loggato: nasconde il login e mostra l'app principale
                 authContainer.style.display = 'none';
                 mainApp.style.display = 'block';
                 console.log("Utente loggato con ID:", user.uid);
+                await migrateLocalStorageData(user.uid);
+                loadData(user.uid);
             } else {
-                // Utente disconnesso: mostra il login e nasconde l'app principale
                 authContainer.style.display = 'block';
                 mainApp.style.display = 'none';
                 console.log("Nessun utente loggato.");
+                loadData(null); // Pulisci i dati se non c'è utente
             }
         });
     </script>
-
 </body>
 </html>
