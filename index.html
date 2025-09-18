@@ -3,110 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web App - Caricamento</title>
+    <title>Orari-TS Login</title>
     <style>
-        /* Aggiungi queste due righe per garantire che il body occupi l'intera altezza */
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
-
         body {
-            display: flex;
-            justify-content: center; /* Centra verticalmente */
-            align-items: center;     /* Centra orizzontalmente */
-            flex-direction: column;
-            background-color: #f0f2f5;
-            overflow: hidden;
-        }
-
-        .splash-container {
-            text-align: center;
-            opacity: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            animation: fadeInSlide 2s ease-out forwards, fadeOut 0.5s ease-in 2.5s forwards;
-        }
-
-        .app-icon {
-            width: 100px;
-            height: 100px;
-            background-color: #007bff;
-            border-radius: 22%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            color: #333;
             margin-bottom: 20px;
+            font-size: 24px;
         }
-
-        .app-icon-text {
-            color: white;
-            font-size: 2.5em;
-            font-weight: 700;
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
         }
-
-        .splash-text {
-            font-size: 2em;
-            font-weight: 700;
-            background: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
         }
-
-        @keyframes fadeInSlide {
-            0% {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
         }
-
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; display: none; }
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        #loginBtn, #registerBtn {
+            background-color: #007bff;
+            color: #fff;
+        }
+        #loginBtn:hover, #registerBtn:hover {
+            background-color: #0056b3;
+        }
+        #auth-error {
+            color: #dc3545;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        #main-app {
+            display: none; /* Inizialmente nascosto */
+        }
+        #main-app .container {
+            max-width: 800px;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
-    <div class="splash-container">
-        <div class="app-icon">
-            <span class="app-icon-text">TS</span>
+    <!-- Contenitore per il form di autenticazione -->
+    <div id="auth-container" class="container">
+        <h2>Accedi a Orari-TS</h2>
+        <p>Inserisci le tue credenziali per accedere o crearne di nuove.</p>
+        <div class="form-group">
+            <label for="emailInput">Email</label>
+            <input type="email" id="emailInput" placeholder="Inserisci la tua email">
         </div>
-        <div class="splash-text">
-            <span>Tecnosistem</span>
+        <div class="form-group">
+            <label for="passwordInput">Password</label>
+            <input type="password" id="passwordInput" placeholder="Scegli una password">
+        </div>
+        <button id="loginBtn" class="btn">Accedi</button>
+        <button id="registerBtn" class="btn">Registrati</button>
+        <p id="auth-error"></p>
+    </div>
+
+    <!-- Contenitore principale dell'applicazione (inizialmente nascosto) -->
+    <div id="main-app">
+        <div class="container">
+            <h2>Benvenuto in Orari-TS!</h2>
+            <p>Sei entrato con successo. Ora puoi incollare qui tutto il codice della tua applicazione del registro orario, sostituendo questo testo.</p>
+            <p>I dati che salverai da ora in poi saranno associati al tuo account.</p>
         </div>
     </div>
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB8gbRE-a8U7ed9IuHIXgxWFj-PEe6_Vg4",
-  authDomain: "orari-ts.firebaseapp.com",
-  projectId: "orari-ts",
-  storageBucket: "orari-ts.firebasestorage.app",
-  messagingSenderId: "375795078333",
-  appId: "1:375795078333:web:803f281017af9144e813d4",
-  measurementId: "G-J2H4KV35T1"
-};
+    <!-- Firebase SDKs e configurazione -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
     <script>
-        setTimeout(function() {
-            window.location.href = 'registro.html';
-        }, 3000);
+        // La tua configurazione Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8gbRE-a8U7ed9IuHIXgxWFj-PEe6_Vg4",
+            authDomain: "orari-ts.firebaseapp.com",
+            projectId: "orari-ts",
+            storageBucket: "orari-ts.firebasestorage.app",
+            messagingSenderId: "375795078333",
+            appId: "1:375795078333:web:803f281017af9144e813d4",
+            measurementId: "G-J2H4KV35T1"
+        };
+
+        // Inizializza Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Riferimenti agli elementi HTML
+        const authContainer = document.getElementById('auth-container');
+        const mainApp = document.getElementById('main-app');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const authError = document.getElementById('auth-error');
+
+        // Funzione per mostrare messaggi di errore
+        const displayError = (message) => {
+            authError.textContent = message;
+        };
+
+        // Event listener per il pulsante di login
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                displayError(""); // Cancella eventuali errori
+            } catch (error) {
+                displayError(error.message);
+            }
+        });
+
+        // Event listener per il pulsante di registrazione
+        registerBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                displayError(""); // Cancella eventuali errori
+            } catch (error) {
+                displayError(error.message);
+            }
+        });
+
+        // Gestisce lo stato dell'autenticazione
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Utente loggato: nasconde il login e mostra l'app principale
+                authContainer.style.display = 'none';
+                mainApp.style.display = 'block';
+                console.log("Utente loggato con ID:", user.uid);
+            } else {
+                // Utente disconnesso: mostra il login e nasconde l'app principale
+                authContainer.style.display = 'block';
+                mainApp.style.display = 'none';
+                console.log("Nessun utente loggato.");
+            }
+        });
     </script>
 
 </body>
