@@ -29,13 +29,14 @@
         }
         .form-group {
             margin-bottom: 15px;
+            position: relative;
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: 600;
         }
-        input[type="email"], input[type="password"] {
+        input[type="email"], input[type="password"], input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -55,6 +56,20 @@
         .btn:hover {
             background-color: #0056b3;
         }
+        #togglePasswordBtn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(100%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #888;
+            font-size: 14px;
+        }
+        #togglePasswordBtn:hover {
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -69,6 +84,7 @@
         <div class="form-group">
             <label for="passwordInput">Password</label>
             <input type="password" id="passwordInput" placeholder="Scegli una password">
+            <button id="togglePasswordBtn" type="button">Mostra</button>
         </div>
         <button id="loginBtn" class="btn">Accedi</button>
         <button id="registerBtn" class="btn">Registrati</button>
@@ -98,6 +114,7 @@
         const loginBtn = document.getElementById('loginBtn');
         const registerBtn = document.getElementById('registerBtn');
         const authError = document.getElementById('auth-error');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
 
         const displayError = (message) => {
             authError.textContent = message;
@@ -123,6 +140,12 @@
             } catch (error) {
                 displayError(error.message);
             }
+        });
+
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            togglePasswordBtn.textContent = (type === 'password' ? 'Mostra' : 'Nascondi');
         });
 
         onAuthStateChanged(auth, (user) => {
