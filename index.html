@@ -158,11 +158,12 @@
     </div>
 
     <!-- Firebase SDKs e configurazione -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
+    <script type="module">
+        // Importa le funzioni necessarie dai moduli Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, doc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
-    <script>
         // La tua configurazione Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB8gbRE-a8U7ed9IuHIXgxWFj-PEe6_Vg4",
@@ -175,9 +176,9 @@
         };
 
         // Inizializza Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // Riferimenti agli elementi HTML dell'autenticazione
         const authContainer = document.getElementById('auth-container');
@@ -212,7 +213,7 @@
             const email = emailInput.value;
             const password = passwordInput.value;
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                await signInWithEmailAndPassword(auth, email, password);
                 displayError("");
             } catch (error) {
                 displayError(error.message);
@@ -224,7 +225,7 @@
             const email = emailInput.value;
             const password = passwordInput.value;
             try {
-                await auth.createUserWithEmailAndPassword(email, password);
+                await createUserWithEmailAndPassword(auth, email, password);
                 displayError("");
             } catch (error) {
                 displayError(error.message);
@@ -234,7 +235,7 @@
         // Gestisce il logout
         signOutBtn.addEventListener('click', async () => {
             try {
-                await auth.signOut();
+                await signOut(auth);
             } catch (error) {
                 console.error("Errore durante il logout:", error);
             }
@@ -271,11 +272,11 @@
                 endTime,
                 totalHours: totalHours.toFixed(2),
                 location,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: serverTimestamp()
             };
 
             try {
-                await db.collection("registrations").add(newEntry);
+                await addDoc(collection(db, "registrations"), newEntry);
                 clearForm();
                 alert('Registrazione salvata con successo!');
             } catch (e) {
@@ -293,12 +294,10 @@
             }
 
             try {
-                const snapshot = await db.collection("registrations")
-                                          .where("userId", "==", userId)
-                                          .orderBy("date", "desc")
-                                          .get();
+                const q = query(collection(db, "registrations"), where("userId", "==", userId), orderBy("date", "desc"));
+                const querySnapshot = await getDocs(q);
 
-                registerData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                registerData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderTables();
                 updateLocationDatalist();
             } catch (e) {
@@ -311,14 +310,11 @@
             const localData = JSON.parse(localStorage.getItem(STORAGE_KEY));
             if (localData && localData.length > 0) {
                 console.log("Dati locali trovati. Avvio la migrazione...");
-                const batch = db.batch();
-                localData.forEach(entry => {
-                    const newDocRef = db.collection("registrations").doc();
-                    batch.set(newDocRef, { ...entry, userId: userId });
-                });
-
+                
                 try {
-                    await batch.commit();
+                    await Promise.all(localData.map(entry => 
+                        addDoc(collection(db, "registrations"), { ...entry, userId: userId, createdAt: serverTimestamp() })
+                    ));
                     localStorage.removeItem(STORAGE_KEY);
                     console.log("Migrazione completata con successo!");
                 } catch (e) {
@@ -387,7 +383,7 @@
         window.deleteEntry = async (id) => {
             if (confirm("Sei sicuro di voler cancellare questa registrazione?")) {
                 try {
-                    await db.collection("registrations").doc(id).delete();
+                    await deleteDoc(doc(db, "registrations", id));
                     alert('Registrazione cancellata!');
                     loadData(auth.currentUser.uid); // Ricarica i dati
                 } catch (e) {
@@ -398,7 +394,7 @@
         };
 
         // Gestisce lo stato dell'autenticazione
-        auth.onAuthStateChanged(async (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 authContainer.style.display = 'none';
                 mainApp.style.display = 'block';
