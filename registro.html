@@ -1623,7 +1623,428 @@
         loadData();
     }
     initialize();
-</script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+
+// Impostazione del livello di debug di Firebase
+setLogLevel('debug');
+
+// Variabili globali fornite dall'ambiente
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+// Inizializza Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let userId;
+
+// Elementi DOM
+const form = document.getElementById('record-form');
+const dateInput = document.getElementById('date');
+const startTimeSelect = document.getElementById('start-time');
+const endTimeSelect = document.getElementById('end-time');
+const breakDurationInput = document.getElementById('break-duration');
+const tripAllowanceReturnInput = document.getElementById('trip-allowance-return');
+const tripAllowanceOvernightInput = document.getElementById('trip-allowance-overnight');
+const dataList = document.getElementById('data-list');
+const emptyState = document.getElementById('empty-state');
+const exportBtn = document.getElementById('export-btn');
+const importBtn = document.getElementById('import-btn');
+const importFile = document.getElementById('import-file');
+const grossBaseSalaryInput = document.getElementById('gross-base-salary');
+const overtimeRateInput = document.getElementById('overtime-rate');
+const taxRateInput = document.getElementById('tax-rate');
+const tripAllowanceReturnRateInput = document.getElementById('trip-allowance-return-rate');
+const tripAllowanceOvernightRateInput = document.getElementById('trip-allowance-overnight-rate');
+const notificationContainer = document.getElementById('notification-container');
+const dialogContainer = document.getElementById('dialog-container');
+const dialogTitle = document.getElementById('dialog-title');
+const dialogMessage = document.getElementById('dialog-message');
+const dialogConfirm = document.getElementById('dialog-confirm');
+const dialogCancel = document.getElementById('dialog-cancel');
+const STORAGE_KEY_RECORDS = 'workRecords';
+const STORAGE_KEY_SETTINGS = 'userSettings';
+
+// Variabili di stato
+let registerData = [];
+let settings = {};
+
+// Funzione per mostrare il modale di dialogo personalizzato
+function showCustomDialog(title, message, onConfirm, onCancel) {
+    dialogTitle.textContent = title;
+    dialogMessage.textContent = message;
+    dialogContainer.classList.add('show');
+    return new Promise((resolve) => {
+        const handleConfirm = () => {
+            dialogContainer.classList.remove('show');
+            if (onConfirm) onConfirm();
+            resolve(true);
+            dialogConfirm.removeEventListener('click', handleConfirm);
+            dialogCancel.removeEventListener('click', handleCancel);
+        };
+        const handleCancel = () => {
+            dialogContainer.classList.remove('show');
+            if (onCancel) onCancel();
+            resolve(false);
+            dialogConfirm.removeEventListener('click', handleConfirm);
+            dialogCancel.removeEventListener('click', handleCancel);
+        };
+        dialogConfirm.addEventListener('click', handleConfirm);
+        dialogCancel.addEventListener('click', handleCancel);
+    });
+}
+
+// Mostra il messaggio di notifica
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notificationContainer.appendChild(notification);
+
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+
+    setTimeout(() => {
+        notification.classList.remove('show');
+        notification.addEventListener('transitionend', () => {
+            notification.remove();
+        }, { once: true });
+    }, 3000);
+}
+
+// Genera le opzioni per l'ora nei menu a tendina
+function generateTimeOptions() {
+    const times = [];
+    for (let i = 0; i < 24; i++) {
+        for (let j = 0; j < 60; j += 30) {
+            const hour = String(i).padStart(2, '0');
+            const minute = String(j).padStart(2, '0');
+            times.push(`${hour}:${minute}`);
+        }
+    }
+    times.forEach(time => {
+        const optionStart = document.createElement('option');
+        optionStart.value = time;
+        optionStart.textContent = time;
+        startTimeSelect.appendChild(optionStart);
+
+        const optionEnd = document.createElement('option');
+        optionEnd.value = time;
+        optionEnd.textContent = time;
+        endTimeSelect.appendChild(optionEnd);
+    });
+}
+
+// Calcola e aggiorna il riepilogo
+function updateCalculations() {
+    let totalWorkedMinutes = 0;
+    let totalOvertimeMinutes = 0;
+    let totalAllowance = 0;
+    let totalGrossCompensation = 0;
+
+    registerData.forEach(item => {
+        totalWorkedMinutes += item.workedMinutes;
+        totalOvertimeMinutes += item.overtimeMinutes;
+        totalAllowance += item.tripAllowanceReturn + item.tripAllowanceOvernight;
+    });
+
+    const regularPayPerHour = settings.grossBaseSalary || 0;
+    const overtimeRate = (settings.overtimeRate / 100) || 0;
+    const taxRate = (settings.taxRate / 100) || 0;
+
+    const totalWorkedHours = totalWorkedMinutes / 60;
+    const totalOvertimeHours = totalOvertimeMinutes / 60;
+    
+    const regularPay = (totalWorkedMinutes / 60) * regularPayPerHour;
+    const overtimePay = (totalOvertimeMinutes / 60) * (regularPayPerHour * (1 + overtimeRate));
+    
+    const labourCost = regularPay + overtimePay;
+    const grossCompensation = labourCost + totalAllowance;
+    const totalTax = grossCompensation * taxRate;
+    const netCompensation = grossCompensation - totalTax;
+
+    document.getElementById('total-hours').textContent = (totalWorkedHours + totalOvertimeHours).toFixed(2);
+    document.getElementById('worked-hours').textContent = totalWorkedHours.toFixed(2);
+    document.getElementById('overtime-hours').textContent = totalOvertimeHours.toFixed(2);
+    document.getElementById('labour-cost').textContent = `${labourCost.toFixed(2)} €`;
+    document.getElementById('total-allowance').textContent = `${totalAllowance.toFixed(2)} €`;
+    document.getElementById('gross-compensation').textContent = `${grossCompensation.toFixed(2)} €`;
+    document.getElementById('net-compensation').textContent = `${netCompensation.toFixed(2)} €`;
+    document.getElementById('total-tax').textContent = `${totalTax.toFixed(2)} €`;
+}
+
+// Renderizza tutti i dati dallo stato
+function renderAllData() {
+    dataList.innerHTML = '';
+    if (registerData.length === 0) {
+        emptyState.style.display = 'block';
+    } else {
+        emptyState.style.display = 'none';
+        registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        registerData.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'data-item';
+            itemDiv.innerHTML = `
+                <div>
+                    <p><strong>${item.date}</strong></p>
+                    <p>Dalle ${item.startTime} alle ${item.endTime} (Pausa: ${item.breakDuration} min)</p>
+                    <p>Ore Lavorate: ${item.workedHours.toFixed(2)} | Straordinari: ${item.overtimeHours.toFixed(2)}</p>
+                    <p>Indennità: Ritorno ${item.tripAllowanceReturn.toFixed(2)} €, Pernotto ${item.tripAllowanceOvernight.toFixed(2)} €</p>
+                </div>
+                <button class="delete-btn" data-id="${item.id}">×</button>
+            `;
+            dataList.appendChild(itemDiv);
+        });
+    }
+    updateCalculations();
+}
+
+// Listener sullo stato di autenticazione di Firebase
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        userId = user.uid;
+        await loadData();
+    } else {
+        userId = null;
+        try {
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            showNotification('Errore durante l\'autenticazione.', 'error');
+            console.error("Firebase auth error:", error);
+        }
+    }
+});
+
+// Funzioni per i dati di Firestore
+async function loadData() {
+    if (!userId) {
+        return;
+    }
+
+    // Carica le impostazioni
+    const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/settings/${STORAGE_KEY_SETTINGS}`);
+    onSnapshot(settingsDocRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            settings = docSnapshot.data();
+            Object.keys(settings).forEach(key => {
+                const input = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
+                if (input) {
+                    input.value = settings[key];
+                }
+            });
+        } else {
+            // Imposta le impostazioni predefinite se non esistono
+            settings = {
+                grossBaseSalary: 10.00,
+                overtimeRate: 50,
+                taxRate: 20,
+                tripAllowanceReturnRate: 10.00,
+                tripAllowanceOvernightRate: 20.00
+            };
+            setDoc(settingsDocRef, settings);
+            // Aggiorna gli input con i valori predefiniti
+            grossBaseSalaryInput.value = settings.grossBaseSalary;
+            overtimeRateInput.value = settings.overtimeRate;
+            taxRateInput.value = settings.taxRate;
+            tripAllowanceReturnRateInput.value = settings.tripAllowanceReturnRate;
+            tripAllowanceOvernightRateInput.value = settings.tripAllowanceOvernightRate;
+        }
+        updateCalculations();
+    }, (error) => {
+        showNotification('Errore durante il caricamento delle impostazioni.', 'error');
+        console.error("Firestore onSnapshot settings error:", error);
+    });
+
+    // Ascolta i cambiamenti in tempo reale sui dati del registro
+    const registerCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/register`);
+    onSnapshot(registerCollectionRef, (snapshot) => {
+        registerData = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            registerData.push({ id: doc.id, ...data });
+        });
+        renderAllData();
+    }, (error) => {
+        showNotification('Errore durante il caricamento dei dati.', 'error');
+        console.error("Firestore onSnapshot error:", error);
+    });
+}
+
+async function saveSettings() {
+    if (!userId) {
+        showNotification('Errore: Utente non autenticato.', 'error');
+        return;
+    }
+    const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/settings/${STORAGE_KEY_SETTINGS}`);
+    settings.grossBaseSalary = parseFloat(grossBaseSalaryInput.value) || 0;
+    settings.overtimeRate = parseFloat(overtimeRateInput.value) || 0;
+    settings.taxRate = parseFloat(taxRateInput.value) || 0;
+    settings.tripAllowanceReturnRate = parseFloat(tripAllowanceReturnRateInput.value) || 0;
+    settings.tripAllowanceOvernightRate = parseFloat(tripAllowanceOvernightRateInput.value) || 0;
+    await setDoc(settingsDocRef, settings);
+    showNotification('Impostazioni salvate con successo!', 'success');
+}
+
+async function addRecord(event) {
+    event.preventDefault();
+    if (!userId) {
+        showNotification('Errore: Utente non autenticato.', 'error');
+        return;
+    }
+
+    const date = dateInput.value;
+    const startTime = startTimeSelect.value;
+    const endTime = endTimeSelect.value;
+    const breakDuration = parseInt(breakDurationInput.value) || 0;
+    const tripAllowanceReturn = parseFloat(tripAllowanceReturnInput.value) || 0;
+    const tripAllowanceOvernight = parseFloat(tripAllowanceOvernightInput.value) || 0;
+
+    const start = new Date(`${date}T${startTime}:00`);
+    const end = new Date(`${date}T${endTime}:00`);
+
+    if (end < start) {
+        showNotification('L\'ora di fine non può essere precedente all\'ora di inizio.', 'error');
+        return;
+    }
+
+    const totalMinutes = (end - start) / (1000 * 60);
+    const workedMinutes = totalMinutes - breakDuration;
+
+    let overtimeMinutes = 0;
+    const regularHours = 8;
+    const regularMinutes = regularHours * 60;
+    let workedHours = workedMinutes / 60;
+
+    if (workedMinutes > regularMinutes) {
+        overtimeMinutes = workedMinutes - regularMinutes;
+        workedHours = regularMinutes / 60;
+    }
+
+    const newRecord = {
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+        breakDuration: breakDuration,
+        workedMinutes: workedMinutes,
+        overtimeMinutes: overtimeMinutes,
+        workedHours: workedHours,
+        overtimeHours: overtimeMinutes / 60,
+        tripAllowanceReturn: tripAllowanceReturn,
+        tripAllowanceOvernight: tripAllowanceOvernight
+    };
+
+    const registerCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/register`);
+    await addDoc(registerCollectionRef, newRecord);
+    
+    form.reset();
+    dateInput.value = date;
+    showNotification('Record aggiunto con successo!', 'success');
+}
+
+async function deleteRecord(id) {
+    const confirmed = await showCustomDialog('Conferma Eliminazione', 'Sei sicuro di voler eliminare questo record?');
+    if (confirmed) {
+        try {
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/register`, id);
+            await deleteDoc(docRef);
+            showNotification('Record eliminato con successo!', 'success');
+        } catch (error) {
+            showNotification('Errore durante l\'eliminazione del record.', 'error');
+            console.error("Error deleting document:", error);
+        }
+    }
+}
+
+// Listener degli eventi
+form.addEventListener('submit', addRecord);
+dataList.addEventListener('click', (event) => {
+    if (event.target.closest('.delete-btn')) {
+        const id = event.target.closest('.delete-btn').dataset.id;
+        deleteRecord(id);
+    }
+});
+
+exportBtn.addEventListener('click', async () => {
+    const registerCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/register`);
+    const snapshot = await getDocs(registerCollectionRef);
+    const dataToExport = [];
+    snapshot.forEach(doc => {
+        dataToExport.push(doc.data());
+    });
+
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const today = new Date().toISOString().split('T')[0];
+    a.download = `registro_lavoro_${today}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showNotification('Dati esportati con successo!', 'success');
+});
+
+importBtn.addEventListener('click', () => {
+    importFile.click();
+});
+
+importFile.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            if (Array.isArray(importedData)) {
+                // Cancella i dati esistenti su Firestore
+                const registerCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/register`);
+                const existingDocs = await getDocs(registerCollectionRef);
+                const deletePromises = existingDocs.docs.map(d => deleteDoc(d.ref));
+                await Promise.all(deletePromises);
+
+                // Aggiungi i dati importati su Firestore
+                const addPromises = importedData.map(item => addDoc(registerCollectionRef, item));
+                await Promise.all(addPromises);
+                
+                showNotification('Dati importati con successo!', 'success');
+            } else {
+                showNotification('Il file importato non è in un formato valido.', 'error');
+            }
+        } catch (error) {
+            showNotification('Errore durante l\'importazione del file.', 'error');
+            console.error(error);
+        }
+    };
+    reader.readAsText(file);
+});
+
+[grossBaseSalaryInput, overtimeRateInput, taxRateInput, tripAllowanceReturnRateInput, tripAllowanceOvernightRateInput].forEach(input => {
+    input.addEventListener('change', saveSettings);
+});
+
+// Inizializzazione
+function initialize() {
+    generateTimeOptions();
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+}
+initialize();
+
 </body>
 </html>
+
 
