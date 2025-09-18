@@ -82,7 +82,27 @@
             <span>Tecnosistem</span>
         </div>
     </div>
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyB8gbRE-a8U7ed9IuHIXgxWFj-PEe6_Vg4",
+  authDomain: "orari-ts.firebaseapp.com",
+  projectId: "orari-ts",
+  storageBucket: "orari-ts.firebasestorage.app",
+  messagingSenderId: "375795078333",
+  appId: "1:375795078333:web:803f281017af9144e813d4",
+  measurementId: "G-J2H4KV35T1"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
     <script>
         setTimeout(function() {
             window.location.href = 'registro.html';
