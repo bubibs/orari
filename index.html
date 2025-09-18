@@ -3,92 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accedi a Orari-TS</title>
+    <title>Accedi ad Orari TS</title>
+    <!-- Importazione del font 'Inter' da Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             margin: 0;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
         .container {
             background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 40px;
             margin: 20px auto;
             max-width: 400px;
             text-align: center;
+            position: relative;
         }
         h1, h2, h3 {
-            color: #007bff;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 10px;
+            color: #0d47a1;
+            padding-bottom: 0;
             margin-bottom: 20px;
+            font-weight: 700;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             position: relative;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 600;
+            text-align: left;
+        }
+        .input-icon-container {
+            position: relative;
+        }
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            width: 18px;
+            height: 18px;
+            transition: color 0.3s;
         }
         input[type="email"], input[type="password"], input[type="text"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border: 1px solid #ddd;
             border-radius: 8px;
             box-sizing: border-box;
+            font-size: 16px;
+            padding-left: 40px; /* Spazio per l'icona */
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #0d47a1;
         }
         .btn {
-            background-color: #007bff;
+            background-image: linear-gradient(45deg, #2196f3, #0d47a1);
             color: #fff;
-            padding: 12px 20px;
+            padding: 14px 24px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .btn:hover {
-            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
         #togglePasswordBtn {
             position: absolute;
-            right: 10px;
+            right: 12px;
             top: 50%;
-            transform: translateY(100%);
+            transform: translateY(-50%);
             background: none;
             border: none;
             cursor: pointer;
             color: #888;
             font-size: 14px;
+            transition: color 0.3s;
         }
         #togglePasswordBtn:hover {
             color: #333;
+        }
+        .signature {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            font-size: 12px;
+            color: #999;
         }
     </style>
 </head>
 <body>
 
     <div id="auth-container" class="container">
-        <h2>Accedi a Orari-TS</h2>
+        <h2>Accedi ad Orari TS</h2>
         <p>Inserisci le tue credenziali per accedere o crearne di nuove.</p>
         <div class="form-group">
             <label for="emailInput">Email</label>
-            <input type="email" id="emailInput" placeholder="Inserisci la tua email">
+            <div class="input-icon-container">
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.0039 5.88499L10.7269 12.358C11.3999 12.855 12.6039 12.855 13.2759 12.358L22.0039 5.88499C22.2579 5.70699 22.4179 5.43299 22.4179 5.12999C22.4179 4.40399 21.6889 3.99299 21.0879 4.38299L12.0039 10.966L2.91991 4.38399C2.31891 3.99299 1.58991 4.40399 1.58991 5.12999C1.58991 5.43299 1.74891 5.70699 2.00391 5.88499H2.0039Z"></path>
+                    <path d="M20 18.0001C20.001 18.2323 19.9575 18.4633 19.8719 18.6806C19.7863 18.898 19.6593 19.0984 19.5009 19.2662C19.3424 19.434 19.1557 19.5668 18.9507 19.6575C18.7457 19.7482 18.5262 19.7953 18.3039 19.7971H5.70591C5.48591 19.7941 5.26732 19.7471 5.06173 19.6563C4.85614 19.5654 4.66938 19.4322 4.51091 19.2642C4.35244 19.0962 4.22558 18.8959 4.13994 18.6788C4.0543 18.4616 4.01083 18.2307 4.01191 17.9985V8.50012L11.5649 14.0561C11.7769 14.2141 12.2289 14.2141 12.4399 14.0561L19.9999 8.50012L20.0019 18.0001H19.9999H20Z"></path>
+                </svg>
+                <input type="email" id="emailInput" placeholder="Inserisci la tua email">
+            </div>
         </div>
         <div class="form-group">
             <label for="passwordInput">Password</label>
-            <input type="password" id="passwordInput" placeholder="Scegli una password">
-            <button id="togglePasswordBtn" type="button">Mostra</button>
+            <div class="input-icon-container input-with-button">
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 11C12.5523 11 13 10.5523 13 10V7C13 6.44772 12.5523 6 12 6C11.4477 6 11 6.44772 11 7V10C11 10.5523 11.4477 11 12 11Z"></path>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7 6C7 3.23858 9.23858 1 12 1C14.7614 1 17 3.23858 17 6V7H18.5C19.3284 7 20 7.67157 20 8.5V20.5C20 21.3284 19.3284 22 18.5 22H5.5C4.67157 22 4 21.3284 4 20.5V8.5C4 7.67157 4.67157 7 5.5 7H7V6ZM15 7V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V7H15ZM6 9H18V20H6V9Z"></path>
+                </svg>
+                <input type="password" id="passwordInput" placeholder="Scegli una password">
+                <button id="togglePasswordBtn" type="button">Mostra</button>
+            </div>
         </div>
         <button id="loginBtn" class="btn">Accedi</button>
         <button id="registerBtn" class="btn">Registrati</button>
         <p id="auth-error" style="color: #dc3545; margin-top: 15px;"></p>
+        <p class="signature">Bubibs</p>
     </div>
 
     <!-- Firebase SDKs e configurazione -->
