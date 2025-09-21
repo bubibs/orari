@@ -30,38 +30,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .auth-container {
-            text-align: center;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .sync-status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .sync-status.online {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .sync-status.offline {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
         h1, h2 {
             text-align: center;
             color: #00a2e3;
@@ -102,7 +70,7 @@
             font-weight: 600;
             font-size: 0.9em;
         }
-        input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="password"], textarea, select {
+        input[type="date"], input[type="text"], input[type="number"], textarea, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -114,7 +82,7 @@
             appearance: none;
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
-        input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus, select:focus {
+        input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #00a2e3;
             box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
@@ -210,12 +178,6 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
         .btn-small {
             padding: 5px 8px;
             font-size: 12px;
@@ -236,18 +198,6 @@
         }
         .btn-edit:hover {
             background-color: #e0a800;
-        }
-        .btn-auth {
-            background-color: #28a745;
-        }
-        .btn-auth:hover {
-            background-color: #218838;
-        }
-        .btn-logout {
-            background-color: #dc3545;
-        }
-        .btn-logout:hover {
-            background-color: #c82333;
         }
         #save-btn {
             background-color: #00a2e3;
@@ -482,19 +432,6 @@
             opacity: 0.6;
             pointer-events: none;
         }
-        .chart-container {
-            margin: 20px 0;
-            text-align: center;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-style: italic;
-            color: #666;
-        }
-        .hidden {
-            display: none;
-        }
         @media (min-width: 600px) {
             .multiselect-selected,
             .export-options-container > select {
@@ -506,240 +443,226 @@
                 font-size: 16px;
             }
         }
+        .chart-container {
+            margin: 20px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="logo-text">TECNOSISTEM</div>
+    <div class="form-group">
+        <label for="date">Seleziona Giorno:</label>
+        <input type="date" id="date">
+    </div>
+
+    <div class="form-group">
+        <label for="workModeSelect">Modalità di lavoro:</label>
+        <select id="workModeSelect">
+            <option value="">Seleziona...</option>
+            <option value="In Sede">In sede</option>
+            <option value="Rientro">Trasferta (Rientro)</option>
+            <option value="Pernottamento">Trasferta (Pernottamento)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="absenceType">Tipo di Assenza:</label>
+        <select id="absenceType">
+            <option value="">Nessuna assenza</option>
+            <option value="Ferie">Ferie</option>
+            <option value="Permesso">Permesso</option>
+            <option value="Malattia">Malattia</option>
+        </select>
+    </div>
+
+    <div id="work-fields">
+        <div class="form-group">
+            <label>Orario Inizio:</label>
+            <div class="time-dropdown-container">
+                <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                <div id="startTimeOptions" class="time-options"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Orario Fine:</label>
+            <div class="time-dropdown-container">
+                <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                <div id="endTimeOptions" class="time-options"></div>
+            </div>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="lunchBreak">
+            <label for="lunchBreak">Pausa pranzo (1 ora)</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="location">Luogo Intervento:</label>
+        <input type="text" id="location" list="location-suggestions">
+        <datalist id="location-suggestions"></datalist>
+    </div>
+    <div class="form-group">
+        <label for="notes">Note:</label>
+        <textarea id="notes"></textarea>
+    </div>
     
-    <!-- Informazioni utente e stato sincronizzazione -->
-    <div id="user-info" class="user-info">
-        <div>
-            <span>Utente: </span><span id="user-email">Caricamento...</span>
+    <div id="results">
+        <h3>Riepilogo giornaliero</h3>
+        <p id="totalHoursContainer"><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
+        <p id="overtimeHoursContainer"><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
+        <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHours">0</span></p>
+    </div>
+    
+    <button id="save-btn" class="btn btn-save-anim">
+        <span class="btn-text">💾 Salva</span>
+        <span class="btn-icon">✅</span>
+    </button>
+    
+    <hr>
+    
+    <h2>Riepilogo Mensile</h2>
+    <div class="chart-container">
+        <canvas id="monthlyChart"></canvas>
+    </div>
+    
+    <div class="table-container">
+        <table id="monthly-summary-table">
+            <thead>
+                <tr>
+                    <th>Mese</th>
+                    <th>Ore Tot.</th>
+                    <th>Ore Str.</th>
+                    <th>Trasferta</th>
+                    <th>Sede</th>
+                    <th>Assenze</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    
+    <hr>
+    
+    <h2 class="collapsible-header" id="toggle-settings">⚙️ Impostazioni Avanzate <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="settings-content">
+        <p>Modifica i valori usati per i calcoli economici. I cambiamenti verranno salvati automaticamente su Firebase.</p>
+        <div class="form-group">
+            <label for="grossBaseSalaryInput">Paga Base Mensile Lorda (€):</label>
+            <input type="number" id="grossBaseSalaryInput" step="0.01" min="0">
         </div>
-        <div>
-            <span id="sync-status" class="sync-status offline">Offline</span>
-            <button id="logout-btn" class="btn btn-logout" style="width: auto; padding: 8px 16px; margin: 0 0 0 10px;">Esci</button>
+        <div class="form-group">
+            <label for="overtimeRateInput">Paga Oraria Straordinario (€):</label>
+            <input type="number" id="overtimeRateInput" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+            <label for="tripAllowanceReturnInput">Diaria Trasferta Rientro (€):</label>
+            <input type="number" id="tripAllowanceReturnInput" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+            <label for="tripAllowanceOvernightInput">Diaria Trasferta Pernottamento (€):</label>
+            <input type="number" id="tripAllowanceOvernightInput" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+            <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
+            <input type="number" id="taxRateInput" step="0.1" min="0" max="100">
         </div>
     </div>
-
-    <!-- Contenuto principale -->
-    <div id="main-content">
-        <div class="loading" id="loading">Caricamento dati...</div>
-        
-        <div id="app-content" class="hidden">
-            <div class="form-group">
-                <label for="date">Seleziona Giorno:</label>
-                <input type="date" id="date">
-            </div>
-
-            <div class="form-group">
-                <label for="workModeSelect">Modalità di lavoro:</label>
-                <select id="workModeSelect">
-                    <option value="">Seleziona...</option>
-                    <option value="In Sede">In sede</option>
-                    <option value="Rientro">Trasferta (Rientro)</option>
-                    <option value="Pernottamento">Trasferta (Pernottamento)</option>
+    
+    <hr>
+    
+    <h2 class="collapsible-header" id="toggle-gross-net">💰 Riepilogo Lordo/Netto <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="gross-net-content">
+        <div class="table-container">
+            <table id="gross-net-table">
+                <thead>
+                    <tr>
+                        <th>Mese</th>
+                        <th>Lordo</th>
+                        <th>Netto (stimato)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="register-content">
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="search-input">Cerca nel registro:</label>
+            <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
+        </div>
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="filter-month-year">Filtra per Mese(i) o Anno:</label>
+            <div class="export-options-container">
+                <select id="filter-year">
+                    <option value="">Tutti gli Anni</option>
                 </select>
-            </div>
-
-            <div class="form-group">
-                <label for="absenceType">Tipo di Assenza:</label>
-                <select id="absenceType">
-                    <option value="">Nessuna assenza</option>
-                    <option value="Ferie">Ferie</option>
-                    <option value="Permesso">Permesso</option>
-                    <option value="Malattia">Malattia</option>
-                </select>
-            </div>
-
-            <div id="work-fields">
-                <div class="form-group">
-                    <label>Orario Inizio:</label>
-                    <div class="time-dropdown-container">
-                        <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
-                        <div id="startTimeOptions" class="time-options"></div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Orario Fine:</label>
-                    <div class="time-dropdown-container">
-                        <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
-                        <div id="endTimeOptions" class="time-options"></div>
-                    </div>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="lunchBreak">
-                    <label for="lunchBreak">Pausa pranzo (1 ora)</label>
+                <div class="multiselect-dropdown" id="filter-month-container">
+                    <div class="multiselect-selected">Tutti i Mesi</div>
+                    <div class="multiselect-options" id="filter-month-options"></div>
                 </div>
             </div>
-
-            <div class="form-group">
-                <label for="location">Luogo Intervento:</label>
-                <input type="text" id="location" list="location-suggestions">
-                <datalist id="location-suggestions"></datalist>
-            </div>
-            <div class="form-group">
-                <label for="notes">Note:</label>
-                <textarea id="notes"></textarea>
-            </div>
-            
-            <div id="results">
-                <h3>Riepilogo giornaliero</h3>
-                <p id="totalHoursContainer"><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
-                <p id="overtimeHoursContainer"><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
-                <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHours">0</span></p>
-            </div>
-            
-            <button id="save-btn" class="btn btn-save-anim">
-                <span class="btn-text">💾 Salva</span>
-                <span class="btn-icon">✅</span>
-            </button>
-            
-            <hr>
-            
-            <h2>Riepilogo Mensile</h2>
-            <div class="chart-container">
-                <canvas id="monthlyChart"></canvas>
-            </div>
-            
-            <div class="table-container">
-                <table id="monthly-summary-table">
-                    <thead>
-                        <tr>
-                            <th>Mese</th>
-                            <th>Ore Tot.</th>
-                            <th>Ore Str.</th>
-                            <th>Trasferta</th>
-                            <th>Sede</th>
-                            <th>Assenze</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-            
-            <hr>
-            
-            <h2 class="collapsible-header" id="toggle-settings">⚙️ Impostazioni Avanzate <span class="arrow">▼</span></h2>
-            <div class="collapsible-content" id="settings-content">
-                <p>Modifica i valori usati per i calcoli economici. I cambiamenti verranno salvati automaticamente su Firebase.</p>
-                <div class="form-group">
-                    <label for="grossBaseSalaryInput">Paga Base Mensile Lorda (€):</label>
-                    <input type="number" id="grossBaseSalaryInput" step="0.01" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="overtimeRateInput">Paga Oraria Straordinario (€):</label>
-                    <input type="number" id="overtimeRateInput" step="0.01" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="tripAllowanceReturnInput">Diaria Trasferta Rientro (€):</label>
-                    <input type="number" id="tripAllowanceReturnInput" step="0.01" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="tripAllowanceOvernightInput">Diaria Trasferta Pernottamento (€):</label>
-                    <input type="number" id="tripAllowanceOvernightInput" step="0.01" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
-                    <input type="number" id="taxRateInput" step="0.1" min="0" max="100">
-                </div>
-            </div>
-            
-            <hr>
-            
-            <h2 class="collapsible-header" id="toggle-gross-net">💰 Riepilogo Lordo/Netto <span class="arrow">▼</span></h2>
-            <div class="collapsible-content" id="gross-net-content">
-                <div class="table-container">
-                    <table id="gross-net-table">
-                        <thead>
-                            <tr>
-                                <th>Mese</th>
-                                <th>Lordo</th>
-                                <th>Netto (stimato)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <hr>
-            
-            <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
-            <div class="collapsible-content" id="register-content">
-                <div class="form-group" style="margin-top: 20px;">
-                    <label for="search-input">Cerca nel registro:</label>
-                    <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
-                </div>
-                <div class="form-group" style="margin-top: 20px;">
-                    <label for="filter-month-year">Filtra per Mese(i) o Anno:</label>
-                    <div class="export-options-container">
-                        <select id="filter-year">
-                            <option value="">Tutti gli Anni</option>
-                        </select>
-                        <div class="multiselect-dropdown" id="filter-month-container">
-                            <div class="multiselect-selected">Tutti i Mesi</div>
-                            <div class="multiselect-options" id="filter-month-options"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="register-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Inizio</th>
-                                <th>Fine</th>
-                                <th>Assenza</th>
-                                <th>Totali</th>
-                                <th>Str.</th>
-                                <th>Modalità</th>
-                                <th>Luogo</th>
-                                <th>Note</th>
-                                <th>Azione</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <hr>
-            
-            <h2>Esporta e gestisci i dati</h2>
-            
-            <div class="form-group" style="margin-top: 20px;">
-                <label>Esporta un periodo specifico:</label>
-                <div class="export-options-container">
-                    <select id="export-year">
-                        <option value="">Seleziona Anno</option>
-                    </select>
-                    <div class="multiselect-dropdown" id="multiselect-month-container">
-                        <div class="multiselect-selected">Seleziona Mese(i)</div>
-                        <div class="multiselect-options" id="multiselect-month-options"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="button-group-responsive">
-                <button id="export-selected-btn" class="btn btn-green">Esporta in CSV</button>
-                <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta in PDF</button>
-            </div>
-            <div class="button-group-responsive">
-                <button id="export-all-btn" class="btn btn-green">Esporta tutto in CSV</button>
-                <button id="export-pdf-btn" class="btn btn-pdf">Esporta tutto in PDF</button>
-            </div>
-            
-            <div class="button-group-responsive" style="margin-top: 20px;">
-                <button id="export-data-btn" class="btn btn-backup">Crea Backup</button>
-                <button id="import-data-btn" class="btn btn-backup">Importa Backup</button>
-                <input type="file" id="import-file" accept=".json" style="display: none;">
+        </div>
+        <div class="table-container">
+            <table id="register-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Inizio</th>
+                        <th>Fine</th>
+                        <th>Assenza</th>
+                        <th>Totali</th>
+                        <th>Str.</th>
+                        <th>Modalità</th>
+                        <th>Luogo</th>
+                        <th>Note</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <h2>Esporta e gestisci i dati</h2>
+    
+    <div class="form-group" style="margin-top: 20px;">
+        <label>Esporta un periodo specifico:</label>
+        <div class="export-options-container">
+            <select id="export-year">
+                <option value="">Seleziona Anno</option>
+            </select>
+            <div class="multiselect-dropdown" id="multiselect-month-container">
+                <div class="multiselect-selected">Seleziona Mese(i)</div>
+                <div class="multiselect-options" id="multiselect-month-options"></div>
             </div>
         </div>
     </div>
+    <div class="button-group-responsive">
+        <button id="export-selected-btn" class="btn btn-green">Esporta in CSV</button>
+        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta in PDF</button>
+    </div>
+    <div class="button-group-responsive">
+        <button id="export-all-btn" class="btn btn-green">Esporta tutto in CSV</button>
+        <button id="export-pdf-btn" class="btn btn-pdf">Esporta tutto in PDF</button>
+    </div>
+    
+    <div class="button-group-responsive" style="margin-top: 20px;">
+        <button id="export-data-btn" class="btn btn-backup">Crea Backup</button>
+        <button id="import-data-btn" class="btn btn-backup">Importa Backup</button>
+        <input type="file" id="import-file" accept=".json" style="display: none;">
+    </div>
+    
 </div>
 
 <div id="notification"></div>
@@ -750,13 +673,10 @@
 
 <!-- Firebase SDK -->
 <script type="module">
-    // Importa le funzioni Firebase
+    // Import Firebase functions
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
     import { 
         getAuth, 
-        createUserWithEmailAndPassword, 
-        signInWithEmailAndPassword, 
-        signOut, 
         onAuthStateChanged 
     } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
     import { 
@@ -764,8 +684,6 @@
         collection, 
         doc, 
         setDoc, 
-        getDoc, 
-        getDocs, 
         deleteDoc, 
         onSnapshot,
         serverTimestamp,
@@ -773,7 +691,7 @@
         query
     } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
-    // Configurazione Firebase
+    // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyB8gbRE-a8U7ed9IuHIXgxWFj-PEe6_Vg4",
         authDomain: "orari-ts.firebaseapp.com",
@@ -785,17 +703,17 @@
         measurementId: "G-J2H4KV35T1"
     };
 
-    // Inizializza Firebase
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Elementi DOM
-    const userEmailSpan = document.getElementById('user-email');
-    const syncStatusSpan = document.getElementById('sync-status');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loading = document.getElementById('loading');
-    const appContent = document.getElementById('app-content');
+    // Global variables
+    let currentUser = null;
+    let unsubscribeRegister = null;
+    let unsubscribeSettings = null;
+    
+    // Selezioni elementi del DOM (mantenute identiche all'originale)
     const dateInput = document.getElementById('date');
     const workModeSelect = document.getElementById('workModeSelect');
     const absenceTypeSelect = document.getElementById('absenceType');
@@ -821,15 +739,10 @@
     const registerContent = document.getElementById('register-content');
     const notification = document.getElementById('notification');
     const searchInput = document.getElementById('search-input');
-    
-    // Variabili globali
     const standardWorkDay = 8;
     const standardStartTime = '08:00';
     const standardEndTime = '17:00';
     let registerData = [];
-    let currentUser = null;
-    let unsubscribeRegister = null;
-    let unsubscribeSettings = null;
     
     // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79;
@@ -857,521 +770,3 @@
     const exportSelectedPdfButton = document.getElementById('export-selected-pdf-btn');
     const exportAllButton = document.getElementById('export-all-btn');
     const exportPdfButton = document.getElementById('export-pdf-btn');
-    const filterYearSelect = document.getElementById('filter-year');
-    const filterMonthContainer = document.getElementById('filter-month-container');
-    const filterMonthSelected = document.querySelector('#filter-month-container .multiselect-selected');
-    const filterMonthOptions = document.getElementById('filter-month-options');
-    const exportDataBtn = document.getElementById('export-data-btn');
-    const importDataBtn = document.getElementById('import-data-btn');
-    const importFile = document.getElementById('import-file');
-    
-    // Elementi del grafico
-    const monthlyChartCanvas = document.getElementById('monthlyChart');
-    let monthlyChart = null;
-
-    // Elementi del riepilogo lordo/netto
-    const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
-    const grossNetContent = document.getElementById('gross-net-content');
-    const grossNetBody = document.querySelector('#gross-net-table tbody');
-
-    // Funzioni di utilità
-    function showNotification(message, type) {
-        notification.innerHTML = message;
-        notification.className = '';
-        notification.classList.add('show', type);
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 8000);
-    }
-
-    function updateSyncStatus(isOnline) {
-        if (isOnline) {
-            syncStatusSpan.textContent = 'Online';
-            syncStatusSpan.className = 'sync-status online';
-        } else {
-            syncStatusSpan.textContent = 'Offline';
-            syncStatusSpan.className = 'sync-status offline';
-        }
-    }
-
-    // Controlla lo stato di autenticazione
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            userEmailSpan.textContent = user.email || 'Utente anonimo';
-            updateSyncStatus(true);
-            
-            // Carica i dati dell'utente
-            await loadUserData();
-            
-            // Mostra il contenuto dell'app
-            loading.classList.add('hidden');
-            appContent.classList.remove('hidden');
-        } else {
-            // Se l'utente non è autenticato, reindirizza alla pagina di login
-            window.location.href = 'index.html';
-        }
-    });
-
-    // Funzione per caricare i dati dell'utente da Firebase
-    async function loadUserData() {
-        if (!currentUser) return;
-
-        try {
-            // Carica le impostazioni
-            const settingsRef = doc(db, 'users', currentUser.uid, 'settings', 'main');
-            unsubscribeSettings = onSnapshot(settingsRef, (doc) => {
-                if (doc.exists()) {
-                    const settings = doc.data();
-                    grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
-                    overtimeRate = settings.overtimeRate || overtimeRate;
-                    tripAllowanceReturn = settings.tripAllowanceReturn || tripAllowanceReturn;
-                    tripAllowanceOvernight = settings.tripAllowanceOvernight || tripAllowanceOvernight;
-                    taxRate = settings.taxRate || taxRate;
-                    
-                    // Aggiorna i campi input
-                    loadSettingsToInputs();
-                }
-                calculateGrossNetSummary();
-            });
-
-            // Carica i dati del registro in tempo reale
-            const registerRef = collection(db, 'users', currentUser.uid, 'register');
-            const registerQuery = query(registerRef, orderBy('date', 'desc'));
-            
-            unsubscribeRegister = onSnapshot(registerQuery, (snapshot) => {
-                registerData = [];
-                snapshot.forEach((doc) => {
-                    registerData.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-                renderAllData();
-            });
-
-        } catch (error) {
-            console.error('Errore nel caricamento dei dati:', error);
-            showNotification('Errore nel caricamento dei dati: ' + error.message, 'error');
-        }
-    }
-
-    // Funzione per salvare le impostazioni su Firebase
-    async function saveSettingsToFirebase() {
-        if (!currentUser) return;
-
-        const settings = {
-            grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || grossBaseSalary,
-            overtimeRate: parseFloat(overtimeRateInput.value) || overtimeRate,
-            tripAllowanceReturn: parseFloat(tripAllowanceReturnInput.value) || tripAllowanceReturn,
-            tripAllowanceOvernight: parseFloat(tripAllowanceOvernightInput.value) || tripAllowanceOvernight,
-            taxRate: parseFloat(taxRateInput.value) / 100 || taxRate,
-            updatedAt: serverTimestamp()
-        };
-
-        try {
-            const settingsRef = doc(db, 'users', currentUser.uid, 'settings', 'main');
-            await setDoc(settingsRef, settings, { merge: true });
-            showNotification('Impostazioni salvate su Firebase!', 'success');
-        } catch (error) {
-            console.error('Errore nel salvataggio delle impostazioni:', error);
-            showNotification('Errore nel salvataggio: ' + error.message, 'error');
-        }
-    }
-
-    // Funzione per caricare le impostazioni negli input
-    function loadSettingsToInputs() {
-        grossBaseSalaryInput.value = grossBaseSalary;
-        overtimeRateInput.value = overtimeRate;
-        tripAllowanceReturnInput.value = tripAllowanceReturn;
-        tripAllowanceOvernightInput.value = tripAllowanceOvernight;
-        taxRateInput.value = (taxRate * 100);
-    }
-
-    // Funzione per salvare un entry su Firebase
-    async function saveEntryToFirebase(entry) {
-        if (!currentUser) return;
-
-        try {
-            const registerRef = doc(db, 'users', currentUser.uid, 'register', entry.date);
-            await setDoc(registerRef, {
-                ...entry,
-                updatedAt: serverTimestamp()
-            });
-            showNotification('Dati salvati su Firebase!', 'success');
-        } catch (error) {
-            console.error('Errore nel salvataggio:', error);
-            showNotification('Errore nel salvataggio: ' + error.message, 'error');
-        }
-    }
-
-    // Funzione per eliminare un entry da Firebase
-    async function deleteEntryFromFirebase(date) {
-        if (!currentUser) return;
-
-        try {
-            const registerRef = doc(db, 'users', currentUser.uid, 'register', date);
-            await deleteDoc(registerRef);
-            showNotification('Dato eliminato da Firebase!', 'success');
-        } catch (error) {
-            console.error('Errore nella eliminazione:', error);
-            showNotification('Errore nella eliminazione: ' + error.message, 'error');
-        }
-    }
-
-    // Logout
-    logoutBtn.addEventListener('click', async () => {
-        try {
-            if (unsubscribeRegister) unsubscribeRegister();
-            if (unsubscribeSettings) unsubscribeSettings();
-            await signOut(auth);
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Errore nel logout:', error);
-            showNotification('Errore nel logout: ' + error.message, 'error');
-        }
-    });
-
-    function generateTimeOptions() {
-        let optionsHtml = '';
-        for (let h = 0; h < 24; h++) {
-            for (let m = 0; m < 60; m += 30) {
-                const hour = String(h).padStart(2, '0');
-                const minute = String(m).padStart(2, '0');
-                const time = `${hour}:${minute}`;
-                optionsHtml += `<div class="time-option" data-value="${time}">${time}</div>`;
-            }
-        }
-        startTimeOptions.innerHTML = optionsHtml;
-        endTimeOptions.innerHTML = optionsHtml;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const [year, month, day] = dateString.split('-');
-        return `${day}-${month}-${year.substring(2)}`;
-    }
-
-    function setTimeDropdown(display, options, time) {
-        display.textContent = time;
-        display.setAttribute('data-value', time);
-        options.querySelectorAll('.time-option').forEach(option => {
-            if (option.getAttribute('data-value') === time) {
-                option.classList.add('selected');
-            } else {
-                option.classList.remove('selected');
-            }
-        });
-    }
-
-    function clearTimeDropdowns() {
-        setTimeDropdown(startTimeDisplay, startTimeOptions, 'Seleziona orario');
-        startTimeDisplay.setAttribute('data-value', '');
-        setTimeDropdown(endTimeDisplay, endTimeOptions, 'Seleziona orario');
-        endTimeDisplay.setAttribute('data-value', '');
-    }
-
-    function calculateHours() {
-        const absenceType = absenceTypeSelect.value;
-        const startTime = startTimeDisplay.getAttribute('data-value');
-        const endTime = endTimeDisplay.getAttribute('data-value');
-        const lunchBreak = lunchBreakCheckbox.checked;
-
-        if (absenceType) {
-            totalHoursSpan.textContent = '0';
-            overtimeHoursSpan.textContent = '0';
-            absenceHoursSpan.textContent = '8';
-            totalHoursContainer.style.display = 'none';
-            overtimeHoursContainer.style.display = 'none';
-            absenceHoursContainer.style.display = 'block';
-        } else {
-            totalHoursContainer.style.display = 'block';
-            overtimeHoursContainer.style.display = 'block';
-            absenceHoursContainer.style.display = 'none';
-        }
-
-        if (startTime && endTime) {
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-            if (end < start) {
-                end.setDate(end.getDate() + 1);
-            }
-            let totalMilliseconds = end - start;
-            let totalHours = totalMilliseconds / (1000 * 60 * 60);
-            if (lunchBreak) {
-                totalHours -= 1;
-            }
-            const totalHoursFixed = totalHours.toFixed(2);
-            let overtimeHours = 0;
-            if (totalHours > standardWorkDay) {
-                overtimeHours = totalHours - standardWorkDay;
-            }
-            totalHoursSpan.textContent = totalHoursFixed;
-            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
-        } else {
-            totalHoursSpan.textContent = '0';
-            overtimeHoursSpan.textContent = '0';
-        }
-    }
-
-    function createRow(entry) {
-        const row = document.createElement('tr');
-        row.setAttribute('data-date', entry.date);
-        row.innerHTML = `
-            <td>${formatDate(entry.date)}</td>
-            <td>${entry.startTime || '-'}</td>
-            <td>${entry.endTime || '-'}</td>
-            <td>${entry.absenceType || '-'}</td>
-            <td>${entry.totalHours.toFixed(2)}</td>
-            <td>${entry.overtimeHours.toFixed(2)}</td>
-            <td>${entry.workMode || '-'}</td>
-            <td>${entry.location}</td>
-            <td>${entry.notes || ''}</td>
-            <td class="action-buttons-cell">
-                <button class="btn-small btn-edit" data-date="${entry.date}">✏️</button>
-                <button class="btn-small btn-delete" data-date="${entry.date}">🗑️</button>
-            </td>
-        `;
-        return row;
-    }
-
-    async function saveEntry() {
-        const date = dateInput.value;
-        const absenceType = absenceTypeSelect.value;
-        const workMode = workModeSelect.value;
-        let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours, absenceHours;
-
-        if (!date) {
-            showNotification('Per favore, seleziona una data.', 'error');
-            return;
-        }
-
-        if (absenceType) {
-            startTime = standardStartTime;
-            endTime = standardEndTime;
-            lunchBreak = true;
-            location = locationInput.value;
-            notes = notesInput.value;
-            totalHours = 0;
-            overtimeHours = 0;
-            absenceHours = 8;
-        } else {
-            startTime = startTimeDisplay.getAttribute('data-value');
-            endTime = endTimeDisplay.getAttribute('data-value');
-            lunchBreak = lunchBreakCheckbox.checked;
-            location = locationInput.value;
-            notes = notesInput.value;
-            totalHours = parseFloat(totalHoursSpan.textContent);
-            overtimeHours = parseFloat(overtimeHoursSpan.textContent);
-            absenceHours = 0;
-            
-            if (!startTime || !endTime || !workMode) {
-                showNotification('Per favore, compila tutti i campi richiesti.', 'error');
-                return;
-            }
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-            if (end < start) {
-                showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
-                return;
-            }
-        }
-        
-        saveButton.classList.add('saved');
-
-        const newEntry = {
-            date: date,
-            startTime: startTime,
-            endTime: endTime,
-            totalHours: totalHours,
-            overtimeHours: overtimeHours,
-            workMode: workMode,
-            lunchBreak: lunchBreak,
-            location: location,
-            notes: notes,
-            absenceType: absenceType,
-            absenceHours: absenceHours
-        };
-
-        // Salva su Firebase
-        await saveEntryToFirebase(newEntry);
-        
-        setTimeout(() => {
-            saveButton.classList.remove('saved');
-            dateInput.value = new Date().toISOString().split('T')[0];
-            workModeSelect.value = '';
-            absenceTypeSelect.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
-            locationInput.value = '';
-            notesInput.value = '';
-            calculateHours();
-        }, 1000);
-    }
-
-    async function deleteEntry(date) {
-        if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
-            await deleteEntryFromFirebase(date);
-        }
-    }
-
-    function editEntry(date) {
-        const entryToEdit = registerData.find(entry => entry.date === date);
-        if (entryToEdit) {
-            dateInput.value = entryToEdit.date;
-            workModeSelect.value = entryToEdit.workMode || '';
-            absenceTypeSelect.value = entryToEdit.absenceType || '';
-            
-            if (entryToEdit.startTime) {
-                setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime);
-            }
-            if (entryToEdit.endTime) {
-                setTimeDropdown(endTimeDisplay, endTimeOptions, entryToEdit.endTime);
-            }
-            
-            lunchBreakCheckbox.checked = entryToEdit.lunchBreak || false;
-            locationInput.value = entryToEdit.location || '';
-            notesInput.value = entryToEdit.notes || '';
-            
-            calculateHours();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-
-    function renderRegisterTable(data) {
-        registerBody.innerHTML = '';
-        if (data.length === 0) {
-            const noDataRow = document.createElement('tr');
-            noDataRow.innerHTML = `<td colspan="10" style="text-align:center;">Nessun dato presente nel registro.</td>`;
-            registerBody.appendChild(noDataRow);
-            return;
-        }
-        data.forEach(entry => {
-            const row = createRow(entry);
-            registerBody.appendChild(row);
-        });
-    }
-
-    function updateMonthlySummary() {
-        const monthlySummary = {};
-        const locations = new Set();
-        registerData.forEach(entry => {
-            const monthYear = entry.date.substring(0, 7);
-            if (!monthlySummary[monthYear]) {
-                monthlySummary[monthYear] = {
-                    totalHours: 0,
-                    overtimeHours: 0,
-                    onSiteCount: 0,
-                    returnTripCount: 0,
-                    overnightTripCount: 0,
-                    absenceCount: 0
-                };
-            }
-            monthlySummary[monthYear].totalHours += entry.totalHours;
-            monthlySummary[monthYear].overtimeHours += entry.overtimeHours;
-            if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
-            if (entry.workMode === 'Rientro') monthlySummary[monthYear].returnTripCount++;
-            if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].overnightTripCount++;
-            if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
-            if (entry.location) locations.add(entry.location);
-        });
-
-        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
-        monthlySummaryBody.innerHTML = '';
-        sortedMonths.forEach(monthYear => {
-            const summary = monthlySummary[monthYear];
-            const [year, month] = monthYear.split('-');
-            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
-                <td>${summary.totalHours.toFixed(2)}</td>
-                <td>${summary.overtimeHours.toFixed(2)}</td>
-                <td>${summary.returnTripCount + summary.overnightTripCount}</td>
-                <td>${summary.onSiteCount}</td>
-                <td>${summary.absenceCount}</td>
-            `;
-            monthlySummaryBody.appendChild(row);
-        });
-
-        const sortedLocations = [...locations].sort();
-        locationDatalist.innerHTML = sortedLocations.map(loc => `<option value="${loc}"></option>`).join('');
-        updateChart(monthlySummary);
-    }
-
-    function calculateGrossNetSummary() {
-        const monthlySummary = {};
-        registerData.forEach(entry => {
-            const monthYear = entry.date.substring(0, 7);
-            if (!monthlySummary[monthYear]) {
-                monthlySummary[monthYear] = {
-                    totalOvertimeHours: 0,
-                    totalReturnTripCount: 0,
-                    totalOvernightTripCount: 0
-                };
-            }
-            monthlySummary[monthYear].totalOvertimeHours += entry.overtimeHours;
-            if (entry.workMode === 'Rientro') monthlySummary[monthYear].totalReturnTripCount++;
-            if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalOvernightTripCount++;
-        });
-
-        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
-        grossNetBody.innerHTML = '';
-        sortedMonths.forEach(monthYear => {
-            const summary = monthlySummary[monthYear];
-            const [year, month] = monthYear.split('-');
-            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            
-            const grossOvertime = summary.totalOvertimeHours * overtimeRate;
-            const grossReturnTripAllowance = summary.totalReturnTripCount * tripAllowanceReturn;
-            const grossOvernightTripAllowance = summary.totalOvernightTripCount * tripAllowanceOvernight;
-            
-            const totalGross = grossBaseSalary + grossOvertime + grossReturnTripAllowance + grossOvernightTripAllowance;
-            
-            const afterSocialSecurity = totalGross - (totalGross * socialSecurityRate);
-            const netIncome = afterSocialSecurity - (afterSocialSecurity * taxRate);
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
-                <td>€ ${totalGross.toFixed(2)}</td>
-                <td>€ ${netIncome.toFixed(2)}</td>
-            `;
-            grossNetBody.appendChild(row);
-        });
-    }
-
-    function renderAllData() {
-        renderRegisterTable(registerData);
-        updateMonthlySummary();
-        calculateGrossNetSummary();
-        updateFilterOptions();
-        updateExportOptions();
-    }
-
-    function updateChart(monthlySummary) {
-        const sortedMonths = Object.keys(monthlySummary).sort();
-        const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
-        const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
-        const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].returnTripCount + monthlySummary[monthYear].overnightTripCount);
-        const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
-
-        if (monthlyChart) {
-            monthlyChart.destroy();
-        }
-
-        const data = {
-            labels: labels,
-            datasets: [{
-                label: 'In Sede',
-                data: onSiteCounts,
-                backgroundColor: 'rgba(0, 162, 227, 0.7)',
-                borderColor: 'rgba(0, 162, 227, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Trasferta',
-                data: tripCounts,
-                backgroundColor: 'rgba(255, 165, 0, 0.7)',
-                borderColor: 'rgba(255, 165, 0, 1)',
-                borderWidth: 1
