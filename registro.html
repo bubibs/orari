@@ -1304,7 +1304,79 @@
         const doc = new jsPDF('p', 'pt', 'a4');
         const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // ... (La logica di generazione PDF rimane simile, può essere estesa se necessario)
+        // 1. Logica per creare il riepilogo mensile per il PDF
+        const monthlySummary = {};
+        sortedData.forEach(entry => {
+            const monthYear = entry.date.substring(0, 7);
+            if (!monthlySummary[monthYear]) {
+                monthlySummary[monthYear] = { totalHours: 0, overtimeHours: 0, tripCount: 0, onSiteCount: 0, absenceCount: 0 };
+            }
+            monthlySummary[monthYear].totalHours += entry.totalHours;
+            monthlySummary[monthYear].overtimeHours += (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
+            if (entry.workMode && entry.workMode !== 'In Sede') monthlySummary[monthYear].tripCount++;
+            if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
+            if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
+        });
+
+        const summaryData = Object.keys(monthlySummary).sort().map(monthYear => {
+            const summary = monthlySummary[monthYear];
+            const [year, month] = monthYear.split('-');
+            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            return [
+                monthName.charAt(0).toUpperCase() + monthName.slice(1),
+                summary.totalHours.toFixed(2),
+                summary.overtimeHours.toFixed(2),
+                summary.tripCount,
+                summary.onSiteCount,
+                summary.absenceCount
+            ];
+        });
+
+        let lastY = 40;
+
+        // 2. Disegna la tabella di riepilogo se ci sono dati
+        if (summaryData.length > 0) {
+            doc.text("Riepilogo Mensile", 40, lastY);
+            lastY += 10;
+            doc.autoTable({
+                startY: lastY,
+                head: [["Mese", "Ore Tot.", "Ore Str.", "Trasferta", "Sede", "Assenze"]],
+                body: summaryData,
+                styles: { fontSize: 8, cellPadding: 4 },
+                headStyles: { fillColor: '#00a2e3' }
+            });
+            lastY = doc.autoTable.previous.finalY;
+        }
+
+        // 3. Prepara i dati per la tabella del registro completo
+        const tableData = sortedData.map(entry => {
+            const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
+            return [
+                formatDate(entry.date),
+                entry.startTime || '-',
+                entry.endTime || '-',
+                entry.absenceType || '-',
+                entry.totalHours.toFixed(2),
+                totalOvertime.toFixed(2),
+                entry.workMode || '-',
+                entry.location || '',
+                entry.notes || ''
+            ];
+        });
+        
+        const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
+
+        // 4. Disegna la tabella del registro completo
+        lastY += 20;
+        doc.text("Registro Completo", 40, lastY);
+        lastY += 10;
+        doc.autoTable({
+            startY: lastY,
+            head: head,
+            body: tableData,
+            styles: { fontSize: 8, cellPadding: 4 },
+            headStyles: { fillColor: '#00a2e3' }
+        });
         
         doc.save('Registro_Lavoro.pdf');
         showNotification('Esportazione PDF avviata!', 'success');
@@ -1350,8 +1422,21 @@
     
     workModeSelect.addEventListener('change', () => {
         const mode = workModeSelect.value;
-        if (mode === 'In Sede' && locationInput.value === '') {
+        if (mode === 'In Sede') {
             locationInput.value = 'Tecnosistem';
+            // Non sovrascrive gli orari se sono già stati impostati manualmente
+            if (!startTimeDisplay.getAttribute('data-value')) {
+                setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
+            }
+            if (!endTimeDisplay.getAttribute('data-value')) {
+                setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
+            }
+            lunchBreakCheckbox.checked = true;
+        } else if (mode === 'Rientro' || mode === 'Pernottamento' || mode === 'Estero') {
+            // Pulisce il luogo solo se era quello di default
+            if (locationInput.value === 'Tecnosistem') {
+                locationInput.value = '';
+            }
         }
         calculateHours();
     });
