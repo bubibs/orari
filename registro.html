@@ -1271,8 +1271,7 @@
             option.addEventListener('click', (e) => {
                 const display = e.target.closest('.time-dropdown-container').querySelector('.time-display');
                 const options = display.nextElementSibling;
-                setTimeDropdown(display,
-                                options, e.target.getAttribute('data-value'));
+                setTimeDropdown(display,options, e.target.getAttribute('data-value'));
                 options.classList.remove('visible');
                 display.setAttribute('aria-expanded', 'false');
                 calculateHours();
