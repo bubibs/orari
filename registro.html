@@ -14,6 +14,10 @@
             --table-bg: #fff;
             --table-alt-bg: #f2f2f2;
             --error-color: #dc3545;
+            --header-bg: #f8f9fa;
+            --header-text: #333;
+            --collapsible-bg: #f8f9fa;
+            --collapsible-text: #333;
         }
         body.dark-theme {
             --bg-color: #1a1a1a;
@@ -22,6 +26,10 @@
             --table-bg: #2c2c2c;
             --table-alt-bg: #3c3c3c;
             --error-color: #ff6b6b;
+            --header-bg: #333;
+            --header-text: #e0e0e0;
+            --collapsible-bg: #3c3c3c;
+            --collapsible-text: #e0e0e0;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", Roboto, Helvetica, Arial, sans-serif;
@@ -56,16 +64,26 @@
         h2 {
             margin-top: 30px;
         }
+        h2 i {
+            margin-right: 20px;
+        }
         .collapsible-header {
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            margin-bottom: 0;
+            margin-bottom: 10px;
             font-size: 1.2em;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .collapsible-header i:first-child {
+            margin-right: 20px;
         }
         .collapsible-header .arrow {
-            margin-left: 8px;
+            margin-left: 20px;
             transition: transform 0.3s ease;
         }
         .collapsible-header.open .arrow {
@@ -75,6 +93,10 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.5s ease-out;
+            background-color: var(--collapsible-bg);
+            color: var(--collapsible-text);
+            padding: 15px;
+            border-radius: 8px;
         }
         .collapsible-content.open {
             max-height: 2000px;
@@ -87,6 +109,7 @@
             margin-bottom: 6px;
             font-weight: 600;
             font-size: 0.9em;
+            color: var(--text-color);
         }
         input[type="date"], input[type="text"], input[type="number"], textarea, select {
             width: 100%;
@@ -99,6 +122,8 @@
             -moz-appearance: none;
             appearance: none;
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            background-color: var(--container-bg);
+            color: var(--text-color);
         }
         input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
             outline: none;
@@ -109,9 +134,6 @@
             resize: vertical;
             min-height: 80px;
         }
-        .time-dropdown-container {
-            position: relative;
-        }
         .time-display {
             width: 100%;
             padding: 10px;
@@ -119,22 +141,13 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 14px;
-            background-color: #fff;
+            background-color: var(--container-bg);
+            color: var(--text-color);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-        .time-dropdown-container:focus-within .time-display {
-            border-color: #00a2e3;
-            box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
-        }
-        .time-display:after {
-            content: '\f078';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 12px;
         }
         .time-options {
             position: absolute;
@@ -143,25 +156,23 @@
             overflow-y: scroll;
             border: 1px solid #ccc;
             border-radius: 8px;
-            background-color: #fff;
+            background-color: var(--container-bg);
+            color: var(--text-color);
             z-index: 10;
             margin-top: 4px;
             display: none;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .time-options.visible {
-            display: block;
-        }
         .time-option {
             padding: 10px;
             cursor: pointer;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #555;
         }
         .time-option:hover {
-            background-color: #f0f0f5;
+            background-color: #444;
         }
         .time-option.selected {
-            background-color: #e6f7ff;
+            background-color: #555;
             font-weight: 600;
         }
         .radio-group, .checkbox-group {
@@ -173,13 +184,7 @@
             display: inline-block;
             margin-right: 20px;
             margin-bottom: 0;
-        }
-        .radio-group input, .checkbox-group input {
-            width: auto;
-            margin-right: 8px;
-            -webkit-appearance: radio;
-            -moz-appearance: radio;
-            appearance: radio;
+            color: var(--text-color);
         }
         .btn {
             display: block;
@@ -193,6 +198,9 @@
             cursor: pointer;
             margin-top: 10px;
             transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn i {
+            margin-right: 8px;
         }
         .btn:hover {
             transform: translateY(-2px);
@@ -227,24 +235,8 @@
         #save-btn:hover {
             background-color: #007bb6;
         }
-        .btn-save-anim {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
         .btn-save-anim .btn-text, .btn-save-anim .btn-icon {
             transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        .btn-save-anim .btn-text {
-            position: absolute;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .btn-save-anim .btn-icon {
-            position: absolute;
-            opacity: 0;
-            transform: translateY(100%);
         }
         .btn-save-anim.saved .btn-text {
             opacity: 0;
@@ -281,7 +273,8 @@
         #results {
             margin-top: 20px;
             padding: 12px;
-            background-color: #e9ecef;
+            background-color: var(--collapsible-bg);
+            color: var(--collapsible-text);
             border-radius: 8px;
         }
         #results h3 {
@@ -289,56 +282,26 @@
             color: #00a2e3;
             font-size: 1.1em;
         }
-        #results p {
-            margin: 4px 0;
-            font-size: 16px;
-        }
-        .table-container {
-            overflow-x: auto;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
             background-color: var(--table-bg);
-            font-size: 12px;
+            color: var(--text-color);
         }
         th, td {
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid #555;
             text-align: left;
         }
         th {
-            background-color: #f8f9fa;
+            background-color: var(--header-bg);
+            color: var(--header-text);
             font-weight: 600;
-            white-space: nowrap;
-        }
-        th:last-child {
-            text-align: center;
-        }
-        td:first-child {
             white-space: nowrap;
         }
         tr:nth-child(even) {
             background-color: var(--table-alt-bg);
-        }
-        #register-table tbody tr {
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeInRow 0.5s ease-out forwards;
-        }
-        @keyframes fadeInRow {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .action-buttons-cell {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
         }
         #notification {
             position: fixed;
@@ -353,121 +316,19 @@
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
             z-index: 100;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: var(--header-bg);
         }
         #notification.show {
             opacity: 1;
             transform: translateY(0);
         }
-        #notification.success {
-            background-color: #28a745;
-        }
-        #notification.error {
-            background-color: #dc3545;
-        }
-        .export-options-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            justify-content: flex-start;
-        }
-        .export-options-container > select {
-            width: 45%;
-        }
-        .export-options-container > .multiselect-dropdown {
-            width: 45%;
-        }
-        select {
-            padding: 0 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-color: #fff;
-            height: 40px;
-        }
-        .multiselect-dropdown {
-            position: relative;
-            cursor: pointer;
-            user-select: none;
-        }
-        .multiselect-selected {
-            width: 100%;
-            padding: 0 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
-            height: 40px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            flex-wrap: nowrap;
-            gap: 5px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            line-height: 40px;
-            transition: box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-        .multiselect-selected:after {
-            content: '\f078';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 12px;
-            margin-left: auto;
-            flex-shrink: 0;
+        .export-options-container > select, .multiselect-selected {
+            background-color: var(--container-bg);
+            color: var(--text-color);
         }
         .multiselect-options {
-            position: absolute;
-            width: 100%;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 10;
-            display: none;
-            box-sizing: border-box;
-        }
-        .multiselect-options.visible {
-            display: block;
-        }
-        .multiselect-option {
-            padding: 10px;
-            display: flex;
-            align-items: center;
-        }
-        .multiselect-option input[type="checkbox"] {
-            margin-right: 10px;
-            -webkit-appearance: checkbox;
-        }
-        .multiselect-option:hover {
-            background-color: #f0f0f5;
-        }
-        .multiselect-dropdown.disabled {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-        @media (min-width: 600px) {
-            .multiselect-selected,
-            .export-options-container > select {
-                font-size: 16px;
-                height: 48px;
-                line-height: 48px;
-            }
-            .multiselect-option {
-                font-size: 16px;
-            }
-        }
-        .chart-container {
-            margin: 20px 0;
-            text-align: center;
+            background-color: var(--container-bg);
+            color: var(--text-color);
         }
         .input-error {
             border-color: var(--error-color);
@@ -478,23 +339,6 @@
             font-size: 12px;
             margin-top: 4px;
             display: none;
-        }
-        .detail-content {
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-        }
-        .detail-row {
-            animation: fadeInRow 0.5s ease-out;
-        }
-        .btn-details {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .btn-details i {
-            color: #00a2e3;
         }
     </style>
 </head>
@@ -1026,21 +870,21 @@
                 workModeError.textContent = 'Per favore, seleziona una modalità di lavoro.';
                 workModeError.style.display = 'block';
                 workModeSelect.classList.add('input-error');
-                showNotification('Per favore, seleziona una modalità di lavoro.', 'error');
+                showNotification('Per favore, seleziona una modalità di lavoro., 'error');
                 return;
             }
             if (!startTime) {
                 startTimeError.textContent = 'Per favore, seleziona un orario di inizio.';
                 startTimeError.style.display = 'block';
                 startTimeDisplay.classList.add('input-error');
-                showNotification('Per favore, seleziona un orario di inizio.', 'error');
+                showNotification('Per favore, seleziona un orario di inizio., 'error');
                 return;
             }
             if (!endTime) {
                 endTimeError.textContent = 'Per favore, seleziona un orario di fine.';
                 endTimeError.style.display = 'block';
                 endTimeDisplay.classList.add('input-error');
-                showNotification('Per favore, seleziona un orario di fine.', 'error');
+                showNotification('Per favore, seleziona un orario di fine., 'error');
                 return;
             }
             const start = new Date(`2025-01-01T${startTime}:00`);
@@ -1049,7 +893,7 @@
                 endTimeError.textContent = 'L\'orario di fine non può essere precedente a quello di inizio.';
                 endTimeError.style.display = 'block';
                 endTimeDisplay.classList.add('input-error');
-                showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
+                showNotification('L\'orario di fine non può essere precedente a quello di inizio., 'error');
                 return;
             }
 
@@ -1191,7 +1035,7 @@
                     absenceCount: 0
                 };
             }
-            monthlySummary[monthYear].totalHours += entry.totalHours;
+            monthlySummary[monthYear].totalHours += entry.totalHours || 0;
             monthlySummary[monthYear].overtimeHours += (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
             if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
             if (entry.workMode === 'Rientro') monthlySummary[monthYear].returnTripCount++;
@@ -1251,625 +1095,440 @@
             const summary = monthlySummary[monthYear];
             const [year, month] = monthYear.split('-');
             const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            
-            const grossOvertime = summary.totalOvertimeHours * overtimeRate;
-            const grossOvertime50 = summary.totalOvertimeHours50 * overtimeRate50;
-            const grossReturnTripAllowance = summary.totalReturnTripCount * tripAllowanceReturn;
-            const grossOvernightTripAllowance = summary.totalOvernightTripCount * tripAllowanceOvernight;
-            const grossAbroadTripAllowance = summary.totalAbroadTripCount * tripAllowanceAbroad;
-            
-            const totalGross = grossBaseSalary + grossOvertime + grossOvertime50 + grossReturnTripAllowance + grossOvernightTripAllowance + grossAbroadTripAllowance;
-            const afterSocialSecurity = totalGross - (totalGross * socialSecurityRate);
-            const netIncome = afterSocialSecurity - (afterSocialSecurity * taxRate);
-            
+            const baseSalary = grossBaseSalary / 12; // Stipendio mensile lordo diviso per 12
+            const overtimePay = (summary.totalOvertimeHours * overtimeRate) + (summary.totalOvertimeHours50 * overtimeRate50);
+            const tripAllowance = (summary.totalReturnTripCount * tripAllowanceReturn) + 
+                                (summary.totalOvernightTripCount * tripAllowanceOvernight) + 
+                                (summary.totalAbroadTripCount * tripAllowanceAbroad);
+            const grossPay = baseSalary + overtimePay + tripAllowance;
+            const socialSecurity = grossPay * socialSecurityRate;
+            const taxableIncome = grossPay - socialSecurity;
+            const tax = taxableIncome * (taxRate / 100);
+            const netPay = grossPay - socialSecurity - tax;
+
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><button class="btn-small btn-details" data-month="${monthYear}" title="Mostra dettagli"><i class="fas fa-chevron-down"></i></button></td>
+                <td></td>
                 <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
-                <td>€ ${totalGross.toFixed(2)}</td>
-                <td>€ ${netIncome.toFixed(2)}</td>
+                <td>${grossPay.toFixed(2)} €</td>
+                <td>${netPay.toFixed(2)} €</td>
             `;
             grossNetBody.appendChild(row);
-
-            const detailRow = document.createElement('tr');
-            detailRow.classList.add('detail-row');
-            detailRow.style.display = 'none';
-            detailRow.innerHTML = `
-                <td colspan="4">
-                    <div class="detail-content">
-                        <p><strong>Straordinari 25%:</strong> € ${grossOvertime.toFixed(2)} (${summary.totalOvertimeHours.toFixed(2)} ore)</p>
-                        <p><strong>Straordinari 50%:</strong> € ${grossOvertime50.toFixed(2)} (${summary.totalOvertimeHours50.toFixed(2)} ore)</p>
-                        <p><strong>Diaria Rientro:</strong> € ${grossReturnTripAllowance.toFixed(2)} (${summary.totalReturnTripCount} giorni)</p>
-                        <p><strong>Diaria Pernottamento:</strong> € ${grossOvernightTripAllowance.toFixed(2)} (${summary.totalOvernightTripCount} giorni)</p>
-                        <p><strong>Diaria Estero:</strong> € ${grossAbroadTripAllowance.toFixed(2)} (${summary.totalAbroadTripCount} giorni)</p>
-                    </div>
-                </td>
-            `;
-            grossNetBody.appendChild(detailRow);
         });
-
-        // Aggiungi listener per i pulsanti dei dettagli
-        document.querySelectorAll('.btn-details').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const detailRow = btn.closest('tr').nextElementSibling;
-                const isVisible = detailRow.style.display === 'table-row';
-                detailRow.style.display = isVisible ? 'none' : 'table-row';
-                btn.querySelector('i').classList.toggle('fa-chevron-down', isVisible);
-                btn.querySelector('i').classList.toggle('fa-chevron-up', !isVisible);
-            });
-        });
-    }
-
-    function loadData() {
-        try {
-            const storedData = localStorage.getItem(STORAGE_KEY);
-            if (storedData) {
-                registerData = JSON.parse(storedData);
-            }
-            const storedSettings = localStorage.getItem(SETTINGS_KEY);
-            if (storedSettings) {
-                const settings = JSON.parse(storedSettings);
-                grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
-                overtimeRate = settings.overtimeRate || overtimeRate;
-                overtimeRate50 = settings.overtimeRate50 || overtimeRate50;
-                tripAllowanceReturn = settings.tripAllowanceReturn || tripAllowanceReturn;
-                tripAllowanceOvernight = settings.tripAllowanceOvernight || tripAllowanceOvernight;
-                tripAllowanceAbroad = settings.tripAllowanceAbroad || tripAllowanceAbroad;
-                taxRate = settings.taxRate || taxRate;
-            }
-            loadSettings();
-            renderAllData();
-            if (localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-                themeToggle.checked = true;
-            }
-        } catch (e) {
-            showNotification('ERRORE: Impossibile caricare i dati. Il backup potrebbe essere corrotto.', 'error');
-            console.error(e);
-        }
-    }
-
-    function renderAllData() {
-        renderRegisterTable(registerData);
-        updateMonthlySummary();
-        calculateGrossNetSummary();
-        updateFilterOptions();
-        updateExportOptions();
     }
 
     function updateChart(monthlySummary) {
-        const sortedMonths = Object.keys(monthlySummary).sort();
-        const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
-        const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
-        const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].returnTripCount + monthlySummary[monthYear].overnightTripCount + monthlySummary[monthYear].abroadTripCount);
-        const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
+        if (monthlyChart) monthlyChart.destroy();
+        const labels = Object.keys(monthlySummary).sort().reverse().map(monthYear => {
+            const [year, month] = monthYear.split('-');
+            return new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+        });
+        const totalHoursData = labels.map(monthYear => monthlySummary[monthYear].totalHours.toFixed(2));
+        const overtimeHoursData = labels.map(monthYear => monthlySummary[monthYear].overtimeHours.toFixed(2));
 
-        const data = {
-            labels: labels,
-            datasets: [{
-                label: 'In Sede',
-                data: onSiteCounts,
-                backgroundColor: 'rgba(0, 162, 227, 0.7)',
-                borderColor: 'rgba(0, 162, 227, 1)',
-                borderWidth: 1
+        monthlyChart = new Chart(monthlyChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Ore Totali',
+                        data: totalHoursData,
+                        backgroundColor: '#2196f3',
+                        borderColor: '#1976d2',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Ore Straordinarie',
+                        data: overtimeHoursData,
+                        backgroundColor: '#f44336',
+                        borderColor: '#d32f2f',
+                        borderWidth: 1
+                    }
+                ]
             },
-            {
-                label: 'Trasferta',
-                data: tripCounts,
-                backgroundColor: 'rgba(255, 165, 0, 0.7)',
-                borderColor: 'rgba(255, 165, 0, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Assenza',
-                data: absenceCounts,
-                backgroundColor: 'rgba(220, 53, 69, 0.7)',
-                borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 1
-            }]
-        };
-
-        if (monthlyChart) {
-            monthlyChart.data = data;
-            monthlyChart.update();
-        } else {
-            const config = {
-                type: 'bar',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: false },
-                        y: {
-                            beginAtZero: true,
-                            stacked: false,
-                            title: { display: true, text: 'Numero di Giorni' }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Ore',
+                            color: var(--text-color)
+                        },
+                        ticks: {
+                            color: var(--text-color)
                         }
                     },
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { enabled: true },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: (value) => value > 0 ? value : '',
-                            font: { weight: 'bold' }
+                    x: {
+                        ticks: {
+                            color: var(--text-color)
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: var(--text-color)
                         }
                     },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
+                    datalabels: {
+                        color: var(--text-color),
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: (value) => value
                     }
                 }
-            };
-            monthlyChart = new Chart(monthlyChartCanvas, config);
-        }
-    }
-    
-    function filterRegister() {
-        const query = searchInput.value.toLowerCase();
-        const selectedYear = filterYearSelect.value;
-        const selectedMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
-        const selectedWorkMode = filterWorkModeSelect.value;
-
-        const filteredData = registerData.filter(entry => {
-            const matchQuery = !query || 
-                                formatDate(entry.date).includes(query) || 
-                                (entry.location && entry.location.toLowerCase().includes(query)) || 
-                                (entry.notes && entry.notes.toLowerCase().includes(query));
-            const matchYear = !selectedYear || entry.date.startsWith(selectedYear);
-            const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(entry.date.substring(5, 7));
-            const matchWorkMode = !selectedWorkMode || entry.workMode === selectedWorkMode;
-            return matchQuery && matchYear && matchMonth && matchWorkMode;
-        });
-        renderRegisterTable(filteredData);
-    }
-    
-    function updateFilterOptions() {
-        const years = [...new Set(registerData.map(entry => entry.date.substring(0, 4)))].sort().reverse();
-        filterYearSelect.innerHTML = `<option value="">Tutti gli Anni</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
-        exportYearSelect.innerHTML = `<option value="">Seleziona Anno</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
-
-        const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-        const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-        
-        filterMonthOptions.innerHTML = months.map((month, index) =>
-            `<div class="multiselect-option">
-                <input type="checkbox" id="filter-month-${month}" value="${month}">
-                <label for="filter-month-${month}">${monthNames[index]}</label>
-            </div>`).join('');
-
-        multiselectMonthOptions.innerHTML = months.map((month, index) =>
-            `<div class="multiselect-option">
-                <input type="checkbox" id="export-month-${month}" value="${month}">
-                <label for="export-month-${month}">${monthNames[index]}</label>
-            </div>`).join('');
-    }
-
-    function updateExportOptions() {
-        const selectedYear = exportYearSelect.value;
-        const multiselect = document.getElementById('multiselect-month-container');
-        if (selectedYear) {
-            multiselect.classList.remove('disabled');
-        } else {
-            multiselect.classList.add('disabled');
-        }
-    }
-    
-    function generateCsvData(data) {
-        const headers = ["Data", "Orario Inizio", "Orario Fine", "Assenza", "Ore Totali", "Ore Straordinarie", "Modalità", "Luogo Intervento", "Note"];
-        let csv = headers.join(";") + "\n";
-        data.forEach(entry => {
-            const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
-            const row = [
-                `"${formatDate(entry.date)}"`,
-                `"${entry.startTime || '-'}"`,
-                `"${entry.endTime || '-'}"`,
-                `"${entry.absenceType || '-'}"`,
-                `"${entry.totalHours.toFixed(2)}"`,
-                `"${totalOvertime.toFixed(2)}"`,
-                `"${entry.workMode || '-'}"`,
-                `"${entry.location || ''}"`,
-                `"${entry.notes || ''}"`
-            ];
-            csv += row.join(";") + "\n";
-        });
-        return csv;
-    }
-    
-    function exportCsv(data, filename) {
-        const csv = generateCsvData(data);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        showNotification('Esportazione CSV completata!', 'success');
-    }
-    
-    function generatePdf(data) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'pt', 'a4');
-        const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        // Logica per creare il riepilogo mensile per il PDF
-        const monthlySummary = {};
-        sortedData.forEach(entry => {
-            const monthYear = entry.date.substring(0, 7);
-            if (!monthlySummary[monthYear]) {
-                monthlySummary[monthYear] = { totalHours: 0, overtimeHours: 0, tripCount: 0, onSiteCount: 0, absenceCount: 0 };
             }
-            monthlySummary[monthYear].totalHours += entry.totalHours;
-            monthlySummary[monthYear].overtimeHours += (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
-            if (entry.workMode && entry.workMode !== 'In Sede') monthlySummary[monthYear].tripCount++;
-            if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
-            if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
         });
+    }
 
-        const summaryData = Object.keys(monthlySummary).sort().map(monthYear => {
-            const summary = monthlySummary[monthYear];
-            const [year, month] = monthYear.split('-');
-            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            return [
-                monthName.charAt(0).toUpperCase() + monthName.slice(1),
-                summary.totalHours.toFixed(2),
-                summary.overtimeHours.toFixed(2),
-                summary.tripCount,
-                summary.onSiteCount,
-                summary.absenceCount
-            ];
-        });
+    function renderAllData() {
+        renderRegisterTable(filterRegisterData());
+        updateMonthlySummary();
+        calculateGrossNetSummary();
+        updateFilters();
+    }
 
-        let lastY = 40;
+    function filterRegisterData() {
+        let filteredData = [...registerData];
+        const searchTerm = searchInput.value.toLowerCase();
+        const filterYear = filterYearSelect.value;
+        const selectedMonths = Array.from(filterMonthOptions.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        const filterWorkMode = filterWorkModeSelect.value;
 
-        // Disegna la tabella di riepilogo se ci sono dati
-        if (summaryData.length > 0) {
-            doc.text("Riepilogo Mensile", 40, lastY);
-            lastY += 10;
-            doc.autoTable({
-                startY: lastY,
-                head: [["Mese", "Ore Tot.", "Ore Str.", "Trasferta", "Sede", "Assenze"]],
-                body: summaryData,
-                styles: { fontSize: 8, cellPadding: 4 },
-                headStyles: { fillColor: '#00a2e3' }
+        if (searchTerm) {
+            filteredData = filteredData.filter(entry => 
+                formatDate(entry.date).toLowerCase().includes(searchTerm) ||
+                (entry.location && entry.location.toLowerCase().includes(searchTerm)) ||
+                (entry.notes && entry.notes.toLowerCase().includes(searchTerm))
+            );
+        }
+        if (filterYear && filterYear !== '') {
+            filteredData = filteredData.filter(entry => entry.date.startsWith(filterYear));
+        }
+        if (selectedMonths.length > 0) {
+            filteredData = filteredData.filter(entry => {
+                const month = entry.date.substring(5, 7);
+                return selectedMonths.includes(month);
             });
-            lastY = doc.autoTable.previous.finalY;
+        }
+        if (filterWorkMode && filterWorkMode !== '') {
+            filteredData = filteredData.filter(entry => entry.workMode === filterWorkMode);
+        }
+        return filteredData;
+    }
+
+    function updateFilters() {
+        const years = [...new Set(registerData.map(entry => entry.date.substring(0, 4)))].sort().reverse();
+        filterYearSelect.innerHTML = '<option value="">Tutti gli Anni</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
+        exportYearSelect.innerHTML = '<option value="">Seleziona Anno</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
+
+        const months = Array.from({length: 12}, (_, i) => {
+            const month = String(i + 1).padStart(2, '0');
+            return { value: month, label: new Date(2025, i, 1).toLocaleString('it-IT', { month: 'long' }) };
+        });
+        filterMonthOptions.innerHTML = months.map(m => `
+            <div class="multiselect-option">
+                <input type="checkbox" id="filter-month-${m.value}" value="${m.value}">
+                <label for="filter-month-${m.value}">${m.label}</label>
+            </div>
+        `).join('');
+        multiselectMonthOptions.innerHTML = months.map(m => `
+            <div class="multiselect-option">
+                <input type="checkbox" id="export-month-${m.value}" value="${m.value}">
+                <label for="export-month-${m.value}">${m.label}</label>
+            </div>
+        `).join('');
+    }
+
+    function setupEventListeners() {
+        // Gestione dropdown orari
+        [startTimeDisplay, endTimeDisplay].forEach(display => {
+            display.addEventListener('click', () => {
+                const options = display.nextElementSibling;
+                options.classList.toggle('visible');
+                display.setAttribute('aria-expanded', options.classList.contains('visible'));
+            });
+            display.addEventListener('focus', () => {
+                const options = display.nextElementSibling;
+                options.classList.add('visible');
+                display.setAttribute('aria-expanded', 'true');
+            });
+            display.addEventListener('blur', () => {
+                setTimeout(() => {
+                    const options = display.nextElementSibling;
+                    options.classList.remove('visible');
+                    display.setAttribute('aria-expanded', 'false');
+                }, 200);
+            });
+        });
+
+        document.querySelectorAll('.time-options .time-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                const display = e.target.closest('.time-dropdown-container').querySelector('.time-display');
+                const options = display.nextElementSibling;
+                setTimeDropdown(display, options, e.target.getAttribute('data-value'));
+                options.classList.remove('visible');
+                display.setAttribute('aria-expanded', 'false');
+                calculateHours();
+            });
+        });
+
+        // Gestione campi input
+        dateInput.addEventListener('change', calculateHours);
+        workModeSelect.addEventListener('change', () => {
+            workFields.style.display = absenceTypeSelect.value ? 'none' : '';
+            calculateHours();
+        });
+        absenceTypeSelect.addEventListener('change', () => {
+            workFields.style.display = absenceTypeSelect.value ? 'none' : '';
+            calculateHours();
+        });
+        lunchBreakCheckbox.addEventListener('change', calculateHours);
+        locationInput.addEventListener('input', () => {
+            locationDatalist.innerHTML = [...new Set(registerData.map(entry => entry.location).filter(loc => loc))].sort().map(loc => `<option value="${loc}"></option>`).join('');
+        });
+
+        // Pulsanti
+        saveButton.addEventListener('click', saveEntry);
+        resetButton.addEventListener('click', resetForm);
+        registerBody.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-delete')) {
+                const date = e.target.closest('button').getAttribute('data-date');
+                deleteEntry(date);
+            } else if (e.target.closest('.btn-edit')) {
+                const date = e.target.closest('button').getAttribute('data-date');
+                editEntry(date);
+            }
+        });
+
+        // Gestione collapsible sections
+        [toggleRegisterHeader, toggleSettingsHeader, toggleGrossNetHeader].forEach(header => {
+            header.addEventListener('click', () => {
+                const content = document.getElementById(header.id.replace('toggle-', ''));
+                const arrow = header.querySelector('.arrow');
+                header.classList.toggle('open');
+                content.classList.toggle('open');
+            });
+        });
+
+        // Filtri e ricerca
+        searchInput.addEventListener('input', () => renderRegisterTable(filterRegisterData()));
+        filterYearSelect.addEventListener('change', () => renderRegisterTable(filterRegisterData()));
+        filterMonthContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                const selected = Array.from(filterMonthOptions.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                filterMonthSelected.textContent = selected.length ? selected.map(m => new Date(2025, m - 1, 1).toLocaleString('it-IT', { month: 'long' })).join(', ') : 'Tutti i Mesi';
+                renderRegisterTable(filterRegisterData());
+            }
+        });
+        filterWorkModeSelect.addEventListener('change', () => renderRegisterTable(filterRegisterData()));
+
+        // Esportazione
+        multiselectMonthContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                const selected = Array.from(multiselectMonthOptions.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                multiselectMonthSelected.textContent = selected.length ? selected.map(m => new Date(2025, m - 1, 1).toLocaleString('it-IT', { month: 'long' })).join(', ') : 'Seleziona Mese(i)';
+            }
+        });
+
+        exportSelectedButton.addEventListener('click', () => {
+            const year = exportYearSelect.value;
+            const months = Array.from(multiselectMonthOptions.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            if (!year || months.length === 0) {
+                showNotification('Seleziona un anno e almeno un mese per l\'esportazione.', 'error');
+                return;
+            }
+            exportToCSV(year, months);
+        });
+
+        exportSelectedPdfButton.addEventListener('click', () => {
+            const year = exportYearSelect.value;
+            const months = Array.from(multiselectMonthOptions.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            if (!year || months.length === 0) {
+                showNotification('Seleziona un anno e almeno un mese per l\'esportazione., 'error');
+                return;
+            }
+            exportToPDF(year, months);
+        });
+
+        exportAllButton.addEventListener('click', () => exportToCSV(null, null));
+        exportPdfButton.addEventListener('click', () => exportToPDF(null, null));
+
+        exportDataBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(registerData);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_registro_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Backup creato con successo!', 'success');
+        });
+
+        importDataBtn.addEventListener('click', () => importFile.click());
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        if (Array.isArray(importedData)) {
+                            registerData = importedData;
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+                            renderAllData();
+                            showNotification('Backup importato con successo!', 'success');
+                        } else {
+                            showNotification('Formato del file non valido.', 'error');
+                        }
+                    } catch (e) {
+                        showNotification('Errore durante l\'importazione del backup.', 'error');
+                        console.error(e);
+                    }
+                };
+                reader.readAsText(file);
+            }
+            importFile.value = '';
+        });
+
+        // Impostazioni avanzate
+        grossBaseSalaryInput.value = grossBaseSalary;
+        overtimeRateInput.value = overtimeRate;
+        overtimeRate50Input.value = overtimeRate50;
+        tripAllowanceReturnInput.value = tripAllowanceReturn;
+        tripAllowanceOvernightInput.value = tripAllowanceOvernight;
+        tripAllowanceAbroadInput.value = tripAllowanceAbroad;
+        taxRateInput.value = taxRate * 100;
+
+        [grossBaseSalaryInput, overtimeRateInput, overtimeRate50Input, tripAllowanceReturnInput, tripAllowanceOvernightInput, tripAllowanceAbroadInput, taxRateInput].forEach(input => {
+            input.addEventListener('change', () => {
+                grossBaseSalary = parseFloat(grossBaseSalaryInput.value) || 0;
+                overtimeRate = parseFloat(overtimeRateInput.value) || 0;
+                overtimeRate50 = parseFloat(overtimeRate50Input.value) || 0;
+                tripAllowanceReturn = parseFloat(tripAllowanceReturnInput.value) || 0;
+                tripAllowanceOvernight = parseFloat(tripAllowanceOvernightInput.value) || 0;
+                tripAllowanceAbroad = parseFloat(tripAllowanceAbroadInput.value) || 0;
+                taxRate = (parseFloat(taxRateInput.value) || 0) / 100;
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+                    grossBaseSalary, overtimeRate, overtimeRate50, tripAllowanceReturn, tripAllowanceOvernight, tripAllowanceAbroad, taxRate
+                }));
+                calculateGrossNetSummary();
+            });
+        });
+
+        themeToggle.addEventListener('change', (e) => {
+            document.body.classList.toggle('dark-theme', e.target.checked);
+            localStorage.setItem('darkTheme', e.target.checked);
+        });
+
+        // Carica impostazioni salvate
+        const savedSettings = localStorage.getItem(SETTINGS_KEY);
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
+            overtimeRate = settings.overtimeRate || overtimeRate;
+            overtimeRate50 = settings.overtimeRate50 || overtimeRate50;
+            tripAllowanceReturn = settings.tripAllowanceReturn || tripAllowanceReturn;
+            tripAllowanceOvernight = settings.tripAllowanceOvernight || tripAllowanceOvernight;
+            tripAllowanceAbroad = settings.tripAllowanceAbroad || tripAllowanceAbroad;
+            taxRate = settings.taxRate || taxRate;
+            grossBaseSalaryInput.value = grossBaseSalary;
+            overtimeRateInput.value = overtimeRate;
+            overtimeRate50Input.value = overtimeRate50;
+            tripAllowanceReturnInput.value = tripAllowanceReturn;
+            tripAllowanceOvernightInput.value = tripAllowanceOvernight;
+            tripAllowanceAbroadInput.value = tripAllowanceAbroad;
+            taxRateInput.value = taxRate * 100;
         }
 
-        // Prepara i dati per la tabella del registro completo
-        const tableData = sortedData.map(entry => {
-            const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
-            return [
+        const savedTheme = localStorage.getItem('darkTheme');
+        if (savedTheme === 'true') {
+            themeToggle.checked = true;
+            document.body.classList.add('dark-theme');
+        }
+
+        // Carica dati salvati
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            registerData = JSON.parse(savedData);
+        }
+    }
+
+    function exportToCSV(year, months) {
+        let dataToExport = [...registerData];
+        if (year && months && months.length > 0) {
+            dataToExport = dataToExport.filter(entry => 
+                entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7))
+            );
+        }
+        const csv = [
+            ['Data', 'Inizio', 'Fine', 'Assenza', 'Ore Tot.', 'Ore Str.', 'Modalità', 'Luogo', 'Note'].join(','),
+            ...dataToExport.map(entry => [
                 formatDate(entry.date),
-                entry.startTime || '-',
-                entry.endTime || '-',
-                entry.absenceType || '-',
+                entry.startTime || '',
+                entry.endTime || '',
+                entry.absenceType || '',
                 entry.totalHours.toFixed(2),
-                totalOvertime.toFixed(2),
-                entry.workMode || '-',
+                ((entry.overtimeHours || 0) + (entry.overtimeHours50 || 0)).toFixed(2),
+                entry.workMode || '',
                 entry.location || '',
                 entry.notes || ''
-            ];
-        });
-        
-        const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
+            ].join(','))
+        ].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `registro_orario_${year || 'completo'}_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification('Esportazione CSV completata!', 'success');
+    }
 
-        // Disegna la tabella del registro completo
-        lastY += 20;
-        doc.text("Registro Completo", 40, lastY);
-        lastY += 10;
+    function exportToPDF(year, months) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        let dataToExport = [...registerData];
+        if (year && months && months.length > 0) {
+            dataToExport = dataToExport.filter(entry => 
+                entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7))
+            );
+        }
+        const tableData = dataToExport.map(entry => [
+            formatDate(entry.date),
+            entry.startTime || '-',
+            entry.endTime || '-',
+            entry.absenceType || '-',
+            entry.totalHours.toFixed(2),
+            ((entry.overtimeHours || 0) + (entry.overtimeHours50 || 0)).toFixed(2),
+            entry.workMode || '-',
+            entry.location || '',
+            entry.notes || ''
+        ]);
         doc.autoTable({
-            startY: lastY,
-            head: head,
+            head: [['Data', 'Inizio', 'Fine', 'Assenza', 'Ore Tot.', 'Ore Str.', 'Modalità', 'Luogo', 'Note']],
             body: tableData,
-            styles: { fontSize: 8, cellPadding: 4 },
-            headStyles: { fillColor: '#00a2e3' }
+            startY: 10,
+            theme: 'striped',
+            margin: { top: 10 },
+            styles: { overflow: 'linebreak', fontSize: 8 },
+            columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 20 }, 2: { cellWidth: 20 }, 3: { cellWidth: 20 }, 4: { cellWidth: 20 }, 5: { cellWidth: 20 }, 6: { cellWidth: 20 }, 7: { cellWidth: 30 }, 8: { cellWidth: 40 } }
         });
-        
-        doc.save('Registro_Lavoro.pdf');
-        showNotification('Esportazione PDF avviata!', 'success');
+        doc.save(`registro_orario_${year || 'completo'}_${new Date().toISOString().split('T')[0]}.pdf`);
+        showNotification('Esportazione PDF completata!', 'success');
     }
-    
-    function saveSettings() {
-        const settings = {
-            grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
-            overtimeRate: parseFloat(overtimeRateInput.value) || 0,
-            overtimeRate50: parseFloat(overtimeRate50Input.value) || 0,
-            tripAllowanceReturn: parseFloat(tripAllowanceReturnInput.value) || 0,
-            tripAllowanceOvernight: parseFloat(tripAllowanceOvernightInput.value) || 0,
-            tripAllowanceAbroad: parseFloat(tripAllowanceAbroadInput.value) || 0,
-            taxRate: parseFloat(taxRateInput.value) / 100 || 0
-        };
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-        
-        grossBaseSalary = settings.grossBaseSalary;
-        overtimeRate = settings.overtimeRate;
-        overtimeRate50 = settings.overtimeRate50;
-        tripAllowanceReturn = settings.tripAllowanceReturn;
-        tripAllowanceOvernight = settings.tripAllowanceOvernight;
-        tripAllowanceAbroad = settings.tripAllowanceAbroad;
-        taxRate = settings.taxRate;
-        
-        calculateGrossNetSummary();
-        showNotification('Impostazioni salvate!', 'success');
-    }
-    
-    function loadSettings() {
-        const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
-        grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
-        overtimeRateInput.value = storedSettings.overtimeRate || overtimeRate;
-        overtimeRate50Input.value = storedSettings.overtimeRate50 || overtimeRate50;
-        tripAllowanceReturnInput.value = storedSettings.tripAllowanceReturn || tripAllowanceReturn;
-        tripAllowanceOvernightInput.value = storedSettings.tripAllowanceOvernight || tripAllowanceOvernight;
-        tripAllowanceAbroadInput.value = storedSettings.tripAllowanceAbroad || tripAllowanceAbroad;
-        taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
-    }
-
-    // Event Listeners
-    dateInput.addEventListener('change', calculateHours);
-    
-    workModeSelect.addEventListener('change', () => {
-        const mode = workModeSelect.value;
-        if (mode === 'In Sede') {
-            locationInput.value = 'Tecnosistem';
-            if (!startTimeDisplay.getAttribute('data-value')) {
-                setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-            }
-            if (!endTimeDisplay.getAttribute('data-value')) {
-                setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
-            }
-            lunchBreakCheckbox.checked = true;
-        } else if (mode === 'Rientro' || mode === 'Pernottamento' || mode === 'Estero') {
-            if (locationInput.value === 'Tecnosistem') {
-                locationInput.value = '';
-            }
-        }
-        calculateHours();
-    });
-
-    absenceTypeSelect.addEventListener('change', () => {
-        const absence = absenceTypeSelect.value;
-        if (absence) {
-            workModeSelect.value = '';
-            locationInput.value = 'Assenza';
-            setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
-            setTimeDropdown(endTimeDisplay, endTimeOptions, '17:00');
-            lunchBreakCheckbox.checked = true;
-        }
-        calculateHours();
-    });
-    
-    [startTimeDisplay, endTimeDisplay].forEach(display => {
-        display.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const options = display === startTimeDisplay ? startTimeOptions : endTimeOptions;
-            const otherOptions = display === startTimeDisplay ? endTimeOptions : startTimeOptions;
-            const isVisible = options.classList.toggle('visible');
-            display.setAttribute('aria-expanded', isVisible);
-            otherOptions.classList.remove('visible');
-            if (isVisible) {
-                const selected = options.querySelector('.selected');
-                if (selected) {
-                    selected.scrollIntoView({ block: 'center' });
-                }
-            }
-        });
-        display.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                display.click();
-            }
-        });
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.time-dropdown-container')) {
-            startTimeOptions.classList.remove('visible');
-            endTimeOptions.classList.remove('visible');
-        }
-    });
-
-    [startTimeOptions, endTimeOptions].forEach(options => {
-        options.addEventListener('click', (e) => {
-            const display = options === startTimeOptions ? startTimeDisplay : endTimeDisplay;
-            if (e.target.classList.contains('time-option')) {
-                const selectedOption = e.target;
-                const value = selectedOption.getAttribute('data-value');
-                display.textContent = value;
-                display.setAttribute('data-value', value);
-                options.classList.remove('visible');
-                options.querySelectorAll('.time-option').forEach(option => option.classList.remove('selected'));
-                selectedOption.classList.add('selected');
-                calculateHours();
-            }
-        });
-        options.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                e.preventDefault();
-                const optionList = Array.from(options.querySelectorAll('.time-option'));
-                const current = optionList.find(opt => opt.classList.contains('selected'));
-                let index = current ? optionList.indexOf(current) : -1;
-                if (e.key === 'ArrowDown') index = (index + 1) % optionList.length;
-                if (e.key === 'ArrowUp') index = (index - 1 + optionList.length) % optionList.length;
-                optionList[index].click();
-            }
-        });
-    });
-    
-    lunchBreakCheckbox.addEventListener('change', calculateHours);
-    saveButton.addEventListener('click', saveEntry);
-    resetButton.addEventListener('click', () => {
-        resetForm();
-        showNotification('Form resettato.', 'success');
-    });
-
-    registerBody.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-small');
-        if (!btn) return;
-        const date = btn.getAttribute('data-date');
-        if (btn.classList.contains('btn-delete')) {
-            deleteEntry(date);
-        } else if (btn.classList.contains('btn-edit')) {
-            editEntry(date);
-        }
-    });
-    
-    [toggleRegisterHeader, toggleSettingsHeader, toggleGrossNetHeader].forEach(header => {
-        header.addEventListener('click', () => {
-            const content = document.getElementById(header.id.replace('toggle-', '') + '-content');
-            header.classList.toggle('open');
-            content.classList.toggle('open');
-        });
-    });
-
-    searchInput.addEventListener('input', filterRegister);
-    filterYearSelect.addEventListener('change', filterRegister);
-    filterMonthOptions.addEventListener('change', filterRegister);
-    filterWorkModeSelect.addEventListener('change', filterRegister);
-    
-    multiselectMonthContainer.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!exportYearSelect.value) return;
-        multiselectMonthOptions.classList.toggle('visible');
-    });
-    
-    filterMonthContainer.addEventListener('click', (e) => {
-        e.stopPropagation();
-        filterMonthOptions.classList.toggle('visible');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.multiselect-dropdown')) {
-            filterMonthOptions.classList.remove('visible');
-            multiselectMonthOptions.classList.remove('visible');
-        }
-    });
-
-    exportYearSelect.addEventListener('change', updateExportOptions);
-    
-    exportSelectedButton.addEventListener('click', () => {
-        const year = exportYearSelect.value;
-        const months = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
-        if (!year || months.length === 0) {
-            showNotification('Seleziona un anno e almeno un mese per l\'esportazione.', 'error');
-            return;
-        }
-        const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
-        if (filteredData.length > 0) {
-            exportCsv(filteredData, `Registro_${year}_${months.join('-')}.csv`);
-        } else {
-            showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
-        }
-    });
-
-    exportAllButton.addEventListener('click', () => {
-        if (registerData.length > 0) {
-            exportCsv(registerData, 'Registro_Completo.csv');
-        } else {
-            showNotification('Nessun dato da esportare.', 'error');
-        }
-    });
-    
-    exportPdfButton.addEventListener('click', () => {
-        if (registerData.length > 0) {
-            generatePdf(registerData);
-        } else {
-            showNotification('Nessun dato da esportare.', 'error');
-        }
-    });
-
-    exportSelectedPdfButton.addEventListener('click', () => {
-        const year = exportYearSelect.value;
-        const months = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
-        if (!year || months.length === 0) {
-            showNotification('Seleziona un anno e almeno un mese per l\'esportazione.', 'error');
-            return;
-        }
-        const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
-        if (filteredData.length > 0) {
-            generatePdf(filteredData);
-        } else {
-            showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
-        }
-    });
-
-    exportDataBtn.addEventListener('click', () => {
-        const dataStr = JSON.stringify(registerData);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-        const link = document.createElement('a');
-        link.setAttribute('href', dataUri);
-        link.setAttribute('download', 'registro_lavoro_backup.json');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showNotification('Backup creato con successo!', 'success');
-    });
-
-    importDataBtn.addEventListener('click', () => {
-        importFile.click();
-    });
-
-    importFile.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                if (Array.isArray(importedData)) {
-                    registerData = importedData;
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-                    renderAllData();
-                    showNotification('Dati importati con successo!', 'success');
-                } else {
-                    showNotification('Il file importato non è in un formato valido.', 'error');
-                }
-            } catch (error) {
-                showNotification('Errore durante l\'importazione del file.', 'error');
-                console.error(error);
-            }
-        };
-        reader.readAsText(file);
-    });
-
-    [grossBaseSalaryInput, overtimeRateInput, overtimeRate50Input, tripAllowanceReturnInput, tripAllowanceOvernightInput, tripAllowanceAbroadInput, taxRateInput].forEach(input => {
-        input.addEventListener('change', saveSettings);
-    });
-
-    themeToggle.addEventListener('change', () => {
-        document.body.classList.toggle('dark-theme', themeToggle.checked);
-        localStorage.setItem('theme', themeToggle.checked ? 'dark' : 'light');
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            saveEntry();
-        }
-        if (e.ctrlKey && e.key === 'r') {
-            e.preventDefault();
-            resetButton.click();
-        }
-    });
 
     // Inizializzazione
-    function initialize() {
-        generateTimeOptions();
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
-        loadData();
-        calculateHours();
-        Chart.register(ChartDataLabels);
-    }
-    initialize();
+    generateTimeOptions();
+    setupEventListeners();
+    renderAllData();
+    dateInput.value = new Date().toISOString().split('T')[0];
 </script>
-
 </body>
 </html>
