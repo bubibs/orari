@@ -7,33 +7,73 @@
     <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-body: #f0f0f5;
+            --bg-container: #fff;
+            --text-color: #333;
+            --accent-color: #00a2e3;
+            --input-border: #ccc;
+            --input-bg: #fff;
+            --dropdown-bg: #fff;
+            --dropdown-text: #333;
+            --dropdown-hover: #f0f0f5;
+            --table-even: #f2f2f2;
+            --table-head: #f8f9fa;
+            --results-bg: #e9ecef;
+            --notification-success: #28a745;
+            --notification-error: #dc3545;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --logo-gradient: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #121212;
+                --bg-container: #1e1e1e;
+                --text-color: #e0e0e0;
+                --accent-color: #00a2e3;
+                --input-border: #444;
+                --input-bg: #333;
+                --dropdown-bg: #333;
+                --dropdown-text: #e0e0e0;
+                --dropdown-hover: #444;
+                --table-even: #2a2a2a;
+                --table-head: #333;
+                --results-bg: #2a2a2a;
+                --notification-success: #28a745;
+                --notification-error: #dc3545;
+                --shadow-color: rgba(0, 0, 0, 0.5);
+                --logo-gradient: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
+            }
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f0f5;
+            background-color: var(--bg-body);
             margin: 0;
             padding: 10px;
-            color: #333;
+            color: var(--text-color);
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 15px;
-            background-color: #fff;
+            background-color: var(--bg-container);
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
         .logo-text {
             text-align: center;
             font-size: 2em;
             font-weight: 700;
             margin-bottom: 15px;
-            background: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
+            background: var(--logo-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         h1, h2 {
             text-align: center;
-            color: #00a2e3;
+            color: var(--accent-color);
             margin-bottom: 15px;
         }
         h2 {
@@ -46,6 +86,9 @@
             cursor: pointer;
             margin-bottom: 0;
             font-size: 1.2em;
+        }
+        .collapsible-header i:first-child {
+            margin-right: 8px; /* Distanzia l'icona dal testo */
         }
         .collapsible-header .arrow {
             margin-left: 8px;
@@ -74,18 +117,20 @@
         input[type="date"], input[type="text"], input[type="number"], textarea, select {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 14px;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
+            background-color: var(--input-bg);
+            color: var(--text-color);
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
         input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #00a2e3;
+            border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
         }
         textarea {
@@ -98,11 +143,12 @@
         .time-display {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 14px;
-            background-color: #fff;
+            background-color: var(--input-bg);
+            color: var(--text-color);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
@@ -110,7 +156,7 @@
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
         .time-dropdown-container:focus-within .time-display {
-            border-color: #00a2e3;
+            border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
         }
         .time-display:after {
@@ -124,13 +170,14 @@
             width: 100%;
             max-height: 200px;
             overflow-y: scroll;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
             border-radius: 8px;
-            background-color: #fff;
+            background-color: var(--dropdown-bg);
+            color: var(--dropdown-text);
             z-index: 10;
             margin-top: 4px;
             display: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px var(--shadow-color);
         }
         .time-options.visible {
             display: block;
@@ -138,13 +185,14 @@
         .time-option {
             padding: 10px;
             cursor: pointer;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--input-border);
+            color: var(--dropdown-text);
         }
         .time-option:hover {
-            background-color: #f0f0f5;
+            background-color: var(--dropdown-hover);
         }
         .time-option.selected {
-            background-color: #e6f7ff;
+            background-color: rgba(0, 162, 227, 0.1);
             font-weight: 600;
         }
         .radio-group, .checkbox-group {
@@ -203,7 +251,7 @@
             background-color: #e0a800;
         }
         #save-btn {
-            background-color: #00a2e3;
+            background-color: var(--accent-color);
             font-size: 20px;
             position: relative;
         }
@@ -264,12 +312,12 @@
         #results {
             margin-top: 20px;
             padding: 12px;
-            background-color: #e9ecef;
+            background-color: var(--results-bg);
             border-radius: 8px;
         }
         #results h3 {
             margin-top: 0;
-            color: #00a2e3;
+            color: var(--accent-color);
             font-size: 1.1em;
         }
         #results p {
@@ -283,16 +331,16 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
-            background-color: #fff;
+            background-color: var(--bg-container);
             font-size: 12px;
         }
         th, td {
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--input-border);
             text-align: left;
         }
         th {
-            background-color: #f8f9fa;
+            background-color: var(--table-head);
             font-weight: 600;
             white-space: nowrap;
         }
@@ -303,7 +351,7 @@
             white-space: nowrap;
         }
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: var(--table-even);
         }
         #register-table tbody tr {
             opacity: 0;
@@ -335,17 +383,17 @@
             transform: translateY(100px);
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
             z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
         #notification.show {
             opacity: 1;
             transform: translateY(0);
         }
         #notification.success {
-            background-color: #28a745;
+            background-color: var(--notification-success);
         }
         #notification.error {
-            background-color: #dc3545;
+            background-color: var(--notification-error);
         }
         .export-options-container {
             display: flex;
@@ -361,14 +409,15 @@
         }
         select {
             padding: 0 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 14px;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            background-color: #fff;
+            background-color: var(--input-bg);
+            color: var(--text-color);
             height: 40px;
         }
         .multiselect-dropdown {
@@ -379,9 +428,10 @@
         .multiselect-selected {
             width: 100%;
             padding: 0 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
             border-radius: 8px;
-            background-color: #fff;
+            background-color: var(--input-bg);
+            color: var(--text-color);
             height: 40px;
             font-size: 14px;
             display: flex;
@@ -408,8 +458,9 @@
             top: 100%;
             left: 0;
             right: 0;
-            background-color: #fff;
-            border: 1px solid #ccc;
+            background-color: var(--dropdown-bg);
+            color: var(--dropdown-text);
+            border: 1px solid var(--input-border);
             border-top: none;
             border-radius: 0 0 8px 8px;
             max-height: 200px;
@@ -417,6 +468,7 @@
             z-index: 10;
             display: none;
             box-sizing: border-box;
+            box-shadow: 0 4px 8px var(--shadow-color);
         }
         .multiselect-options.visible {
             display: block;
@@ -425,13 +477,14 @@
             padding: 10px;
             display: flex;
             align-items: center;
+            color: var(--dropdown-text);
         }
         .multiselect-option input[type="checkbox"] {
             margin-right: 10px;
             -webkit-appearance: checkbox;
         }
         .multiselect-option:hover {
-            background-color: #f0f0f5;
+            background-color: var(--dropdown-hover);
         }
         .multiselect-dropdown.disabled {
             opacity: 0.6;
