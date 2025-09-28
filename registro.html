@@ -7,18 +7,34 @@
     <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-color: #f0f0f5;
+            --container-bg: #fff;
+            --text-color: #333;
+            --table-bg: #fff;
+            --table-alt-bg: #f2f2f2;
+            --error-color: #dc3545;
+        }
+        body.dark-theme {
+            --bg-color: #1a1a1a;
+            --container-bg: #2c2c2c;
+            --text-color: #e0e0e0;
+            --table-bg: #2c2c2c;
+            --table-alt-bg: #3c3c3c;
+            --error-color: #ff6b6b;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f0f5;
+            background-color: var(--bg-color);
             margin: 0;
             padding: 10px;
-            color: #333;
+            color: var(--text-color);
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 15px;
-            background-color: #fff;
+            background-color: var(--container-bg);
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
@@ -30,6 +46,7 @@
             background: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
         h1, h2 {
             text-align: center;
@@ -283,7 +300,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
-            background-color: #fff;
+            background-color: var(--table-bg);
             font-size: 12px;
         }
         th, td {
@@ -303,7 +320,7 @@
             white-space: nowrap;
         }
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: var(--table-alt-bg);
         }
         #register-table tbody tr {
             opacity: 0;
@@ -452,6 +469,33 @@
             margin: 20px 0;
             text-align: center;
         }
+        .input-error {
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3);
+        }
+        .error-message {
+            color: var(--error-color);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        .detail-content {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .detail-row {
+            animation: fadeInRow 0.5s ease-out;
+        }
+        .btn-details {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-details i {
+            color: #00a2e3;
+        }
     </style>
 </head>
 <body>
@@ -460,6 +504,7 @@
     <div class="form-group">
         <label for="date">Seleziona Giorno:</label>
         <input type="date" id="date">
+        <div id="date-error" class="error-message"></div>
     </div>
 
     <div class="form-group">
@@ -471,6 +516,7 @@
             <option value="Pernottamento">Trasferta (Pernottamento)</option>
             <option value="Estero">Trasferta (Estero)</option>
         </select>
+        <div id="workMode-error" class="error-message"></div>
     </div>
 
     <div class="form-group">
@@ -487,16 +533,18 @@
         <div class="form-group">
             <label>Orario Inizio:</label>
             <div class="time-dropdown-container">
-                <div id="startTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                <div id="startTimeDisplay" class="time-display" data-value="" aria-label="Seleziona orario di inizio" role="combobox" aria-expanded="false" tabindex="0">Seleziona orario</div>
                 <div id="startTimeOptions" class="time-options"></div>
             </div>
+            <div id="startTime-error" class="error-message"></div>
         </div>
         <div class="form-group">
             <label>Orario Fine:</label>
             <div class="time-dropdown-container">
-                <div id="endTimeDisplay" class="time-display" data-value="">Seleziona orario</div>
+                <div id="endTimeDisplay" class="time-display" data-value="" aria-label="Seleziona orario di fine" role="combobox" aria-expanded="false" tabindex="0">Seleziona orario</div>
                 <div id="endTimeOptions" class="time-options"></div>
             </div>
+            <div id="endTime-error" class="error-message"></div>
         </div>
         <div class="checkbox-group">
             <input type="checkbox" id="lunchBreak">
@@ -521,10 +569,13 @@
         <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHours">0</span></p>
     </div>
     
-    <button id="save-btn" class="btn btn-save-anim">
-        <span class="btn-text"><i class="fas fa-save"></i> Salva</span>
-        <span class="btn-icon"><i class="fas fa-check"></i></span>
-    </button>
+    <div class="button-group-responsive">
+        <button id="save-btn" class="btn btn-save-anim">
+            <span class="btn-text"><i class="fas fa-save"></i> Salva</span>
+            <span class="btn-icon"><i class="fas fa-check"></i></span>
+        </button>
+        <button id="reset-btn" class="btn btn-delete"><i class="fas fa-times"></i> Cancella</button>
+    </div>
     
     <hr>
     
@@ -583,6 +634,10 @@
             <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
             <input type="number" id="taxRateInput" step="0.1" min="0" max="100">
         </div>
+        <div class="form-group">
+            <label for="theme-toggle">Tema Scuro:</label>
+            <input type="checkbox" id="theme-toggle">
+        </div>
     </div>
     
     <hr>
@@ -593,6 +648,7 @@
             <table id="gross-net-table">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Mese</th>
                         <th>Lordo</th>
                         <th>Netto (stimato)</th>
@@ -623,6 +679,16 @@
                     <div class="multiselect-options" id="filter-month-options"></div>
                 </div>
             </div>
+        </div>
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="filter-work-mode">Filtra per Modalità di Lavoro:</label>
+            <select id="filter-work-mode">
+                <option value="">Tutte le modalità</option>
+                <option value="In Sede">In Sede</option>
+                <option value="Rientro">Trasferta (Rientro)</option>
+                <option value="Pernottamento">Trasferta (Pernottamento)</option>
+                <option value="Estero">Trasferta (Estero)</option>
+            </select>
         </div>
         <div class="table-container">
             <table id="register-table">
@@ -684,6 +750,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script>
     // Selezioni elementi del DOM
     const dateInput = document.getElementById('date');
@@ -704,6 +771,7 @@
     const overtimeHoursContainer = document.getElementById('overtimeHoursContainer');
     const absenceHoursContainer = document.getElementById('absenceHoursContainer');
     const saveButton = document.getElementById('save-btn');
+    const resetButton = document.getElementById('reset-btn');
     const registerBody = document.querySelector('#register-table tbody');
     const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
     const locationDatalist = document.getElementById('location-suggestions');
@@ -736,6 +804,7 @@
     const tripAllowanceOvernightInput = document.getElementById('tripAllowanceOvernightInput');
     const tripAllowanceAbroadInput = document.getElementById('tripAllowanceAbroadInput');
     const taxRateInput = document.getElementById('taxRateInput');
+    const themeToggle = document.getElementById('theme-toggle');
 
     // Chiavi per localStorage
     const STORAGE_KEY = 'registroOrario';
@@ -754,6 +823,7 @@
     const filterMonthContainer = document.getElementById('filter-month-container');
     const filterMonthSelected = document.querySelector('#filter-month-container .multiselect-selected');
     const filterMonthOptions = document.getElementById('filter-month-options');
+    const filterWorkModeSelect = document.getElementById('filter-work-mode');
     const exportDataBtn = document.getElementById('export-data-btn');
     const importDataBtn = document.getElementById('import-data-btn');
     const importFile = document.getElementById('import-file');
@@ -874,6 +944,12 @@
         }
     }
 
+    function sanitizeInput(input) {
+        const div = document.createElement('div');
+        div.textContent = input;
+        return div.innerHTML;
+    }
+
     function createRow(entry) {
         const row = document.createElement('tr');
         row.setAttribute('data-date', entry.date);
@@ -889,8 +965,8 @@
             <td>${entry.location}</td>
             <td>${entry.notes || ''}</td>
             <td class="action-buttons-cell">
-                <button class="btn-small btn-edit" data-date="${entry.date}"><i class="fas fa-pencil-alt"></i></button>
-                <button class="btn-small btn-delete" data-date="${entry.date}"><i class="fas fa-trash"></i></button>
+                <button class="btn-small btn-edit" data-date="${entry.date}" title="Modifica voce"><i class="fas fa-pencil-alt"></i></button>
+                <button class="btn-small btn-delete" data-date="${entry.date}" title="Elimina voce"><i class="fas fa-trash"></i></button>
             </td>
         `;
         return row;
@@ -898,42 +974,88 @@
 
     function saveEntry() {
         const date = dateInput.value;
+        const dateError = document.getElementById('date-error');
+        dateError.style.display = 'none';
+        dateInput.classList.remove('input-error');
+
+        const workMode = workModeSelect.value;
+        const workModeError = document.getElementById('workMode-error');
+        workModeError.style.display = 'none';
+        workModeSelect.classList.remove('input-error');
+
+        const startTime = startTimeDisplay.getAttribute('data-value');
+        const startTimeError = document.getElementById('startTime-error');
+        startTimeError.style.display = 'none';
+        startTimeDisplay.classList.remove('input-error');
+
+        const endTime = endTimeDisplay.getAttribute('data-value');
+        const endTimeError = document.getElementById('endTime-error');
+        endTimeError.style.display = 'none';
+        endTimeDisplay.classList.remove('input-error');
+
+        const absenceType = absenceTypeSelect.value;
+
         if (!date) {
+            dateError.textContent = 'Per favore, seleziona una data valida.';
+            dateError.style.display = 'block';
+            dateInput.classList.add('input-error');
             showNotification('Per favore, seleziona una data.', 'error');
             return;
         }
 
-        const absenceType = absenceTypeSelect.value;
-        const workMode = workModeSelect.value;
-        let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours, absenceHours;
         let overtimeHours50 = 0;
 
         if (absenceType) {
+            if (workMode) {
+                workModeError.textContent = 'Non puoi selezionare una modalità di lavoro con un tipo di assenza.';
+                workModeError.style.display = 'block';
+                workModeSelect.classList.add('input-error');
+                showNotification('Errore: modalità di lavoro non compatibile con assenza.', 'error');
+                return;
+            }
             startTime = standardStartTime;
             endTime = standardEndTime;
             lunchBreak = true;
-            location = locationInput.value || 'Assenza';
-            notes = notesInput.value;
+            location = sanitizeInput(locationInput.value) || 'Assenza';
+            notes = sanitizeInput(notesInput.value);
             totalHours = 0;
             overtimeHours = 0;
             absenceHours = 8;
         } else {
-            startTime = startTimeDisplay.getAttribute('data-value');
-            endTime = endTimeDisplay.getAttribute('data-value');
-            if (!startTime || !endTime || !workMode) {
-                showNotification('Per favore, compila tutti i campi richiesti.', 'error');
+            if (!workMode) {
+                workModeError.textContent = 'Per favore, seleziona una modalità di lavoro.';
+                workModeError.style.display = 'block';
+                workModeSelect.classList.add('input-error');
+                showNotification('Per favore, seleziona una modalità di lavoro.', 'error');
+                return;
+            }
+            if (!startTime) {
+                startTimeError.textContent = 'Per favore, seleziona un orario di inizio.';
+                startTimeError.style.display = 'block';
+                startTimeDisplay.classList.add('input-error');
+                showNotification('Per favore, seleziona un orario di inizio.', 'error');
+                return;
+            }
+            if (!endTime) {
+                endTimeError.textContent = 'Per favore, seleziona un orario di fine.';
+                endTimeError.style.display = 'block';
+                endTimeDisplay.classList.add('input-error');
+                showNotification('Per favore, seleziona un orario di fine.', 'error');
                 return;
             }
             const start = new Date(`2025-01-01T${startTime}:00`);
             const end = new Date(`2025-01-01T${endTime}:00`);
             if (end < start) {
+                endTimeError.textContent = 'L\'orario di fine non può essere precedente a quello di inizio.';
+                endTimeError.style.display = 'block';
+                endTimeDisplay.classList.add('input-error');
                 showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
                 return;
             }
 
             lunchBreak = lunchBreakCheckbox.checked;
-            location = locationInput.value;
-            notes = notesInput.value;
+            location = sanitizeInput(locationInput.value);
+            notes = sanitizeInput(notesInput.value);
             totalHours = parseFloat(totalHoursSpan.textContent);
             absenceHours = 0;
             
@@ -986,15 +1108,29 @@
         
         setTimeout(() => {
             saveButton.classList.remove('saved');
-            dateInput.value = new Date().toISOString().split('T')[0];
-            workModeSelect.value = '';
-            absenceTypeSelect.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
-            locationInput.value = '';
-            notesInput.value = '';
-            calculateHours();
+            resetForm();
         }, 1000);
+    }
+
+    function resetForm() {
+        dateInput.value = new Date().toISOString().split('T')[0];
+        workModeSelect.value = '';
+        absenceTypeSelect.value = '';
+        clearTimeDropdowns();
+        lunchBreakCheckbox.checked = false;
+        locationInput.value = '';
+        notesInput.value = '';
+        calculateHours();
+        clearErrors();
+    }
+
+    function clearErrors() {
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelectorAll('.input-error').forEach(el => {
+            el.classList.remove('input-error');
+        });
     }
 
     function deleteEntry(date) {
@@ -1123,17 +1259,44 @@
             const grossAbroadTripAllowance = summary.totalAbroadTripCount * tripAllowanceAbroad;
             
             const totalGross = grossBaseSalary + grossOvertime + grossOvertime50 + grossReturnTripAllowance + grossOvernightTripAllowance + grossAbroadTripAllowance;
-            
             const afterSocialSecurity = totalGross - (totalGross * socialSecurityRate);
             const netIncome = afterSocialSecurity - (afterSocialSecurity * taxRate);
             
             const row = document.createElement('tr');
             row.innerHTML = `
+                <td><button class="btn-small btn-details" data-month="${monthYear}" title="Mostra dettagli"><i class="fas fa-chevron-down"></i></button></td>
                 <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
                 <td>€ ${totalGross.toFixed(2)}</td>
                 <td>€ ${netIncome.toFixed(2)}</td>
             `;
             grossNetBody.appendChild(row);
+
+            const detailRow = document.createElement('tr');
+            detailRow.classList.add('detail-row');
+            detailRow.style.display = 'none';
+            detailRow.innerHTML = `
+                <td colspan="4">
+                    <div class="detail-content">
+                        <p><strong>Straordinari 25%:</strong> € ${grossOvertime.toFixed(2)} (${summary.totalOvertimeHours.toFixed(2)} ore)</p>
+                        <p><strong>Straordinari 50%:</strong> € ${grossOvertime50.toFixed(2)} (${summary.totalOvertimeHours50.toFixed(2)} ore)</p>
+                        <p><strong>Diaria Rientro:</strong> € ${grossReturnTripAllowance.toFixed(2)} (${summary.totalReturnTripCount} giorni)</p>
+                        <p><strong>Diaria Pernottamento:</strong> € ${grossOvernightTripAllowance.toFixed(2)} (${summary.totalOvernightTripCount} giorni)</p>
+                        <p><strong>Diaria Estero:</strong> € ${grossAbroadTripAllowance.toFixed(2)} (${summary.totalAbroadTripCount} giorni)</p>
+                    </div>
+                </td>
+            `;
+            grossNetBody.appendChild(detailRow);
+        });
+
+        // Aggiungi listener per i pulsanti dei dettagli
+        document.querySelectorAll('.btn-details').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const detailRow = btn.closest('tr').nextElementSibling;
+                const isVisible = detailRow.style.display === 'table-row';
+                detailRow.style.display = isVisible ? 'none' : 'table-row';
+                btn.querySelector('i').classList.toggle('fa-chevron-down', isVisible);
+                btn.querySelector('i').classList.toggle('fa-chevron-up', !isVisible);
+            });
         });
     }
 
@@ -1156,6 +1319,10 @@
             }
             loadSettings();
             renderAllData();
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+                themeToggle.checked = true;
+            }
         } catch (e) {
             showNotification('ERRORE: Impossibile caricare i dati. Il backup potrebbe essere corrotto.', 'error');
             console.error(e);
@@ -1176,10 +1343,6 @@
         const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
         const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].returnTripCount + monthlySummary[monthYear].overnightTripCount + monthlySummary[monthYear].abroadTripCount);
         const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
-
-        if (monthlyChart) {
-            monthlyChart.destroy();
-        }
 
         const data = {
             labels: labels,
@@ -1206,23 +1369,49 @@
             }]
         };
 
-        const config = {
-            type: 'bar',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { x: { stacked: false }, y: { beginAtZero: true, stacked: false, title: { display: true, text: 'Numero di Giorni' } } }
-            }
-        };
-
-        monthlyChart = new Chart(monthlyChartCanvas, config);
+        if (monthlyChart) {
+            monthlyChart.data = data;
+            monthlyChart.update();
+        } else {
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: false },
+                        y: {
+                            beginAtZero: true,
+                            stacked: false,
+                            title: { display: true, text: 'Numero di Giorni' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { enabled: true },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (value) => value > 0 ? value : '',
+                            font: { weight: 'bold' }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            };
+            monthlyChart = new Chart(monthlyChartCanvas, config);
+        }
     }
     
     function filterRegister() {
         const query = searchInput.value.toLowerCase();
         const selectedYear = filterYearSelect.value;
         const selectedMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
+        const selectedWorkMode = filterWorkModeSelect.value;
 
         const filteredData = registerData.filter(entry => {
             const matchQuery = !query || 
@@ -1231,7 +1420,8 @@
                                 (entry.notes && entry.notes.toLowerCase().includes(query));
             const matchYear = !selectedYear || entry.date.startsWith(selectedYear);
             const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(entry.date.substring(5, 7));
-            return matchQuery && matchYear && matchMonth;
+            const matchWorkMode = !selectedWorkMode || entry.workMode === selectedWorkMode;
+            return matchQuery && matchYear && matchMonth && matchWorkMode;
         });
         renderRegisterTable(filteredData);
     }
@@ -1461,13 +1651,20 @@
             e.stopPropagation();
             const options = display === startTimeDisplay ? startTimeOptions : endTimeOptions;
             const otherOptions = display === startTimeDisplay ? endTimeOptions : startTimeOptions;
-            options.classList.toggle('visible');
+            const isVisible = options.classList.toggle('visible');
+            display.setAttribute('aria-expanded', isVisible);
             otherOptions.classList.remove('visible');
-            if (options.classList.contains('visible')) {
+            if (isVisible) {
                 const selected = options.querySelector('.selected');
                 if (selected) {
                     selected.scrollIntoView({ block: 'center' });
                 }
+            }
+        });
+        display.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                display.click();
             }
         });
     });
@@ -1493,17 +1690,33 @@
                 calculateHours();
             }
         });
+        options.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const optionList = Array.from(options.querySelectorAll('.time-option'));
+                const current = optionList.find(opt => opt.classList.contains('selected'));
+                let index = current ? optionList.indexOf(current) : -1;
+                if (e.key === 'ArrowDown') index = (index + 1) % optionList.length;
+                if (e.key === 'ArrowUp') index = (index - 1 + optionList.length) % optionList.length;
+                optionList[index].click();
+            }
+        });
     });
     
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
+    resetButton.addEventListener('click', () => {
+        resetForm();
+        showNotification('Form resettato.', 'success');
+    });
 
     registerBody.addEventListener('click', (e) => {
-        const date = e.target.closest('.btn-small')?.getAttribute('data-date');
-        if (!date) return;
-        if (e.target.closest('.btn-delete')) {
+        const btn = e.target.closest('.btn-small');
+        if (!btn) return;
+        const date = btn.getAttribute('data-date');
+        if (btn.classList.contains('btn-delete')) {
             deleteEntry(date);
-        } else if (e.target.closest('.btn-edit')) {
+        } else if (btn.classList.contains('btn-edit')) {
             editEntry(date);
         }
     });
@@ -1519,6 +1732,7 @@
     searchInput.addEventListener('input', filterRegister);
     filterYearSelect.addEventListener('change', filterRegister);
     filterMonthOptions.addEventListener('change', filterRegister);
+    filterWorkModeSelect.addEventListener('change', filterRegister);
     
     multiselectMonthContainer.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1629,6 +1843,22 @@
         input.addEventListener('change', saveSettings);
     });
 
+    themeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-theme', themeToggle.checked);
+        localStorage.setItem('theme', themeToggle.checked ? 'dark' : 'light');
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveEntry();
+        }
+        if (e.ctrlKey && e.key === 'r') {
+            e.preventDefault();
+            resetButton.click();
+        }
+    });
+
     // Inizializzazione
     function initialize() {
         generateTimeOptions();
@@ -1636,6 +1866,7 @@
         dateInput.value = today;
         loadData();
         calculateHours();
+        Chart.register(ChartDataLabels);
     }
     initialize();
 </script>
