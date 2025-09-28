@@ -505,6 +505,11 @@
             margin: 20px 0;
             text-align: center;
         }
+        #gross-net-table th:nth-child(5), #gross-net-table td:nth-child(5),
+        #gross-net-table th:nth-child(6), #gross-net-table td:nth-child(6) {
+            min-width: 120px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -633,8 +638,12 @@
             <input type="number" id="tripAllowanceAbroadInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
+            <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in % (fino al 2025):</label>
             <input type="number" id="taxRateInput" step="0.1" min="0" max="100">
+        </div>
+        <div class="form-group">
+            <label for="thirteenthMonthInput">Tredicesima Mensilità Lorda (€):</label>
+            <input type="number" id="thirteenthMonthInput" step="0.01" min="0">
         </div>
     </div>
     
@@ -791,6 +800,7 @@
     let tripAllowanceOvernight = 60.00;
     let tripAllowanceAbroad = 75.00; // Diaria Estero
     let taxRate = 0.30;
+    let thirteenthMonth = 3480.79;
     const socialSecurityRate = 0.0949;
     
     // Elementi del menu impostazioni
@@ -803,6 +813,7 @@
     const tripAllowanceOvernightInput = document.getElementById('tripAllowanceOvernightInput');
     const tripAllowanceAbroadInput = document.getElementById('tripAllowanceAbroadInput');
     const taxRateInput = document.getElementById('taxRateInput');
+    const thirteenthMonthInput = document.getElementById('thirteenthMonthInput');
 
     // Chiavi per localStorage
     const STORAGE_KEY = 'registroOrario';
@@ -1159,16 +1170,20 @@
         updateChart(monthlySummary);
     }
 
-    function calculateIRPEF(gross) {
-        let tax = 0;
-        if (gross <= 28000) {
-            tax = gross * 0.23;
-        } else if (gross <= 50000) {
-            tax = 28000 * 0.23 + (gross - 28000) * 0.35;
+    function calculateIRPEF(gross, year, month) {
+        if (parseInt(year) < 2026 || (parseInt(year) === 2025 && parseInt(month) <= 12)) {
+            return gross * taxRate;
         } else {
-            tax = 28000 * 0.23 + 22000 * 0.35 + (gross - 50000) * 0.43;
+            let tax = 0;
+            if (gross <= 28000) {
+                tax = gross * 0.23;
+            } else if (gross <= 50000) {
+                tax = 28000 * 0.23 + (gross - 28000) * 0.35;
+            } else {
+                tax = 28000 * 0.23 + 22000 * 0.35 + (gross - 50000) * 0.43;
+            }
+            return tax;
         }
-        return tax;
     }
 
     function calculateGrossNetSummary(year = null) {
@@ -1207,8 +1222,8 @@
 
         sortedMonths.forEach(monthYear => {
             const summary = monthlySummary[monthYear];
-            const [year, month] = monthYear.split('-');
-            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            const [y, m] = monthYear.split('-');
+            const monthName = new Date(y, m - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
             
             const grossOvertime = summary.totalOvertimeHours * overtimeRate;
             const grossOvertime50 = summary.totalOvertimeHours50 * overtimeRate50;
@@ -1220,7 +1235,7 @@
             const totalGross = grossBaseSalary + grossOvertime + grossOvertime50 + grossTrips;
             
             const afterSocialSecurity = totalGross - (totalGross * socialSecurityRate);
-            const taxDeduction = calculateIRPEF(afterSocialSecurity);
+            const taxDeduction = calculateIRPEF(afterSocialSecurity, y, m);
             const netIncome = afterSocialSecurity - taxDeduction;
             const deductions = (totalGross * socialSecurityRate) + taxDeduction;
             
@@ -1241,6 +1256,20 @@
             totalTripsYear += grossTrips;
             totalDeductionsYear += deductions;
         });
+
+        // Aggiungi tredicesima se filtro per un singolo anno
+        if (year && sortedMonths.length > 0) {
+            const y = year;
+            const thirteenthAfterSS = thirteenthMonth - (thirteenthMonth * socialSecurityRate);
+            const thirteenthTax = calculateIRPEF(thirteenthAfterSS, y, '12'); // Assumendo dicembre
+            const thirteenthNet = thirteenthAfterSS - thirteenthTax;
+            const thirteenthDeductions = (thirteenthMonth * socialSecurityRate) + thirteenthTax;
+
+            totalGrossYear += thirteenthMonth;
+            totalNetYear += thirteenthNet;
+            totalDeductionsYear += thirteenthDeductions;
+            // Non aggiunge a straordinari o diarie
+        }
 
         // Aggiungi riga totale
         if (sortedMonths.length > 0) {
@@ -1272,9 +1301,10 @@
             const grossTrips = grossReturnTripAllowance + grossOvernightTripAllowance + grossAbroadTripAllowance;
             return grossBaseSalary + grossOvertime + grossOvertime50 + grossTrips;
         });
-        const netData = grossData.map(g => {
+        const netData = grossData.map((g, index) => {
+            const [y, m] = sortedMonths[index].split('-');
             const afterSS = g - (g * socialSecurityRate);
-            const taxDeduction = calculateIRPEF(afterSS);
+            const taxDeduction = calculateIRPEF(afterSS, y, m);
             return afterSS - taxDeduction;
         });
 
@@ -1342,6 +1372,7 @@
                 tripAllowanceOvernight = settings.tripAllowanceOvernight || tripAllowanceOvernight;
                 tripAllowanceAbroad = settings.tripAllowanceAbroad || tripAllowanceAbroad;
                 taxRate = settings.taxRate || taxRate;
+                thirteenthMonth = settings.thirteenthMonth || grossBaseSalary;
             }
             loadSettings();
             renderAllData();
@@ -1590,7 +1621,8 @@
             tripAllowanceReturn: parseFloat(tripAllowanceReturnInput.value) || 0,
             tripAllowanceOvernight: parseFloat(tripAllowanceOvernightInput.value) || 0,
             tripAllowanceAbroad: parseFloat(tripAllowanceAbroadInput.value) || 0,
-            taxRate: parseFloat(taxRateInput.value) / 100 || 0
+            taxRate: parseFloat(taxRateInput.value) / 100 || 0,
+            thirteenthMonth: parseFloat(thirteenthMonthInput.value) || 0
         };
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
         
@@ -1601,6 +1633,7 @@
         tripAllowanceOvernight = settings.tripAllowanceOvernight;
         tripAllowanceAbroad = settings.tripAllowanceAbroad;
         taxRate = settings.taxRate;
+        thirteenthMonth = settings.thirteenthMonth;
         
         calculateGrossNetSummary();
         showNotification('Impostazioni salvate!', 'success');
@@ -1615,6 +1648,7 @@
         tripAllowanceOvernightInput.value = storedSettings.tripAllowanceOvernight || tripAllowanceOvernight;
         tripAllowanceAbroadInput.value = storedSettings.tripAllowanceAbroad || tripAllowanceAbroad;
         taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
+        thirteenthMonthInput.value = storedSettings.thirteenthMonth || thirteenthMonth;
     }
 
     // Event Listeners
@@ -1820,7 +1854,7 @@
         reader.readAsText(file);
     });
 
-    [grossBaseSalaryInput, overtimeRateInput, overtimeRate50Input, tripAllowanceReturnInput, tripAllowanceOvernightInput, tripAllowanceAbroadInput, taxRateInput].forEach(input => {
+    [grossBaseSalaryInput, overtimeRateInput, overtimeRate50Input, tripAllowanceReturnInput, tripAllowanceOvernightInput, tripAllowanceAbroadInput, taxRateInput, thirteenthMonthInput].forEach(input => {
         input.addEventListener('change', saveSettings);
     });
 
