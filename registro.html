@@ -563,20 +563,20 @@
             <input type="number" id="overtimeRate50Input" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceReturnInput">Diaria Trasferta Rientro (€):</label>
+            <label for="tripAllowanceReturnInput">Diaria Trasferta (Rientro) (€):</label>
             <input type="number" id="tripAllowanceReturnInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceOvernightInput">Diaria Trasferta Pernottamento (€):</label>
+            <label for="tripAllowanceOvernightInput">Diaria Trasferta (Pernottamento) (€):</label>
             <input type="number" id="tripAllowanceOvernightInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceAbroadInput">Diaria Trasferta Estero (€):</label>
+            <label for="tripAllowanceAbroadInput">Diaria Trasferta (Estero) (€):</label>
             <input type="number" id="tripAllowanceAbroadInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="taxRateInput">Aliquota Fiscale (IRPEF, ecc.) in %:</label>
-            <input type="number" id="taxRateInput" step="0.1" min="0" max="100">
+            <label for="taxRateInput">Aliquota Fiscale (%):</label>
+            <input type="number" id="taxRateInput" step="0.01" min="0" max="100">
         </div>
     </div>
     
@@ -584,39 +584,32 @@
     
     <h2 class="collapsible-header" id="toggle-gross-net">💰 Riepilogo Lordo/Netto <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="gross-net-content">
-        <div class="table-container">
-            <table id="gross-net-table">
-                <thead>
-                    <tr>
-                        <th>Mese</th>
-                        <th>Lordo</th>
-                        <th>Netto (stimato)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+        <div id="gross-net-summary">
+            <h3>Riepilogo Lordo/Netto</h3>
+            <p><strong>Stipendio Base Lordo:</strong> <span id="grossBaseSalary">0.00 €</span></p>
+            <p><strong>Diaria Trasferte:</strong> <span id="grossTripAllowance">0.00 €</span></p>
+            <p><strong>Straordinari 25%:</strong> <span id="grossOvertime25">0.00 €</span></p>
+            <p><strong>Straordinari 50%:</strong> <span id="grossOvertime50">0.00 €</span></p>
+            <p><strong>Totale Lordo:</strong> <span id="totalGross">0.00 €</span></p>
+            <p><strong>Totale Netto (stima):</strong> <span id="totalNet">0.00 €</span></p>
         </div>
     </div>
     
     <hr>
     
-    <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">▼</span></h2>
+    <h2 class="collapsible-header" id="toggle-register">📋 Registro Completo <span class="arrow">▼</span></h2>
     <div class="collapsible-content" id="register-content">
-        <div class="form-group" style="margin-top: 20px;">
-            <label for="search-input">Cerca nel registro:</label>
-            <input type="text" id="search-input" placeholder="Cerca per data, luogo o note...">
+        <div class="form-group">
+            <label for="search">Cerca:</label>
+            <input type="text" id="search" placeholder="Cerca per data, luogo, note...">
         </div>
-        <div class="form-group" style="margin-top: 20px;">
-            <label for="filter-month-year">Filtra per Mese(i) o Anno:</label>
-            <div class="export-options-container">
-                <select id="filter-year">
-                    <option value="">Tutti gli Anni</option>
-                </select>
-                <div class="multiselect-dropdown" id="filter-month-container">
-                    <div class="multiselect-selected">Tutti i Mesi</div>
-                    <div class="multiselect-options" id="filter-month-options"></div>
-                </div>
+        <div class="export-options-container">
+            <select id="filterYearSelect">
+                <option value="">Tutti gli Anni</option>
+            </select>
+            <div id="filterMonthContainer" class="multiselect-dropdown">
+                <div class="multiselect-selected">Tutti i Mesi</div>
+                <div id="filterMonthOptions" class="multiselect-options"></div>
             </div>
         </div>
         <div class="table-container">
@@ -627,12 +620,12 @@
                         <th>Inizio</th>
                         <th>Fine</th>
                         <th>Assenza</th>
-                        <th>Totali</th>
-                        <th>Str.</th>
+                        <th>Ore Tot.</th>
+                        <th>Ore Str.</th>
                         <th>Modalità</th>
                         <th>Luogo</th>
                         <th>Note</th>
-                        <th>Azione</th>
+                        <th>Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -643,48 +636,62 @@
     
     <hr>
     
-    <h2>Esporta e gestisci i dati</h2>
-    
-    <div class="form-group" style="margin-top: 20px;">
-        <label>Esporta un periodo specifico:</label>
+    <h2 class="collapsible-header" id="toggle-export">📤 Esporta Dati <span class="arrow">▼</span></h2>
+    <div class="collapsible-content" id="export-content">
+        <p>Esporta il registro in formato CSV o PDF. Seleziona anno e mesi specifici o esporta tutto.</p>
         <div class="export-options-container">
-            <select id="export-year">
+            <select id="exportYearSelect">
                 <option value="">Seleziona Anno</option>
             </select>
-            <div class="multiselect-dropdown" id="multiselect-month-container">
-                <div class="multiselect-selected">Seleziona Mese(i)</div>
-                <div class="multiselect-options" id="multiselect-month-options"></div>
+            <div id="multiselect-month-container" class="multiselect-dropdown disabled">
+                <div class="multiselect-selected">Seleziona Mesi</div>
+                <div id="multiselect-month-options" class="multiselect-options"></div>
             </div>
         </div>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-selected-btn" class="btn btn-green">Esporta in CSV</button>
-        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta in PDF</button>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-all-btn" class="btn btn-green">Esporta tutto in CSV</button>
-        <button id="export-pdf-btn" class="btn btn-pdf">Esporta tutto in PDF</button>
-    </div>
-    
-    <div class="button-group-responsive" style="margin-top: 20px;">
-        <button id="export-data-btn" class="btn btn-backup">Crea Backup</button>
-        <button id="import-data-btn" class="btn btn-backup">Importa Backup</button>
+        <div class="button-group-responsive">
+            <button id="export-selected-btn" class="btn btn-green">📄 Esporta CSV Selezionato</button>
+            <button id="export-selected-pdf-btn" class="btn btn-pdf">📄 Esporta PDF Selezionato</button>
+            <button id="export-all-btn" class="btn btn-green">📄 Esporta Tutto CSV</button>
+            <button id="export-pdf-btn" class="btn btn-pdf">📄 Esporta Tutto PDF</button>
+        </div>
+        <button id="export-data-btn" class="btn btn-backup">💾 Backup Dati (JSON)</button>
+        <button id="import-data-btn" class="btn btn-backup">📥 Importa Backup</button>
         <input type="file" id="import-file" accept=".json" style="display: none;">
     </div>
     
+    <div id="notification"></div>
 </div>
 
-<div id="notification"></div>
+<script type="module">
+    // Firebase imports and initialization
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Selezioni elementi del DOM
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8gbRE-a8U7ed9IuHIXgxWFj-PEe6_Vg4",
+        authDomain: "orari-ts.firebaseapp.com",
+        databaseURL: "https://orari-ts-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "orari-ts",
+        storageBucket: "orari-ts.firebasestorage.app",
+        messagingSenderId: "375795078333",
+        appId: "1:375795078333:web:803f281017af9144e813d4",
+        measurementId: "G-J2H4KV35T1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // Original script with modifications for Firebase
+    const STORAGE_KEY = 'registroLavoro';
+    const SETTINGS_KEY = 'registroSettings';
+    let registerData = {};
+    let currentUser = null;
+
     const dateInput = document.getElementById('date');
     const workModeSelect = document.getElementById('workModeSelect');
     const absenceTypeSelect = document.getElementById('absenceType');
-    const workFields = document.getElementById('work-fields');
     const startTimeDisplay = document.getElementById('startTimeDisplay');
     const startTimeOptions = document.getElementById('startTimeOptions');
     const endTimeDisplay = document.getElementById('endTimeDisplay');
@@ -695,544 +702,365 @@
     const totalHoursSpan = document.getElementById('totalHours');
     const overtimeHoursSpan = document.getElementById('overtimeHours');
     const absenceHoursSpan = document.getElementById('absenceHours');
-    const totalHoursContainer = document.getElementById('totalHoursContainer');
-    const overtimeHoursContainer = document.getElementById('overtimeHoursContainer');
     const absenceHoursContainer = document.getElementById('absenceHoursContainer');
     const saveButton = document.getElementById('save-btn');
-    const registerBody = document.querySelector('#register-table tbody');
-    const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
-    const locationDatalist = document.getElementById('location-suggestions');
-    const toggleRegisterHeader = document.getElementById('toggle-register');
-    const registerContent = document.getElementById('register-content');
     const notification = document.getElementById('notification');
-    const searchInput = document.getElementById('search-input');
-    const standardWorkDay = 8;
-    const standardStartTime = '08:00';
-    const standardEndTime = '17:00';
-    let registerData = [];
-    
-    // Variabili per i calcoli economici (ora personalizzabili)
-    let grossBaseSalary = 3480.79;
-    let overtimeRate = 21.53; // Straordinario 25%
-    let overtimeRate50 = 25.00; // NUOVO: Straordinario 50%
-    let tripAllowanceReturn = 46.48;
-    let tripAllowanceOvernight = 60.00;
-    let tripAllowanceAbroad = 75.00; // NUOVO: Diaria Estero
-    let taxRate = 0.30;
-    const socialSecurityRate = 0.0949;
-    
-    // Elementi del menu impostazioni
-    const toggleSettingsHeader = document.getElementById('toggle-settings');
-    const settingsContent = document.getElementById('settings-content');
+    const monthlyChartCanvas = document.getElementById('monthlyChart');
     const grossBaseSalaryInput = document.getElementById('grossBaseSalaryInput');
     const overtimeRateInput = document.getElementById('overtimeRateInput');
-    const overtimeRate50Input = document.getElementById('overtimeRate50Input'); // NUOVO
+    const overtimeRate50Input = document.getElementById('overtimeRate50Input');
     const tripAllowanceReturnInput = document.getElementById('tripAllowanceReturnInput');
     const tripAllowanceOvernightInput = document.getElementById('tripAllowanceOvernightInput');
-    const tripAllowanceAbroadInput = document.getElementById('tripAllowanceAbroadInput'); // NUOVO
+    const tripAllowanceAbroadInput = document.getElementById('tripAllowanceAbroadInput');
     const taxRateInput = document.getElementById('taxRateInput');
-
-    // Chiavi per localStorage
-    const STORAGE_KEY = 'registroOrario';
-    const SETTINGS_KEY = 'registroSettings';
-
-    // Elementi di esportazione e filtro
-    const exportYearSelect = document.getElementById('export-year');
+    const grossBaseSalarySpan = document.getElementById('grossBaseSalary');
+    const grossTripAllowanceSpan = document.getElementById('grossTripAllowance');
+    const grossOvertime25Span = document.getElementById('grossOvertime25');
+    const grossOvertime50Span = document.getElementById('grossOvertime50');
+    const totalGrossSpan = document.getElementById('totalGross');
+    const totalNetSpan = document.getElementById('totalNet');
+    const searchInput = document.getElementById('search');
+    const filterYearSelect = document.getElementById('filterYearSelect');
+    const filterMonthContainer = document.getElementById('filterMonthContainer');
+    const filterMonthOptions = document.getElementById('filterMonthOptions');
+    const registerBody = document.querySelector('#register-table tbody');
+    const monthlySummaryBody = document.querySelector('#monthly-summary-table tbody');
+    const toggleRegisterHeader = document.getElementById('toggle-register');
+    const toggleSettingsHeader = document.getElementById('toggle-settings');
+    const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
+    const toggleExportHeader = document.getElementById('toggle-export');
+    const exportYearSelect = document.getElementById('exportYearSelect');
     const multiselectMonthContainer = document.getElementById('multiselect-month-container');
-    const multiselectMonthSelected = document.querySelector('#multiselect-month-container .multiselect-selected');
     const multiselectMonthOptions = document.getElementById('multiselect-month-options');
     const exportSelectedButton = document.getElementById('export-selected-btn');
-    const exportSelectedPdfButton = document.getElementById('export-selected-pdf-btn');
     const exportAllButton = document.getElementById('export-all-btn');
     const exportPdfButton = document.getElementById('export-pdf-btn');
-    const filterYearSelect = document.getElementById('filter-year');
-    const filterMonthContainer = document.getElementById('filter-month-container');
-    const filterMonthSelected = document.querySelector('#filter-month-container .multiselect-selected');
-    const filterMonthOptions = document.getElementById('filter-month-options');
+    const exportSelectedPdfButton = document.getElementById('export-selected-pdf-btn');
     const exportDataBtn = document.getElementById('export-data-btn');
     const importDataBtn = document.getElementById('import-data-btn');
     const importFile = document.getElementById('import-file');
-    
-    // Elementi del grafico
-    const monthlyChartCanvas = document.getElementById('monthlyChart');
+    const locationSuggestions = document.getElementById('location-suggestions');
+
+    let grossBaseSalary = 0;
+    let overtimeRate = 0;
+    let overtimeRate50 = 0;
+    let tripAllowanceReturn = 0;
+    let tripAllowanceOvernight = 0;
+    let tripAllowanceAbroad = 0;
+    let taxRate = 0;
+
     let monthlyChart = null;
 
-    // Elementi del riepilogo lordo/netto
-    const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
-    const grossNetContent = document.getElementById('gross-net-content');
-    const grossNetBody = document.querySelector('#gross-net-table tbody');
-
-    // Funzioni di utilità
-    function showNotification(message, type) {
-        notification.innerHTML = message;
-        notification.className = '';
-        notification.classList.add('show', type);
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 8000);
-    }
-
     function generateTimeOptions() {
-        let optionsHtml = '';
-        for (let h = 0; h < 24; h++) {
-            for (let m = 0; m < 60; m += 30) {
-                const hour = String(h).padStart(2, '0');
-                const minute = String(m).padStart(2, '0');
-                const time = `${hour}:${minute}`;
-                optionsHtml += `<div class="time-option" data-value="${time}">${time}</div>`;
+        const times = [];
+        for (let hour = 0; hour < 24; hour++) {
+            for (let minute = 0; minute < 60; minute += 15) {
+                const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                times.push(timeStr);
             }
         }
+        const optionsHtml = times.map(time => `<div class="time-option" data-value="${time}">${time}</div>`).join('');
         startTimeOptions.innerHTML = optionsHtml;
         endTimeOptions.innerHTML = optionsHtml;
     }
 
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const [year, month, day] = dateString.split('-');
-        return `${day}-${month}-${year.substring(2)}`;
-    }
-
-    function setTimeDropdown(display, options, time) {
-        display.textContent = time;
-        display.setAttribute('data-value', time);
+    function setTimeDropdown(display, options, value) {
+        display.textContent = value;
+        display.setAttribute('data-value', value);
         options.querySelectorAll('.time-option').forEach(option => {
-            if (option.getAttribute('data-value') === time) {
-                option.classList.add('selected');
-            } else {
-                option.classList.remove('selected');
-            }
+            option.classList.toggle('selected', option.getAttribute('data-value') === value);
         });
     }
 
-    function clearTimeDropdowns() {
-        setTimeDropdown(startTimeDisplay, startTimeOptions, 'Seleziona orario');
-        startTimeDisplay.setAttribute('data-value', '');
-        setTimeDropdown(endTimeDisplay, endTimeOptions, 'Seleziona orario');
-        endTimeDisplay.setAttribute('data-value', '');
-    }
-
     function calculateHours() {
-        const absenceType = absenceTypeSelect.value;
+        const date = dateInput.value;
         const startTime = startTimeDisplay.getAttribute('data-value');
         const endTime = endTimeDisplay.getAttribute('data-value');
         const lunchBreak = lunchBreakCheckbox.checked;
+        const absenceType = absenceTypeSelect.value;
 
-        if (absenceType) {
+        if (!date || (!absenceType && (!startTime || !endTime))) {
             totalHoursSpan.textContent = '0';
             overtimeHoursSpan.textContent = '0';
-            absenceHoursSpan.textContent = '8';
-            totalHoursContainer.style.display = 'none';
-            overtimeHoursContainer.style.display = 'none';
-            absenceHoursContainer.style.display = 'block';
+            absenceHoursContainer.style.display = 'none';
             return;
         }
-        
-        totalHoursContainer.style.display = 'block';
-        overtimeHoursContainer.style.display = 'block';
-        absenceHoursContainer.style.display = 'none';
 
-        if (startTime && endTime && dateInput.value) {
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-            if (end < start) {
-                end.setDate(end.getDate() + 1);
-            }
-            let totalMilliseconds = end - start;
-            let totalHours = totalMilliseconds / (1000 * 60 * 60);
-            if (lunchBreak) {
-                totalHours -= 1;
-            }
-            totalHours = Math.max(0, totalHours);
-            
-            const totalHoursFixed = totalHours.toFixed(2);
-            totalHoursSpan.textContent = totalHoursFixed;
-            
-            // Logica Sabato/Domenica
-            const dayOfWeek = new Date(dateInput.value + 'T12:00:00').getDay();
-            const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
-            let overtimeHours = 0;
-            
-            if (isWeekend) {
-                overtimeHours = totalHours;
-                overtimeHoursContainer.querySelector('strong').textContent = 'Ore straordinarie (50%):';
-            } else {
-                if (totalHours > standardWorkDay) {
-                    overtimeHours = totalHours - standardWorkDay;
-                }
-                overtimeHoursContainer.querySelector('strong').textContent = 'Ore straordinarie:';
-            }
-            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
-
-        } else {
+        if (absenceType) {
+            absenceHoursContainer.style.display = 'block';
+            absenceHoursSpan.textContent = '8';
             totalHoursSpan.textContent = '0';
             overtimeHoursSpan.textContent = '0';
+            return;
+        } else {
+            absenceHoursContainer.style.display = 'none';
         }
+
+        const [startHour, startMinute] = startTime.split(':').map(Number);
+        const [endHour, endMinute] = endTime.split(':').map(Number);
+
+        const startDate = new Date(2000, 0, 1, startHour, startMinute);
+        const endDate = new Date(2000, 0, 1, endHour, endMinute);
+
+        if (endDate <= startDate) {
+            endDate.setDate(endDate.getDate() + 1);
+        }
+
+        let totalMinutes = (endDate - startDate) / (1000 * 60);
+        if (lunchBreak) totalMinutes -= 60;
+
+        const totalHours = totalMinutes / 60;
+        let overtimeHours = Math.max(totalHours - 8, 0);
+
+        totalHoursSpan.textContent = totalHours.toFixed(2);
+        overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
     }
 
-    function createRow(entry) {
-        const row = document.createElement('tr');
-        row.setAttribute('data-date', entry.date);
-        const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
-        row.innerHTML = `
-            <td>${formatDate(entry.date)}</td>
-            <td>${entry.startTime || '-'}</td>
-            <td>${entry.endTime || '-'}</td>
-            <td>${entry.absenceType || '-'}</td>
-            <td>${entry.totalHours.toFixed(2)}</td>
-            <td>${totalOvertime.toFixed(2)}</td>
-            <td>${entry.workMode || '-'}</td>
-            <td>${entry.location}</td>
-            <td>${entry.notes || ''}</td>
-            <td class="action-buttons-cell">
-                <button class="btn-small btn-edit" data-date="${entry.date}">✏️</button>
-                <button class="btn-small btn-delete" data-date="${entry.date}">🗑️</button>
-            </td>
-        `;
-        return row;
+    function showNotification(message, type) {
+        notification.textContent = message;
+        notification.classList.remove('success', 'error');
+        notification.classList.add(type, 'show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
     }
 
     function saveEntry() {
         const date = dateInput.value;
         if (!date) {
-            showNotification('Per favore, seleziona una data.', 'error');
+            showNotification('Seleziona una data.', 'error');
             return;
         }
 
-        const absenceType = absenceTypeSelect.value;
-        const workMode = workModeSelect.value;
-        let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours, absenceHours;
-        let overtimeHours50 = 0;
-
-        if (absenceType) {
-            startTime = standardStartTime;
-            endTime = standardEndTime;
-            lunchBreak = true;
-            location = locationInput.value || 'Assenza';
-            notes = notesInput.value;
-            totalHours = 0;
-            overtimeHours = 0;
-            absenceHours = 8;
-        } else {
-            startTime = startTimeDisplay.getAttribute('data-value');
-            endTime = endTimeDisplay.getAttribute('data-value');
-            if (!startTime || !endTime || !workMode) {
-                showNotification('Per favore, compila tutti i campi richiesti.', 'error');
-                return;
-            }
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-            if (end < start) {
-                showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
-                return;
-            }
-
-            lunchBreak = lunchBreakCheckbox.checked;
-            location = locationInput.value;
-            notes = notesInput.value;
-            totalHours = parseFloat(totalHoursSpan.textContent);
-            absenceHours = 0;
-            
-            // Logica Sabato/Domenica
-            const dayOfWeek = new Date(date + 'T12:00:00').getDay();
-            const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
-
-            if (isWeekend) {
-                overtimeHours50 = totalHours;
-                overtimeHours = 0;
-            } else {
-                overtimeHours = totalHours > standardWorkDay ? totalHours - standardWorkDay : 0;
-            }
-        }
-        
-        saveButton.classList.add('saved');
-
-        const newEntry = {
-            date: date,
-            startTime: startTime,
-            endTime: endTime,
-            totalHours: totalHours,
-            overtimeHours: overtimeHours,
-            overtimeHours50: overtimeHours50, // Campo per straordinari 50%
-            workMode: workMode,
-            lunchBreak: lunchBreak,
-            location: location,
-            notes: notes,
-            absenceType: absenceType,
-            absenceHours: absenceHours
+        const entry = {
+            date,
+            workMode: workModeSelect.value,
+            absenceType: absenceTypeSelect.value,
+            startTime: startTimeDisplay.getAttribute('data-value'),
+            endTime: endTimeDisplay.getAttribute('data-value'),
+            lunchBreak: lunchBreakCheckbox.checked,
+            location: locationInput.value,
+            notes: notesInput.value,
+            totalHours: parseFloat(totalHoursSpan.textContent),
+            overtimeHours: parseFloat(overtimeHoursSpan.textContent)
         };
 
-        const existingIndex = registerData.findIndex(entry => entry.date === date);
-        if (existingIndex !== -1) {
-            registerData[existingIndex] = newEntry;
-        } else {
-            registerData.push(newEntry);
-        }
-        registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-        } catch (e) {
-            showNotification('ERRORE: Impossibile salvare i dati.', 'error');
-            console.error(e);
-            return;
-        }
+        registerData[date] = entry;
+        saveDataToFirebase();
+
+        showNotification('Dati salvati!', 'success');
+        saveButton.classList.add('saved');
+        setTimeout(() => saveButton.classList.remove('saved'), 1000);
+
         renderAllData();
-        showNotification('Dati salvati nel registro!', 'success');
-        
-        setTimeout(() => {
-            saveButton.classList.remove('saved');
-            dateInput.value = new Date().toISOString().split('T')[0];
-            workModeSelect.value = '';
-            absenceTypeSelect.value = '';
-            clearTimeDropdowns();
-            lunchBreakCheckbox.checked = false;
-            locationInput.value = '';
-            notesInput.value = '';
-            calculateHours();
-        }, 1000);
+        clearForm();
     }
 
-    function deleteEntry(date) {
-        if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
-            registerData = registerData.filter(entry => entry.date !== date);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-            renderAllData();
-            showNotification('Dato cancellato.', 'success');
-        }
+    function clearForm() {
+        workModeSelect.value = '';
+        absenceTypeSelect.value = '';
+        setTimeDropdown(startTimeDisplay, startTimeOptions, '');
+        setTimeDropdown(endTimeDisplay, endTimeOptions, '');
+        lunchBreakCheckbox.checked = false;
+        locationInput.value = '';
+        notesInput.value = '';
+        calculateHours();
     }
 
     function editEntry(date) {
-        const entryToEdit = registerData.find(entry => entry.date === date);
-        if (entryToEdit) {
-            dateInput.value = entryToEdit.date;
-            workModeSelect.value = entryToEdit.workMode || '';
-            absenceTypeSelect.value = entryToEdit.absenceType || '';
-            
-            if (entryToEdit.startTime) setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime);
-            if (entryToEdit.endTime) setTimeDropdown(endTimeDisplay, endTimeOptions, entryToEdit.endTime);
-            
-            lunchBreakCheckbox.checked = entryToEdit.lunchBreak || false;
-            locationInput.value = entryToEdit.location || '';
-            notesInput.value = entryToEdit.notes || '';
-            
-            calculateHours();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        const entry = registerData[date];
+        if (!entry) return;
+
+        dateInput.value = entry.date;
+        workModeSelect.value = entry.workMode || '';
+        absenceTypeSelect.value = entry.absenceType || '';
+        setTimeDropdown(startTimeDisplay, startTimeOptions, entry.startTime || '');
+        setTimeDropdown(endTimeDisplay, endTimeOptions, entry.endTime || '');
+        lunchBreakCheckbox.checked = entry.lunchBreak || false;
+        locationInput.value = entry.location || '';
+        notesInput.value = entry.notes || '';
+        calculateHours();
+
+        deleteEntry(date, false);
     }
 
-    function renderRegisterTable(data) {
+    function deleteEntry(date, confirm = true) {
+        if (confirm && !window.confirm('Sicuro di voler eliminare questa voce?')) return;
+
+        delete registerData[date];
+        saveDataToFirebase();
+        renderAllData();
+        if (confirm) showNotification('Voce eliminata.', 'success');
+    }
+
+    function renderRegister() {
         registerBody.innerHTML = '';
-        if (data.length === 0) {
-            const noDataRow = document.createElement('tr');
-            noDataRow.innerHTML = `<td colspan="10" style="text-align:center;">Nessun dato presente nel registro.</td>`;
-            registerBody.appendChild(noDataRow);
-            return;
-        }
-        data.forEach(entry => {
-            const row = createRow(entry);
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedYear = filterYearSelect.value;
+        const selectedMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
+
+        const filteredData = Object.entries(registerData)
+            .filter(([date, entry]) => {
+                const entryDate = new Date(date);
+                const yearMatch = !selectedYear || date.startsWith(selectedYear);
+                const monthMatch = selectedMonths.length === 0 || selectedMonths.includes(date.substring(5, 7));
+                const searchMatch = !searchTerm ||
+                    date.toLowerCase().includes(searchTerm) ||
+                    (entry.location && entry.location.toLowerCase().includes(searchTerm)) ||
+                    (entry.notes && entry.notes.toLowerCase().includes(searchTerm)) ||
+                    (entry.workMode && entry.workMode.toLowerCase().includes(searchTerm)) ||
+                    (entry.absenceType && entry.absenceType.toLowerCase().includes(searchTerm));
+                return yearMatch && monthMatch && searchMatch;
+            })
+            .sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+        filteredData.forEach(([date, entry], index) => {
+            const row = document.createElement('tr');
+            row.style.animationDelay = `${index * 0.05}s`;
+            const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
+            row.innerHTML = `
+                <td>${formatDate(date)}</td>
+                <td>${entry.startTime || '-'}</td>
+                <td>${entry.endTime || '-'}</td>
+                <td>${entry.absenceType || '-'}</td>
+                <td>${entry.totalHours.toFixed(2)}</td>
+                <td>${totalOvertime.toFixed(2)}</td>
+                <td>${entry.workMode || '-'}</td>
+                <td>${entry.location || ''}</td>
+                <td>${entry.notes || ''}</td>
+                <td class="action-buttons-cell">
+                    <button class="btn btn-small btn-edit" data-date="${date}">✏️</button>
+                    <button class="btn btn-small btn-delete" data-date="${date}">🗑️</button>
+                </td>
+            `;
             registerBody.appendChild(row);
         });
     }
 
-    function updateMonthlySummary() {
+    function formatDate(dateStr) {
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+    }
+
+    function renderMonthlySummary() {
         const monthlySummary = {};
-        const locations = new Set();
-        registerData.forEach(entry => {
+        Object.values(registerData).forEach(entry => {
             const monthYear = entry.date.substring(0, 7);
             if (!monthlySummary[monthYear]) {
-                monthlySummary[monthYear] = {
-                    totalHours: 0,
-                    overtimeHours: 0,
-                    onSiteCount: 0,
-                    returnTripCount: 0,
-                    overnightTripCount: 0,
-                    abroadTripCount: 0,
-                    absenceCount: 0
-                };
+                monthlySummary[monthYear] = { totalHours: 0, overtimeHours: 0, tripCount: 0, onSiteCount: 0, absenceCount: 0 };
             }
             monthlySummary[monthYear].totalHours += entry.totalHours;
             monthlySummary[monthYear].overtimeHours += (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
+            if (entry.workMode && entry.workMode !== 'In Sede') monthlySummary[monthYear].tripCount++;
             if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
-            if (entry.workMode === 'Rientro') monthlySummary[monthYear].returnTripCount++;
-            if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].overnightTripCount++;
-            if (entry.workMode === 'Estero') monthlySummary[monthYear].abroadTripCount++;
             if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
-            if (entry.location) locations.add(entry.location);
         });
 
-        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
         monthlySummaryBody.innerHTML = '';
-        sortedMonths.forEach(monthYear => {
+        Object.keys(monthlySummary).sort().reverse().forEach(monthYear => {
             const summary = monthlySummary[monthYear];
             const [year, month] = monthYear.split('-');
-            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            const totalTrips = summary.returnTripCount + summary.overnightTripCount + summary.abroadTripCount;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
-                <td>${summary.totalHours.toFixed(2)}</td>
-                <td>${summary.overtimeHours.toFixed(2)}</td>
-                <td>${totalTrips}</td>
-                <td>${summary.onSiteCount}</td>
-                <td>${summary.absenceCount}</td>
+            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long' });
+            const row = `
+                <tr>
+                    <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}</td>
+                    <td>${summary.totalHours.toFixed(2)}</td>
+                    <td>${summary.overtimeHours.toFixed(2)}</td>
+                    <td>${summary.tripCount}</td>
+                    <td>${summary.onSiteCount}</td>
+                    <td>${summary.absenceCount}</td>
+                </tr>
             `;
-            monthlySummaryBody.appendChild(row);
+            monthlySummaryBody.innerHTML += row;
+        });
+    }
+
+    function renderChart() {
+        const monthlyData = {};
+        Object.values(registerData).forEach(entry => {
+            const monthYear = entry.date.substring(0, 7);
+            if (!monthlyData[monthYear]) {
+                monthlyData[monthYear] = { totalHours: 0, overtimeHours: 0 };
+            }
+            monthlyData[monthYear].totalHours += entry.totalHours;
+            monthlyData[monthYear].overtimeHours += (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
         });
 
-        const sortedLocations = [...locations].sort();
-        locationDatalist.innerHTML = sortedLocations.map(loc => `<option value="${loc}"></option>`).join('');
-        updateChart(monthlySummary);
+        const labels = Object.keys(monthlyData).sort().map(monthYear => {
+            const [year, month] = monthYear.split('-');
+            return new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'short', year: 'numeric' });
+        });
+        const totalHoursData = labels.map(label => {
+            const monthYear = `${label.split(' ')[1]}-${label.split(' ')[0].toLowerCase() === 'gen' ? '01' : '...'}`; // Simplified
+            return monthlyData[monthYear]?.totalHours || 0;
+        });
+        const overtimeData = labels.map(label => {
+            const monthYear = `${label.split(' ')[1]}-${label.split(' ')[0].toLowerCase() === 'gen' ? '01' : '...'}`; // Simplified
+            return monthlyData[monthYear]?.overtimeHours || 0;
+        });
+
+        if (monthlyChart) monthlyChart.destroy();
+        monthlyChart = new Chart(monthlyChartCanvas, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Ore Totali', data: totalHoursData, backgroundColor: '#00a2e3' },
+                    { label: 'Ore Straordinarie', data: overtimeData, backgroundColor: '#ff6384' }
+                ]
+            },
+            options: {
+                scales: { y: { beginAtZero: true } },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
     }
 
     function calculateGrossNetSummary() {
-        const monthlySummary = {};
-        registerData.forEach(entry => {
-            const monthYear = entry.date.substring(0, 7);
-            if (!monthlySummary[monthYear]) {
-                monthlySummary[monthYear] = {
-                    totalOvertimeHours: 0,
-                    totalOvertimeHours50: 0,
-                    totalReturnTripCount: 0,
-                    totalOvernightTripCount: 0,
-                    totalAbroadTripCount: 0
-                };
-            }
-            monthlySummary[monthYear].totalOvertimeHours += entry.overtimeHours || 0;
-            monthlySummary[monthYear].totalOvertimeHours50 += entry.overtimeHours50 || 0;
-            if (entry.workMode === 'Rientro') monthlySummary[monthYear].totalReturnTripCount++;
-            if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalOvernightTripCount++;
-            if (entry.workMode === 'Estero') monthlySummary[monthYear].totalAbroadTripCount++;
+        let totalGross = grossBaseSalary;
+        let tripAllowance = 0;
+        let overtime25 = 0;
+        let overtime50 = 0;
+
+        Object.values(registerData).forEach(entry => {
+            if (entry.workMode === 'Rientro') tripAllowance += tripAllowanceReturn;
+            else if (entry.workMode === 'Pernottamento') tripAllowance += tripAllowanceOvernight;
+            else if (entry.workMode === 'Estero') tripAllowance += tripAllowanceAbroad;
+
+            overtime25 += (entry.overtimeHours || 0) * overtimeRate;
+            overtime50 += (entry.overtimeHours50 || 0) * overtimeRate50;
         });
 
-        const sortedMonths = Object.keys(monthlySummary).sort().reverse();
-        grossNetBody.innerHTML = '';
-        sortedMonths.forEach(monthYear => {
-            const summary = monthlySummary[monthYear];
-            const [year, month] = monthYear.split('-');
-            const monthName = new Date(year, month - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            
-            const grossOvertime = summary.totalOvertimeHours * overtimeRate;
-            const grossOvertime50 = summary.totalOvertimeHours50 * overtimeRate50;
-            const grossReturnTripAllowance = summary.totalReturnTripCount * tripAllowanceReturn;
-            const grossOvernightTripAllowance = summary.totalOvernightTripCount * tripAllowanceOvernight;
-            const grossAbroadTripAllowance = summary.totalAbroadTripCount * tripAllowanceAbroad;
-            
-            const totalGross = grossBaseSalary + grossOvertime + grossOvertime50 + grossReturnTripAllowance + grossOvernightTripAllowance + grossAbroadTripAllowance;
-            
-            const afterSocialSecurity = totalGross - (totalGross * socialSecurityRate);
-            const netIncome = afterSocialSecurity - (afterSocialSecurity * taxRate);
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
-                <td>€ ${totalGross.toFixed(2)}</td>
-                <td>€ ${netIncome.toFixed(2)}</td>
-            `;
-            grossNetBody.appendChild(row);
-        });
+        totalGross += tripAllowance + overtime25 + overtime50;
+        const totalNet = totalGross * (1 - taxRate);
+
+        grossBaseSalarySpan.textContent = grossBaseSalary.toFixed(2) + ' €';
+        grossTripAllowanceSpan.textContent = tripAllowance.toFixed(2) + ' €';
+        grossOvertime25Span.textContent = overtime25.toFixed(2) + ' €';
+        grossOvertime50Span.textContent = overtime50.toFixed(2) + ' €';
+        totalGrossSpan.textContent = totalGross.toFixed(2) + ' €';
+        totalNetSpan.textContent = totalNet.toFixed(2) + ' €';
     }
 
-    function loadData() {
-        try {
-            const storedData = localStorage.getItem(STORAGE_KEY);
-            if (storedData) {
-                registerData = JSON.parse(storedData);
-            }
-            const storedSettings = localStorage.getItem(SETTINGS_KEY);
-            if (storedSettings) {
-                const settings = JSON.parse(storedSettings);
-                grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
-                overtimeRate = settings.overtimeRate || overtimeRate;
-                overtimeRate50 = settings.overtimeRate50 || overtimeRate50;
-                tripAllowanceReturn = settings.tripAllowanceReturn || tripAllowanceReturn;
-                tripAllowanceOvernight = settings.tripAllowanceOvernight || tripAllowanceOvernight;
-                tripAllowanceAbroad = settings.tripAllowanceAbroad || tripAllowanceAbroad;
-                taxRate = settings.taxRate || taxRate;
-            }
-            loadSettings();
-            renderAllData();
-        } catch (e) {
-            showNotification('ERRORE: Impossibile caricare i dati. Il backup potrebbe essere corrotto.', 'error');
-            console.error(e);
-        }
+    function updateLocationSuggestions() {
+        const locations = [...new Set(Object.values(registerData).map(entry => entry.location).filter(Boolean))];
+        locationSuggestions.innerHTML = locations.map(loc => `<option value="${loc}">`).join('');
     }
 
     function renderAllData() {
-        renderRegisterTable(registerData);
-        updateMonthlySummary();
+        renderRegister();
+        renderMonthlySummary();
+        renderChart();
         calculateGrossNetSummary();
-        updateFilterOptions();
-        updateExportOptions();
+        updateLocationSuggestions();
+        updateFilterExportOptions();
     }
 
-    function updateChart(monthlySummary) {
-        const sortedMonths = Object.keys(monthlySummary).sort();
-        const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
-        const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
-        const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].returnTripCount + monthlySummary[monthYear].overnightTripCount + monthlySummary[monthYear].abroadTripCount);
-        const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
-
-        if (monthlyChart) {
-            monthlyChart.destroy();
-        }
-
-        const data = {
-            labels: labels,
-            datasets: [{
-                label: 'In Sede',
-                data: onSiteCounts,
-                backgroundColor: 'rgba(0, 162, 227, 0.7)',
-                borderColor: 'rgba(0, 162, 227, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Trasferta',
-                data: tripCounts,
-                backgroundColor: 'rgba(255, 165, 0, 0.7)',
-                borderColor: 'rgba(255, 165, 0, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Assenza',
-                data: absenceCounts,
-                backgroundColor: 'rgba(220, 53, 69, 0.7)',
-                borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 1
-            }]
-        };
-
-        const config = {
-            type: 'bar',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { x: { stacked: false }, y: { beginAtZero: true, stacked: false, title: { display: true, text: 'Numero di Giorni' } } }
-            }
-        };
-
-        monthlyChart = new Chart(monthlyChartCanvas, config);
-    }
-    
     function filterRegister() {
-        const query = searchInput.value.toLowerCase();
-        const selectedYear = filterYearSelect.value;
-        const selectedMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
-
-        const filteredData = registerData.filter(entry => {
-            const matchQuery = !query || 
-                                formatDate(entry.date).includes(query) || 
-                                (entry.location && entry.location.toLowerCase().includes(query)) || 
-                                (entry.notes && entry.notes.toLowerCase().includes(query));
-            const matchYear = !selectedYear || entry.date.startsWith(selectedYear);
-            const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(entry.date.substring(5, 7));
-            return matchQuery && matchYear && matchMonth;
-        });
-        renderRegisterTable(filteredData);
+        renderRegister();
     }
-    
-    function updateFilterOptions() {
-        const years = [...new Set(registerData.map(entry => entry.date.substring(0, 4)))].sort().reverse();
+
+    function updateFilterExportOptions() {
+        const years = [...new Set(Object.keys(registerData).map(date => date.substring(0, 4)))].sort().reverse();
         filterYearSelect.innerHTML = `<option value="">Tutti gli Anni</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
         exportYearSelect.innerHTML = `<option value="">Seleziona Anno</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
 
@@ -1392,8 +1220,6 @@
             tripAllowanceAbroad: parseFloat(tripAllowanceAbroadInput.value) || 0,
             taxRate: parseFloat(taxRateInput.value) / 100 || 0
         };
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-        
         grossBaseSalary = settings.grossBaseSalary;
         overtimeRate = settings.overtimeRate;
         overtimeRate50 = settings.overtimeRate50;
@@ -1402,19 +1228,42 @@
         tripAllowanceAbroad = settings.tripAllowanceAbroad;
         taxRate = settings.taxRate;
         
+        saveSettingsToFirebase(settings);
         calculateGrossNetSummary();
         showNotification('Impostazioni salvate!', 'success');
     }
     
-    function loadSettings() {
-        const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
-        grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
-        overtimeRateInput.value = storedSettings.overtimeRate || overtimeRate;
-        overtimeRate50Input.value = storedSettings.overtimeRate50 || overtimeRate50;
-        tripAllowanceReturnInput.value = storedSettings.tripAllowanceReturn || tripAllowanceReturn;
-        tripAllowanceOvernightInput.value = storedSettings.tripAllowanceOvernight || tripAllowanceOvernight;
-        tripAllowanceAbroadInput.value = storedSettings.tripAllowanceAbroad || tripAllowanceAbroad;
-        taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
+    function loadSettings(settings) {
+        grossBaseSalaryInput.value = settings.grossBaseSalary || grossBaseSalary;
+        overtimeRateInput.value = settings.overtimeRate || overtimeRate;
+        overtimeRate50Input.value = settings.overtimeRate50 || overtimeRate50;
+        tripAllowanceReturnInput.value = settings.tripAllowanceReturn || tripAllowanceReturn;
+        tripAllowanceOvernightInput.value = settings.tripAllowanceOvernight || tripAllowanceOvernight;
+        tripAllowanceAbroadInput.value = settings.tripAllowanceAbroad || tripAllowanceAbroad;
+        taxRateInput.value = (settings.taxRate * 100) || (taxRate * 100);
+
+        grossBaseSalary = parseFloat(grossBaseSalaryInput.value);
+        overtimeRate = parseFloat(overtimeRateInput.value);
+        overtimeRate50 = parseFloat(overtimeRate50Input.value);
+        tripAllowanceReturn = parseFloat(tripAllowanceReturnInput.value);
+        tripAllowanceOvernight = parseFloat(tripAllowanceOvernightInput.value);
+        tripAllowanceAbroad = parseFloat(tripAllowanceAbroadInput.value);
+        taxRate = parseFloat(taxRateInput.value) / 100;
+    }
+
+    // Firebase functions
+    function saveDataToFirebase() {
+        if (currentUser) {
+            const userRef = ref(db, 'users/' + currentUser.uid + '/registerData');
+            set(userRef, registerData);
+        }
+    }
+
+    function saveSettingsToFirebase(settings) {
+        if (currentUser) {
+            const settingsRef = ref(db, 'users/' + currentUser.uid + '/settings');
+            set(settingsRef, settings);
+        }
     }
 
     // Event Listeners
@@ -1504,7 +1353,7 @@
         }
     });
     
-    [toggleRegisterHeader, toggleSettingsHeader, toggleGrossNetHeader].forEach(header => {
+    [toggleRegisterHeader, toggleSettingsHeader, toggleGrossNetHeader, toggleExportHeader].forEach(header => {
         header.addEventListener('click', () => {
             const content = document.getElementById(header.id.replace('toggle-', '') + '-content');
             header.classList.toggle('open');
@@ -1543,7 +1392,7 @@
             showNotification('Seleziona un anno e almeno un mese per l\'esportazione.', 'error');
             return;
         }
-        const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
+        const filteredData = Object.values(registerData).filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
         if (filteredData.length > 0) {
             exportCsv(filteredData, `Registro_${year}_${months.join('-')}.csv`);
         } else {
@@ -1552,16 +1401,18 @@
     });
 
     exportAllButton.addEventListener('click', () => {
-        if (registerData.length > 0) {
-            exportCsv(registerData, 'Registro_Completo.csv');
+        const dataArray = Object.values(registerData);
+        if (dataArray.length > 0) {
+            exportCsv(dataArray, 'Registro_Completo.csv');
         } else {
             showNotification('Nessun dato da esportare.', 'error');
         }
     });
     
     exportPdfButton.addEventListener('click', () => {
-        if (registerData.length > 0) {
-            generatePdf(registerData);
+        const dataArray = Object.values(registerData);
+        if (dataArray.length > 0) {
+            generatePdf(dataArray);
         } else {
             showNotification('Nessun dato da esportare.', 'error');
         }
@@ -1574,7 +1425,7 @@
             showNotification('Seleziona un anno e almeno un mese per l\'esportazione.', 'error');
             return;
         }
-        const filteredData = registerData.filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
+        const filteredData = Object.values(registerData).filter(entry => entry.date.startsWith(year) && months.includes(entry.date.substring(5, 7)));
         if (filteredData.length > 0) {
             generatePdf(filteredData);
         } else {
@@ -1605,9 +1456,9 @@
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                if (Array.isArray(importedData)) {
+                if (typeof importedData === 'object' && importedData !== null) {
                     registerData = importedData;
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+                    saveDataToFirebase();
                     renderAllData();
                     showNotification('Dati importati con successo!', 'success');
                 } else {
@@ -1630,11 +1481,37 @@
         generateTimeOptions();
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
-        loadData();
         calculateHours();
     }
+
+    // Firebase auth state listener
+    onAuthStateChanged(auth, user => {
+        currentUser = user;
+        if (user) {
+            const userDataRef = ref(db, 'users/' + user.uid + '/registerData');
+            onValue(userDataRef, snapshot => {
+                registerData = snapshot.val() || {};
+                renderAllData();
+            });
+
+            const settingsRef = ref(db, 'users/' + user.uid + '/settings');
+            onValue(settingsRef, snapshot => {
+                const storedSettings = snapshot.val() || {};
+                loadSettings(storedSettings);
+                renderAllData();
+            });
+        } else {
+            // User not logged in, use empty data or local fallback if needed
+            registerData = {};
+            renderAllData();
+            showNotification('Non sei autenticato. I dati non saranno sincronizzati.', 'error');
+        }
+    });
+
     initialize();
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
