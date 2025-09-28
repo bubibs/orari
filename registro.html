@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro Orario Lavoro</title>
     <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f0f0f5;
             margin: 0;
             padding: 10px;
@@ -113,7 +114,9 @@
             box-shadow: 0 0 0 3px rgba(0, 162, 227, 0.3);
         }
         .time-display:after {
-            content: 'â¼';
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
             font-size: 12px;
         }
         .time-options {
@@ -392,7 +395,9 @@
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
         .multiselect-selected:after {
-            content: 'â¼';
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
             font-size: 12px;
             margin-left: auto;
             flex-shrink: 0;
@@ -458,7 +463,7 @@
     </div>
 
     <div class="form-group">
-        <label for="workModeSelect">ModalitÃ  di lavoro:</label>
+        <label for="workModeSelect">Modalità di lavoro:</label>
         <select id="workModeSelect">
             <option value="">Seleziona...</option>
             <option value="In Sede">In sede</option>
@@ -517,8 +522,8 @@
     </div>
     
     <button id="save-btn" class="btn btn-save-anim">
-        <span class="btn-text">ð¾ Salva</span>
-        <span class="btn-icon">â</span>
+        <span class="btn-text"><i class="fas fa-save"></i> Salva</span>
+        <span class="btn-icon"><i class="fas fa-check"></i></span>
     </button>
     
     <hr>
@@ -547,31 +552,31 @@
     
     <hr>
     
-    <h2 class="collapsible-header" id="toggle-settings">âï¸ Impostazioni Avanzate <span class="arrow">â¼</span></h2>
+    <h2 class="collapsible-header" id="toggle-settings"><i class="fas fa-cog"></i> Impostazioni Avanzate <span class="arrow"><i class="fas fa-chevron-down"></i></span></h2>
     <div class="collapsible-content" id="settings-content">
         <p>Modifica i valori usati per i calcoli economici. I cambiamenti verranno salvati.</p>
         <div class="form-group">
-            <label for="grossBaseSalaryInput">Paga Base Mensile Lorda (â¬):</label>
+            <label for="grossBaseSalaryInput">Paga Base Mensile Lorda (€):</label>
             <input type="number" id="grossBaseSalaryInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="overtimeRateInput">Paga Oraria Straordinario 25% (â¬):</label>
+            <label for="overtimeRateInput">Paga Oraria Straordinario 25% (€):</label>
             <input type="number" id="overtimeRateInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="overtimeRate50Input">Paga Oraria Straordinario 50% (â¬):</label>
+            <label for="overtimeRate50Input">Paga Oraria Straordinario 50% (€):</label>
             <input type="number" id="overtimeRate50Input" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceReturnInput">Diaria Trasferta Rientro (â¬):</label>
+            <label for="tripAllowanceReturnInput">Diaria Trasferta Rientro (€):</label>
             <input type="number" id="tripAllowanceReturnInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceOvernightInput">Diaria Trasferta Pernottamento (â¬):</label>
+            <label for="tripAllowanceOvernightInput">Diaria Trasferta Pernottamento (€):</label>
             <input type="number" id="tripAllowanceOvernightInput" step="0.01" min="0">
         </div>
         <div class="form-group">
-            <label for="tripAllowanceAbroadInput">Diaria Trasferta Estero (â¬):</label>
+            <label for="tripAllowanceAbroadInput">Diaria Trasferta Estero (€):</label>
             <input type="number" id="tripAllowanceAbroadInput" step="0.01" min="0">
         </div>
         <div class="form-group">
@@ -582,7 +587,7 @@
     
     <hr>
     
-    <h2 class="collapsible-header" id="toggle-gross-net">ð° Riepilogo Lordo/Netto <span class="arrow">â¼</span></h2>
+    <h2 class="collapsible-header" id="toggle-gross-net"><i class="fas fa-money-bill-wave"></i> Riepilogo Lordo/Netto <span class="arrow"><i class="fas fa-chevron-down"></i></span></h2>
     <div class="collapsible-content" id="gross-net-content">
         <div class="table-container">
             <table id="gross-net-table">
@@ -601,7 +606,7 @@
     
     <hr>
     
-    <h2 class="collapsible-header" id="toggle-register">Registro Completo <span class="arrow">â¼</span></h2>
+    <h2 class="collapsible-header" id="toggle-register"><i class="fas fa-clipboard"></i> Registro Completo <span class="arrow"><i class="fas fa-chevron-down"></i></span></h2>
     <div class="collapsible-content" id="register-content">
         <div class="form-group" style="margin-top: 20px;">
             <label for="search-input">Cerca nel registro:</label>
@@ -629,7 +634,7 @@
                         <th>Assenza</th>
                         <th>Totali</th>
                         <th>Str.</th>
-                        <th>ModalitÃ </th>
+                        <th>Modalità</th>
                         <th>Luogo</th>
                         <th>Note</th>
                         <th>Azione</th>
@@ -643,7 +648,7 @@
     
     <hr>
     
-    <h2>Esporta e gestisci i dati</h2>
+    <h2><i class="fas fa-file-export"></i> Esporta e gestisci i dati</h2>
     
     <div class="form-group" style="margin-top: 20px;">
         <label>Esporta un periodo specifico:</label>
@@ -658,17 +663,17 @@
         </div>
     </div>
     <div class="button-group-responsive">
-        <button id="export-selected-btn" class="btn btn-green">Esporta in CSV</button>
-        <button id="export-selected-pdf-btn" class="btn btn-pdf">Esporta in PDF</button>
+        <button id="export-selected-btn" class="btn btn-green"><i class="fas fa-file-csv"></i> Esporta in CSV</button>
+        <button id="export-selected-pdf-btn" class="btn btn-pdf"><i class="fas fa-file-pdf"></i> Esporta in PDF</button>
     </div>
     <div class="button-group-responsive">
-        <button id="export-all-btn" class="btn btn-green">Esporta tutto in CSV</button>
-        <button id="export-pdf-btn" class="btn btn-pdf">Esporta tutto in PDF</button>
+        <button id="export-all-btn" class="btn btn-green"><i class="fas fa-file-csv"></i> Esporta tutto in CSV</button>
+        <button id="export-pdf-btn" class="btn btn-pdf"><i class="fas fa-file-pdf"></i> Esporta tutto in PDF</button>
     </div>
     
     <div class="button-group-responsive" style="margin-top: 20px;">
-        <button id="export-data-btn" class="btn btn-backup">Crea Backup</button>
-        <button id="import-data-btn" class="btn btn-backup">Importa Backup</button>
+        <button id="export-data-btn" class="btn btn-backup"><i class="fas fa-download"></i> Crea Backup</button>
+        <button id="import-data-btn" class="btn btn-backup"><i class="fas fa-upload"></i> Importa Backup</button>
         <input type="file" id="import-file" accept=".json" style="display: none;">
     </div>
     
@@ -714,10 +719,10 @@
     // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79;
     let overtimeRate = 21.53; // Straordinario 25%
-    let overtimeRate50 = 25.00; // NUOVO: Straordinario 50%
+    let overtimeRate50 = 25.00; // Straordinario 50%
     let tripAllowanceReturn = 46.48;
     let tripAllowanceOvernight = 60.00;
-    let tripAllowanceAbroad = 75.00; // NUOVO: Diaria Estero
+    let tripAllowanceAbroad = 75.00; // Diaria Estero
     let taxRate = 0.30;
     const socialSecurityRate = 0.0949;
     
@@ -726,10 +731,10 @@
     const settingsContent = document.getElementById('settings-content');
     const grossBaseSalaryInput = document.getElementById('grossBaseSalaryInput');
     const overtimeRateInput = document.getElementById('overtimeRateInput');
-    const overtimeRate50Input = document.getElementById('overtimeRate50Input'); // NUOVO
+    const overtimeRate50Input = document.getElementById('overtimeRate50Input');
     const tripAllowanceReturnInput = document.getElementById('tripAllowanceReturnInput');
     const tripAllowanceOvernightInput = document.getElementById('tripAllowanceOvernightInput');
-    const tripAllowanceAbroadInput = document.getElementById('tripAllowanceAbroadInput'); // NUOVO
+    const tripAllowanceAbroadInput = document.getElementById('tripAllowanceAbroadInput');
     const taxRateInput = document.getElementById('taxRateInput');
 
     // Chiavi per localStorage
@@ -762,7 +767,7 @@
     const grossNetContent = document.getElementById('gross-net-content');
     const grossNetBody = document.querySelector('#gross-net-table tbody');
 
-    // Funzioni di utilitÃ 
+    // Funzioni di utilità
     function showNotification(message, type) {
         notification.innerHTML = message;
         notification.className = '';
@@ -884,8 +889,8 @@
             <td>${entry.location}</td>
             <td>${entry.notes || ''}</td>
             <td class="action-buttons-cell">
-                <button class="btn-small btn-edit" data-date="${entry.date}">âï¸</button>
-                <button class="btn-small btn-delete" data-date="${entry.date}">ðï¸</button>
+                <button class="btn-small btn-edit" data-date="${entry.date}"><i class="fas fa-pencil-alt"></i></button>
+                <button class="btn-small btn-delete" data-date="${entry.date}"><i class="fas fa-trash"></i></button>
             </td>
         `;
         return row;
@@ -922,7 +927,7 @@
             const start = new Date(`2025-01-01T${startTime}:00`);
             const end = new Date(`2025-01-01T${endTime}:00`);
             if (end < start) {
-                showNotification('L\'orario di fine non puÃ² essere precedente a quello di inizio.', 'error');
+                showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
                 return;
             }
 
@@ -952,7 +957,7 @@
             endTime: endTime,
             totalHours: totalHours,
             overtimeHours: overtimeHours,
-            overtimeHours50: overtimeHours50, // Campo per straordinari 50%
+            overtimeHours50: overtimeHours50,
             workMode: workMode,
             lunchBreak: lunchBreak,
             location: location,
@@ -1125,8 +1130,8 @@
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
-                <td>â¬ ${totalGross.toFixed(2)}</td>
-                <td>â¬ ${netIncome.toFixed(2)}</td>
+                <td>€ ${totalGross.toFixed(2)}</td>
+                <td>€ ${netIncome.toFixed(2)}</td>
             `;
             grossNetBody.appendChild(row);
         });
@@ -1263,7 +1268,7 @@
     }
     
     function generateCsvData(data) {
-        const headers = ["Data", "Orario Inizio", "Orario Fine", "Assenza", "Ore Totali", "Ore Straordinarie", "ModalitÃ ", "Luogo Intervento", "Note"];
+        const headers = ["Data", "Orario Inizio", "Orario Fine", "Assenza", "Ore Totali", "Ore Straordinarie", "Modalità", "Luogo Intervento", "Note"];
         let csv = headers.join(";") + "\n";
         data.forEach(entry => {
             const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
@@ -1304,7 +1309,7 @@
         const doc = new jsPDF('p', 'pt', 'a4');
         const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // 1. Logica per creare il riepilogo mensile per il PDF
+        // Logica per creare il riepilogo mensile per il PDF
         const monthlySummary = {};
         sortedData.forEach(entry => {
             const monthYear = entry.date.substring(0, 7);
@@ -1334,7 +1339,7 @@
 
         let lastY = 40;
 
-        // 2. Disegna la tabella di riepilogo se ci sono dati
+        // Disegna la tabella di riepilogo se ci sono dati
         if (summaryData.length > 0) {
             doc.text("Riepilogo Mensile", 40, lastY);
             lastY += 10;
@@ -1348,7 +1353,7 @@
             lastY = doc.autoTable.previous.finalY;
         }
 
-        // 3. Prepara i dati per la tabella del registro completo
+        // Prepara i dati per la tabella del registro completo
         const tableData = sortedData.map(entry => {
             const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
             return [
@@ -1364,9 +1369,9 @@
             ];
         });
         
-        const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "ModalitÃ ", "Luogo", "Note"]];
+        const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
 
-        // 4. Disegna la tabella del registro completo
+        // Disegna la tabella del registro completo
         lastY += 20;
         doc.text("Registro Completo", 40, lastY);
         lastY += 10;
@@ -1424,7 +1429,6 @@
         const mode = workModeSelect.value;
         if (mode === 'In Sede') {
             locationInput.value = 'Tecnosistem';
-            // Non sovrascrive gli orari se sono giÃ  stati impostati manualmente
             if (!startTimeDisplay.getAttribute('data-value')) {
                 setTimeDropdown(startTimeDisplay, startTimeOptions, '08:00');
             }
@@ -1433,7 +1437,6 @@
             }
             lunchBreakCheckbox.checked = true;
         } else if (mode === 'Rientro' || mode === 'Pernottamento' || mode === 'Estero') {
-            // Pulisce il luogo solo se era quello di default
             if (locationInput.value === 'Tecnosistem') {
                 locationInput.value = '';
             }
@@ -1496,10 +1499,11 @@
     saveButton.addEventListener('click', saveEntry);
 
     registerBody.addEventListener('click', (e) => {
-        const date = e.target.getAttribute('data-date');
-        if (e.target.classList.contains('btn-delete')) {
+        const date = e.target.closest('.btn-small')?.getAttribute('data-date');
+        if (!date) return;
+        if (e.target.closest('.btn-delete')) {
             deleteEntry(date);
-        } else if (e.target.classList.contains('btn-edit')) {
+        } else if (e.target.closest('.btn-edit')) {
             editEntry(date);
         }
     });
@@ -1611,7 +1615,7 @@
                     renderAllData();
                     showNotification('Dati importati con successo!', 'success');
                 } else {
-                    showNotification('Il file importato non Ã¨ in un formato valido.', 'error');
+                    showNotification('Il file importato non è in un formato valido.', 'error');
                 }
             } catch (error) {
                 showNotification('Errore durante l\'importazione del file.', 'error');
