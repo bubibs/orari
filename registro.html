@@ -830,7 +830,7 @@
     const taxRateInput = document.getElementById('taxRateInput');
     const thirteenthMonthInput = document.getElementById('thirteenthMonthInput');
 
-    // Chiavi per localStorage
+    // Chiavi per storage
     const STORAGE_KEY = 'registroOrario';
     const SETTINGS_KEY = 'registroSettings';
 
@@ -862,6 +862,56 @@
     const grossNetYearSelect = document.getElementById('gross-net-year');
     const exportGrossNetPdfButton = document.getElementById('export-gross-net-pdf');
     let grossNetChart = null;
+
+    // IndexedDB setup
+    let db;
+    const dbName = 'RegistroDB';
+    const dbVersion = 1;
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(dbName, dbVersion);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                db.createObjectStore('keyvalue', { keyPath: 'key' });
+            };
+        });
+    }
+
+    async function getFromDB(key) {
+        if (!db) db = await openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction('keyvalue', 'readonly');
+            const store = transaction.objectStore('keyvalue');
+            const request = store.get(key);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result ? request.result.value : null);
+        });
+    }
+
+    async function setToDB(key, value) {
+        if (!db) db = await openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction('keyvalue', 'readwrite');
+            const store = transaction.objectStore('keyvalue');
+            const request = store.put({ key, value });
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve();
+        });
+    }
+
+    async function clearDB() {
+        if (!db) db = await openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction('keyvalue', 'readwrite');
+            const store = transaction.objectStore('keyvalue');
+            const request = store.clear();
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve();
+        });
+    }
 
     // Funzioni di utilità
     function showNotification(message, type) {
@@ -995,7 +1045,7 @@
         return row;
     }
 
-    function saveEntry() {
+    async function saveEntry() {
         const date = dateInput.value;
         if (!date) {
             showNotification('Per favore, seleziona una data.', 'error');
@@ -1042,7 +1092,7 @@
                 registerData.push(newEntry);
             }
             registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+            await setToDB(STORAGE_KEY, JSON.stringify(registerData));
             renderAllData();
             showNotification('Dati salvati nel registro!', 'success');
         } else {
@@ -1110,7 +1160,7 @@
             });
 
             registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+            await setToDB(STORAGE_KEY, JSON.stringify(registerData));
             renderAllData();
             showNotification('Entry salvata (splittata se necessario per fuso/giorni)!', 'success');
         }
@@ -1135,7 +1185,7 @@
     function deleteEntry(date) {
         if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
             registerData = registerData.filter(entry => entry.date !== date);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+            setToDB(STORAGE_KEY, JSON.stringify(registerData));
             renderAllData();
             showNotification('Dato cancellato.', 'success');
         }
@@ -1410,13 +1460,13 @@
         showNotification('Esportazione PDF completata!', 'success');
     }
 
-    function loadData() {
+    async function loadData() {
         try {
-            const storedData = localStorage.getItem(STORAGE_KEY);
+            const storedData = await getFromDB(STORAGE_KEY);
             if (storedData) {
                 registerData = JSON.parse(storedData);
             }
-            const storedSettings = localStorage.getItem(SETTINGS_KEY);
+            const storedSettings = await getFromDB(SETTINGS_KEY);
             if (storedSettings) {
                 const settings = JSON.parse(storedSettings);
                 grossBaseSalary = settings.grossBaseSalary || grossBaseSalary;
@@ -1667,7 +1717,7 @@
         showNotification('Esportazione PDF avviata!', 'success');
     }
     
-    function saveSettings() {
+    async function saveSettings() {
         const settings = {
             grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
             overtimeRate: parseFloat(overtimeRateInput.value) || 0,
@@ -1678,7 +1728,7 @@
             taxRate: parseFloat(taxRateInput.value) / 100 || 0,
             thirteenthMonth: parseFloat(thirteenthMonthInput.value) || 0
         };
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        await setToDB(SETTINGS_KEY, JSON.stringify(settings));
         
         grossBaseSalary = settings.grossBaseSalary;
         overtimeRate = settings.overtimeRate;
@@ -1694,15 +1744,7 @@
     }
     
     function loadSettings() {
-        const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
-        grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
-        overtimeRateInput.value = storedSettings.overtimeRate || overtimeRate;
-        overtimeRate50Input.value = storedSettings.overtimeRate50 || overtimeRate50;
-        tripAllowanceReturnInput.value = storedSettings.tripAllowanceReturn || tripAllowanceReturn;
-        tripAllowanceOvernightInput.value = storedSettings.tripAllowanceOvernight || tripAllowanceOvernight;
-        tripAllowanceAbroadInput.value = storedSettings.tripAllowanceAbroad || tripAllowanceAbroad;
-        taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
-        thirteenthMonthInput.value = storedSettings.thirteenthMonth || thirteenthMonth;
+        // Caricamento asincrono gestito in loadData
     }
 
     // Event Listeners
@@ -1898,7 +1940,7 @@
                 const importedData = JSON.parse(e.target.result);
                 if (Array.isArray(importedData)) {
                     registerData = importedData;
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+                    setToDB(STORAGE_KEY, JSON.stringify(registerData));
                     renderAllData();
                     showNotification('Dati importati con successo!', 'success');
                 } else {
