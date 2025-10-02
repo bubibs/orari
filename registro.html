@@ -1,4 +1,3 @@
-29/09
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -557,6 +556,14 @@
                 <div id="endTimeOptions" class="time-options"></div>
             </div>
         </div>
+        <div class="form-group" id="endDateGroup" style="display: none;">
+            <label for="endDate">Data di Fine (se diversa):</label>
+            <input type="date" id="endDate">
+        </div>
+        <div class="form-group" id="timezoneGroup" style="display: none;">
+            <label for="timezoneOffset">Offset Fuso Orario (es. +3 per Mosca):</label>
+            <input type="number" id="timezoneOffset" step="0.5" min="-12" max="12" value="0">
+        </div>
         <div class="checkbox-group">
             <input type="checkbox" id="lunchBreak">
             <label for="lunchBreak">Pausa pranzo (1 ora)</label>
@@ -761,6 +768,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+<script>
+    dayjs.extend(dayjs_plugin_utc);
+    dayjs.extend(dayjs_plugin_timezone);
+</script>
 <script>
     // Selezioni elementi del DOM
     const dateInput = document.getElementById('date');
@@ -903,6 +917,9 @@
         const startTime = startTimeDisplay.getAttribute('data-value');
         const endTime = endTimeDisplay.getAttribute('data-value');
         const lunchBreak = lunchBreakCheckbox.checked;
+        const startDate = dateInput.value;
+        const endDate = document.getElementById('endDate').value || startDate; // Usa startDate se non specificato
+        const timezoneOffset = parseFloat(document.getElementById('timezoneOffset').value) || 0;
 
         if (absenceType) {
             totalHoursSpan.textContent = '0';
@@ -918,38 +935,38 @@
         overtimeHoursContainer.style.display = 'block';
         absenceHoursContainer.style.display = 'none';
 
-        if (startTime && endTime && dateInput.value) {
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-            if (end < start) {
-                end.setDate(end.getDate() + 1);
+        if (startTime && endTime && startDate) {
+            // Crea date con Day.js, applicando offset (in minuti)
+            const offsetMinutes = timezoneOffset * 60;
+            const start = dayjs(`${startDate}T${startTime}:00`).add(offsetMinutes, 'minute');
+            let end = dayjs(`${endDate}T${endTime}:00`).add(offsetMinutes, 'minute');
+
+            if (end.isBefore(start)) {
+                end = end.add(1, 'day');
             }
-            let totalMilliseconds = end - start;
+
+            let totalMilliseconds = end.diff(start);
             let totalHours = totalMilliseconds / (1000 * 60 * 60);
-            if (lunchBreak) {
-                totalHours -= 1;
-            }
+            if (lunchBreak) totalHours -= 1;
             totalHours = Math.max(0, totalHours);
-            
-            const totalHoursFixed = totalHours.toFixed(2);
-            totalHoursSpan.textContent = totalHoursFixed;
-            
-            // Logica Sabato/Domenica
-            const dayOfWeek = new Date(dateInput.value + 'T12:00:00').getDay();
+
+            totalHoursSpan.textContent = totalHours.toFixed(2);
+
+            // Logica overtime/weekend
+            const dayOfWeek = start.day(); // 0=Dom, 6=Sab
             const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
             let overtimeHours = 0;
-            
+            let overtimeHours50 = 0;
+
             if (isWeekend) {
-                overtimeHours = totalHours;
+                overtimeHours50 = totalHours;
                 overtimeHoursContainer.querySelector('strong').textContent = 'Ore straordinarie (50%):';
             } else {
-                if (totalHours > standardWorkDay) {
-                    overtimeHours = totalHours - standardWorkDay;
-                }
+                overtimeHours = Math.max(0, totalHours - standardWorkDay);
                 overtimeHoursContainer.querySelector('strong').textContent = 'Ore straordinarie:';
             }
-            overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
 
+            overtimeHoursSpan.textContent = (overtimeHours + overtimeHours50).toFixed(2);
         } else {
             totalHoursSpan.textContent = '0';
             overtimeHoursSpan.textContent = '0';
@@ -990,6 +1007,11 @@
         let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours, absenceHours;
         let overtimeHours50 = 0;
 
+        const startDate = dateInput.value;
+        const endDate = document.getElementById('endDate').value || startDate;
+        const timezoneOffset = parseFloat(document.getElementById('timezoneOffset').value) || 0;
+        const offsetMinutes = timezoneOffset * 60;
+
         if (absenceType) {
             startTime = standardStartTime;
             endTime = standardEndTime;
@@ -999,6 +1021,30 @@
             totalHours = 0;
             overtimeHours = 0;
             absenceHours = 8;
+            const newEntry = {
+                date: date,
+                startTime: startTime,
+                endTime: endTime,
+                totalHours: totalHours,
+                overtimeHours: overtimeHours,
+                overtimeHours50: overtimeHours50,
+                workMode: workMode,
+                lunchBreak: lunchBreak,
+                location: location,
+                notes: notes,
+                absenceType: absenceType,
+                absenceHours: absenceHours
+            };
+            const existingIndex = registerData.findIndex(entry => entry.date === date);
+            if (existingIndex !== -1) {
+                registerData[existingIndex] = newEntry;
+            } else {
+                registerData.push(newEntry);
+            }
+            registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+            renderAllData();
+            showNotification('Dati salvati nel registro!', 'success');
         } else {
             startTime = startTimeDisplay.getAttribute('data-value');
             endTime = endTimeDisplay.getAttribute('data-value');
@@ -1006,65 +1052,70 @@
                 showNotification('Per favore, compila tutti i campi richiesti.', 'error');
                 return;
             }
-            const start = new Date(`2025-01-01T${startTime}:00`);
-            const end = new Date(`2025-01-01T${endTime}:00`);
-            if (end < start) {
-                showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
-                return;
-            }
-
             lunchBreak = lunchBreakCheckbox.checked;
             location = locationInput.value;
             notes = notesInput.value;
-            totalHours = parseFloat(totalHoursSpan.textContent);
-            absenceHours = 0;
-            
-            // Logica Sabato/Domenica
-            const dayOfWeek = new Date(date + 'T12:00:00').getDay();
-            const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
 
-            if (isWeekend) {
-                overtimeHours50 = totalHours;
-                overtimeHours = 0;
-            } else {
-                overtimeHours = totalHours > standardWorkDay ? totalHours - standardWorkDay : 0;
+            const start = dayjs(`${startDate}T${startTime}:00`).add(offsetMinutes, 'minute');
+            let end = dayjs(`${endDate}T${endTime}:00`).add(offsetMinutes, 'minute');
+            if (end.isBefore(start)) end = end.add(1, 'day');
+
+            // Se attraversa giorni, splitta
+            const entriesToSave = [];
+            let currentStart = start;
+            let lunchDeducted = false; // Deduci pausa solo una volta
+            while (currentStart.isBefore(end)) {
+                const currentEnd = currentStart.endOf('day').isBefore(end) ? currentStart.endOf('day') : end;
+                let durationHours = currentEnd.diff(currentStart) / (1000 * 60 * 60);
+                if (lunchBreak && !lunchDeducted) {
+                    durationHours -= 1;
+                    lunchDeducted = true;
+                }
+                durationHours = Math.max(0, durationHours);
+
+                const dayOfWeek = currentStart.day();
+                const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
+                let entryOvertime = 0;
+                let entryOvertime50 = 0;
+                if (isWeekend) {
+                    entryOvertime50 = durationHours;
+                } else {
+                    entryOvertime = Math.max(0, durationHours - standardWorkDay);
+                }
+
+                const entry = {
+                    date: currentStart.format('YYYY-MM-DD'),
+                    startTime: currentStart.format('HH:mm'),
+                    endTime: currentEnd.format('HH:mm'),
+                    totalHours: durationHours,
+                    overtimeHours: entryOvertime,
+                    overtimeHours50: entryOvertime50,
+                    workMode: workMode,
+                    lunchBreak: lunchBreak,
+                    location: location,
+                    notes: notes,
+                    absenceType: '',
+                    absenceHours: 0
+                };
+                entriesToSave.push(entry);
+
+                currentStart = currentEnd.add(1, 'millisecond').startOf('day');
             }
-        }
-        
-        saveButton.classList.add('saved');
 
-        const newEntry = {
-            date: date,
-            startTime: startTime,
-            endTime: endTime,
-            totalHours: totalHours,
-            overtimeHours: overtimeHours,
-            overtimeHours50: overtimeHours50,
-            workMode: workMode,
-            lunchBreak: lunchBreak,
-            location: location,
-            notes: notes,
-            absenceType: absenceType,
-            absenceHours: absenceHours
-        };
+            // Salva le entries splittate
+            entriesToSave.forEach(newEntry => {
+                const existingIndex = registerData.findIndex(e => e.date === newEntry.date);
+                if (existingIndex !== -1) registerData[existingIndex] = newEntry;
+                else registerData.push(newEntry);
+            });
 
-        const existingIndex = registerData.findIndex(entry => entry.date === date);
-        if (existingIndex !== -1) {
-            registerData[existingIndex] = newEntry;
-        } else {
-            registerData.push(newEntry);
-        }
-        registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        try {
+            registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
             localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-        } catch (e) {
-            showNotification('ERRORE: Impossibile salvare i dati.', 'error');
-            console.error(e);
-            return;
+            renderAllData();
+            showNotification('Entry salvata (splittata se necessario per fuso/giorni)!', 'success');
         }
-        renderAllData();
-        showNotification('Dati salvati nel registro!', 'success');
+
+        saveButton.classList.add('saved');
         
         setTimeout(() => {
             saveButton.classList.remove('saved');
@@ -1075,6 +1126,8 @@
             lunchBreakCheckbox.checked = false;
             locationInput.value = '';
             notesInput.value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('timezoneOffset').value = 0;
             calculateHours();
         }, 1000);
     }
@@ -1671,6 +1724,8 @@
                 locationInput.value = '';
             }
         }
+        document.getElementById('endDateGroup').style.display = (mode === 'Estero') ? 'block' : 'none';
+        document.getElementById('timezoneGroup').style.display = (mode === 'Estero') ? 'block' : 'none';
         calculateHours();
     });
 
@@ -1726,6 +1781,8 @@
     });
     
     lunchBreakCheckbox.addEventListener('change', calculateHours);
+    document.getElementById('endDate').addEventListener('change', calculateHours);
+    document.getElementById('timezoneOffset').addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
 
     registerBody.addEventListener('click', (e) => {
@@ -1879,4 +1936,3 @@
 
 </body>
 </html>
-
