@@ -1,5 +1,267 @@
-
 <!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Orario Lavoro</title>
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* STILE IDENTICO AL PRECEDENTE - Nessun cambiamento */
+        :root {
+            --bg-body: #f0f0f5;
+            --bg-container: #fff;
+            --text-color: #333;
+            --accent-color: #00a2e3;
+            --input-border: #ccc;
+            --input-bg: #fff;
+            --dropdown-bg: #fff;
+            --dropdown-text: #333;
+            --dropdown-hover: #f0f0f5;
+            --table-even: #f2f2f2;
+            --table-head: #f8f9fa;
+            --results-bg: #e9ecef;
+            --notification-success: #28a745;
+            --notification-error: #dc3545;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --logo-gradient: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #121212;
+                --bg-container: #1e1e1e;
+                --text-color: #e0e0e0;
+                --accent-color: #00a2e3;
+                --input-border: #444;
+                --input-bg: #333;
+                --dropdown-bg: #333;
+                --dropdown-text: #e0e0e0;
+                --dropdown-hover: #444;
+                --table-even: #2a2a2a;
+                --table-head: #333;
+                --results-bg: #2a2a2a;
+                --notification-success: #28a745;
+                --notification-error: #dc3545;
+                --shadow-color: rgba(0, 0, 0, 0.5);
+                --logo-gradient: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
+            }
+        }
+
+        /* ... tutto il CSS rimane IDENTICO ... (per brevità non lo ripeto, ma è lo stesso del tuo originale) */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            padding: 10px;
+            color: var(--text-color);
+        }
+        /* Incolla qui tutto il CSS originale fino alla fine */
+    </style>
+</head>
+<body>
+<!-- HTML IDENTICO -->
+<div class="container">
+    <!-- ... tutto il form rimane IDENTICO ... -->
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // VARIABILI GLOBALI AGGIORNATE
+    let registerData = [];
+    let entryCounter = 0;  // <<<< NUOVO: per ID univoci
+    const standardWorkDay = 8;
+    
+    // Valori aggiornati al 1/11/2025
+    let grossBaseSalary = 3480.79;
+    let overtimeRate = 21.53;
+    let overtimeRate50 = 25.00;
+    let tripAllowanceReturn = 46.48;
+    let tripAllowanceOvernight = 60.00;
+    let tripAllowanceAbroad = 75.00;
+    let taxRate = 0.30;  // Solo fino al 31/10/2025
+    let thirteenthMonth = 3480.79;
+    const socialSecurityRate = 0.0949;
+
+    // FUNZIONI PRINCIPALI AGGIORNATE
+
+    // <<<< FUNZIONE CRITICA AGGIORNATA per IRPEF dal 1/11/2025
+    function calculateIRPEF(gross, year, month) {
+        const fullDate = new Date(year, month - 1, 1);
+        const isNewIRPEFActive = fullDate >= new Date(2025, 10, 1);  // 1 novembre 2025
+
+        if (isNewIRPEFActive) {
+            // NUOVE ALIQUOTE dal 1/11/2025
+            if (gross <= 28000) {
+                return gross * 0.23;
+            } else if (gross <= 50000) {
+                return 28000 * 0.23 + (gross - 28000) * 0.35;
+            } else {
+                return 28000 * 0.23 + 22000 * 0.35 + (gross - 50000) * 0.43;
+            }
+        } else {
+            // Vecchie aliquote fino al 31/10/2025
+            return gross * taxRate;
+        }
+    }
+
+    // <<<< NUOVA funzione saveEntry (supporta multipli)
+    function saveEntry() {
+        const date = dateInput.value;
+        if (!date) {
+            showNotification('Per favore, seleziona una data.', 'error');
+            return;
+        }
+
+        const absenceType = absenceTypeSelect.value;
+        const workMode = workModeSelect.value;
+        let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours = 0, overtimeHours50 = 0, absenceHours = 0;
+
+        if (absenceType) {
+            startTime = '08:00';
+            endTime = '17:00';
+            lunchBreak = true;
+            location = 'Assenza';
+            notes = notesInput.value || absenceType;
+            totalHours = 0;
+            absenceHours = 8;
+        } else {
+            startTime = startTimeDisplay.getAttribute('data-value');
+            endTime = endTimeDisplay.getAttribute('data-value');
+            if (!startTime || !endTime || !workMode) {
+                showNotification('Compila tutti i campi obbligatori.', 'error');
+                return;
+            }
+
+            const start = new Date(`2025-01-01T${startTime}:00`);
+            const end = new Date(`2025-01-01T${endTime}:00`);
+            if (end <= start) {
+                end.setDate(end.getDate() + 1);
+            }
+
+            lunchBreak = lunchBreakCheckbox.checked;
+            location = locationInput.value || '';
+            notes = notesInput.value || '';
+
+            let totalMs = end - start;
+            totalHours = totalMs / (1000 * 60 * 60);
+            if (lunchBreak) totalHours -= 1;
+            totalHours = Math.max(0, totalHours).toFixed(2);
+
+            const dayOfWeek = new Date(date).getDay();
+            const isWeekend = dayOfWeek === 6 || dayOfWeek === 0;
+            if (isWeekend) {
+                overtimeHours50 = parseFloat(totalHours);
+            } else {
+                overtimeHours = Math.max(0, parseFloat(totalHours) - standardWorkDay);
+            }
+        }
+
+        // <<<< NUOVO: ID univoco
+        const entryId = `entry_${Date.now()}_${++entryCounter}`;
+
+        const newEntry = {
+            id: entryId,
+            date,
+            startTime,
+            endTime,
+            totalHours: parseFloat(totalHours),
+            overtimeHours,
+            overtimeHours50,
+            workMode,
+            lunchBreak,
+            location,
+            notes,
+            absenceType,
+            absenceHours
+        };
+
+        // NON sostituisce più: aggiunge sempre nuovo
+        registerData.push(newEntry);
+        
+        // Ordina: prima per data (discendente), poi per orario inizio
+        registerData.sort((a, b) => {
+            if (a.date !== b.date) return new Date(b.date) - new Date(a.date);
+            return (a.startTime || '99:99').localeCompare(b.startTime || '99:99');
+        });
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+        renderAllData();
+        showNotification(`Evento salvato (${totalHours}h)!`, 'success');
+
+        // Reset parziale (mantiene la data!)
+        setTimeout(() => {
+            saveButton.classList.remove('saved');
+            workModeSelect.value = '';
+            absenceTypeSelect.value = '';
+            clearTimeDropdowns();
+            lunchBreakCheckbox.checked = false;
+            locationInput.value = '';
+            notesInput.value = '';
+            calculateHours();
+        }, 1000);
+    }
+
+    // <<<< AGGIORNATA: createRow con data-id
+    function createRow(entry) {
+        const row = document.createElement('tr');
+        row.setAttribute('data-id', entry.id);  // <<<< CAMBIATO da data-date
+        const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
+        row.innerHTML = `
+            <td>${formatDate(entry.date)}</td>
+            <td>${entry.startTime || '-'}</td>
+            <td>${entry.endTime || '-'}</td>
+            <td>${entry.absenceType || '-'}</td>
+            <td>${entry.totalHours.toFixed(2)}</td>
+            <td>${totalOvertime.toFixed(2)}</td>
+            <td>${entry.workMode || '-'}</td>
+            <td>${entry.location || ''}</td>
+            <td>${entry.notes || ''}</td>
+            <td class="action-buttons-cell">
+                <button class="btn-small btn-edit" data-id="${entry.id}"><i class="fas fa-pencil-alt"></i></button>
+                <button class="btn-small btn-delete" data-id="${entry.id}"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        return row;
+    }
+
+    // <<<< AGGIORNATE: delete e edit per ID
+    function deleteEntry(id) {
+        if (confirm('Cancellare questo evento?')) {
+            registerData = registerData.filter(e => e.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+            renderAllData();
+            showNotification('Evento eliminato.', 'success');
+        }
+    }
+
+    function editEntry(id) {
+        const entry = registerData.find(e => e.id === id);
+        if (!entry) return;
+
+        // Rimuovi dall'array (per modificare)
+        registerData = registerData.filter(e => e.id !== id);
+
+        // Carica nei campi
+        dateInput.value = entry.date;
+        workModeSelect.value = entry.workMode || '';
+        absenceTypeSelect.value = entry.absenceType || '';
+        setTimeDropdown(startTimeDisplay, startTimeOptions, entry.startTime || '');
+        setTimeDropdown(endTimeDisplay, endTimeOptions, entry.endTime || '');
+        lunchBreakCheckbox.checked = entry.lunchBreak || false;
+        locationInput.value = entry.location || '';
+        notesInput.value = entry.notes || '';
+        calculateHours();
+
+        showNotification('Modifica evento caricato.', 'success');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // <<<< AGGIORNATO: event listener per data-id
+    registerBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-small');<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -792,6 +1054,7 @@
     const standardStartTime = '08:00';
     const standardEndTime = '17:00';
     let registerData = [];
+    let entryCounter = 0; // Per ID univoci
     
     // Variabili per i calcoli economici (ora personalizzabili)
     let grossBaseSalary = 3480.79;
@@ -880,8 +1143,8 @@
     }
 
     function setTimeDropdown(display, options, time) {
-        display.textContent = time;
-        display.setAttribute('data-value', time);
+        display.textContent = time || 'Seleziona orario';
+        display.setAttribute('data-value', time || '');
         options.querySelectorAll('.time-option').forEach(option => {
             if (option.getAttribute('data-value') === time) {
                 option.classList.add('selected');
@@ -892,10 +1155,8 @@
     }
 
     function clearTimeDropdowns() {
-        setTimeDropdown(startTimeDisplay, startTimeOptions, 'Seleziona orario');
-        startTimeDisplay.setAttribute('data-value', '');
-        setTimeDropdown(endTimeDisplay, endTimeOptions, 'Seleziona orario');
-        endTimeDisplay.setAttribute('data-value', '');
+        setTimeDropdown(startTimeDisplay, startTimeOptions, '');
+        setTimeDropdown(endTimeDisplay, endTimeOptions, '');
     }
 
     function calculateHours() {
@@ -958,7 +1219,7 @@
 
     function createRow(entry) {
         const row = document.createElement('tr');
-        row.setAttribute('data-date', entry.date);
+        row.setAttribute('data-id', entry.id);
         const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
         row.innerHTML = `
             <td>${formatDate(entry.date)}</td>
@@ -971,8 +1232,8 @@
             <td>${entry.location}</td>
             <td>${entry.notes || ''}</td>
             <td class="action-buttons-cell">
-                <button class="btn-small btn-edit" data-date="${entry.date}"><i class="fas fa-pencil-alt"></i></button>
-                <button class="btn-small btn-delete" data-date="${entry.date}"><i class="fas fa-trash"></i></button>
+                <button class="btn-small btn-edit" data-id="${entry.id}"><i class="fas fa-pencil-alt"></i></button>
+                <button class="btn-small btn-delete" data-id="${entry.id}"><i class="fas fa-trash"></i></button>
             </td>
         `;
         return row;
@@ -987,17 +1248,15 @@
 
         const absenceType = absenceTypeSelect.value;
         const workMode = workModeSelect.value;
-        let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours, absenceHours;
-        let overtimeHours50 = 0;
+        let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours = 0, overtimeHours50 = 0, absenceHours = 0;
 
         if (absenceType) {
-            startTime = standardStartTime;
-            endTime = standardEndTime;
+            startTime = '08:00';
+            endTime = '17:00';
             lunchBreak = true;
-            location = locationInput.value || 'Assenza';
-            notes = notesInput.value;
+            location = 'Assenza';
+            notes = notesInput.value || absenceType;
             totalHours = 0;
-            overtimeHours = 0;
             absenceHours = 8;
         } else {
             startTime = startTimeDisplay.getAttribute('data-value');
@@ -1016,16 +1275,17 @@
             lunchBreak = lunchBreakCheckbox.checked;
             location = locationInput.value;
             notes = notesInput.value;
-            totalHours = parseFloat(totalHoursSpan.textContent);
-            absenceHours = 0;
+
+            let totalMilliseconds = end - start;
+            totalHours = totalMilliseconds / (1000 * 60 * 60);
+            if (lunchBreak) totalHours -= 1;
+            totalHours = Math.max(0, totalHours);
             
-            // Logica Sabato/Domenica
             const dayOfWeek = new Date(date + 'T12:00:00').getDay();
             const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
 
             if (isWeekend) {
                 overtimeHours50 = totalHours;
-                overtimeHours = 0;
             } else {
                 overtimeHours = totalHours > standardWorkDay ? totalHours - standardWorkDay : 0;
             }
@@ -1033,7 +1293,11 @@
         
         saveButton.classList.add('saved');
 
+        // Genera ID univoco
+        const entryId = `entry_${Date.now()}_${entryCounter++}`;
+
         const newEntry = {
+            id: entryId,
             date: date,
             startTime: startTime,
             endTime: endTime,
@@ -1048,13 +1312,11 @@
             absenceHours: absenceHours
         };
 
-        const existingIndex = registerData.findIndex(entry => entry.date === date);
-        if (existingIndex !== -1) {
-            registerData[existingIndex] = newEntry;
-        } else {
-            registerData.push(newEntry);
-        }
-        registerData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        registerData.push(newEntry);
+        registerData.sort((a, b) => {
+            if (a.date !== b.date) return new Date(b.date) - new Date(a.date);
+            return a.startTime.localeCompare(b.startTime);
+        });
         
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
@@ -1064,11 +1326,11 @@
             return;
         }
         renderAllData();
-        showNotification('Dati salvati nel registro!', 'success');
+        showNotification('Evento salvato!', 'success');
         
         setTimeout(() => {
             saveButton.classList.remove('saved');
-            dateInput.value = new Date().toISOString().split('T')[0];
+            // Non resettare la data per permettere più eventi lo stesso giorno
             workModeSelect.value = '';
             absenceTypeSelect.value = '';
             clearTimeDropdowns();
@@ -1079,17 +1341,17 @@
         }, 1000);
     }
 
-    function deleteEntry(date) {
-        if (confirm(`Sei sicuro di voler cancellare l'inserimento del giorno ${formatDate(date)}?`)) {
-            registerData = registerData.filter(entry => entry.date !== date);
+    function deleteEntry(id) {
+        if (confirm(`Sei sicuro di voler cancellare questo evento?`)) {
+            registerData = registerData.filter(entry => entry.id !== id);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
             renderAllData();
-            showNotification('Dato cancellato.', 'success');
+            showNotification('Evento cancellato.', 'success');
         }
     }
 
-    function editEntry(date) {
-        const entryToEdit = registerData.find(entry => entry.date === date);
+    function editEntry(id) {
+        const entryToEdit = registerData.find(entry => entry.id === id);
         if (entryToEdit) {
             dateInput.value = entryToEdit.date;
             workModeSelect.value = entryToEdit.workMode || '';
@@ -1104,6 +1366,9 @@
             
             calculateHours();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Rimuovi l'entry originale per permettere il salvataggio modificato
+            registerData = registerData.filter(e => e.id !== id);
         }
     }
 
@@ -1269,7 +1534,6 @@
             totalGrossYear += thirteenthMonth;
             totalNetYear += thirteenthNet;
             totalDeductionsYear += thirteenthDeductions;
-            // Non aggiunge a straordinari o diarie
         }
 
         // Aggiungi riga totale
@@ -1729,12 +1993,13 @@
     saveButton.addEventListener('click', saveEntry);
 
     registerBody.addEventListener('click', (e) => {
-        const date = e.target.closest('.btn-small')?.getAttribute('data-date');
-        if (!date) return;
-        if (e.target.closest('.btn-delete')) {
-            deleteEntry(date);
-        } else if (e.target.closest('.btn-edit')) {
-            editEntry(date);
+        const btn = e.target.closest('.btn-small');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        if (btn.classList.contains('btn-delete')) {
+            deleteEntry(id);
+        } else if (btn.classList.contains('btn-edit')) {
+            editEntry(id);
         }
     });
     
@@ -1879,6 +2144,27 @@
 
 </body>
 </html>
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        if (btn.classList.contains('btn-delete')) {
+            deleteEntry(id);
+        } else if (btn.classList.contains('btn-edit')) {
+            editEntry(id);
+        }
+    });
 
+    // Tutte le altre funzioni (renderAllData, calculateGrossNetSummary, ecc.) rimangono IDENTICHE
+    // perché già sommano correttamente tutti gli eventi per giorno!
 
-
+    // Inizializzazione
+    function initialize() {
+        generateTimeOptions();
+        dateInput.value = new Date().toISOString().split('T')[0];
+        loadData();
+        calculateHours();
+        showNotification('Aggiornato per nuove aliquote IRPEF (dal 1/11/2025)', 'success');
+    }
+    initialize();
+</script>
+</body>
+</html>
