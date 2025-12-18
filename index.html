@@ -778,10 +778,9 @@
     // ==========================================
     // CONFIGURAZIONE CLOUD (GOOGLE SHEETS)
     // ==========================================
-    // Incolla qui sotto, tra le virgolette, l'URL che hai ottenuto da Google Apps Script
-    // Esempio: const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby.../exec';
+    // URL INSERITO CORRETTAMENTE
     
-    const GOOGLE_SCRIPT_URL = https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec;
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec';
     
     // ==========================================
     // FINE CONFIGURAZIONE
@@ -1167,11 +1166,6 @@
             registerData = registerData.filter(e => e.id !== id);
         }
     }
-
-    // [IL RESTO DELLE FUNZIONI RIMANE INVARIATO: renderRegisterTable, updateMonthlySummary, ecc...]
-    // Per brevità non le riscrivo tutte qui, ma dovresti mantenere tutto il blocco logico
-    // delle funzioni di rendering, calcolo, export PDF/CSV che avevamo prima.
-    // LE RIPORTO QUI PER COMPLETEZZA DEL FILE COPIABILE:
 
     function renderRegisterTable(data) {
         registerBody.innerHTML = '';
