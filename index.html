@@ -1142,14 +1142,41 @@
         }, 1000);
     }
 
-    function deleteEntry(id) {
-        if (confirm(`Sei sicuro di voler cancellare questo evento DAL REGISTRO LOCALE? (Nota: Se è già stato inviato a Google Sheets, dovrai cancellarlo manualmente dal foglio Excel)`)) {
-            registerData = registerData.filter(entry => entry.id !== id);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-            renderAllData();
-            showNotification('Evento cancellato (solo locale).', 'success');
+ function deleteEntry(index) {
+    if (confirm('Sei sicuro di voler eliminare questo record?')) {
+        const entryToDelete = registerData[index]; // Prendiamo i dati prima di eliminarli dal locale
+
+        // 1. Eliminazione locale (quella che hai già)
+        registerData.splice(index, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+        renderAllData();
+        showNotification('Record eliminato localmente', 'info');
+
+        // 2. Eliminazione dal Cloud
+        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'delete',
+                    date: entryToDelete.date,
+                    startTime: entryToDelete.startTime,
+                    endTime: entryToDelete.endTime
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'deleted') {
+                    showNotification('Eliminato anche da Google Sheets!', 'success');
+                } else {
+                    console.log("Riga non trovata sul cloud o già eliminata.");
+                }
+            })
+            .catch(err => console.error('Errore durante eliminazione cloud:', err));
         }
     }
+}
 
     function editEntry(id) {
         const entryToEdit = registerData.find(entry => entry.id === id);
@@ -1940,6 +1967,7 @@
 
 </body>
 </html>
+
 
 
 
