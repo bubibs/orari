@@ -1099,7 +1099,7 @@
             // Invio dei dati
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Importante per evitare blocchi del browser
+                mode: 'cors', // Importante per evitare blocchi del browser
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -1933,4 +1933,5 @@
 
 </body>
 </html>
+
 
