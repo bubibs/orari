@@ -1,12 +1,12 @@
 :root {
-    --primary: #5A8DFF;
+    --primary: #007AFF;
     --bg: #F2F2F7;
     --card: #FFFFFF;
     --text: #1C1C1E;
     --subtext: #8E8E93;
-    --border: #E5E5EA;
-    --input-bg: #F2F2F7;
-    --radius: 20px;
+    --border: #D1D1D6;
+    --input-bg: #FFFFFF;
+    --radius: 18px;
     --success: #34C759;
     --danger: #FF3B30;
     --warning: #FF9500;
@@ -18,7 +18,7 @@
         --card: #1C1C1E;
         --text: #FFFFFF;
         --subtext: #AEAEB2;
-        --border: #2C2C2E;
+        --border: #38383A;
         --input-bg: #2C2C2E;
     }
 }
@@ -27,81 +27,72 @@
 body { 
     background-color: var(--bg); 
     color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0; padding: 20px; 
+    font-family: -apple-system, system-ui, sans-serif;
+    margin: 0; padding: 15px; 
 }
 
 .container { max-width: 500px; margin: 0 auto; }
 
-/* CARD MODERNA */
-.card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    border: 1px solid var(--border);
+/* HEADER */
+.header-back { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-back a { text-decoration: none; color: var(--primary); font-weight: 600; font-size: 17px; }
+
+/* CARD & LAYOUT */
+.card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
+.card-accent { border: 2px solid var(--primary); }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { margin-bottom: 15px; }
+
+/* INPUTS */
+label { display: block; font-size: 11px; font-weight: 700; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
+input { 
+    width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; 
+    font-size: 16px; background: var(--input-bg); color: var(--text); outline: none; 
 }
 
-/* INPUT MODERNI */
-label { font-size: 11px; font-weight: 700; color: var(--subtext); text-transform: uppercase; margin-left: 5px; margin-bottom: 6px; display: block; }
-input {
-    width: 100%; padding: 16px; border-radius: 14px; border: none;
-    background: var(--input-bg); color: var(--text); font-size: 16px; margin-bottom: 15px;
-    transition: all 0.3s ease;
+/* SEARCH BOX */
+.search-box {
+    background: var(--card); border-radius: 14px; padding: 12px 15px;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border: 1px solid var(--border);
 }
-input:focus { outline: 2px solid var(--primary); background: var(--card); }
+.search-box input { border: none; padding: 0; margin: 0; background: transparent; }
+.search-box i { color: var(--subtext); }
 
-/* PULSANTI */
-.btn-main {
-    background: var(--primary); color: white; border: none; padding: 18px;
-    border-radius: 16px; font-weight: 700; font-size: 16px; width: 100%;
-    box-shadow: 0 8px 20px rgba(90, 141, 255, 0.3);
+/* BUTTONS */
+.btn-main { 
+    background: var(--primary); color: white; border: none; border-radius: 15px; 
+    padding: 16px; font-size: 16px; font-weight: 700; width: 100%; transition: 0.2s;
 }
+.btn-main:active { transform: scale(0.98); opacity: 0.8; }
 
-/* LISTA RUBRICA - CARD CLIENTE */
-.addr-card {
-    position: relative;
-    padding: 20px;
-    border-left: 6px solid var(--primary);
-}
+/* RUBRICA CARDS */
+.addr-card { border-left: 6px solid var(--primary); padding: 15px; }
+.addr-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.primary-text { color: var(--primary); font-size: 18px; font-weight: 800; }
 
-.addr-header { display: flex; justify-content: space-between; align-items: flex-start; }
-.addr-header b { font-size: 19px; letter-spacing: -0.5px; }
+.info-row { font-size: 14px; margin-bottom: 6px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.info-row i { color: var(--subtext); width: 16px; }
+.info-row a { color: var(--primary); text-decoration: none; font-weight: bold; }
 
-.info-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: var(--subtext); font-size: 14px; }
-.info-row i { color: var(--primary); width: 16px; }
-.info-row a { color: var(--text); text-decoration: none; font-weight: 600; }
-
-/* TASTI AZIONE (MODIFICA/ELIMINA) */
-.admin-btns { display: flex; gap: 8px; }
-.admin-btns button { 
-    background: var(--input-bg); border: none; width: 36px; height: 36px; 
-    border-radius: 10px; color: var(--text); cursor: pointer; 
-}
+.admin-btns button { background: var(--bg); border: none; padding: 8px 12px; border-radius: 8px; color: var(--text); margin-left: 5px; }
 .admin-btns button.del { color: var(--danger); }
 
-/* TASTI MAPPA MODERNI */
-.addr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-
-.btn-nav {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 14px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 12px;
-    transition: transform 0.2s;
+/* MAP BUTTONS */
+.addr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.btn-nav { 
+    text-decoration: none; text-align: center; padding: 12px; border-radius: 12px; 
+    font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.btn-nav:active { transform: scale(0.95); }
-
-.apple-btn { background: #FFFFFF; color: #000000; border: 1px solid #000000; }
+.apple-btn { background: #000000; color: #FFFFFF; }
 .google-btn { background: #4285F4; color: #FFFFFF; }
 
-/* DARK MODE SPECIFICA PER TASTO APPLE */
+/* DARK MODE ADJUSTMENT FOR APPLE BUTTON */
 @media (prefers-color-scheme: dark) {
-    .apple-btn { background: #FFFFFF; color: #000000; }
+    .apple-btn { background: #FFFFFF !important; color: #000000 !important; }
 }
 
-/* ICONA SYNC */
-#sync-indicator { font-size: 18px; }
-.sync-working { color: var(--warning); animation: rotate 1s linear infinite; }
+/* SYNC ICON */
+.sync-working { color: var(--warning); animation: pulse 1s infinite; }
 .sync-success { color: var(--success); }
 .sync-error { color: var(--danger); }
-@keyframes rotate { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
