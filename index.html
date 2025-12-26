@@ -27,8 +27,12 @@
         
         header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; }
-        .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
+        
+        /* SYNC INDICATOR PERSONALIZZATO */
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; transition: color 0.3s; }
+        .sync-working { color: var(--primary); } 
+        .sync-success { color: var(--success); } 
+        .sync-error { color: var(--danger); }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; }
@@ -36,24 +40,32 @@
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
         
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 17px; height: 50px; color: var(--text); background: var(--input-bg); }
-        #data { height: 55px; font-size: 18px; font-weight: 700; } /* Data più grande */
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; height: 48px; color: var(--text); background: var(--input-bg); }
+        
+        /* FINESTRA DATA OTTIMIZZATA */
+        #data { width: 65%; height: 45px; font-size: 16px; font-weight: 600; }
 
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
 
-        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
+        /* TASTO CON ANIMAZIONE */
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn-main:active { transform: scale(0.98); }
+        .saving-active { animation: pulse-btn 1.5s infinite; pointer-events: none; opacity: 0.8; }
+        @keyframes pulse-btn { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
 
-        /* RIEPILOGO */
-        #filtro-mese { height: 40px; font-size: 14px; padding: 5px 10px; margin-bottom: 10px; width: auto; }
-        .month-title { font-size: 22px; font-weight: 900; color: var(--primary); text-transform: uppercase; margin: 10px 0; display: block; text-align: center; }
-        .day-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-        .day-stat-card { background: var(--bg); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-        .day-stat-count { font-size: 16px; font-weight: 800; color: var(--primary); }
-        .day-stat-label { font-size: 9px; font-weight: 700; color: var(--subtext); text-transform: uppercase; max-width: 70%; line-height: 1; }
+        /* RIEPILOGO MESE */
+        #filtro-mese { height: 50px; font-size: 17px; font-weight: 600; margin-bottom: 10px; width: 100%; text-align: center; }
+        .month-title { font-size: 24px; font-weight: 900; color: var(--primary); text-transform: uppercase; margin: 15px 0; display: block; text-align: center; letter-spacing: 1px; }
+        
+        .day-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .day-stat-card { background: var(--bg); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .day-stat-count { font-size: 18px; font-weight: 800; color: var(--primary); }
+        .day-stat-label { font-size: 10px; font-weight: 700; color: var(--subtext); text-transform: uppercase; line-height: 1; }
 
-        .summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         
         #registro-content, #riepilogo-content, #payroll-content { display: none; margin-top: 10px; }
         .chevron { transition: 0.3s; font-size: 12px; }
@@ -63,12 +75,12 @@
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid var(--border); }
         td { padding: 12px 2px; vertical-align: middle; }
-        .actions-cell { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+        .actions-cell { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
         
         .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; display: block; }
         .bg-sede { background: #E1F5FE; color: #0288D1; } .bg-rientro { background: #FFF3E0; color: #EF6C00; } .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .btn-icon { border: none; background: #f0f0f5; font-size: 16px; padding: 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-icon { border: none; background: #f0f0f5; font-size: 16px; padding: 10px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-edit { color: var(--primary); }
         .btn-del { color: var(--danger); }
 
@@ -76,8 +88,6 @@
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px);
         }
-        .spinner { width: 35px; height: 35px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -91,7 +101,7 @@
     </header>
 
     <div class="card">
-        <h2><span><i class="fas fa-plus"></i> Inserimento</span></h2>
+        <h2><span><i class="fas fa-edit"></i> Inserimento Report</span></h2>
         
         <div class="form-group">
             <label>Data Intervento</label>
@@ -131,14 +141,15 @@
             <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
         </div>
 
-        <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
+        <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA NEL CLOUD</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA MODIFICA</button>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-check"></i> Riepilogo Mese</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo Mensile</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="riepilogo-content">
             <div style="text-align:center;">
+                <label style="margin-bottom: 8px; display: block;">Seleziona Mese</label>
                 <input type="month" id="filtro-mese" onchange="refreshAll()">
                 <div id="display-mese-nome" class="month-title">GENNAIO 2025</div>
             </div>
@@ -148,7 +159,7 @@
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('payroll-content', this)"><span><i class="fas fa-euro-sign"></i> Stima Busta Paga</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <h2 onclick="toggleSection('payroll-content', this)"><span><i class="fas fa-calculator"></i> Stima Busta Paga</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="payroll-content">
             <div class="row-2">
                 <div class="form-group"><label>Paga Base (€)</label><input type="number" id="paga-h" value="12.50" oninput="calcolaBusta()"></div>
@@ -163,7 +174,7 @@
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico Online</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-list-ul"></i> Storico Online</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="registro-content">
             <table><tbody id="registro-body"></tbody></table>
         </div>
@@ -223,14 +234,14 @@
     }
 
     async function fetchData() {
-        setSyncState('working', 'Sync...');
+        setSyncState('working', 'Sincronizzazione...');
         try {
             const r = await fetch(WEB_APP_URL);
             const res = await r.json();
             dati = res.data || [];
             refreshAll();
-            setSyncState('success', 'Sincronizzato');
-        } catch(e) { setSyncState('error', 'Errore!'); }
+            setSyncState('success', 'Dati Sincronizzati');
+        } catch(e) { setSyncState('error', 'Errore Connessione'); }
     }
 
     function refreshAll() {
@@ -258,9 +269,9 @@
         `).join('');
         
         document.getElementById('summary-list').innerHTML = `
-            <div class="summary-item"><span>Ore Ordinarie</span><span style="color:var(--primary); font-weight:800;">${stats.oreOrd.toFixed(2)}h</span></div>
-            <div class="summary-item"><span>Straordinari 25%</span><span style="color:var(--warning); font-weight:800;">${stats.oreEx.toFixed(2)}h</span></div>
-            <div class="summary-item"><span>Straordinari 50%</span><span style="color:var(--danger); font-weight:800;">${stats.oreEx50.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Ore Ordinarie Totali</span><span style="color:var(--primary); font-weight:800;">${stats.oreOrd.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Straordinari 25% (Oltre 8h)</span><span style="color:var(--warning); font-weight:800;">${stats.oreEx.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Straordinari 50% (S/D)</span><span style="color:var(--danger); font-weight:800;">${stats.oreEx50.toFixed(2)}h</span></div>
         `;
     }
 
@@ -287,7 +298,6 @@
                 <td style="width:35%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
                 <td style="width:20%; text-align:right;">
                     <div style="font-weight:800; color:var(--primary);">${d.ore}h</div>
-                    ${(dett.extra+dett.extra50)>0 ? `<div style="font-size:9px; color:var(--warning);">+${(dett.extra+dett.extra50).toFixed(2)}</div>` : ''}
                 </td>
                 <td style="width:20%">
                     <div class="actions-cell">
@@ -302,7 +312,11 @@
     async function salva() {
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
         if(!tipo) return alert("Seleziona attività");
-        showLoading("Salvataggio...");
+        
+        const btn = document.getElementById('btn-save');
+        btn.classList.add('saving-active');
+        btn.textContent = "SALVATAGGIO...";
+
         const rec = {
             id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
             tipo, categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
@@ -310,8 +324,17 @@
             inizio: document.getElementById('ora-inizio').value, fine: document.getElementById('ora-fine').value,
             ore: document.getElementById('prev-tot').textContent
         };
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-        resetForm(); setTimeout(fetchData, 1000); hideLoading();
+
+        try {
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
+            resetForm(); 
+            setTimeout(fetchData, 1000);
+        } catch(e) {
+            alert("Errore durante il salvataggio");
+        } finally {
+            btn.classList.remove('saving-active');
+            btn.textContent = "REGISTRA NEL CLOUD";
+        }
     }
 
     function avviaModifica(i) {
@@ -328,15 +351,15 @@
 
     function resetForm() {
         editIndex = -1; document.getElementById('modalita').value=""; document.getElementById('assenza').value="";
-        document.getElementById('luogo').value=""; document.getElementById('btn-save').textContent="REGISTRA REPORT";
+        document.getElementById('luogo').value=""; document.getElementById('btn-save').textContent="REGISTRA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display="none"; aggiornaPreview();
     }
 
     async function elimina(idx) {
         if(!confirm("Eliminare definitivamente?")) return;
-        showLoading("Eliminazione...");
+        setSyncState('working', 'Eliminazione...');
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[idx].id.toString() })});
-        setTimeout(fetchData, 1000); hideLoading();
+        setTimeout(fetchData, 1000);
     }
 
     function setSyncState(s, t) {
@@ -344,8 +367,6 @@
         i.className = `sync-${s}`;
         i.innerHTML = `<i class="fas ${s==='working'?'fa-sync fa-spin':'fa-cloud'}"></i> ${t}`;
     }
-    function showLoading(t) { document.getElementById('loading-text').textContent=t; document.getElementById('loading-overlay').style.display='flex'; }
-    function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
 </script>
 </body>
 </html>
