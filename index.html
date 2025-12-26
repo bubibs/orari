@@ -27,7 +27,7 @@
         header { text-align: center; margin-bottom: 25px; position: relative; }
         .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        #sync-indicator { font-size: 10px; color: var(--text-secondary); margin-top: 5px; }
+        #sync-indicator { font-size: 11px; color: var(--text-secondary); margin-top: 5px; height: 15px; }
         .syncing { color: var(--primary) !important; font-weight: bold; }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -57,21 +57,21 @@
 
         .preview-box { background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2); }
         
-        .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; }
+        .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; transition: opacity 0.2s; }
+        .btn-main:disabled { opacity: 0.5; }
         .btn-cancel { background: #E5E5EA; color: var(--text); border: none; border-radius: 14px; padding: 10px; width: 100%; margin-top: 10px; font-weight: 600; display: none; }
 
-        /* Registro */
+        /* Stile Tabella Registro */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         tr { border-bottom: 1px solid #F2F2F7; }
         td { padding: 15px 5px; font-size: 13px; vertical-align: middle; }
-        .luogo-label { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .luogo-label { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .actions { display: flex; gap: 12px; justify-content: flex-end; align-items: center; }
-        .btn-icon { border: none; background: none; font-size: 20px; padding: 8px; cursor: pointer; border-radius: 50%; }
-        .btn-icon:active { background-color: rgba(0,0,0,0.05); }
+        .actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-icon { border: none; background: none; font-size: 18px; padding: 5px; cursor: pointer; }
         .edit-icon { color: var(--primary); }
         .delete-icon { color: var(--danger); }
     </style>
@@ -80,12 +80,12 @@
 
 <div class="container">
     <header>
-        <div class="logo">WORK LOG PRO</div>
-        <div id="sync-indicator"><i class="fas fa-cloud"></i> Sincronizzato con Google Sheets</div>
+        <div class="logo">WORK LOG CLOUD</div>
+        <div id="sync-indicator">Connessione al cloud...</div>
     </header>
 
     <div class="card">
-        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Inserimento</h2>
+        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Nuovo Inserimento</h2>
         
         <div class="form-group">
             <label>Modalità Lavoro</label>
@@ -110,7 +110,7 @@
 
         <div class="form-group">
             <label>Luogo di Lavoro</label>
-            <input type="text" id="luogo" placeholder="Inserisci luogo o cliente...">
+            <input type="text" id="luogo" placeholder="Specifica luogo o cliente">
         </div>
 
         <div class="form-group">
@@ -141,18 +141,24 @@
 
         <div class="preview-box" id="preview-text">Ore Nette: 0.00h</div>
 
-        <button class="btn-main" id="btn-save" onclick="salva()">SALVA ONLINE</button>
+        <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla Modifica</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-history"></i> Registro Online</h2>
-        <table><tbody id="registro-body"></tbody></table>
+        <h2><i class="fas fa-history"></i> Storico Attività</h2>
+        <div style="overflow-x:auto;">
+            <table>
+                <tbody id="registro-body"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
+    // INSERISCI QUI IL TUO URL DI GOOGLE SCRIPT
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
+    
     let dati = [];
     let editIndex = -1;
 
@@ -163,17 +169,16 @@
     });
 
     async function fetchData() {
-        showSync(true, "Caricamento...");
+        showSync(true, "Sincronizzazione...");
         try {
             const response = await fetch(WEB_APP_URL);
-            const resData = await response.json();
-            dati = resData.data || [];
+            const res = await response.json();
+            dati = res.data || [];
             renderTabella();
             showSync(false, "Sincronizzato");
         } catch (e) {
-            showSync(false, "Offline");
-            dati = JSON.parse(localStorage.getItem('backup_lavoro')) || [];
-            renderTabella();
+            showSync(false, "Errore di connessione");
+            console.error(e);
         }
     }
 
@@ -246,18 +251,21 @@
     async function salva() {
         const mod = document.getElementById('modalita').value;
         const ass = document.getElementById('assenza').value;
-        if ((!mod && !ass)) { alert("Seleziona attività!"); return; }
+        const s = document.getElementById('ora-inizio').value;
+        const e = document.getElementById('ora-fine').value;
+
+        if ((!mod && !ass) || !s || !e) { alert("Completa tutti i campi!"); return; }
 
         const record = {
-            id: editIndex > -1 ? dati[editIndex].id : Date.now(),
+            id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
             tipo: mod || ass,
             categoria: mod ? 'lavoro' : 'assenza',
             luogo: document.getElementById('luogo').value || "-",
             data: document.getElementById('data').value,
-            inizio: document.getElementById('ora-inizio').value,
-            fine: document.getElementById('ora-fine').value,
+            inizio: s,
+            fine: e,
             pausa: document.getElementById('pausa').checked,
-            ore: calcolaOre(document.getElementById('ora-inizio').value, document.getElementById('ora-fine').value, document.getElementById('pausa').checked)
+            ore: calcolaOre(s, e, document.getElementById('pausa').checked).toFixed(2)
         };
 
         showSync(true, "Salvataggio...");
@@ -269,24 +277,18 @@
                 body: JSON.stringify(record)
             });
             
-            if (editIndex > -1) dati[editIndex] = record;
-            else dati.unshift(record);
-            
-            localStorage.setItem('backup_lavoro', JSON.stringify(dati));
             resetForm();
-            renderTabella();
-            showSync(false, "Salvato");
-            setTimeout(fetchData, 1500);
-        } catch (e) {
-            alert("Errore salvataggio!");
+            setTimeout(fetchData, 1500); // Ricarica dati reali dal cloud
+        } catch (err) {
+            alert("Errore salvataggio cloud");
             showSync(false, "Errore");
         }
     }
 
     async function elimina(index) {
-        if (!confirm("Eliminare definitivamente questo report?")) return;
+        if (!confirm("Vuoi eliminare definitivamente questo record dal Cloud?")) return;
         
-        const idToDelete = dati[index].id;
+        const idToDelete = dati[index].id.toString();
         showSync(true, "Eliminazione...");
 
         try {
@@ -296,22 +298,26 @@
                 body: JSON.stringify({ action: "DELETE", id: idToDelete })
             });
 
+            // Feedback immediato e ricarica
             dati.splice(index, 1);
-            localStorage.setItem('backup_lavoro', JSON.stringify(dati));
             renderTabella();
-            showSync(false, "Eliminato");
             setTimeout(fetchData, 1500);
-        } catch (e) {
-            alert("Errore eliminazione!");
+        } catch (err) {
+            alert("Errore eliminazione");
             showSync(false, "Errore");
         }
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
+        if (dati.length === 0) {
+            body.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px; color:#8E8E93;'>Nessun dato trovato</td></tr>";
+            return;
+        }
+        
         body.innerHTML = dati.map((d, i) => `
             <tr>
-                <td style="width:35%">
+                <td style="width:30%">
                     <b>${d.data.split('-').reverse().slice(0,2).join('/')}</b>
                     <span class="luogo-label"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
                 </td>
@@ -328,16 +334,26 @@
     function avviaModifica(index) {
         const d = dati[index];
         editIndex = index;
-        document.getElementById('modalita').value = d.categoria === 'lavoro' ? d.tipo : "";
-        document.getElementById('assenza').value = d.categoria === 'assenza' ? d.tipo : "";
+        
+        if (d.categoria === 'lavoro') {
+            document.getElementById('modalita').value = d.tipo;
+            document.getElementById('assenza').value = "";
+        } else {
+            document.getElementById('assenza').value = d.tipo;
+            document.getElementById('modalita').value = "";
+        }
+        
         document.getElementById('luogo').value = d.luogo;
         document.getElementById('data').value = d.data;
         document.getElementById('ora-inizio').value = d.inizio;
         document.getElementById('ora-fine').value = d.fine;
-        document.getElementById('pausa').checked = d.pausa == "SI" || d.pausa == true;
-        document.getElementById('btn-save').textContent = "AGGIORNA ONLINE";
+        document.getElementById('pausa').checked = (d.pausa === "SI" || d.pausa === true);
+        
+        document.getElementById('form-title').innerHTML = `<i class="fas fa-edit"></i> Modifica Record`;
+        document.getElementById('btn-save').textContent = "AGGIORNA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display = "block";
-        window.scrollTo(0,0);
+        aggiornaPreview();
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function resetForm() {
@@ -348,7 +364,8 @@
         document.getElementById('ora-inizio').value = "";
         document.getElementById('ora-fine').value = "";
         document.getElementById('pausa').checked = false;
-        document.getElementById('btn-save').textContent = "SALVA ONLINE";
+        document.getElementById('form-title').innerHTML = `<i class="fas fa-plus-circle"></i> Nuovo Inserimento`;
+        document.getElementById('btn-save').textContent = "SALVA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display = "none";
         document.getElementById('preview-text').textContent = "Ore Nette: 0.00h";
     }
