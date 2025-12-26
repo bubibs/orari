@@ -5,82 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TECNOSISTEM - Pro Log</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { 
-            --primary: #007AFF; --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; 
-            --success: #34C759; --danger: #FF3B30; --warning: #FF9500; --radius: 14px; 
-            --accent: linear-gradient(135deg, #007AFF 0%, #0051a8 100%);
-            --subtext: #8E8E93; --border: #D1D1D6; --input-bg: #FFFFFF;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #000000; --card: #1C1C1E; --text: #FFFFFF;
-                --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E;
-            }
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .container { max-width: 500px; margin: 0 auto; }
-        
-        header { text-align: center; margin-bottom: 20px; }
-        .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
-        
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; height: 20px; transition: all 0.3s; }
-        .sync-working { color: var(--primary); } 
-        .sync-success { color: var(--success); } 
-        .sync-error { color: var(--danger); }
-
-        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; }
-        
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
-        
-        input, select, textarea { 
-            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; 
-            font-size: 16px; height: 50px; color: var(--text); background: var(--input-bg);
-            -webkit-appearance: none; appearance: none;
-        }
-
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
-
-        /* Bottone con Animazione */
-        .btn-main { 
-            background: var(--accent); color: white; border: none; border-radius: 14px; 
-            padding: 16px; font-size: 17px; font-weight: 700; width: 100%; 
-            margin-top: 10px; transition: 0.2s; cursor: pointer;
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
-        .btn-main:active { opacity: 0.8; transform: scale(0.98); }
-        .btn-main:disabled { background: #AEAEB2; cursor: not-allowed; }
-
-        .pause-container {
-            display: flex; align-items: center; justify-content: space-between;
-            background: var(--bg); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px;
-        }
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(22px); }
-
-        .money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .money-box { padding: 15px; border-radius: 12px; background: var(--bg); text-align: center; border: 1px solid var(--border); }
-        .money-val { font-size: 19px; font-weight: 900; margin-top: 5px; }
-        .money-label { font-size: 10px; font-weight: 800; color: var(--subtext); text-transform: uppercase; }
-
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; color: white; }
-        .bg-sede { background: var(--success); } .bg-trasf { background: var(--warning); } .bg-assenza { background: var(--danger); } .bg-estero { background: #5856D6; }
-        
-        .chevron { transition: transform 0.3s; }
-        .open .chevron { transform: rotate(180deg); }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -135,8 +60,8 @@
         <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
         
         <div class="row-2">
-            <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="color:var(--primary); font-weight:800;">0.00</div></div>
-            <div class="box-preview"><label>Di cui Extra</label><div id="prev-extra" style="color:var(--warning); font-weight:800;">0.00</div></div>
+            <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" class="preview-val">0.00</div></div>
+            <div class="box-preview"><label>Extra</label><div id="prev-extra" class="preview-val" style="color:var(--warning)">0.00</div></div>
         </div>
         
         <button class="btn-main" id="btn-save" onclick="salva()">
@@ -145,7 +70,7 @@
         </button>
     </div>
 
-    <div class="card" style="border: 2px solid var(--primary);">
+    <div class="card card-accent">
         <h2 onclick="toggleSection('calcolo-content', this)">
             <span><i class="fas fa-wallet"></i> Calcolo Lordo/Netto</span>
             <i class="fas fa-chevron-down chevron"></i>
@@ -157,34 +82,31 @@
                     <div class="money-label">Lordo Mensile</div>
                     <div id="val-lordo" class="money-val">€ 0.00</div>
                 </div>
-                <div class="money-box" style="background: var(--accent);">
-                    <div class="money-label" style="color:white">Netto Stimato</div>
-                    <div id="val-netto" class="money-val" style="color:white">€ 0.00</div>
+                <div class="money-box highlight">
+                    <div class="money-label">Netto Stima</div>
+                    <div id="val-netto" class="money-val">€ 0.00</div>
                 </div>
             </div>
-            <div style="margin-top:15px; font-size:11px; color:var(--subtext); line-height:1.8;">
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>PAGA BASE:</span><span id="calc-base" style="color:var(--text)">€ 0.00</span></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>STRAORDINARI (TOT):</span><span id="calc-extra" style="color:var(--text)">€ 0.00</span></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>INDENNITÀ TRASFERTA:</span><span id="calc-ind" style="color:var(--text)">€ 0.00</span></div>
+            <div class="details-list">
+                <div class="detail-row"><span>PAGA BASE:</span><span id="calc-base">€ 0.00</span></div>
+                <div class="detail-row"><span>STRAORDINARI:</span><span id="calc-extra">€ 0.00</span></div>
+                <div class="detail-row"><span>INDENNITÀ:</span><span id="calc-ind">€ 0.00</span></div>
             </div>
         </div>
     </div>
 
     <div class="card">
         <h2 onclick="toggleSection('settings-content', this)">
-            <span><i class="fas fa-cog"></i> Tariffe Personali</span>
+            <span><i class="fas fa-cog"></i> Tariffe Cloud</span>
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="settings-content" style="display:none;">
-            <div class="form-group"><label>Paga Base Mensile (€)</label><input type="number" id="t-base" value="1800"></div>
+            <div class="form-group"><label>Paga Base (€)</label><input type="number" id="t-base"></div>
             <div class="row-2">
-                <div class="form-group"><label>S. 25% (€/h)</label><input type="number" id="t-25" value="12"></div>
-                <div class="form-group"><label>S. 50% (€/h)</label><input type="number" id="t-50" value="15"></div>
+                <div class="form-group"><label>S. 25% (€/h)</label><input type="number" id="t-25"></div>
+                <div class="form-group"><label>S. 50% (€/h)</label><input type="number" id="t-50"></div>
             </div>
-            <div class="form-group"><label>Ind. Rientro (€)</label><input type="number" id="t-rientro" value="15"></div>
-            <div class="form-group"><label>Ind. Pernotto (€)</label><input type="number" id="t-pernotto" value="30"></div>
-            <div class="form-group"><label>Ind. Estero (€)</label><input type="number" id="t-estero" value="50"></div>
-            <button class="btn-main" id="btn-save-settings" onclick="salvaTariffe()" style="background:var(--success)">SALVA TARIFFE SU CLOUD</button>
+            <button class="btn-main btn-success" id="btn-save-settings" onclick="salvaTariffe()">AGGIORNA CLOUD</button>
         </div>
     </div>
 
@@ -196,209 +118,6 @@
     </div>
 </div>
 
-<script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-    let dati = [];
-
-    document.addEventListener('DOMContentLoaded', () => {
-        popolaOrari();
-        const oggi = new Date();
-        document.getElementById('data').value = oggi.toISOString().split('T')[0];
-        document.getElementById('mese-calcolo').value = oggi.toISOString().slice(0, 7);
-        fetchData();
-    });
-
-    function popolaOrari() {
-        const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
-        selects.forEach(s => {
-            s.add(new Option("--:--", ""));
-            for (let h = 0; h < 24; h++) {
-                let hh = h.toString().padStart(2, '0');
-                s.add(new Option(`${hh}:00`, `${hh}:00`)); s.add(new Option(`${hh}:30`, `${hh}:30`));
-            }
-        });
-    }
-
-    function toggleSection(id, el) {
-        const c = document.getElementById(id);
-        const isOpen = c.style.display === 'block';
-        c.style.display = isOpen ? 'none' : 'block';
-        el.classList.toggle('open', !isOpen);
-    }
-
-    async function fetchData() {
-        setSyncState('working', 'Sincronizzazione...');
-        try {
-            const r = await fetch(WEB_APP_URL);
-            const res = await r.json();
-            dati = res.data || [];
-            
-            // Carica tariffe
-            if (res.settings && res.settings.base) {
-                document.getElementById('t-base').value = res.settings.base;
-                document.getElementById('t-25').value = res.settings.s25;
-                document.getElementById('t-50').value = res.settings.s50;
-                document.getElementById('t-rientro').value = res.settings.rientro;
-                document.getElementById('t-pernotto').value = res.settings.pernotto;
-                document.getElementById('t-estero').value = res.settings.estero;
-            }
-
-            // Suggerimento luoghi
-            aggiornaSuggerimentiLuoghi();
-            
-            renderTabella();
-            setSyncState('success', 'Sincronizzato');
-        } catch(e) { 
-            setSyncState('error', 'Errore Cloud'); 
-        }
-    }
-
-    function aggiornaSuggerimentiLuoghi() {
-        const lista = document.getElementById('lista-luoghi');
-        const luoghiUnici = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "TECNOSISTEM"))];
-        lista.innerHTML = luoghiUnici.map(l => `<option value="${l}">`).join('');
-    }
-
-    function renderTabella() {
-        const filtro = document.getElementById('mese-calcolo').value;
-        const filteredData = dati.filter(d => d.data.startsWith(filtro));
-        
-        const T_BASE = parseFloat(document.getElementById('t-base').value) || 0;
-        const T_25 = parseFloat(document.getElementById('t-25').value) || 0;
-        const T_50 = parseFloat(document.getElementById('t-50').value) || 0;
-        const T_RIEN = parseFloat(document.getElementById('t-rientro').value) || 0;
-        const T_PERN = parseFloat(document.getElementById('t-pernotto').value) || 0;
-        const T_EST = parseFloat(document.getElementById('t-estero').value) || 0;
-
-        let somme = { extra: 0, ind: 0 };
-
-        document.getElementById('registro-body').innerHTML = filteredData.map(d => {
-            const h = parseFloat(d.ore) || 0;
-            const dObj = new Date(d.data);
-            const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
-            let ex = isWE ? h : Math.max(0, h-8);
-            
-            somme.extra += isWE ? (ex * T_50) : (ex * T_25);
-            if(d.tipo === "Trasferta Rientro") somme.ind += T_RIEN;
-            else if(d.tipo === "Trasferta Pernotto") somme.ind += T_PERN;
-            else if(d.tipo === "Trasferta Estero") somme.ind += T_EST;
-
-            let bClass = d.tipo.includes("Trasferta") ? "bg-trasf" : "bg-sede";
-            if(d.tipo.includes("Estero")) bClass = "bg-estero";
-            if(["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
-
-            return `<tr>
-                <td><b>${d.data.split('-')[2]}/${d.data.split('-')[1]}</b></td>
-                <td><span class="badge ${bClass}">${d.tipo}</span><br><small>${d.luogo || '-'}</small></td>
-                <td style="text-align:right;">${h.toFixed(2)}H</td>
-            </tr>`;
-        }).join('');
-
-        const lordo = T_BASE + somme.extra + somme.ind;
-        document.getElementById('val-lordo').textContent = `€ ${lordo.toFixed(2)}`;
-        document.getElementById('val-netto').textContent = `€ ${(lordo * 0.76).toFixed(2)}`;
-        document.getElementById('calc-base').textContent = `€ ${T_BASE.toFixed(2)}`;
-        document.getElementById('calc-extra').textContent = `€ ${somme.extra.toFixed(2)}`;
-        document.getElementById('calc-ind').textContent = `€ ${somme.ind.toFixed(2)}`;
-    }
-
-    async function salva() {
-        const btn = document.getElementById('btn-save');
-        const txt = document.getElementById('btn-text');
-        const spinner = document.getElementById('btn-spinner');
-        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
-        
-        if(!tipo) return alert("Seleziona attività");
-
-        // UI Feedback
-        btn.disabled = true;
-        txt.style.display = 'none';
-        spinner.style.display = 'inline-block';
-        setSyncState('working', 'Salvataggio...');
-
-        const rec = {
-            id: Date.now().toString(), tipo,
-            luogo: document.getElementById('luogo').value,
-            data: document.getElementById('data').value,
-            inizio: document.getElementById('ora-inizio').value,
-            fine: document.getElementById('ora-fine').value,
-            ore: document.getElementById('prev-tot').textContent,
-            note: document.getElementById('note').value
-        };
-
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-            setSyncState('success', 'Salvato!');
-            await fetchData();
-            document.getElementById('note').value = "";
-        } catch(e) { 
-            setSyncState('error', 'Errore Cloud'); 
-        } finally {
-            btn.disabled = false;
-            txt.style.display = 'inline-block';
-            spinner.style.display = 'none';
-        }
-    }
-
-    async function salvaTariffe() {
-        const btn = document.getElementById('btn-save-settings');
-        const config = {
-            azione: "config_tariffe",
-            base: document.getElementById('t-base').value,
-            s25: document.getElementById('t-25').value,
-            s25: document.getElementById('t-25').value,
-            s50: document.getElementById('t-50').value,
-            rientro: document.getElementById('t-rientro').value,
-            pernotto: document.getElementById('t-pernotto').value,
-            estero: document.getElementById('t-estero').value
-        };
-        btn.disabled = true;
-        setSyncState('working', 'Aggiornamento...');
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(config) });
-            setSyncState('success', 'Tariffe OK');
-            fetchData();
-        } catch(e) { setSyncState('error', 'Errore'); }
-        btn.disabled = false;
-    }
-
-    function setSyncState(s, t) {
-        const i = document.getElementById('sync-indicator');
-        i.className = `sync-${s}`;
-        const icon = s === 'working' ? 'fa-sync fa-spin' : 'fa-cloud';
-        i.innerHTML = `<i class="fas ${icon}"></i> ${t.toUpperCase()}`;
-    }
-
-    function logicModalita() {
-        const val = document.getElementById('modalita').value;
-        if(val) document.getElementById('assenza').value = "";
-        if(val === "In Sede") {
-            document.getElementById('luogo').value = "TECNOSISTEM";
-            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
-            document.getElementById('pausa-mensa').checked = true;
-        }
-        aggiornaPreview();
-    }
-
-    function logicAssenza() {
-        if(document.getElementById('assenza').value) {
-            document.getElementById('modalita').value = "";
-            document.getElementById('pausa-mensa').checked = false;
-        }
-        aggiornaPreview();
-    }
-
-    function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, d = document.getElementById('data').value;
-        if(!s || !e || !d) return;
-        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
-        let ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
-        if(document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
-        document.getElementById('prev-tot').textContent = ore.toFixed(2);
-        const dataObj = new Date(d);
-        const isWE = (dataObj.getDay() === 0 || dataObj.getDay() === 6);
-        document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
-    }
-</script>
+<script src="script.js"></script>
 </body>
 </html>
