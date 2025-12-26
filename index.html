@@ -3,117 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TECNOSISTEM - Pro Log</title>
+    <title>TECNOSISTEM - Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div class="container">
+        <header>
+            <div class="logo">TECNOSISTEM</div>
+            <div id="sync-indicator"><i class="fas fa-cloud"></i> PRONTO</div>
+            <nav class="nav-bar">
+                <a href="index.html" class="nav-btn active"><i class="fas fa-edit"></i> Report</a>
+                <a href="calcoli.html" class="nav-btn"><i class="fas fa-wallet"></i> Calcoli & Storico</a>
+            </nav>
+        </header>
 
-<div class="container">
-    <header>
-        <div class="logo">TECNOSISTEM</div>
-        <div id="sync-indicator"><i class="fas fa-cloud"></i> PRONTO</div>
-    </header>
-
-    <div class="card">
-        <h2><span><i class="fas fa-plus"></i> Inserimento Report</span></h2>
-        
-        <div class="form-group">
-            <label>Data</label>
-            <input type="date" id="data" onchange="aggiornaPreview()">
-        </div>
-        
-        <div class="row-2">
-            <div class="form-group">
-                <label>Tipo Lavoro</label>
-                <select id="modalita" onchange="logicModalita()">
-                    <option value="">-- SELEZIONA --</option>
-                    <option value="In Sede">IN SEDE</option>
-                    <option value="Trasferta Rientro">TRASFERTA RIENTRO</option>
-                    <option value="Trasferta Pernotto">TRASFERTA PERNOTTO</option>
-                    <option value="Trasferta Estero">TRASFERTA ESTERO</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Assenza</label>
-                <select id="assenza" onchange="logicAssenza()">
-                    <option value="">-- NESSUNA --</option>
-                    <option value="Ferie">FERIE</option>
-                    <option value="Permesso">PERMESSO</option>
-                    <option value="Malattia">MALATTIA</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="row-2">
-            <div class="form-group">
-                <label>Inizio</label>
-                <select id="ora-inizio" onchange="aggiornaPreview()"></select>
-            </div>
-            <div class="form-group">
-                <label>Fine</label>
-                <select id="ora-fine" onchange="aggiornaPreview()"></select>
-            </div>
-        </div>
-
-        <div class="pause-container">
-            <span><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
-            <label class="switch">
-                <input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="form-group">
-            <label>Luogo</label>
-            <input type="text" id="luogo" placeholder="DESTINAZIONE..." list="lista-luoghi">
-            <datalist id="lista-luoghi"></datalist>
-        </div>
-
-        <div class="form-group">
-            <label>Note</label>
-            <textarea id="note" rows="2" placeholder="Dettagli intervento..."></textarea>
-        </div>
-        
-        <div class="row-2">
-            <div class="box-preview">
-                <label>Ore Totali</label>
-                <div id="prev-tot" class="val">0.00</div>
-            </div>
-            <div class="box-preview">
-                <label>Extra</label>
-                <div id="prev-extra" class="val warning">0.00</div>
-            </div>
-        </div>
-        
-        <button class="btn-main" id="btn-save" onclick="salva()">
-            <span id="btn-text">REGISTRA REPORT</span>
-            <i id="btn-spinner" class="fas fa-sync fa-spin" style="display:none"></i>
-        </button>
-    </div>
-
-    <div class="card card-accent">
-        <h2 onclick="toggleSection('calcolo-content', this)">
-            <span><i class="fas fa-wallet"></i> Calcolo Lordo/Netto</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
-        <div id="calcolo-content" style="display:none;">
-            <input type="month" id="mese-calcolo" onchange="renderTabella()">
-            <div class="money-grid">
-                <div class="money-box">
-                    <span class="m-label">Lordo</span>
-                    <div id="val-lordo" class="m-val">€ 0.00</div>
+        <div class="card">
+            <h2><span><i class="fas fa-plus"></i> Nuovo Ingresso</span></h2>
+            <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
+            
+            <div class="row-2">
+                <div class="form-group">
+                    <label>Tipo Lavoro</label>
+                    <select id="modalita" onchange="logicModalita()">
+                        <option value="">-- SELEZIONA --</option>
+                        <option value="In Sede">IN SEDE</option>
+                        <option value="Trasferta Rientro">TRASFERTA RIENTRO</option>
+                        <option value="Trasferta Pernotto">TRASFERTA PERNOTTO</option>
+                        <option value="Trasferta Estero">TRASFERTA ESTERO</option>
+                    </select>
                 </div>
-                <div class="money-box highlight">
-                    <span class="m-label">Netto Stima</span>
-                    <div id="val-netto" class="m-val">€ 0.00</div>
+                <div class="form-group">
+                    <label>Assenza</label>
+                    <select id="assenza" onchange="logicAssenza()">
+                        <option value="">-- NESSUNA --</option>
+                        <option value="Ferie">FERIE</option>
+                        <option value="Permesso">PERMESSO</option>
+                        <option value="Malattia">MALATTIA</option>
+                    </select>
                 </div>
             </div>
+
+            <div class="row-2">
+                <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
+                <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
+            </div>
+
+            <div class="pause-container">
+                <span><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
+                <label class="switch"><input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()"><span class="slider"></span></label>
+            </div>
+
+            <div class="form-group">
+                <label>Luogo</label>
+                <input type="text" id="luogo" placeholder="DESTINAZIONE..." list="lista-luoghi">
+                <datalist id="lista-luoghi"></datalist>
+            </div>
+
+            <div class="form-group"><label>Note</label><textarea id="note" placeholder="Dettagli..."></textarea></div>
+            
+            <div class="row-2">
+                <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" class="val">0.00</div></div>
+                <div class="box-preview"><label>Extra</label><div id="prev-extra" class="val warning">0.00</div></div>
+            </div>
+            
+            <button class="btn-main" id="btn-save" onclick="salva()">
+                <span id="btn-text">REGISTRA REPORT</span>
+                <i id="btn-spinner" class="fas fa-sync fa-spin" style="display:none"></i>
+            </button>
         </div>
     </div>
-</div>
-
-<script src="js/script.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>
-
