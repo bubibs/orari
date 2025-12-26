@@ -44,11 +44,8 @@
         
         input, select, textarea { 
             width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 12px; 
-            font-size: 18px; 
-            background: #FFF; 
-            -webkit-appearance: none;
-            height: 52px; 
-            color: var(--text);
+            font-size: 18px; background: #FFF; -webkit-appearance: none;
+            height: 52px; color: var(--text);
         }
         textarea { height: 90px; padding-top: 12px; }
         
@@ -69,16 +66,16 @@
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; margin-top: 10px; }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
         
-        /* REGISTRO AGGIORNATO */
-        table { width: 100%; border-collapse: collapse; }
+        /* STILI REGISTRO MIGLIORATI */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 14px 4px; vertical-align: middle; }
+        td { padding: 12px 2px; vertical-align: middle; overflow: hidden; }
         
-        .item-data { font-weight: 800; font-size: 14px; display: block; color: #1c1c1e; }
-        .item-orario { color: #8E8E93; font-size: 12px; font-weight: 600; display: block; margin-top: 2px; }
-        .item-luogo { display: block; font-size: 11px; color: var(--primary); font-weight: 700; margin-top: 4px; text-transform: uppercase; }
+        .item-data { font-weight: 800; font-size: 13px; display: block; color: #1c1c1e; }
+        .item-orario { color: #8E8E93; font-size: 11px; font-weight: 600; display: block; margin-top: 2px; white-space: nowrap; }
+        .item-luogo { display: block; font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 4px; text-transform: uppercase; line-height: 1.2; }
         
-        .badge { padding: 5px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; display: inline-block; line-height: 1.1; }
+        .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; display: inline-block; line-height: 1.1; width: 100%; }
         
         .bg-sede { background: #E1F5FE; color: #0288D1; }
         .bg-rientro { background: #FFF3E0; color: #EF6C00; }
@@ -86,10 +83,13 @@
         .bg-estero { background: #E8F5E9; color: #2E7D32; }
         .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .actions { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 20px; cursor: pointer; padding: 4px; }
+        /* AZIONI CENTRATE */
+        .actions { display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; }
+        .btn-icon { border: none; background: none; font-size: 20px; cursor: pointer; padding: 2px; line-height: 1; }
         .edit-icon { color: var(--primary); }
         .delete-icon { color: var(--danger); }
+        
+        .ore-val { font-size: 14px; font-weight: 800; text-align: right; display: block; }
     </style>
 </head>
 <body>
@@ -316,22 +316,24 @@
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => {
             let dObj = new Date(d.data);
-            let dFmt = isNaN(dObj) ? d.data : dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'numeric'});
+            let dFmt = isNaN(dObj) ? d.data : dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
             return `
                 <tr>
-                    <td style="width:40%">
+                    <td style="width:38%">
                         <span class="item-data">${dFmt}</span>
-                        <span class="item-orario"><i class="far fa-clock"></i> ${cleanTime(d.inizio)} - ${cleanTime(d.fine)}</span>
-                        <span class="item-luogo"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
+                        <span class="item-orario">${cleanTime(d.inizio)}-${cleanTime(d.fine)}</span>
+                        <span class="item-luogo">${d.luogo}</span>
                     </td>
-                    <td style="text-align:center; width:35%;">
+                    <td style="text-align:center; width:34%;">
                         <span class="badge ${getBadgeClass(d.tipo)}">${d.tipo}</span>
-                        ${d.note ? `<div style="font-size:10px; color:#666; font-style:italic; line-height:1.2; margin-top:4px;">${d.note}</div>` : ''}
+                        ${d.note ? `<div style="font-size:9px; color:#666; font-style:italic; line-height:1.1; margin-top:3px;">${d.note}</div>` : ''}
                     </td>
-                    <td style="text-align:right"><b>${d.ore}h</b></td>
-                    <td class="actions">
-                        <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
-                        <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash delete-icon"></i></button>
+                    <td style="width:12%"><span class="ore-val">${d.ore}h</span></td>
+                    <td style="width:16%">
+                        <div class="actions">
+                            <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
+                            <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash delete-icon"></i></button>
+                        </div>
                     </td>
                 </tr>
             `;
