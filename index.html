@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -12,36 +11,34 @@
             --success: #34C759; --danger: #FF3B30; --warning: #FF9500; --radius: 14px;
             --accent: linear-gradient(135deg, #007AFF 0%, #0051a8 100%);
             --subtext: #8E8E93; --border: #D1D1D6; --input-bg: #FFFFFF;
+            --indennita: #FF9500;
         }
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #000000; --card: #1C1C1E; --text: #FFFFFF;
                 --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E;
+                --indennita: #FFCC00;
             }
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
-       
         header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
         #daily-quote { font-size: 12px; font-style: italic; color: var(--subtext); margin-top: 5px; }
-       
         #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; }
         .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
-       
+        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
-       
         input, select, textarea {
             width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;
             font-size: 16px; height: 50px; color: var(--text); background: var(--input-bg);
             -webkit-appearance: none; appearance: none;
         }
-        input[type="date"], #filtro-mese { width: 100%; text-transform: uppercase; }
-        textarea { height: 70px; resize: none; text-transform: none; }
+        input[type="date"], input[type="month"] { text-transform: uppercase; }
+        textarea { height: 70px; resize: none; }
         .pause-container {
             display: flex; align-items: center; justify-content: space-between;
             background: var(--bg); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px;
@@ -52,11 +49,10 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(22px); }
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .row-2, .row-3 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .row-3 { grid-template-columns: 1fr 1fr 1fr; }
         .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
         .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
-       
-        /* TABELLA STORICO STILE AVANZATO */
         table { width: 100%; border-collapse: collapse; }
         td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; }
         .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: white; margin-bottom: 3px; }
@@ -64,7 +60,6 @@
         .bg-trasf { background: var(--warning); }
         .bg-assenza { background: var(--danger); }
         .bg-estero { background: #5856D6; }
-       
         .extra-label { font-size: 10px; color: var(--warning); font-weight: 700; display: block; margin-top: 2px; }
         .luogo-label { font-size: 10px; color: var(--subtext); display: block; font-weight: 500; }
         .actions-cell { display: flex; gap: 8px; justify-content: flex-end; }
@@ -78,6 +73,8 @@
         <div id="daily-quote">"L'unico modo per fare un ottimo lavoro è amare quello che fai."</div>
         <div id="sync-indicator"></div>
     </header>
+
+    <!-- INSERIMENTO -->
     <div class="card">
         <h2><span><i class="fas fa-plus"></i> Inserimento</span></h2>
         <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
@@ -110,35 +107,54 @@
         </div>
         <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
         <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
-        <div class="form-group"><label>Paga Oraria (€)</label><input type="number" id="paga-oraria" placeholder="10.00" step="0.01"></div>
-        <div class="form-group"><label>Paga Straordinaria (€)</label><input type="number" id="paga-straord" placeholder="15.00" step="0.01"></div>
+
+        <!-- Campi per il calcolo lordo -->
+        <div class="form-group"><label>Paga base MENSILE (€)</label><input type="number" id="paga-base-mensile" step="0.01" value="1800.00"></div>
+        <div class="row-3">
+            <div class="form-group"><label>Straord. 25% (€/h)</label><input type="number" id="straord-25" step="0.01" value="12.50"></div>
+            <div class="form-group"><label>Straord. 50% (€/h)</label><input type="number" id="straord-50" step="0.01" value="15.00"></div>
+        </div>
+        <div class="row-3">
+            <div class="form-group"><label>Ind. Trasf. Rientro (€/gg)</label><input type="number" id="ind-trasf-rientro" step="0.01" value="25.00"></div>
+            <div class="form-group"><label>Ind. Trasf. Pernotto (€/gg)</label><input type="number" id="ind-trasf-pernotto" step="0.01" value="60.00"></div>
+            <div class="form-group"><label>Ind. Trasf. Estero (€/gg)</label><input type="number" id="ind-trasf-estero" step="0.01" value="90.00"></div>
+        </div>
+
         <div class="row-2">
             <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800; color:var(--primary);">0.00</div></div>
             <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
         </div>
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
     </div>
+
+    <!-- RIEPILOGO MENSILE -->
     <div class="card">
         <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo mensile</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="riepilogo-content" style="display:none;">
             <div class="form-group"><label>Seleziona Mese</label><input type="month" id="filtro-mese" onchange="fetchData()"></div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Totali</label><div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div></div>
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Extra</label><div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                <div class="box-preview"><label>Ore Totali</label><div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div></div>
+                <div class="box-preview"><label>Ore Extra</label><div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div></div>
+                <div class="box-preview"><label>Totale Indennità (€)</label><div id="stat-indennita" style="font-size:18px; font-weight:800; color:var(--indennita);">0.00</div></div>
+                <div class="box-preview"><label>Lordo (€)</label><div id="stat-lordo" style="font-size:18px; font-weight:800; color:var(--success);">0.00</div></div>
             </div>
             <div id="summary-list" style="font-size: 13px; font-weight: 600;"></div>
         </div>
     </div>
+
+    <!-- CALCOLO BUSTA PAGA -->
     <div class="card">
         <h2 onclick="toggleSection('busta-content', this)"><span><i class="fas fa-euro-sign"></i> Calcolo Busta Paga</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="busta-content" style="display:none;">
-            <div class="form-group"><label>Aliquota Fiscale (%)</label><input type="number" id="tax-rate" value="20" step="0.1" onchange="calcBusta()"></div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Lordo (€)</label><div id="stat-lordo" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div></div>
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Netto (€)</label><div id="stat-netto" style="font-size:18px; font-weight:800; color:var(--success);">0.00</div></div>
+            <div class="form-group"><label>Aliquota Fiscale (%)</label><input type="number" id="tax-rate" value="25" step="0.1" onchange="calcBusta()"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="box-preview"><label>Lordo (€)</label><div id="stat-lordo-busta" style="font-size:22px; font-weight:800; color:var(--primary);">0.00</div></div>
+                <div class="box-preview"><label>Netto (€)</label><div id="stat-netto" style="font-size:22px; font-weight:800; color:var(--success);">0.00</div></div>
             </div>
         </div>
     </div>
+
+    <!-- STORICO -->
     <div class="card">
         <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico Online</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="registro-content" style="display:none;">
@@ -146,9 +162,11 @@
         </div>
     </div>
 </div>
+
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
     let dati = [];
+
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
         const oggi = new Date();
@@ -156,52 +174,55 @@
         document.getElementById('filtro-mese').value = oggi.toISOString().slice(0, 7);
         fetchData();
     });
+
     function popolaOrari() {
         const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
         selects.forEach(s => {
             s.add(new Option("--:--", ""));
             for (let h = 0; h < 24; h++) {
                 let hh = h.toString().padStart(2, '0');
-                s.add(new Option(`${hh}:00`, `${hh}:00`)); s.add(new Option(`${hh}:30`, `${hh}:30`));
+                s.add(new Option(`${hh}:00`, `${hh}:00`));
+                s.add(new Option(`${hh}:30`, `${hh}:30`));
             }
         });
     }
+
     function logicModalita() {
         const val = document.getElementById('modalita').value;
-        if(val) document.getElementById('assenza').value = "";
-        if(val === "In Sede") {
-            document.getElementById('luogo').value = "TECNOSISTEM";
-            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
-            document.getElementById('pausa-mensa').checked = true;
-        }
+        if (val) document.getElementById('assenza').value = "";
         aggiornaPreview();
     }
+
     function logicAssenza() {
-        const val = document.getElementById('assenza').value;
-        if(val) {
+        if (document.getElementById('assenza').value) {
             document.getElementById('modalita').value = "";
-            document.getElementById('pausa-mensa').checked = true;
-            document.getElementById('ora-inizio').value = "08:00";
-            document.getElementById('ora-fine').value = "17:00";
-            document.getElementById('luogo').value = "ASSENZA";
         }
         aggiornaPreview();
     }
+
     function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, d = document.getElementById('data').value;
-        if(!s || !e || !d) return;
-        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
-        let ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
-        if(document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
+        const s = document.getElementById('ora-inizio').value;
+        const e = document.getElementById('ora-fine').value;
+        const d = document.getElementById('data').value;
+        if (!s || !e || !d) return;
+
+        const [h1, m1] = s.split(':').map(Number);
+        const [h2, m2] = e.split(':').map(Number);
+        let ore = Math.max(0, ((h2 * 60 + m2) - (h1 * 60 + m1)) / 60);
+        if (document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
+
         document.getElementById('prev-tot').textContent = ore.toFixed(2);
+
         const dataObj = new Date(d);
-        const isWE = (dataObj.getDay() === 0 || dataObj.getDay() === 6);
+        const isWE = dataObj.getDay() === 0 || dataObj.getDay() === 6;
         document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
     }
+
     function toggleSection(id, el) {
         const c = document.getElementById(id);
-        c.style.display = (c.style.display === 'block') ? 'none' : 'block';
+        c.style.display = c.style.display === 'block' ? 'none' : 'block';
     }
+
     async function fetchData() {
         setSyncState('working', 'Sincronizzazione...');
         try {
@@ -209,29 +230,38 @@
             const res = await r.json();
             dati = res.data || [];
             renderTabella();
+            calcBusta();
             setSyncState('success', 'Sincronizzato');
-        } catch(e) { setSyncState('error', 'Errore'); }
+        } catch (e) {
+            setSyncState('error', 'Errore');
+        }
     }
+
     function renderTabella() {
         const filtro = document.getElementById('filtro-mese').value;
         const filteredData = dati.filter(d => d.data.startsWith(filtro));
-       
+
         let totOre = 0, totEx = 0, conteggio = {};
-        document.getElementById('registro-body').innerHTML = filteredData.map((d) => {
+        document.getElementById('registro-body').innerHTML = filteredData.map(d => {
             const h = parseFloat(d.ore) || 0;
             totOre += h;
             const dObj = new Date(d.data);
-            const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
-            const ex = isWE ? h : Math.max(0, h-8);
+            const isWE = dObj.getDay() === 0 || dObj.getDay() === 6;
+            const ex = isWE ? h : Math.max(0, h - 8);
             totEx += ex;
             conteggio[d.tipo] = (conteggio[d.tipo] || 0) + 1;
+
             let bClass = "bg-sede";
-            if(d.tipo.includes("Trasferta")) bClass = "bg-trasf";
-            if(d.tipo.includes("Estero")) bClass = "bg-estero";
-            if(["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
+            if (d.tipo.includes("Trasferta")) bClass = "bg-trasf";
+            if (d.tipo.includes("Estero")) bClass = "bg-estero";
+            if (["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
+
             return `
             <tr>
-                <td style="width:70px;"><div style="font-size:12px; font-weight:800;">${dObj.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}</div><div style="font-size:9px; color:var(--subtext); text-transform:uppercase;">${dObj.toLocaleDateString('it-IT',{weekday:'short'})}</div></td>
+                <td style="width:70px;">
+                    <div style="font-size:12px; font-weight:800;">${dObj.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}</div>
+                    <div style="font-size:9px; color:var(--subtext); text-transform:uppercase;">${dObj.toLocaleDateString('it-IT',{weekday:'short'})}</div>
+                </td>
                 <td>
                     <span class="badge ${bClass}">${d.tipo}</span>
                     <span class="luogo-label">${d.luogo || '-'}</span>
@@ -243,51 +273,84 @@
                 <td><div class="actions-cell"><button class="btn-icon" style="color:var(--primary)"><i class="fas fa-edit"></i></button></div></td>
             </tr>`;
         }).join('');
+
         document.getElementById('stat-ore-tot').textContent = totOre.toFixed(2);
         document.getElementById('stat-ore-ex').textContent = totEx.toFixed(2);
         document.getElementById('summary-list').innerHTML = Object.entries(conteggio).map(([t, c]) => `
             <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
                 <span style="text-transform: uppercase;">${t}</span><span>${c} GG</span>
             </div>`).join('');
-        calcBusta();
     }
+
     function calcBusta() {
         const filtro = document.getElementById('filtro-mese').value;
         const filteredData = dati.filter(d => d.data.startsWith(filtro));
-        let totalGross = 0;
+
+        let pagaBaseMensile = 0;
+        if (filteredData.length > 0) {
+            pagaBaseMensile = parseFloat(filteredData[filteredData.length - 1].pagaBaseMensile) || 0;
+        }
+
+        let totalStraord = 0;
+        let totalIndennita = 0;
+
         filteredData.forEach(d => {
-            const h = parseFloat(d.ore) || 0;
-            const oraria = parseFloat(d.oraria) || 0;
-            const straord = parseFloat(d.straord) || 0;
+            const ore = parseFloat(d.ore) || 0;
+            if (ore <= 0) return;
+
             const dObj = new Date(d.data);
-            const isWE = (dObj.getDay() === 0 || dObj.getDay() === 6);
-            const ex = isWE ? h : Math.max(0, h - 8);
-            const normal = h - ex;
-            const gross = normal * oraria + ex * straord;
-            totalGross += gross;
+            const isWE = dObj.getDay() === 0 || dObj.getDay() === 6;
+
+            // Straordinari (tutte extra a 50% per semplicità)
+            let oreStraord = isWE ? ore : Math.max(0, ore - 8);
+            const straord50 = parseFloat(d.straord50) || 0;
+            totalStraord += oreStraord * straord50;
+
+            // Indennità
+            let indennita = 0;
+            if (d.tipo === "Trasferta Rientro") indennita = parseFloat(d.indRientro) || 0;
+            else if (d.tipo === "Trasferta Pernotto") indennita = parseFloat(d.indPernotto) || 0;
+            else if (d.tipo === "Trasferta Estero") indennita = parseFloat(d.indEstero) || 0;
+            totalIndennita += indennita;
         });
-        const tax = parseFloat(document.getElementById('tax-rate').value) / 100 || 0;
-        const totalNet = totalGross * (1 - tax);
+
+        const totalGross = pagaBaseMensile + totalStraord + totalIndennita;
+
+        const taxRate = parseFloat(document.getElementById('tax-rate').value) / 100 || 0;
+        const netto = totalGross * (1 - taxRate);
+
         document.getElementById('stat-lordo').textContent = totalGross.toFixed(2);
-        document.getElementById('stat-netto').textContent = totalNet.toFixed(2);
+        document.getElementById('stat-lordo-busta').textContent = totalGross.toFixed(2);
+        document.getElementById('stat-netto').textContent = netto.toFixed(2);
+        document.getElementById('stat-indennita').textContent = totalIndennita.toFixed(2);
     }
+
     async function salva() {
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
-        if(!tipo) return alert("Seleziona attività");
+        if (!tipo) return alert("Seleziona attività");
+
         const rec = {
-            id: Date.now().toString(), tipo,
+            id: Date.now().toString(),
+            tipo,
             luogo: document.getElementById('luogo').value,
             data: document.getElementById('data').value,
             inizio: document.getElementById('ora-inizio').value,
             fine: document.getElementById('ora-fine').value,
             ore: document.getElementById('prev-tot').textContent,
             note: document.getElementById('note').value,
-            oraria: parseFloat(document.getElementById('paga-oraria').value) || 0,
-            straord: parseFloat(document.getElementById('paga-straord').value) || 0
+            pagaBaseMensile: parseFloat(document.getElementById('paga-base-mensile').value) || 0,
+            straord25: parseFloat(document.getElementById('straord-25').value) || 0,
+            straord50: parseFloat(document.getElementById('straord-50').value) || 0,
+            indRientro: parseFloat(document.getElementById('ind-trasf-rientro').value) || 0,
+            indPernotto: parseFloat(document.getElementById('ind-trasf-pernotto').value) || 0,
+            indEstero: parseFloat(document.getElementById('ind-trasf-estero').value) || 0
         };
+
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-        fetchData(); document.getElementById('note').value = "";
+        fetchData();
+        document.getElementById('note').value = "";
     }
+
     function setSyncState(s, t) {
         const i = document.getElementById('sync-indicator');
         i.className = `sync-${s}`;
@@ -296,4 +359,3 @@
 </script>
 </body>
 </html>
-```
