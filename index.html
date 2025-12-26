@@ -1062,29 +1062,28 @@
             // Invio dei dati
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-        mode: 'cors', // Modificato in 'cors'
-        headers: {
-            'Content-Type': 'text/plain;charset=utf-8', // Formato ottimale per Google Script
-        },
-        body: JSON.stringify(newEntry)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-    })
-    .then(data => {
-        if (data.result === 'success') {
-            cloudStatusMsg.innerHTML = '<i class="fas fa-check-circle"></i> Sincronizzato con Cloud';
-            showNotification('Dati salvati in locale e su Cloud!', 'success');
-        } else {
-            throw new Error(data.error || 'Errore sconosciuto');
-        }
-    })
-    .catch(error => {
-        console.error('Errore Cloud:', error);
-        cloudStatusMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Errore Sync Cloud (Dati salvi solo in locale)';
-        showNotification('Errore connessione Google Sheets', 'warning');
-                showNotification('Errore connessione Google Sheets', 'warning');
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8',
+                },
+                body: JSON.stringify(newEntry)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.result === 'success') {
+                    cloudStatusMsg.innerHTML = '<i class="fas fa-check-circle"></i> Sincronizzato con Cloud';
+                    showNotification('Dati salvati in locale e su Cloud!', 'success');
+                } else {
+                    throw new Error(data.error || 'Errore sconosciuto');
+                }
+            })
+            .catch(error => {
+                console.error('Errore Cloud:', error);
+                cloudStatusMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Errore Sync Cloud (Dati salvi solo in locale)';
+                showNotification('Errore connessione Google Sheets: ' + error.message, 'warning');
             });
         } else {
             cloudStatusMsg.innerHTML = '<i class="fas fa-info-circle"></i> Cloud non configurato (Solo locale)';
@@ -1103,7 +1102,7 @@
             calculateHours();
         }, 1000);
     }
- function deleteEntry(id) {  // Cambiato da index a id per coerenza con il tuo codice
+ function deleteEntry(id) {
     if (confirm('Sei sicuro di voler eliminare questo record? Verrà rimosso anche da Google Sheets.')) {
         const entryToDelete = registerData.find(entry => entry.id === id);
         if (!entryToDelete) return;
@@ -1118,8 +1117,8 @@
         if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'cors',  // Uniformato a 'cors' come nel salvataggio
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },  // Cambiato da application/json per evitare preflight CORS complessi
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     action: 'delete',
                     date: entryToDelete.date,
