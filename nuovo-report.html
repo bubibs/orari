@@ -11,29 +11,28 @@
     <div class="container">
         <header class="header-back">
             <a href="index.html"><i class="fas fa-chevron-left"></i> Home</a>
-            <div class="logo-small">TECNOSISTEM</div>
+            <div class="logo-small">NUOVO REPORT</div>
         </header>
 
         <div class="card">
-            <h2>Inserimento Attività</h2>
             <div class="form-group"><label>Data</label><input type="date" id="data"></div>
             
             <div class="row-2">
                 <div class="form-group">
                     <label>Tipo Lavoro</label>
-                    <select id="modalita" onchange="logicModalita()">
-                        <option value="">-- SELEZIONA --</option>
-                        <option value="In Sede">IN SEDE</option>
-                        <option value="Trasferta Rientro">TRASFERTA RIENTRO</option>
-                        <option value="Trasferta Pernotto">TRASFERTA PERNOTTO</option>
+                    <select id="modalita" onchange="aggiornaPreview()">
+                        <option value="Sede">IN SEDE</option>
+                        <option value="Trasferta">TRASFERTA</option>
+                        <option value="Estero">ESTERO</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Assenza</label>
-                    <select id="assenza" onchange="logicAssenza()">
-                        <option value="">-- NESSUNA --</option>
+                    <select id="assenza" onchange="aggiornaPreview()">
+                        <option value="">-- NO --</option>
                         <option value="Ferie">FERIE</option>
                         <option value="Permesso">PERMESSO</option>
+                        <option value="Malattia">MALATTIA</option>
                     </select>
                 </div>
             </div>
@@ -45,22 +44,22 @@
 
             <div class="pause-container">
                 <span><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
-                <label class="switch"><input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()"><span class="slider"></span></label>
+                <label class="switch"><input type="checkbox" id="pausa-mensa" checked onchange="aggiornaPreview()"><span class="slider"></span></label>
             </div>
 
             <div class="form-group">
-                <label>Luogo (Cerca in rubrica)</label>
-                <input type="text" id="luogo" list="lista-luoghi" placeholder="Destinazione...">
+                <label>Luogo / Cliente</label>
+                <input type="text" id="luogo" list="lista-luoghi" placeholder="Cerca o inserisci...">
                 <datalist id="lista-luoghi"></datalist>
             </div>
 
             <div class="row-2">
                 <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" class="val">0.00</div></div>
-                <div class="box-preview"><label>Extra</label><div id="prev-extra" class="val warning">0.00</div></div>
+                <div class="box-preview"><label>Straordinario</label><div id="prev-extra" class="val warning">0.00</div></div>
             </div>
             
-            <button class="btn-main" id="btn-save" onclick="salva()">
-                <span id="btn-text">REGISTRA REPORT</span>
+            <button class="btn-main" id="btn-save" onclick="salvaReport()">
+                <span id="btn-text">SALVA REPORT</span>
                 <i id="btn-spinner" class="fas fa-sync fa-spin" style="display:none"></i>
             </button>
         </div>
