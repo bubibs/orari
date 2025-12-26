@@ -74,7 +74,7 @@
         <div id="sync-indicator"></div>
     </header>
 
-    <!-- INSERIMENTO (ora senza campi busta paga) -->
+    <!-- INSERIMENTO -->
     <div class="card">
         <h2><span><i class="fas fa-plus"></i> Inserimento</span></h2>
         <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
@@ -107,7 +107,6 @@
         </div>
         <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
         <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
-
         <div class="row-2">
             <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800; color:var(--primary);">0.00</div></div>
             <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
@@ -115,52 +114,48 @@
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
     </div>
 
-    <!-- IMPOSTAZIONI BUSTA PAGA (nuova sezione separata) -->
+    <!-- IMPOSTAZIONI BUSTA PAGA -->
     <div class="card">
         <h2 onclick="toggleSection('settings-content', this)"><span><i class="fas fa-cog"></i> Impostazioni Busta Paga</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="settings-content" style="display:none;">
-            <p style="font-size:13px; color:var(--subtext); margin-bottom:15px;">Questi valori verranno applicati automaticamente a tutti i nuovi report.</p>
-            
+            <p style="font-size:13px; color:var(--subtext); margin-bottom:15px;">Valori applicati automaticamente ai nuovi report.</p>
             <div class="form-group"><label>Paga base MENSILE (€)</label><input type="number" id="paga-base-mensile" step="0.01" value="1800.00"></div>
-            
             <div class="row-3">
                 <div class="form-group"><label>Straord. 25% (€/h)</label><input type="number" id="straord-25" step="0.01" value="12.50"></div>
                 <div class="form-group"><label>Straord. 50% (€/h)</label><input type="number" id="straord-50" step="0.01" value="15.00"></div>
             </div>
-            
             <div class="row-3">
                 <div class="form-group"><label>Ind. Trasf. Rientro (€/gg)</label><input type="number" id="ind-trasf-rientro" step="0.01" value="25.00"></div>
                 <div class="form-group"><label>Ind. Trasf. Pernotto (€/gg)</label><input type="number" id="ind-trasf-pernotto" step="0.01" value="60.00"></div>
                 <div class="form-group"><label>Ind. Trasf. Estero (€/gg)</label><input type="number" id="ind-trasf-estero" step="0.01" value="90.00"></div>
             </div>
-            
             <button class="btn-main" onclick="salvaImpostazioni()">SALVA IMPOSTAZIONI</button>
         </div>
     </div>
 
     <!-- RIEPILOGO MENSILE -->
     <div class="card">
-        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo mensile</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo Mensile</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="riepilogo-content" style="display:none;">
             <div class="form-group"><label>Seleziona Mese</label><input type="month" id="filtro-mese" onchange="fetchData()"></div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px;">
                 <div class="box-preview"><label>Ore Totali</label><div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div></div>
                 <div class="box-preview"><label>Ore Extra</label><div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div></div>
                 <div class="box-preview"><label>Totale Indennità (€)</label><div id="stat-indennita" style="font-size:18px; font-weight:800; color:var(--indennita);">0.00</div></div>
-                <div class="box-preview"><label>Lordo (€)</label><div id="stat-lordo" style="font-size:18px; font-weight:800; color:var(--success);">0.00</div></div>
+                <div class="box-preview"><label>Lordo Mensile (€)</label><div id="stat-lordo" style="font-size:18px; font-weight:800; color:var(--success);">0.00</div></div>
             </div>
-            <div id="summary-list" style="font-size: 13px; font-weight: 600;"></div>
+            <div id="summary-list" style="font-size: 13px; font-weight: 600; margin-top:15px;"></div>
         </div>
     </div>
 
-    <!-- CALCOLO BUSTA PAGA -->
+    <!-- RIEPILOGO ANNUALE -->
     <div class="card">
-        <h2 onclick="toggleSection('busta-content', this)"><span><i class="fas fa-euro-sign"></i> Calcolo Busta Paga</span><i class="fas fa-chevron-down chevron"></i></h2>
-        <div id="busta-content" style="display:none;">
-            <div class="form-group"><label>Aliquota Fiscale (%)</label><input type="number" id="tax-rate" value="25" step="0.1" onchange="calcBusta()"></div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="box-preview"><label>Lordo (€)</label><div id="stat-lordo-busta" style="font-size:22px; font-weight:800; color:var(--primary);">0.00</div></div>
-                <div class="box-preview"><label>Netto (€)</label><div id="stat-netto" style="font-size:22px; font-weight:800; color:var(--success);">0.00</div></div>
+        <h2 onclick="toggleSection('annuale-content', this)"><span><i class="fas fa-chart-line"></i> Riepilogo Annuale</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <div id="annuale-content" style="display:none;">
+            <div class="form-group"><label>Seleziona Anno</label><input type="number" id="filtro-anno" value="2025" min="2000" max="2099" onchange="calcolaAnnuale()"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <div class="box-preview"><label>Lordo Annuo (€)</label><div id="stat-lordo-annuo" style="font-size:22px; font-weight:800; color:var(--primary);">0.00</div></div>
+                <div class="box-preview"><label>Netto Annuo (€)</label><div id="stat-netto-annuo" style="font-size:22px; font-weight:800; color:var(--success);">0.00</div></div>
             </div>
         </div>
     </div>
@@ -177,13 +172,14 @@
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
     let dati = [];
-    let impostazioni = null; // cache delle ultime impostazioni salvate
+    let impostazioni = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
         const oggi = new Date();
         document.getElementById('data').value = oggi.toISOString().split('T')[0];
         document.getElementById('filtro-mese').value = oggi.toISOString().slice(0, 7);
+        document.getElementById('filtro-anno').value = oggi.getFullYear();
         fetchData();
     });
 
@@ -200,15 +196,12 @@
     }
 
     function logicModalita() {
-        const val = document.getElementById('modalita').value;
-        if (val) document.getElementById('assenza').value = "";
+        if (document.getElementById('modalita').value) document.getElementById('assenza').value = "";
         aggiornaPreview();
     }
 
     function logicAssenza() {
-        if (document.getElementById('assenza').value) {
-            document.getElementById('modalita').value = "";
-        }
+        if (document.getElementById('assenza').value) document.getElementById('modalita').value = "";
         aggiornaPreview();
     }
 
@@ -241,7 +234,6 @@
             const r = await fetch(WEB_APP_URL);
             const res = await r.json();
             dati = res.data || [];
-            // Estrai le ultime impostazioni (dall'ultimo record)
             if (dati.length > 0) {
                 const ultimo = dati[dati.length - 1];
                 impostazioni = {
@@ -252,7 +244,6 @@
                     indPernotto: parseFloat(ultimo.indPernotto) || 60.00,
                     indEstero: parseFloat(ultimo.indEstero) || 90.00
                 };
-                // Popola i campi impostazioni con i valori attuali
                 document.getElementById('paga-base-mensile').value = impostazioni.pagaBaseMensile;
                 document.getElementById('straord-25').value = impostazioni.straord25;
                 document.getElementById('straord-50').value = impostazioni.straord50;
@@ -262,6 +253,7 @@
             }
             renderTabella();
             calcBusta();
+            calcolaAnnuale();
             setSyncState('success', 'Sincronizzato');
         } catch (e) {
             setSyncState('error', 'Errore');
@@ -354,11 +346,59 @@
         document.getElementById('stat-indennita').textContent = totalIndennita.toFixed(2);
     }
 
+    function calcolaAnnuale() {
+        const anno = document.getElementById('filtro-anno').value;
+        const filteredData = dati.filter(d => d.data.startsWith(anno));
+
+        let lordoAnnuo = 0;
+        let nettoAnnuo = 0;
+
+        const mesiUnici = new Set(filteredData.map(d => d.data.slice(0, 7)));
+
+        mesiUnici.forEach(mese => {
+            const datiMese = filteredData.filter(d => d.data.startsWith(mese));
+            let pagaBaseMensile = 0;
+            if (datiMese.length > 0) {
+                pagaBaseMensile = parseFloat(datiMese[datiMese.length - 1].pagaBaseMensile) || 0;
+            }
+
+            let totalStraord = 0;
+            let totalIndennita = 0;
+
+            datiMese.forEach(d => {
+                const ore = parseFloat(d.ore) || 0;
+                if (ore <= 0) return;
+
+                const dObj = new Date(d.data);
+                const isWE = dObj.getDay() === 0 || dObj.getDay() === 6;
+
+                let oreStraord = isWE ? ore : Math.max(0, ore - 8);
+                const straord50 = parseFloat(d.straord50) || 0;
+                totalStraord += oreStraord * straord50;
+
+                let indennita = 0;
+                if (d.tipo === "Trasferta Rientro") indennita = parseFloat(d.indRientro) || 0;
+                else if (d.tipo === "Trasferta Pernotto") indennita = parseFloat(d.indPernotto) || 0;
+                else if (d.tipo === "Trasferta Estero") indennita = parseFloat(d.indEstero) || 0;
+                totalIndennita += indennita;
+            });
+
+            const lordoMese = pagaBaseMensile + totalStraord + totalIndennita;
+            const taxRate = parseFloat(document.getElementById('tax-rate').value) / 100 || 0;
+            const nettoMese = lordoMese * (1 - taxRate);
+
+            lordoAnnuo += lordoMese;
+            nettoAnnuo += nettoMese;
+        });
+
+        document.getElementById('stat-lordo-annuo').textContent = lordoAnnuo.toFixed(2);
+        document.getElementById('stat-netto-annuo').textContent = nettoAnnuo.toFixed(2);
+    }
+
     async function salva() {
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
         if (!tipo) return alert("Seleziona attività");
 
-        // Usa le impostazioni correnti (dall'ultima salvata o dai campi)
         const currentSettings = impostazioni || {
             pagaBaseMensile: parseFloat(document.getElementById('paga-base-mensile').value) || 1800,
             straord25: parseFloat(document.getElementById('straord-25').value) || 12.50,
@@ -377,7 +417,6 @@
             fine: document.getElementById('ora-fine').value,
             ore: document.getElementById('prev-tot').textContent,
             note: document.getElementById('note').value,
-            // Aggiungi sempre le impostazioni correnti
             ...currentSettings
         };
 
@@ -387,8 +426,6 @@
     }
 
     async function salvaImpostazioni() {
-        // Salva le impostazioni creando un "record fittizio" solo per le impostazioni
-        // (puoi anche usare un endpoint separato se preferisci)
         const rec = {
             id: "settings_" + Date.now().toString(),
             tipo: "IMPOSTAZIONI",
@@ -403,7 +440,7 @@
 
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
         alert("Impostazioni salvate!");
-        fetchData(); // ricarica per aggiornare la cache
+        fetchData();
     }
 
     function setSyncState(s, t) {
