@@ -3,187 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro Lavoro Professionale</title>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
+    <title>Registro Orario Lavoro Cloud</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-<div class="container">
-    <header style="text-align: center; margin-bottom: 40px;">
-        <h1><i class="fas fa-microchip"></i> Registro Lavoro Professionale</h1>
-        <p>Gestione integrata ore, trasferte e simulazione fiscale</p>
-    </header>
-
-    <div class="card">
-        <h2><i class="fas fa-plus-circle"></i> Inserimento Attività</h2>
-        <div class="grid">
-            <div>
-                <label>Data</label>
-                <input type="date" id="date-input">
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-clock"></i></div>
+                <div class="logo-text">REGISTRO<span>LAVORO</span></div>
             </div>
-            <div>
-                <label>Modalità di Lavoro</label>
-                <select id="work-mode">
-                    <option value="">-- Seleziona --</option>
-                    <option value="In Sede">In Sede</option>
-                    <option value="Rientro">Trasferta (Rientro in Giornata)</option>
-                    <option value="Pernottamento">Trasferta (Pernottamento)</option>
-                    <option value="Estero">Trasferta (Estero)</option>
-                </select>
+            <p>Gestione Ore, Trasferte e Note Cloud</p>
+        </header>
+
+        <div class="card">
+            <h2 class="section-title"><i class="fas fa-plus-circle"></i> Inserimento Ore</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="data">Data</label>
+                    <input type="date" id="data">
+                </div>
+                <div class="input-group">
+                    <label for="tipo">Modalità</label>
+                    <select id="tipo">
+                        <option value="Sede">Sede (Tecnosistem)</option>
+                        <option value="Trasferta Rientro">Trasferta (Rientro)</option>
+                        <option value="Trasferta Pernotto">Trasferta (Pernotto)</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <label>Assenza / Altro</label>
-                <select id="absence-type">
-                    <option value="">Nessuna</option>
-                    <option value="Ferie">Ferie</option>
-                    <option value="Permesso">Permesso</option>
-                    <option value="Malattia">Malattia</option>
-                    <option value="Recupero">Recupero Ore</option>
-                </select>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Ora Inizio</label>
+                    <div class="custom-dropdown" id="dropdown-inizio">
+                        <div class="selected-option" id="inizio-text">08:00</div>
+                        <div class="options-list" id="inizio-options"></div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Ora Fine</label>
+                    <div class="custom-dropdown" id="dropdown-fine">
+                        <div class="selected-option" id="fine-text">17:00</div>
+                        <div class="options-list" id="fine-options"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group" style="margin-top:20px;">
+                <button id="save-btn" class="btn-main"><i class="fas fa-save"></i> SALVA ATTIVITÀ</button>
             </div>
         </div>
 
-        <div class="grid">
-            <div class="time-dropdown-container">
-                <label>Ora Inizio</label>
-                <div class="time-display" id="start-time-display" data-value="08:00">08:00</div>
-                <div class="time-options" id="start-time-options"></div>
-            </div>
-            <div class="time-dropdown-container">
-                <label>Ora Fine</label>
-                <div class="time-display" id="end-time-display" data-value="17:00">17:00</div>
-                <div class="time-options" id="end-time-options"></div>
-            </div>
-            <div style="display: flex; align-items: center; padding-top: 35px;">
-                <input type="checkbox" id="lunch-break" style="width: 22px; height: 22px; margin-right: 12px;" checked>
-                <label for="lunch-break" style="margin: 0;">Pausa Pranzo (1h)</label>
-            </div>
-        </div>
-
-        <div class="grid">
-            <div style="grid-column: span 1;">
-                <label>Città / Cliente</label>
-                <input type="text" id="location-input" placeholder="Es. Milano - Cliente X">
-            </div>
-            <div style="grid-column: span 2;">
-                <label>Note / Descrizione</label>
-                <textarea id="notes-input" rows="1" placeholder="Dettagli attività..."></textarea>
-            </div>
-        </div>
-
-        <div id="daily-info" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #1565c0; font-weight: 500;">
-            <i class="fas fa-info-circle"></i> Ore Totali: 8.00 | Straordinario: 0.00
-        </div>
-
-        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <button class="btn btn-primary" id="save-entry-btn"><i class="fas fa-save"></i> SALVA ATTIVITÀ</button>
-            <button class="btn btn-secondary" id="import-cloud-btn"><i class="fas fa-cloud-download-alt"></i> SINCRONIZZA CLOUD</button>
-        </div>
-        <div id="cloud-status-msg" style="margin-top: 10px; font-size: 0.9em;"></div>
-    </div>
-
-    <div class="card">
-        <div class="accordion-header" id="toggle-register">
-            <h3><i class="fas fa-history"></i> Registro Eventi</h3>
-            <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="accordion-content open" id="register-content">
-            <div class="grid" style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <input type="text" id="search-input" placeholder="Cerca nel registro...">
-                <select id="filter-year"></select>
-                <select id="filter-month"></select>
-            </div>
+        <div class="card">
+            <h2 class="section-title"><i class="fas fa-list"></i> Registro</h2>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>Data</th>
                             <th>Orario</th>
-                            <th>Ore Tot</th>
-                            <th>Str.</th>
-                            <th>Mod.</th>
-                            <th>Luogo</th>
+                            <th>Ore</th>
+                            <th>Tipo</th>
                             <th>Azioni</th>
                         </tr>
                     </thead>
-                    <tbody id="register-body"></tbody>
+                    <tbody id="table-body"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="accordion-header" id="toggle-grossnet">
-            <h3><i class="fas fa-chart-line"></i> Analisi Economica</h3>
-            <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="accordion-content" id="grossnet-content">
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <select id="gross-net-year" style="max-width: 150px;"></select>
-                <button class="btn btn-secondary btn-small" id="export-pdf-btn"><i class="fas fa-file-pdf"></i> PDF Mensile</button>
-            </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mese</th>
-                            <th>Lordo Totale</th>
-                            <th>Netto Stimato</th>
-                            <th>Diarie</th>
-                            <th>Straordinari</th>
-                            <th>Tasse (Est.)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="gross-net-body"></tbody>
-                </table>
-            </div>
-            <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
-                <canvas id="grossNetChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="accordion-header" id="toggle-settings">
-            <h3><i class="fas fa-user-gear"></i> Configurazioni e Backup</h3>
-            <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="accordion-content" id="settings-content">
-            <div class="grid">
-                <div><label>Stipendio Base Lordo (€)</label><input type="number" id="set-base" value="2300"></div>
-                <div><label>Tariffa Str. 25% (€/h)</label><input type="number" id="set-over25" value="14"></div>
-                <div><label>Tariffa Str. 50% (€/h)</label><input type="number" id="set-over50" value="17"></div>
-            </div>
-            <div class="grid">
-                <div><label>Diaria Rientro (€)</label><input type="number" id="set-trip-return" value="15"></div>
-                <div><label>Diaria Pernotto (€)</label><input type="number" id="set-trip-over" value="46.48"></div>
-                <div><label>Diaria Estero (€)</label><input type="number" id="set-trip-abroad" value="75"></div>
-            </div>
-            <div class="grid">
-                <div><label>Aliquota Fiscale (%)</label><input type="number" id="set-tax" value="23"></div>
-                <div><label>Google Apps Script URL</label><input type="text" id="set-url" placeholder="Incolla URL qui..."></div>
-            </div>
-            <div style="display: flex; gap: 15px; margin-top: 15px;">
-                <button class="btn btn-secondary" id="export-json"><i class="fas fa-download"></i> BACKUP JSON</button>
-                <button class="btn btn-primary" id="import-json"><i class="fas fa-upload"></i> RIPRISTINA JSON</button>
-                <input type="file" id="json-file" style="display: none;">
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="notification" class="notification"></div>
-
-<script src="js/config.js"></script>
-<script src="js/logic.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/app.js"></script>
-
+    <script src="js/config.js"></script>
+    <script src="js/logic.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
