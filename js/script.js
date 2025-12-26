@@ -1,81 +1,112 @@
-const WEB_APP_URL = "INSERISCI_TUO_URL_QUI";
-let dati = [];
-let rubrica = JSON.parse(localStorage.getItem('rubrica')) || [];
+const WEB_APP_URL = "INSERISCI_URL_QUI";
+
+// Configurazione Frasi
+const frasi = [
+    "Precisione nel lavoro, successo assicurato!",
+    "La qualità è fare le cose bene quando nessuno guarda.",
+    "Ogni report corretto è un passo verso il weekend.",
+    "Lavora sodo in silenzio, il successo sarà il tuo rumore."
+];
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Frase Motivazionale
-    const frasi = ["Precisione nel lavoro, successo assicurato!", "Ogni chilometro è un passo verso l'obiettivo.", "La qualità è la nostra firma.", "Lavora con passione, registra con cura."];
+    // 1. Frase motivazionale in Home
     const quoteEl = document.getElementById('quote');
-    if(quoteEl) quoteEl.innerText = frasi[Math.floor(Math.random() * frasi.length)];
+    if (quoteEl) quoteEl.innerText = `"${frasi[Math.floor(Math.random() * frasi.length)]}"`;
 
-    // Inizializzazione Report
-    if(document.getElementById('ora-inizio')) {
+    // 2. Setup Report
+    if (document.getElementById('ora-inizio')) {
         popolaOrari();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
         aggiornaListaLuoghi();
+        aggiornaPreview();
     }
 
-    // Inizializzazione Rubrica
-    if(document.getElementById('lista-rubrica')) renderingRubrica();
+    // 3. Setup Rubrica
+    if (document.getElementById('lista-rubrica')) renderingRubrica();
 });
 
-// FUNZIONI REPORT (Salvataggio, Preview, Logic)
+// POPOLA SELECT ORARI
 function popolaOrari() {
     const s1 = document.getElementById('ora-inizio'), s2 = document.getElementById('ora-fine');
-    for (let h = 0; h < 24; h++) {
+    for (let h = 7; h < 22; h++) {
         let hh = h.toString().padStart(2, '0');
-        [s1, s2].forEach(s => { 
-            s.add(new Option(`${hh}:00`, `${hh}:00`)); 
-            s.add(new Option(`${hh}:30`, `${hh}:30`)); 
+        [hh + ":00", hh + ":30"].forEach(t => {
+            s1.add(new Option(t, t)); s2.add(new Option(t, t));
         });
     }
+    s1.value = "08:00"; s2.value = "17:00";
 }
 
-async function salva() {
-    const btn = document.getElementById('btn-save');
-    btn.disabled = true;
-    document.getElementById('btn-spinner').style.display = 'inline-block';
+// CALCOLO ORE E PREVIEW
+function aggiornaPreview() {
+    if (!document.getElementById('ora-inizio')) return;
+    const inizio = document.getElementById('ora-inizio').value;
+    const fine = document.getElementById('ora-fine').value;
+    const pausa = document.getElementById('pausa-mensa').checked ? 1 : 0;
+    
+    let [h1, m1] = inizio.split(':').map(Number);
+    let [h2, m2] = fine.split(':').map(Number);
+    let totali = (h2 + m2/60) - (h1 + m1/60) - pausa;
+    
+    if (totali < 0) totali = 0;
+    document.getElementById('prev-tot').innerText = totali.toFixed(2);
+    document.getElementById('prev-extra').innerText = (totali > 8 ? totali - 8 : 0).toFixed(2);
+}
 
-    const rec = {
+// SALVATAGGIO REPORT CON ANIMAZIONE
+async function salvaReport() {
+    const btn = document.getElementById('btn-save');
+    const spinner = document.getElementById('btn-spinner');
+    const text = document.getElementById('btn-text');
+
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    text.innerText = "SALVATAGGIO...";
+
+    const payload = {
         data: document.getElementById('data').value,
-        tipo: document.getElementById('modalita').value || document.getElementById('assenza').value,
         luogo: document.getElementById('luogo').value,
-        ore: document.getElementById('prev-tot').innerText
+        ore: document.getElementById('prev-tot').innerText,
+        tipo: document.getElementById('modalita').value
     };
 
     try {
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-        alert("Report registrato correttamente!");
+        // Simulazione o invio reale
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("Report Salvato!");
         window.location.href = "index.html";
-    } catch(e) { alert("Errore di connessione"); btn.disabled = false; }
+    } catch (e) {
+        alert("Errore invio!");
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        text.innerText = "SALVA REPORT";
+    }
 }
 
-// FUNZIONI RUBRICA
+// RUBRICA E SUGGERIMENTI
 function salvaIndirizzo() {
-    const nome = document.getElementById('add-nome').value;
-    const via = document.getElementById('add-via').value;
-    if(!nome || !via) return alert("Inserisci tutti i dati");
+    const n = document.getElementById('add-nome').value;
+    const v = document.getElementById('add-via').value;
+    if (!n || !v) return;
 
-    rubrica.push({ nome, via });
-    localStorage.setItem('rubrica', JSON.stringify(rubrica));
+    let r = JSON.parse(localStorage.getItem('rubrica')) || [];
+    r.push({ nome: n, via: v });
+    localStorage.setItem('rubrica', JSON.stringify(r));
     window.location.reload();
 }
 
 function renderingRubrica() {
-    const cont = document.getElementById('lista-rubrica');
-    cont.innerHTML = rubrica.map(item => `
-        <div class="addr-card">
-            <div class="addr-info"><b>${item.nome}</b><span>${item.via}</span></div>
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.via)}" target="_blank" class="btn-map">
-                <i class="fas fa-directions"></i>
-            </a>
+    let r = JSON.parse(localStorage.getItem('rubrica')) || [];
+    document.getElementById('lista-rubrica').innerHTML = r.map((item, index) => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div><b>${item.nome}</b><br><small>${item.via}</small></div>
+            <a href="https://www.google.com/maps/search/${encodeURIComponent(item.via)}" target="_blank" style="color:var(--primary); font-size:20px;"><i class="fas fa-directions"></i></a>
         </div>
     `).join('');
 }
 
 function aggiornaListaLuoghi() {
+    let r = JSON.parse(localStorage.getItem('rubrica')) || [];
     const dl = document.getElementById('lista-luoghi');
-    dl.innerHTML = rubrica.map(i => `<option value="${i.nome}">`).join('');
+    dl.innerHTML = r.map(i => `<option value="${i.nome} - ${i.via}">`).join('');
 }
-
-// LOGICHE FORM (LogicModalita, logicAssenza, aggiornaPreview... uguali a prima)
