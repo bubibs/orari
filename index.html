@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Registro Lavoro PRO v6</title>
+    <title>Work Log Cloud</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -24,8 +24,12 @@
         body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px 15px; padding-bottom: 50px; }
         .container { max-width: 500px; margin: 0 auto; }
 
-        header { text-align: center; margin-bottom: 25px; }
+        header { text-align: center; margin-bottom: 25px; position: relative; }
         .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Indicatore Sync */
+        #sync-indicator { font-size: 10px; color: var(--text-secondary); margin-top: 5px; }
+        .syncing { color: var(--primary) !important; font-weight: bold; }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         h2 { font-size: 17px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
@@ -40,7 +44,6 @@
 
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        /* Switch iOS */
         .pausa-row {
             display: flex; justify-content: space-between; align-items: center;
             background: #F9F9F9; padding: 12px 16px; border-radius: 12px;
@@ -56,14 +59,15 @@
         .preview-box { background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2); }
         
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; }
+        .btn-main:disabled { background: #D1D1D6; }
         .btn-cancel { background: #E5E5EA; color: var(--text); border: none; border-radius: 14px; padding: 10px; width: 100%; margin-top: 10px; font-weight: 600; display: none; }
 
         /* Registro */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         tr { border-bottom: 1px solid #F2F2F7; }
         td { padding: 15px 5px; font-size: 13px; vertical-align: middle; }
-        .luogo-text { font-size: 11px; color: var(--text-secondary); display: block; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .luogo-label { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
         
@@ -76,7 +80,10 @@
 <body>
 
 <div class="container">
-    <header><div class="logo">WORK LOG PRO</div></header>
+    <header>
+        <div class="logo">WORK LOG PRO</div>
+        <div id="sync-indicator"><i class="fas fa-cloud"></i> Sincronizzato con Google Sheets</div>
+    </header>
 
     <div class="card">
         <h2 id="form-title"><i class="fas fa-plus-circle"></i> Inserimento</h2>
@@ -124,7 +131,7 @@
                 </div>
             </div>
 
-            <div class="pausa-row" id="pausa-row" onclick="document.getElementById('pausa').click()">
+            <div class="pausa-row" onclick="document.getElementById('pausa').click()">
                 <label style="margin:0; font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
                 <div class="switch-container">
                     <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
@@ -135,28 +142,51 @@
 
         <div class="preview-box" id="preview-text">Ore Nette: 0.00h</div>
 
-        <button class="btn-main" id="btn-save" onclick="salva()">SALVA ATTIVITÀ</button>
+        <button class="btn-main" id="btn-save" onclick="salva()">SALVA ONLINE</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla Modifica</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-history"></i> Registro</h2>
-        <div id="registro-container">
-            <table><tbody id="registro-body"></tbody></table>
-        </div>
+        <h2><i class="fas fa-history"></i> Registro Online</h2>
+        <table><tbody id="registro-body"></tbody></table>
     </div>
 </div>
 
 <script>
-    let dati = JSON.parse(localStorage.getItem('registro_v6')) || [];
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
+    let dati = [];
     let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
-        renderTabella();
+        fetchData(); // Carica dati da Google Sheets all'avvio
     });
 
+    async function fetchData() {
+        showSync(true, "Caricamento dati...");
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const resData = await response.json();
+            dati = resData.data || [];
+            renderTabella();
+            showSync(false, "Sincronizzato");
+        } catch (e) {
+            showSync(false, "Errore connessione");
+            // Se fallisce il cloud, carica dal locale come backup
+            dati = JSON.parse(localStorage.getItem('backup_lavoro')) || [];
+            renderTabella();
+        }
+    }
+
+    function showSync(isSyncing, text) {
+        const ind = document.getElementById('sync-indicator');
+        ind.innerHTML = isSyncing ? `<i class="fas fa-sync fa-spin"></i> ${text}` : `<i class="fas fa-cloud"></i> ${text}`;
+        ind.className = isSyncing ? "syncing" : "";
+        document.getElementById('btn-save').disabled = isSyncing;
+    }
+
+    // --- LOGICA UI ---
     function popolaOrari() {
         const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
         selects.forEach(s => {
@@ -172,18 +202,14 @@
 
     function logicModalita() {
         const mod = document.getElementById('modalita').value;
-        const ass = document.getElementById('assenza');
         const luogo = document.getElementById('luogo');
-        
         if (mod !== "") {
-            ass.value = ""; 
+            document.getElementById('assenza').value = "";
             if (mod === "In Sede") {
                 luogo.value = "TECNOSISTEM";
                 document.getElementById('ora-inizio').value = "08:00";
                 document.getElementById('ora-fine').value = "17:00";
                 document.getElementById('pausa').checked = true;
-            } else {
-                luogo.value = ""; // Pulisce se non è sede per permettere inserimento manuale
             }
         }
         aggiornaPreview();
@@ -191,12 +217,9 @@
 
     function logicAssenza() {
         const ass = document.getElementById('assenza').value;
-        const mod = document.getElementById('modalita');
-        const luogo = document.getElementById('luogo');
-        
         if (ass !== "") {
-            mod.value = "";
-            luogo.value = "-"; // Le assenze non hanno luogo
+            document.getElementById('modalita').value = "";
+            document.getElementById('luogo').value = "-";
             document.getElementById('pausa').checked = false;
             if (ass === "Ferie" || ass === "Malattia") {
                 document.getElementById('ora-inizio').value = "08:00";
@@ -210,10 +233,7 @@
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
         const p = document.getElementById('pausa').checked;
-        if (!s || !e) {
-            document.getElementById('preview-text').textContent = "Seleziona orari...";
-            return;
-        }
+        if (!s || !e) return;
         const ore = calcolaOre(s, e, p);
         document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore.toFixed(2)}h</span>`;
     }
@@ -226,46 +246,58 @@
         return Math.max(0, min / 60);
     }
 
-    function salva() {
+    // --- SALVATAGGIO CLOUD ---
+    async function salva() {
         const mod = document.getElementById('modalita').value;
         const ass = document.getElementById('assenza').value;
-        const luogo = document.getElementById('luogo').value;
-        const data = document.getElementById('data').value;
-        const inizio = document.getElementById('ora-inizio').value;
-        const fine = document.getElementById('ora-fine').value;
-        const pChecked = document.getElementById('pausa').checked;
-
-        if ((!mod && !ass) || !inizio || !fine) { alert("Mancano dei dati!"); return; }
-
-        const record = { 
-            tipo: mod || ass, 
+        const data = {
+            id: editIndex > -1 ? dati[editIndex].id : Date.now(),
+            tipo: mod || ass,
             categoria: mod ? 'lavoro' : 'assenza',
-            luogo: luogo || "-",
-            data, inizio, fine, pausa: pChecked, 
-            ore: calcolaOre(inizio, fine, pChecked) 
+            luogo: document.getElementById('luogo').value || "-",
+            data: document.getElementById('data').value,
+            inizio: document.getElementById('ora-inizio').value,
+            fine: document.getElementById('ora-fine').value,
+            pausa: document.getElementById('pausa').checked,
+            ore: calcolaOre(document.getElementById('ora-inizio').value, document.getElementById('ora-fine').value, document.getElementById('pausa').checked)
         };
 
-        if (editIndex > -1) dati[editIndex] = record;
-        else dati.unshift(record);
+        showSync(true, "Salvataggio online...");
 
-        localStorage.setItem('registro_v6', JSON.stringify(dati));
-        resetForm();
-        renderTabella();
+        try {
+            await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Necessario per script di Google
+                body: JSON.stringify(data)
+            });
+            
+            // Dato che 'no-cors' non ritorna la risposta, aggiorniamo localmente per velocità
+            if (editIndex > -1) dati[editIndex] = data;
+            else dati.unshift(data);
+            
+            localStorage.setItem('backup_lavoro', JSON.stringify(dati));
+            resetForm();
+            renderTabella();
+            showSync(false, "Dati salvati");
+            setTimeout(fetchData, 1000); // Ricarica per sicurezza
+        } catch (e) {
+            alert("Errore durante il salvataggio cloud.");
+            showSync(false, "Errore sync");
+        }
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => `
             <tr>
-                <td style="width:25%">
+                <td>
                     <b>${d.data.split('-').reverse().slice(0,2).join('/')}</b>
-                    <span class="luogo-text">${d.luogo}</span>
+                    <span class="luogo-label"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
                 </td>
                 <td><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
-                <td style="text-align:right"><b>${d.ore.toFixed(2)}h</b></td>
+                <td style="text-align:right"><b>${d.ore}h</b></td>
                 <td class="actions">
                     <button class="btn-icon edit-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
-                    <button class="btn-icon delete-icon" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -274,30 +306,16 @@
     function avviaModifica(index) {
         const d = dati[index];
         editIndex = index;
-        if (d.categoria === 'lavoro') {
-            document.getElementById('modalita').value = d.tipo;
-            document.getElementById('assenza').value = "";
-        } else {
-            document.getElementById('assenza').value = d.tipo;
-            document.getElementById('modalita').value = "";
-        }
+        document.getElementById('modalita').value = d.categoria === 'lavoro' ? d.tipo : "";
+        document.getElementById('assenza').value = d.categoria === 'assenza' ? d.tipo : "";
         document.getElementById('luogo').value = d.luogo;
         document.getElementById('data').value = d.data;
         document.getElementById('ora-inizio').value = d.inizio;
         document.getElementById('ora-fine').value = d.fine;
         document.getElementById('pausa').checked = d.pausa;
-        document.getElementById('btn-save').textContent = "AGGIORNA";
+        document.getElementById('btn-save').textContent = "AGGIORNA ONLINE";
         document.getElementById('btn-cancel-edit').style.display = "block";
-        aggiornaPreview();
         window.scrollTo(0,0);
-    }
-
-    function elimina(index) {
-        if (confirm("Eliminare?")) {
-            dati.splice(index, 1);
-            localStorage.setItem('registro_v6', JSON.stringify(dati));
-            renderTabella();
-        }
     }
 
     function resetForm() {
@@ -308,9 +326,8 @@
         document.getElementById('ora-inizio').value = "";
         document.getElementById('ora-fine').value = "";
         document.getElementById('pausa').checked = false;
-        document.getElementById('btn-save').textContent = "SALVA ATTIVITÀ";
+        document.getElementById('btn-save').textContent = "SALVA ONLINE";
         document.getElementById('btn-cancel-edit').style.display = "none";
-        document.getElementById('preview-text').textContent = "Ore Nette: 0.00h";
     }
 </script>
 
