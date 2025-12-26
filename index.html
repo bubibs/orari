@@ -74,7 +74,7 @@
         <div id="sync-indicator"></div>
     </header>
 
-    <!-- INSERIMENTO -->
+    <!-- INSERIMENTO (ora senza campi busta paga) -->
     <div class="card">
         <h2><span><i class="fas fa-plus"></i> Inserimento</span></h2>
         <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
@@ -108,23 +108,34 @@
         <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
         <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
 
-        <!-- Campi per il calcolo lordo -->
-        <div class="form-group"><label>Paga base MENSILE (€)</label><input type="number" id="paga-base-mensile" step="0.01" value="1800.00"></div>
-        <div class="row-3">
-            <div class="form-group"><label>Straord. 25% (€/h)</label><input type="number" id="straord-25" step="0.01" value="12.50"></div>
-            <div class="form-group"><label>Straord. 50% (€/h)</label><input type="number" id="straord-50" step="0.01" value="15.00"></div>
-        </div>
-        <div class="row-3">
-            <div class="form-group"><label>Ind. Trasf. Rientro (€/gg)</label><input type="number" id="ind-trasf-rientro" step="0.01" value="25.00"></div>
-            <div class="form-group"><label>Ind. Trasf. Pernotto (€/gg)</label><input type="number" id="ind-trasf-pernotto" step="0.01" value="60.00"></div>
-            <div class="form-group"><label>Ind. Trasf. Estero (€/gg)</label><input type="number" id="ind-trasf-estero" step="0.01" value="90.00"></div>
-        </div>
-
         <div class="row-2">
             <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800; color:var(--primary);">0.00</div></div>
             <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
         </div>
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
+    </div>
+
+    <!-- IMPOSTAZIONI BUSTA PAGA (nuova sezione separata) -->
+    <div class="card">
+        <h2 onclick="toggleSection('settings-content', this)"><span><i class="fas fa-cog"></i> Impostazioni Busta Paga</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <div id="settings-content" style="display:none;">
+            <p style="font-size:13px; color:var(--subtext); margin-bottom:15px;">Questi valori verranno applicati automaticamente a tutti i nuovi report.</p>
+            
+            <div class="form-group"><label>Paga base MENSILE (€)</label><input type="number" id="paga-base-mensile" step="0.01" value="1800.00"></div>
+            
+            <div class="row-3">
+                <div class="form-group"><label>Straord. 25% (€/h)</label><input type="number" id="straord-25" step="0.01" value="12.50"></div>
+                <div class="form-group"><label>Straord. 50% (€/h)</label><input type="number" id="straord-50" step="0.01" value="15.00"></div>
+            </div>
+            
+            <div class="row-3">
+                <div class="form-group"><label>Ind. Trasf. Rientro (€/gg)</label><input type="number" id="ind-trasf-rientro" step="0.01" value="25.00"></div>
+                <div class="form-group"><label>Ind. Trasf. Pernotto (€/gg)</label><input type="number" id="ind-trasf-pernotto" step="0.01" value="60.00"></div>
+                <div class="form-group"><label>Ind. Trasf. Estero (€/gg)</label><input type="number" id="ind-trasf-estero" step="0.01" value="90.00"></div>
+            </div>
+            
+            <button class="btn-main" onclick="salvaImpostazioni()">SALVA IMPOSTAZIONI</button>
+        </div>
     </div>
 
     <!-- RIEPILOGO MENSILE -->
@@ -166,6 +177,7 @@
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
     let dati = [];
+    let impostazioni = null; // cache delle ultime impostazioni salvate
 
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
@@ -229,6 +241,25 @@
             const r = await fetch(WEB_APP_URL);
             const res = await r.json();
             dati = res.data || [];
+            // Estrai le ultime impostazioni (dall'ultimo record)
+            if (dati.length > 0) {
+                const ultimo = dati[dati.length - 1];
+                impostazioni = {
+                    pagaBaseMensile: parseFloat(ultimo.pagaBaseMensile) || 1800,
+                    straord25: parseFloat(ultimo.straord25) || 12.50,
+                    straord50: parseFloat(ultimo.straord50) || 15.00,
+                    indRientro: parseFloat(ultimo.indRientro) || 25.00,
+                    indPernotto: parseFloat(ultimo.indPernotto) || 60.00,
+                    indEstero: parseFloat(ultimo.indEstero) || 90.00
+                };
+                // Popola i campi impostazioni con i valori attuali
+                document.getElementById('paga-base-mensile').value = impostazioni.pagaBaseMensile;
+                document.getElementById('straord-25').value = impostazioni.straord25;
+                document.getElementById('straord-50').value = impostazioni.straord50;
+                document.getElementById('ind-trasf-rientro').value = impostazioni.indRientro;
+                document.getElementById('ind-trasf-pernotto').value = impostazioni.indPernotto;
+                document.getElementById('ind-trasf-estero').value = impostazioni.indEstero;
+            }
             renderTabella();
             calcBusta();
             setSyncState('success', 'Sincronizzato');
@@ -301,12 +332,10 @@
             const dObj = new Date(d.data);
             const isWE = dObj.getDay() === 0 || dObj.getDay() === 6;
 
-            // Straordinari (tutte extra a 50% per semplicità)
             let oreStraord = isWE ? ore : Math.max(0, ore - 8);
             const straord50 = parseFloat(d.straord50) || 0;
             totalStraord += oreStraord * straord50;
 
-            // Indennità
             let indennita = 0;
             if (d.tipo === "Trasferta Rientro") indennita = parseFloat(d.indRientro) || 0;
             else if (d.tipo === "Trasferta Pernotto") indennita = parseFloat(d.indPernotto) || 0;
@@ -329,6 +358,16 @@
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
         if (!tipo) return alert("Seleziona attività");
 
+        // Usa le impostazioni correnti (dall'ultima salvata o dai campi)
+        const currentSettings = impostazioni || {
+            pagaBaseMensile: parseFloat(document.getElementById('paga-base-mensile').value) || 1800,
+            straord25: parseFloat(document.getElementById('straord-25').value) || 12.50,
+            straord50: parseFloat(document.getElementById('straord-50').value) || 15.00,
+            indRientro: parseFloat(document.getElementById('ind-trasf-rientro').value) || 25.00,
+            indPernotto: parseFloat(document.getElementById('ind-trasf-pernotto').value) || 60.00,
+            indEstero: parseFloat(document.getElementById('ind-trasf-estero').value) || 90.00
+        };
+
         const rec = {
             id: Date.now().toString(),
             tipo,
@@ -338,6 +377,22 @@
             fine: document.getElementById('ora-fine').value,
             ore: document.getElementById('prev-tot').textContent,
             note: document.getElementById('note').value,
+            // Aggiungi sempre le impostazioni correnti
+            ...currentSettings
+        };
+
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
+        fetchData();
+        document.getElementById('note').value = "";
+    }
+
+    async function salvaImpostazioni() {
+        // Salva le impostazioni creando un "record fittizio" solo per le impostazioni
+        // (puoi anche usare un endpoint separato se preferisci)
+        const rec = {
+            id: "settings_" + Date.now().toString(),
+            tipo: "IMPOSTAZIONI",
+            data: new Date().toISOString().split('T')[0],
             pagaBaseMensile: parseFloat(document.getElementById('paga-base-mensile').value) || 0,
             straord25: parseFloat(document.getElementById('straord-25').value) || 0,
             straord50: parseFloat(document.getElementById('straord-50').value) || 0,
@@ -347,8 +402,8 @@
         };
 
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-        fetchData();
-        document.getElementById('note').value = "";
+        alert("Impostazioni salvate!");
+        fetchData(); // ricarica per aggiornare la cache
     }
 
     function setSyncState(s, t) {
