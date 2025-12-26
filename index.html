@@ -37,23 +37,13 @@
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
         
-        /* STILE BASE INPUT */
         input, select, textarea { 
             width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; 
             font-size: 16px; height: 50px; color: var(--text); background: var(--input-bg);
             -webkit-appearance: none; appearance: none;
         }
 
-        /* LARGHEZZA DATA SPECIFICA */
-        input[type="date"] { 
-            width: 100%; /* Larghezza ridotta come richiesto */
-        }
-        
-        /* LARGHEZZA MESE RIEPILOGO */
-        #filtro-mese { 
-            width: 100%; 
-            text-transform: uppercase; 
-        }
+        input[type="date"], #filtro-mese { width: 100%; text-transform: uppercase; }
 
         textarea { height: 70px; resize: none; text-transform: none; }
 
@@ -149,7 +139,19 @@
                 <label>Seleziona Mese</label>
                 <input type="month" id="filtro-mese" onchange="fetchData()">
             </div>
-            <div id="summary-list"></div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);">
+                    <label>Ore Totali</label>
+                    <div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div>
+                </div>
+                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);">
+                    <label>Ore Extra</label>
+                    <div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div>
+                </div>
+            </div>
+            
+            <div id="summary-list" style="font-size: 13px; font-weight: 600;"></div>
         </div>
     </div>
 
@@ -205,13 +207,16 @@
     }
 
     function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value;
-        if(!s || !e) return;
+        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, d = document.getElementById('data').value;
+        if(!s || !e || !d) return;
         const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
         let ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
         if(document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
         document.getElementById('prev-tot').textContent = ore.toFixed(2);
-        document.getElementById('prev-extra').textContent = Math.max(0, ore - 8).toFixed(2);
+        
+        const dataObj = new Date(d);
+        const isWE = (dataObj.getDay() === 0 || dataObj.getDay() === 6);
+        document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
     }
 
     function toggleSection(id, el) {
@@ -232,9 +237,26 @@
 
     function renderTabella() {
         const filtro = document.getElementById('filtro-mese').value;
-        document.getElementById('registro-body').innerHTML = dati
-            .filter(d => d.data.startsWith(filtro))
-            .map((d, i) => `
+        const filteredData = dati.filter(d => d.data.startsWith(filtro));
+        
+        let totOre = 0, totEx = 0, conteggio = {};
+
+        filteredData.forEach(d => {
+            const h = parseFloat(d.ore) || 0;
+            totOre += h;
+            const dObj = new Date(d.data);
+            if(dObj.getDay()===0 || dObj.getDay()===6) totEx += h; else totEx += Math.max(0, h-8);
+            conteggio[d.tipo] = (conteggio[d.tipo] || 0) + 1;
+        });
+
+        document.getElementById('stat-ore-tot').textContent = totOre.toFixed(2);
+        document.getElementById('stat-ore-ex').textContent = totEx.toFixed(2);
+        document.getElementById('summary-list').innerHTML = Object.entries(conteggio).map(([t, c]) => `
+            <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                <span style="text-transform: uppercase;">${t}</span><span>${c} GG</span>
+            </div>`).join('');
+
+        document.getElementById('registro-body').innerHTML = filteredData.map((d, i) => `
             <tr>
                 <td style="font-size:12px; font-weight:800;">${new Date(d.data).toLocaleDateString('it-IT')}</td>
                 <td style="font-size:11px;">${d.tipo.toUpperCase()}</td>
@@ -251,8 +273,7 @@
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
         if(!tipo) return alert("Seleziona attività");
         const rec = {
-            id: Date.now().toString(),
-            tipo,
+            id: Date.now().toString(), tipo,
             luogo: document.getElementById('luogo').value,
             data: document.getElementById('data').value,
             inizio: document.getElementById('ora-inizio').value,
@@ -273,5 +294,3 @@
 </script>
 </body>
 </html>
-
-
