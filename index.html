@@ -6,53 +6,75 @@
     <title>Work Log PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #007AFF; --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; --success: #34C759; --danger: #FF3B30; --radius: 14px; }
+        :root { 
+            --primary: #007AFF; 
+            --bg: #F2F2F7; 
+            --card: #FFFFFF; 
+            --text: #1C1C1E; 
+            --success: #34C759; 
+            --danger: #FF3B30; 
+            --radius: 14px; 
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 40px; }
         .container { max-width: 500px; margin: 0 auto; }
+        
         header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 24px; font-weight: 800; color: var(--primary); }
-        #sync-indicator { font-size: 11px; color: #8E8E93; margin-top: 5px; }
+        
+        /* Stili Feedback Sincronizzazione */
+        #sync-indicator { font-size: 11px; margin-top: 5px; font-weight: 600; transition: color 0.3s; }
+        .sync-none { color: #8E8E93; }
+        .sync-working { color: var(--primary); }
+        .sync-success { color: var(--success); }
+        .sync-error { color: var(--danger); }
+
+        /* Overlay di caricamento salvataggio */
+        #loading-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.7); z-index: 9999;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         h2 { font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .form-group { margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; position: relative; }
         label { display: block; font-size: 10px; font-weight: 700; color: #8E8E93; margin-bottom: 4px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 10px; font-size: 16px; background: #FFF; }
-        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: #F9F9F9; padding: 10px 14px; border-radius: 10px; border: 1px solid #D1D1D6; margin-top: 5px; }
-        .switch-container { position: relative; width: 44px; height: 24px; }
-        .switch-container input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #E5E5EA; transition: .3s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(20px); }
-        .preview-box { background: #F0F7FF; color: var(--primary); padding: 12px; border-radius: 10px; text-align: center; font-weight: 700; margin-top: 15px; }
-        .btn-main { background: var(--primary); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 10px; }
-        .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 12px; padding: 10px; width: 100%; margin-top: 8px; font-weight: 600; display: none; }
         
-        /* Tabella Registro Migliorata */
+        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: #F9F9F9; padding: 10px 14px; border-radius: 10px; border: 1px solid #D1D1D6; }
+        
+        .btn-main { background: var(--primary); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 10px; }
+        .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 12px; padding: 10px; width: 100%; margin-top: 8px; display: none; }
+        
+        /* Tabella */
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid #F2F2F7; }
         td { padding: 12px 4px; vertical-align: middle; }
         .item-data { font-weight: 700; font-size: 14px; display: block; }
         .item-orario { color: #8E8E93; font-size: 11px; }
         .item-luogo { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
-        .item-note { display: block; font-size: 11px; color: #444; font-style: italic; margin-top: 2px; line-height: 1.2; }
         .badge { padding: 3px 6px; border-radius: 5px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
         .actions { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 18px; color: #C7C7CC; padding: 5px; }
-        .edit-icon { color: var(--primary); }
-        .delete-icon { color: var(--danger); }
+        .btn-icon { border: none; background: none; font-size: 18px; color: #C7C7CC; }
     </style>
 </head>
 <body>
 
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <p style="margin-top:10px; font-weight:600; color:var(--primary);">Salvataggio in corso...</p>
+</div>
+
 <div class="container">
     <header>
         <div class="logo">WORK LOG CLOUD</div>
-        <div id="sync-indicator">Inizializzazione...</div>
+        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Inizializzazione...</div>
     </header>
 
     <div class="card">
@@ -97,7 +119,8 @@
 
         <div class="form-group">
             <label>Luogo / Cliente</label>
-            <input type="text" id="luogo" placeholder="Destinazione">
+            <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Destinazione">
+            <datalist id="luoghi-suggeriti"></datalist>
         </div>
 
         <div class="pausa-row" onclick="document.getElementById('pausa').click()">
@@ -113,7 +136,7 @@
             <textarea id="note" placeholder="Opzionale..."></textarea>
         </div>
 
-        <div class="preview-box" id="preview-text">Ore Nette: 0.00h</div>
+        <div id="preview-text" style="text-align:center; font-weight:700; color:var(--primary); margin: 10px 0;">Ore Nette: 0.00h</div>
 
         <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla Modifica</button>
@@ -149,20 +172,38 @@
     }
 
     async function fetchData() {
-        showSync(true, "Aggiornamento...");
+        setSyncState('working', 'Aggiornamento...');
         try {
             const response = await fetch(WEB_APP_URL);
             const res = await response.json();
             dati = res.data || [];
             dati.sort((a, b) => new Date(b.data) - new Date(a.data));
             renderTabella();
-            showSync(false, "Sincronizzato");
-        } catch (e) { showSync(false, "Errore Cloud"); }
+            updateLuoghiSuggeriti();
+            setSyncState('success', 'Sincronizzato');
+        } catch (e) { 
+            setSyncState('error', 'Errore Sincronizzazione'); 
+        }
     }
 
-    function showSync(isSyncing, text) {
-        document.getElementById('sync-indicator').innerHTML = isSyncing ? `<i class="fas fa-sync fa-spin"></i> ${text}` : `<i class="fas fa-cloud"></i> ${text}`;
-        document.getElementById('btn-save').disabled = isSyncing;
+    function setSyncState(state, text) {
+        const ind = document.getElementById('sync-indicator');
+        ind.className = `sync-${state}`;
+        const icon = state === 'working' ? 'fa-sync fa-spin' : (state === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle');
+        ind.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+        
+        if(state === 'success' || state === 'error') {
+            setTimeout(() => {
+                ind.className = 'sync-none';
+                ind.innerHTML = `<i class="fas fa-cloud"></i> Pronto`;
+            }, 3000);
+        }
+    }
+
+    function updateLuoghiSuggeriti() {
+        const list = document.getElementById('luoghi-suggeriti');
+        const uniqueLuoghi = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
+        list.innerHTML = uniqueLuoghi.map(l => `<option value="${l}">`).join('');
     }
 
     function logicModalita() {
@@ -191,14 +232,14 @@
     function aggiornaPreview() {
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
-        if (!s || !e) return;
+        if (!s || !e) return "0.00";
         const [h1, m1] = s.split(':').map(Number);
         const [h2, m2] = e.split(':').map(Number);
         let min = (h2*60+m2) - (h1*60+m1);
         if (document.getElementById('pausa').checked) min -= 60;
-        const ore = Math.max(0, min/60);
-        document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore.toFixed(2)}h</span>`;
-        return ore.toFixed(2);
+        const ore = Math.max(0, min/60).toFixed(2);
+        document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore}h</span>`;
+        return ore;
     }
 
     async function salva() {
@@ -214,30 +255,38 @@
             note: document.getElementById('note').value || "",
             ore: aggiornaPreview()
         };
+        
         if (!record.tipo || !record.inizio || !record.fine) { alert("Dati incompleti!"); return; }
-        showSync(true, "Salvataggio...");
+
+        document.getElementById('loading-overlay').style.display = 'flex';
+        setSyncState('working', 'Salvataggio...');
+
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
-            setTimeout(fetchData, 1500);
-        } catch (e) { showSync(false, "Errore"); }
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+                fetchData();
+            }, 1000);
+        } catch (e) { 
+            document.getElementById('loading-overlay').style.display = 'none';
+            setSyncState('error', 'Errore Invio'); 
+        }
     }
 
     async function elimina(index) {
         if (!confirm("Eliminare?")) return;
-        showSync(true, "Rimozione...");
+        setSyncState('working', 'Eliminazione...');
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[index].id.toString() }) });
-            setTimeout(fetchData, 1500);
-        } catch (e) { showSync(false, "Errore"); }
+            setTimeout(fetchData, 1000);
+        } catch (e) { setSyncState('error', 'Errore'); }
     }
 
-    // PULIZIA DRASTICA DATA E ORA
     function cleanTime(t) {
         if (!t) return "--:--";
         let str = t.toString();
-        if (str.includes("T")) return str.split("T")[1].substring(0, 5); // Gestione 1899-12-30T08:00
-        if (str.includes(" ")) return str.split(" ")[1].substring(0, 5); // Gestione Sat Dec 30 08:00
+        if (str.includes("T")) return str.split("T")[1].substring(0, 5);
         return str.substring(0, 5);
     }
 
@@ -246,19 +295,18 @@
         body.innerHTML = dati.map((d, i) => {
             let dObj = new Date(d.data);
             let dFmt = isNaN(dObj) ? d.data : dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
-            
             return `
                 <tr>
-                    <td style="width:45%">
+                    <td style="width:50%">
                         <span class="item-data">${dFmt} <span class="item-orario">(${cleanTime(d.inizio)}-${cleanTime(d.fine)})</span></span>
                         <span class="item-luogo"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
-                        ${d.note ? `<span class="item-note">${d.note}</span>` : ''}
+                        ${d.note ? `<div style="font-size:10px; color:#666; font-style:italic;">${d.note}</div>` : ''}
                     </td>
                     <td style="text-align:center"><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
                     <td style="text-align:right"><b>${d.ore}h</b></td>
                     <td class="actions">
-                        <button class="btn-icon edit-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon delete-icon" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
+                        <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
+                        <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash delete-icon"></i></button>
                     </td>
                 </tr>
             `;
