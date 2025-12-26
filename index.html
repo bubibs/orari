@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Work Log Cloud</title>
+    <title>Work Log Cloud PRO</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -27,7 +27,6 @@
         header { text-align: center; margin-bottom: 25px; position: relative; }
         .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* Indicatore Sync */
         #sync-indicator { font-size: 10px; color: var(--text-secondary); margin-top: 5px; }
         .syncing { color: var(--primary) !important; font-weight: bold; }
 
@@ -59,20 +58,20 @@
         .preview-box { background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2); }
         
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; }
-        .btn-main:disabled { background: #D1D1D6; }
         .btn-cancel { background: #E5E5EA; color: var(--text); border: none; border-radius: 14px; padding: 10px; width: 100%; margin-top: 10px; font-weight: 600; display: none; }
 
         /* Registro */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         tr { border-bottom: 1px solid #F2F2F7; }
         td { padding: 15px 5px; font-size: 13px; vertical-align: middle; }
-        .luogo-label { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
+        .luogo-label { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .actions { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 18px; padding: 5px; cursor: pointer; }
+        .actions { display: flex; gap: 12px; justify-content: flex-end; align-items: center; }
+        .btn-icon { border: none; background: none; font-size: 20px; padding: 8px; cursor: pointer; border-radius: 50%; }
+        .btn-icon:active { background-color: rgba(0,0,0,0.05); }
         .edit-icon { color: var(--primary); }
         .delete-icon { color: var(--danger); }
     </style>
@@ -160,11 +159,11 @@
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
-        fetchData(); // Carica dati da Google Sheets all'avvio
+        fetchData();
     });
 
     async function fetchData() {
-        showSync(true, "Caricamento dati...");
+        showSync(true, "Caricamento...");
         try {
             const response = await fetch(WEB_APP_URL);
             const resData = await response.json();
@@ -172,8 +171,7 @@
             renderTabella();
             showSync(false, "Sincronizzato");
         } catch (e) {
-            showSync(false, "Errore connessione");
-            // Se fallisce il cloud, carica dal locale come backup
+            showSync(false, "Offline");
             dati = JSON.parse(localStorage.getItem('backup_lavoro')) || [];
             renderTabella();
         }
@@ -186,7 +184,6 @@
         document.getElementById('btn-save').disabled = isSyncing;
     }
 
-    // --- LOGICA UI ---
     function popolaOrari() {
         const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
         selects.forEach(s => {
@@ -246,11 +243,12 @@
         return Math.max(0, min / 60);
     }
 
-    // --- SALVATAGGIO CLOUD ---
     async function salva() {
         const mod = document.getElementById('modalita').value;
         const ass = document.getElementById('assenza').value;
-        const data = {
+        if ((!mod && !ass)) { alert("Seleziona attività!"); return; }
+
+        const record = {
             id: editIndex > -1 ? dati[editIndex].id : Date.now(),
             tipo: mod || ass,
             categoria: mod ? 'lavoro' : 'assenza',
@@ -262,27 +260,50 @@
             ore: calcolaOre(document.getElementById('ora-inizio').value, document.getElementById('ora-fine').value, document.getElementById('pausa').checked)
         };
 
-        showSync(true, "Salvataggio online...");
+        showSync(true, "Salvataggio...");
 
         try {
             await fetch(WEB_APP_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Necessario per script di Google
-                body: JSON.stringify(data)
+                mode: 'no-cors',
+                body: JSON.stringify(record)
             });
             
-            // Dato che 'no-cors' non ritorna la risposta, aggiorniamo localmente per velocità
-            if (editIndex > -1) dati[editIndex] = data;
-            else dati.unshift(data);
+            if (editIndex > -1) dati[editIndex] = record;
+            else dati.unshift(record);
             
             localStorage.setItem('backup_lavoro', JSON.stringify(dati));
             resetForm();
             renderTabella();
-            showSync(false, "Dati salvati");
-            setTimeout(fetchData, 1000); // Ricarica per sicurezza
+            showSync(false, "Salvato");
+            setTimeout(fetchData, 1500);
         } catch (e) {
-            alert("Errore durante il salvataggio cloud.");
-            showSync(false, "Errore sync");
+            alert("Errore salvataggio!");
+            showSync(false, "Errore");
+        }
+    }
+
+    async function elimina(index) {
+        if (!confirm("Eliminare definitivamente questo report?")) return;
+        
+        const idToDelete = dati[index].id;
+        showSync(true, "Eliminazione...");
+
+        try {
+            await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ action: "DELETE", id: idToDelete })
+            });
+
+            dati.splice(index, 1);
+            localStorage.setItem('backup_lavoro', JSON.stringify(dati));
+            renderTabella();
+            showSync(false, "Eliminato");
+            setTimeout(fetchData, 1500);
+        } catch (e) {
+            alert("Errore eliminazione!");
+            showSync(false, "Errore");
         }
     }
 
@@ -290,7 +311,7 @@
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => `
             <tr>
-                <td>
+                <td style="width:35%">
                     <b>${d.data.split('-').reverse().slice(0,2).join('/')}</b>
                     <span class="luogo-label"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
                 </td>
@@ -298,6 +319,7 @@
                 <td style="text-align:right"><b>${d.ore}h</b></td>
                 <td class="actions">
                     <button class="btn-icon edit-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon delete-icon" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -312,7 +334,7 @@
         document.getElementById('data').value = d.data;
         document.getElementById('ora-inizio').value = d.inizio;
         document.getElementById('ora-fine').value = d.fine;
-        document.getElementById('pausa').checked = d.pausa;
+        document.getElementById('pausa').checked = d.pausa == "SI" || d.pausa == true;
         document.getElementById('btn-save').textContent = "AGGIORNA ONLINE";
         document.getElementById('btn-cancel-edit').style.display = "block";
         window.scrollTo(0,0);
@@ -328,6 +350,7 @@
         document.getElementById('pausa').checked = false;
         document.getElementById('btn-save').textContent = "SALVA ONLINE";
         document.getElementById('btn-cancel-edit').style.display = "none";
+        document.getElementById('preview-text').textContent = "Ore Nette: 0.00h";
     }
 </script>
 
