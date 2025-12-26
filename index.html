@@ -44,7 +44,6 @@
         }
 
         input[type="date"], #filtro-mese { width: 100%; text-transform: uppercase; }
-
         textarea { height: 70px; resize: none; text-transform: none; }
 
         .pause-container {
@@ -63,10 +62,20 @@
 
         .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
         
+        /* TABELLA STORICO STILE AVANZATO */
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 2px; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: white; margin-bottom: 3px; }
+        .bg-sede { background: var(--success); }
+        .bg-trasf { background: var(--warning); }
+        .bg-assenza { background: var(--danger); }
+        .bg-estero { background: #5856D6; }
+        
+        .extra-label { font-size: 10px; color: var(--warning); font-weight: 700; display: block; margin-top: 2px; }
+        .luogo-label { font-size: 10px; color: var(--subtext); display: block; font-weight: 500; }
+
         .actions-cell { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon { border: none; background: #f0f0f5; font-size: 16px; padding: 8px; border-radius: 10px; cursor: pointer; }
+        .btn-icon { border: none; background: #f0f0f5; font-size: 14px; padding: 8px; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -80,12 +89,7 @@
 
     <div class="card">
         <h2><span><i class="fas fa-plus"></i> Inserimento</span></h2>
-        
-        <div class="form-group">
-            <label>Data</label>
-            <input type="date" id="data" onchange="aggiornaPreview()">
-        </div>
-        
+        <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
         <div class="form-group">
             <label>Tipo Lavoro</label>
             <select id="modalita" onchange="logicModalita()">
@@ -96,7 +100,6 @@
                 <option value="Trasferta Estero">TRASFERTA ESTERO</option>
             </select>
         </div>
-        
         <div class="form-group">
             <label>Assenza</label>
             <select id="assenza" onchange="logicAssenza()">
@@ -106,51 +109,31 @@
                 <option value="Malattia">MALATTIA</option>
             </select>
         </div>
-
         <div class="row-2">
             <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
             <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
         </div>
-
         <div class="pause-container">
             <span style="font-size: 14px; font-weight: 700;"><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
-            <label class="switch">
-                <input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()">
-                <span class="slider"></span>
-            </label>
+            <label class="switch"><input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()"><span class="slider"></span></label>
         </div>
-        
         <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
-
         <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
-        
         <div class="row-2">
             <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800; color:var(--primary);">0.00</div></div>
             <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
         </div>
-
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
     </div>
 
     <div class="card">
         <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="riepilogo-content" style="display:none;">
-            <div class="form-group">
-                <label>Seleziona Mese</label>
-                <input type="month" id="filtro-mese" onchange="fetchData()">
-            </div>
-            
+            <div class="form-group"><label>Seleziona Mese</label><input type="month" id="filtro-mese" onchange="fetchData()"></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);">
-                    <label>Ore Totali</label>
-                    <div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div>
-                </div>
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);">
-                    <label>Ore Extra</label>
-                    <div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div>
-                </div>
+                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Totali</label><div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div></div>
+                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Extra</label><div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div></div>
             </div>
-            
             <div id="summary-list" style="font-size: 13px; font-weight: 600;"></div>
         </div>
     </div>
@@ -191,8 +174,7 @@
         if(val) document.getElementById('assenza').value = "";
         if(val === "In Sede") {
             document.getElementById('luogo').value = "TECNOSISTEM";
-            document.getElementById('ora-inizio').value = "08:00";
-            document.getElementById('ora-fine').value = "17:00";
+            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
             document.getElementById('pausa-mensa').checked = true;
         }
         aggiornaPreview();
@@ -213,7 +195,6 @@
         let ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
         if(document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
         document.getElementById('prev-tot').textContent = ore.toFixed(2);
-        
         const dataObj = new Date(d);
         const isWE = (dataObj.getDay() === 0 || dataObj.getDay() === 6);
         document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
@@ -241,13 +222,34 @@
         
         let totOre = 0, totEx = 0, conteggio = {};
 
-        filteredData.forEach(d => {
+        document.getElementById('registro-body').innerHTML = filteredData.map((d) => {
             const h = parseFloat(d.ore) || 0;
             totOre += h;
             const dObj = new Date(d.data);
-            if(dObj.getDay()===0 || dObj.getDay()===6) totEx += h; else totEx += Math.max(0, h-8);
+            const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
+            const ex = isWE ? h : Math.max(0, h-8);
+            totEx += ex;
             conteggio[d.tipo] = (conteggio[d.tipo] || 0) + 1;
-        });
+
+            let bClass = "bg-sede";
+            if(d.tipo.includes("Trasferta")) bClass = "bg-trasf";
+            if(d.tipo.includes("Estero")) bClass = "bg-estero";
+            if(["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
+
+            return `
+            <tr>
+                <td style="width:70px;"><div style="font-size:12px; font-weight:800;">${dObj.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}</div><div style="font-size:9px; color:var(--subtext); text-transform:uppercase;">${dObj.toLocaleDateString('it-IT',{weekday:'short'})}</div></td>
+                <td>
+                    <span class="badge ${bClass}">${d.tipo}</span>
+                    <span class="luogo-label">${d.luogo || '-'}</span>
+                </td>
+                <td style="text-align:right;">
+                    <div style="font-weight:800; font-size:14px;">${h.toFixed(2)}H</div>
+                    ${ex > 0 ? `<span class="extra-label">+${ex.toFixed(2)} EX</span>` : ''}
+                </td>
+                <td><div class="actions-cell"><button class="btn-icon" style="color:var(--primary)"><i class="fas fa-edit"></i></button></div></td>
+            </tr>`;
+        }).join('');
 
         document.getElementById('stat-ore-tot').textContent = totOre.toFixed(2);
         document.getElementById('stat-ore-ex').textContent = totEx.toFixed(2);
@@ -255,18 +257,6 @@
             <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
                 <span style="text-transform: uppercase;">${t}</span><span>${c} GG</span>
             </div>`).join('');
-
-        document.getElementById('registro-body').innerHTML = filteredData.map((d, i) => `
-            <tr>
-                <td style="font-size:12px; font-weight:800;">${new Date(d.data).toLocaleDateString('it-IT')}</td>
-                <td style="font-size:11px;">${d.tipo.toUpperCase()}</td>
-                <td style="text-align:right; font-weight:800;">${d.ore}H</td>
-                <td><div class="actions-cell">
-                    <button class="btn-icon" style="color:var(--primary)"><i class="fas fa-edit"></i></button>
-                    <button class="btn-icon" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
-                </div></td>
-            </tr>
-        `).join('');
     }
 
     async function salva() {
@@ -282,8 +272,7 @@
             note: document.getElementById('note').value
         };
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-        fetchData();
-        document.getElementById('note').value = "";
+        fetchData(); document.getElementById('note').value = "";
     }
 
     function setSyncState(s, t) {
