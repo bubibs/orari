@@ -40,15 +40,21 @@
         h2 { font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .form-group { margin-bottom: 12px; position: relative; }
         label { display: block; font-size: 10px; font-weight: 700; color: #8E8E93; margin-bottom: 4px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 10px; font-size: 16px; background: #FFF; }
+        
+        /* FIX IPHONE DATA SIZE */
+        input, select, textarea { 
+            width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 10px; 
+            font-size: 16px; background: #FFF; 
+            -webkit-appearance: none; /* Rimuove stile default iOS */
+            height: 46px; /* Altezza fissa per uniformità */
+        }
+        textarea { height: 70px; }
         
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        /* FIX SWITCH PAUSA */
         .pausa-row { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: #F9F9F9; padding: 12px 14px; border-radius: 10px; 
-            border: 1px solid #D1D1D6; cursor: pointer;
+            background: #F9F9F9; padding: 10px 14px; border-radius: 10px; 
+            border: 1px solid #D1D1D6; cursor: pointer; height: 46px;
         }
         .switch { position: relative; display: inline-block; width: 46px; height: 26px; pointer-events: none; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -60,19 +66,26 @@
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 10px; }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 12px; padding: 10px; width: 100%; margin-top: 8px; display: none; }
         
-        /* COLORI PULSANTI REGISTRO */
+        /* TABELLA E COLORI DINAMICI */
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 12px 4px; vertical-align: middle; }
-        .item-data { font-weight: 700; font-size: 14px; display: block; }
-        .item-orario { color: #8E8E93; font-size: 11px; }
-        .item-luogo { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
-        .badge { padding: 3px 6px; border-radius: 5px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-        .badge-lavoro { background: #E1F5FE; color: #0288D1; }
-        .badge-assenza { background: #FCE4EC; color: #D81B60; }
+        td { padding: 12px 4px; vertical-align: middle; } /* Centrale verticale */
         
-        .actions { display: flex; gap: 12px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 20px; cursor: pointer; padding: 5px; }
+        .item-data { font-weight: 700; font-size: 13px; display: block; }
+        .item-orario { color: #8E8E93; font-size: 11px; font-weight: normal; }
+        .item-luogo { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
+        
+        .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; display: inline-block; line-height: 1.1; }
+        
+        /* COLORI SPECIFICI */
+        .bg-sede { background: #E1F5FE; color: #0288D1; }
+        .bg-rientro { background: #FFF3E0; color: #EF6C00; }
+        .bg-pernotto { background: #F3E5F5; color: #7B1FA2; }
+        .bg-estero { background: #E8F5E9; color: #2E7D32; }
+        .bg-assenza { background: #FCE4EC; color: #D81B60; }
+        
+        .actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-icon { border: none; background: none; font-size: 20px; cursor: pointer; }
         .edit-icon { color: var(--primary); }
         .delete-icon { color: var(--danger); }
     </style>
@@ -259,9 +272,7 @@
             note: document.getElementById('note').value || "",
             ore: aggiornaPreview()
         };
-        
         if (!record.tipo) { alert("Scegli attività!"); return; }
-
         document.getElementById('loading-overlay').style.display = 'flex';
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
@@ -291,6 +302,14 @@
         return str.includes("T") ? str.split("T")[1].substring(0, 5) : str.substring(0, 5);
     }
 
+    function getBadgeClass(tipo) {
+        if (tipo === "In Sede") return "bg-sede";
+        if (tipo === "Trasferta Rientro") return "bg-rientro";
+        if (tipo === "Trasferta Pernotto") return "bg-pernotto";
+        if (tipo === "Trasferta Estero") return "bg-estero";
+        return "bg-assenza";
+    }
+
     function renderTabella() {
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => {
@@ -298,12 +317,14 @@
             let dFmt = isNaN(dObj) ? d.data : dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
             return `
                 <tr>
-                    <td style="width:50%">
+                    <td style="width:45%">
                         <span class="item-data">${dFmt} <span class="item-orario">(${cleanTime(d.inizio)}-${cleanTime(d.fine)})</span></span>
                         <span class="item-luogo"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
-                        ${d.note ? `<div style="font-size:10px; color:#666; font-style:italic;">${d.note}</div>` : ''}
+                        ${d.note ? `<div style="font-size:10px; color:#666; font-style:italic; line-height:1.2;">${d.note}</div>` : ''}
                     </td>
-                    <td><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
+                    <td style="text-align:center; width:30%;">
+                        <span class="badge ${getBadgeClass(d.tipo)}">${d.tipo}</span>
+                    </td>
                     <td style="text-align:right"><b>${d.ore}h</b></td>
                     <td class="actions">
                         <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
