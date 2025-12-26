@@ -42,13 +42,12 @@
         .form-group { margin-bottom: 14px; position: relative; }
         label { display: block; font-size: 12px; font-weight: 700; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; }
         
-        /* TESTI PIÙ GRANDI PER INPUT E DATA */
         input, select, textarea { 
             width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 12px; 
-            font-size: 18px; /* Aumentato da 16px */
+            font-size: 18px; 
             background: #FFF; 
             -webkit-appearance: none;
-            height: 52px; /* Aumentato da 46px */
+            height: 52px; 
             color: var(--text);
         }
         textarea { height: 90px; padding-top: 12px; }
@@ -70,16 +69,16 @@
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; margin-top: 10px; }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
         
-        /* REGISTRO */
+        /* REGISTRO AGGIORNATO */
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 12px 4px; vertical-align: middle; }
+        td { padding: 14px 4px; vertical-align: middle; }
         
-        .item-data { font-weight: 700; font-size: 14px; display: block; }
-        .item-orario { color: #8E8E93; font-size: 12px; font-weight: normal; }
-        .item-luogo { display: block; font-size: 12px; color: var(--primary); font-weight: 600; margin-top: 2px; }
+        .item-data { font-weight: 800; font-size: 14px; display: block; color: #1c1c1e; }
+        .item-orario { color: #8E8E93; font-size: 12px; font-weight: 600; display: block; margin-top: 2px; }
+        .item-luogo { display: block; font-size: 11px; color: var(--primary); font-weight: 700; margin-top: 4px; text-transform: uppercase; }
         
-        .badge { padding: 5px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; text-align: center; display: inline-block; line-height: 1.1; }
+        .badge { padding: 5px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; display: inline-block; line-height: 1.1; }
         
         .bg-sede { background: #E1F5FE; color: #0288D1; }
         .bg-rientro { background: #FFF3E0; color: #EF6C00; }
@@ -87,8 +86,8 @@
         .bg-estero { background: #E8F5E9; color: #2E7D32; }
         .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .actions { display: flex; gap: 12px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 22px; cursor: pointer; padding: 5px; }
+        .actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-icon { border: none; background: none; font-size: 20px; cursor: pointer; padding: 4px; }
         .edit-icon { color: var(--primary); }
         .delete-icon { color: var(--danger); }
     </style>
@@ -201,7 +200,7 @@
     }
 
     async function fetchData() {
-        setSyncState('working', 'Aggiornamento...');
+        setSyncState('working', 'Sincronizzazione...');
         try {
             const response = await fetch(WEB_APP_URL);
             const res = await response.json();
@@ -216,7 +215,7 @@
     function setSyncState(state, text) {
         const ind = document.getElementById('sync-indicator');
         ind.className = `sync-${state}`;
-        const icon = state === 'working' ? 'fa-sync fa-spin' : (state === 'error' ? 'fa-exclamation-triangle' : 'fa-cloud');
+        const icon = state === 'working' ? 'fa-sync fa-spin' : (state === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle');
         ind.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
     }
 
@@ -317,16 +316,17 @@
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => {
             let dObj = new Date(d.data);
-            let dFmt = isNaN(dObj) ? d.data : dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
+            let dFmt = isNaN(dObj) ? d.data : dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'numeric'});
             return `
                 <tr>
-                    <td style="width:45%">
-                        <span class="item-data">${dFmt} <span class="item-orario">(${cleanTime(d.inizio)}-${cleanTime(d.fine)})</span></span>
+                    <td style="width:40%">
+                        <span class="item-data">${dFmt}</span>
+                        <span class="item-orario"><i class="far fa-clock"></i> ${cleanTime(d.inizio)} - ${cleanTime(d.fine)}</span>
                         <span class="item-luogo"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
-                        ${d.note ? `<div style="font-size:10px; color:#666; font-style:italic; line-height:1.2;">${d.note}</div>` : ''}
                     </td>
-                    <td style="text-align:center; width:30%;">
+                    <td style="text-align:center; width:35%;">
                         <span class="badge ${getBadgeClass(d.tipo)}">${d.tipo}</span>
+                        ${d.note ? `<div style="font-size:10px; color:#666; font-style:italic; line-height:1.2; margin-top:4px;">${d.note}</div>` : ''}
                     </td>
                     <td style="text-align:right"><b>${d.ore}h</b></td>
                     <td class="actions">
@@ -372,7 +372,7 @@
         document.getElementById('pausa').checked = false;
         document.getElementById('btn-save').textContent = "SALVA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display = "none";
-        document.getElementById('preview-text').textContent = "Ore Nette: 0.00h";
+        document.getElementById('preview-text').innerHTML = "Ore Nette: 0.00h";
     }
 </script>
 </body>
