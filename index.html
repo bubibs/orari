@@ -3,149 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TECNOSISTEM - Work Log</title>
+    <title>TECNOSISTEM - Pro Log</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
-            --primary: #007AFF; 
-            --bg: #F2F2F7; 
-            --card: #FFFFFF; 
-            --text: #1C1C1E; 
-            --success: #34C759; 
-            --danger: #FF3B30; 
-            --radius: 14px; 
+            --primary: #007AFF; --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; 
+            --success: #34C759; --danger: #FF3B30; --warning: #FF9500; --radius: 14px; 
             --accent: linear-gradient(135deg, #007AFF 0%, #0051a8 100%);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 40px; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 60px; }
         .container { max-width: 500px; margin: 0 auto; }
         
-        /* HEADER ACCATTIVANTE */
-        header { text-align: center; margin-bottom: 25px; padding-top: 10px; }
-        .logo { 
-            font-size: 32px; 
-            font-weight: 900; 
-            letter-spacing: -1px;
-            background: var(--accent);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-        }
-        .subtitle { font-size: 12px; font-weight: 600; color: #8E8E93; letter-spacing: 2px; margin-top: -5px; }
-        
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; }
-        .sync-none { color: #8E8E93; }
-        .sync-working { color: var(--primary); }
-        .sync-success { color: var(--success); }
-        .sync-error { color: var(--danger); }
+        header { text-align: center; margin-bottom: 25px; }
+        .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+        #sync-indicator { font-size: 11px; margin-top: 5px; font-weight: 700; }
+        .sync-none { color: #8E8E93; } .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
         #loading-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.85); z-index: 9999;
-            flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(4px);
+            background: rgba(255,255,255,0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
         }
-        .spinner { width: 45px; height: 45px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #3A3A3C; }
+        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        h2 { font-size: 17px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; cursor: pointer; justify-content: space-between; }
         
-        .form-group { margin-bottom: 14px; position: relative; }
-        label { display: block; font-size: 12px; font-weight: 700; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; font-weight: 700; color: #8E8E93; margin-bottom: 4px; text-transform: uppercase; }
         
-        input, select, textarea { 
-            width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 12px; 
-            font-size: 18px; background: #FFF; -webkit-appearance: none;
-            height: 52px; color: var(--text);
-        }
-        textarea { height: 90px; padding-top: 12px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 12px; font-size: 18px; height: 52px; color: var(--text); }
+        textarea { height: 80px; }
         
-        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: #F9F9F9; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; height: 52px; cursor: pointer; }
         
-        .pausa-row { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #F9F9F9; padding: 12px 14px; border-radius: 12px; 
-            border: 1px solid #D1D1D6; cursor: pointer; height: 52px;
-        }
-        .switch { position: relative; display: inline-block; width: 46px; height: 26px; pointer-events: none; }
+        /* CALCOLO ORE */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .stat-box { background: #F2F2F7; padding: 10px; border-radius: 10px; text-align: center; }
+        .stat-label { font-size: 10px; font-weight: 700; color: #8E8E93; text-transform: uppercase; }
+        .stat-val { font-size: 18px; font-weight: 800; color: var(--primary); }
+        .stat-val.extra { color: var(--warning); }
+
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
+        .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
+
+        /* RIEPILOGO */
+        .summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F2F2F7; font-size: 14px; }
+        .summary-item:last-child { border: none; }
+        .sum-label { font-weight: 600; }
+        .sum-val { font-weight: 800; color: var(--primary); }
+
+        /* STORICO COLLAPSIBLE */
+        #registro-content { display: none; margin-top: 10px; }
+        .chevron { transition: 0.3s; }
+        .open .chevron { transform: rotate(180deg); }
+
+        table { width: 100%; border-collapse: collapse; }
+        tr { border-bottom: 1px solid #F2F2F7; }
+        td { padding: 12px 2px; vertical-align: middle; }
+        .item-data { font-weight: 800; font-size: 13px; display: block; }
+        .item-orario { color: #8E8E93; font-size: 11px; display: block; }
+        .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; width: 100%; text-align: center; }
+        .bg-sede { background: #E1F5FE; color: #0288D1; } .bg-rientro { background: #FFF3E0; color: #EF6C00; } .bg-pernotto { background: #F3E5F5; color: #7B1FA2; } .bg-estero { background: #E8F5E9; color: #2E7D32; } .bg-assenza { background: #FCE4EC; color: #D81B60; }
+        .actions-row { display: flex; gap: 5px; justify-content: flex-end; }
+        .btn-icon { border: none; background: none; font-size: 18px; padding: 5px; cursor: pointer; }
+        .edit-icon { color: var(--primary); } .delete-icon { color: var(--danger); }
+
+        /* SWITCH */
+        .switch { position: relative; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(20px); }
-        
-        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
-        .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
-        
-        /* REGISTRO */
-        table { width: 100%; border-collapse: collapse; }
-        tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 14px 2px; vertical-align: middle; }
-        
-        .item-data { font-weight: 800; font-size: 13px; display: block; color: #1c1c1e; }
-        .item-orario { color: #8E8E93; font-size: 11px; font-weight: 600; display: block; margin-top: 2px; white-space: nowrap; }
-        .item-luogo { display: block; font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 4px; text-transform: uppercase; line-height: 1.2; }
-        
-        .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; display: inline-block; line-height: 1.1; width: 100%; }
-        
-        .bg-sede { background: #E1F5FE; color: #0288D1; }
-        .bg-rientro { background: #FFF3E0; color: #EF6C00; }
-        .bg-pernotto { background: #F3E5F5; color: #7B1FA2; }
-        .bg-estero { background: #E8F5E9; color: #2E7D32; }
-        .bg-assenza { background: #FCE4EC; color: #D81B60; }
-        
-        .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-        .ore-val { font-size: 14px; font-weight: 800; min-width: 45px; text-align: right; }
-        .actions-row { display: flex; gap: 6px; }
-        .btn-icon { border: none; background: none; font-size: 19px; cursor: pointer; padding: 4px; }
-        .edit-icon { color: var(--primary); }
-        .delete-icon { color: var(--danger); }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <p id="loading-text" style="margin-top:10px; font-weight:700; color:var(--primary);">Operazione...</p>
+    <p id="loading-text" style="margin-top:10px; font-weight:700; color:var(--primary);">Sincronizzazione...</p>
 </div>
 
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
-        <div class="subtitle">REGISTRO ATTIVITÀ</div>
         <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Inizializzazione...</div>
     </header>
 
     <div class="card">
-        <h2><i class="fas fa-plus-circle"></i> Inserimento Dati</h2>
-        
-        <div class="form-group">
-            <label>Data Intervento</label>
-            <input type="date" id="data">
+        <h2 onclick="toggleSection('riepilogo-content', this)">
+            <span><i class="fas fa-chart-pie"></i> Riepilogo Mensile</span>
+            <i class="fas fa-chevron-down chevron"></i>
+        </h2>
+        <div id="riepilogo-content">
+            <div id="summary-list">Caricamento dati...</div>
         </div>
+    </div>
 
+    <div class="card">
+        <h2><span><i class="fas fa-plus-circle"></i> Nuovo Report</span></h2>
         <div class="form-group">
-            <label>Modalità</label>
-            <select id="modalita" onchange="logicModalita()">
-                <option value="">-- Seleziona --</option>
-                <option value="In Sede">In Sede</option>
-                <option value="Trasferta Rientro">Trasferta Rientro</option>
-                <option value="Trasferta Pernotto">Trasferta Pernotto</option>
-                <option value="Trasferta Estero">Trasferta Estero</option>
-            </select>
+            <label>Data</label>
+            <input type="date" id="data" onchange="aggiornaPreview()">
         </div>
-
-        <div class="form-group">
-            <label>Assenza</label>
-            <select id="assenza" onchange="logicAssenza()">
-                <option value="">-- Nessuna --</option>
-                <option value="Ferie">Ferie</option>
-                <option value="Permesso">Permesso</option>
-                <option value="Malattia">Malattia</option>
-            </select>
-        </div>
-
         <div class="time-row">
             <div class="form-group">
                 <label>Inizio</label>
@@ -156,35 +119,58 @@
                 <select id="ora-fine" onchange="aggiornaPreview()"></select>
             </div>
         </div>
-
         <div class="form-group">
-            <label>Cliente / Cantiere</label>
+            <label>Modalità / Assenza</label>
+            <select id="attivita" onchange="logicAttivita()">
+                <optgroup label="Lavoro">
+                    <option value="In Sede">In Sede</option>
+                    <option value="Trasferta Rientro">Trasferta Rientro</option>
+                    <option value="Trasferta Pernotto">Trasferta Pernotto</option>
+                    <option value="Trasferta Estero">Trasferta Estero</option>
+                </optgroup>
+                <optgroup label="Assenze">
+                    <option value="Ferie">Ferie</option>
+                    <option value="Permesso">Permesso</option>
+                    <option value="Malattia">Malattia</option>
+                </optgroup>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Luogo / Cliente</label>
             <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Destinazione">
             <datalist id="luoghi-suggeriti"></datalist>
         </div>
-
         <div class="pausa-row" onclick="togglePausa()">
-            <label style="margin:0; font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
+            <label style="margin:0; font-size: 14px; font-weight:600;">Pausa Pranzo (1h)</label>
             <label class="switch">
                 <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
                 <span class="slider"></span>
             </label>
         </div>
-
-        <div class="form-group" style="margin-top:12px;">
-            <label>Note Intervento</label>
-            <textarea id="note" placeholder="Note aggiuntive..."></textarea>
+        
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Ore Totali</div>
+                <div class="stat-val" id="ore-tot">0.00</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Straordinari</div>
+                <div class="stat-val extra" id="ore-extra">0.00</div>
+            </div>
         </div>
-
-        <div id="preview-text" style="text-align:center; font-weight:800; color:var(--primary); margin: 10px 0; font-size: 20px;">Ore Nette: 0.00h</div>
 
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA NEL CLOUD</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA MODIFICA</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-history"></i> Storico Online</h2>
-        <table><tbody id="registro-body"></tbody></table>
+        <h2 onclick="toggleSection('registro-content', this)">
+            <span><i class="fas fa-history"></i> Storico Online</span>
+            <i class="fas fa-chevron-down chevron"></i>
+        </h2>
+        <div id="registro-content">
+            <table><tbody id="registro-body"></tbody></table>
+        </div>
     </div>
 </div>
 
@@ -199,13 +185,11 @@
         fetchData();
     });
 
-    function showOverlay(text) {
-        document.getElementById('loading-text').textContent = text;
-        document.getElementById('loading-overlay').style.display = 'flex';
-    }
-
-    function hideOverlay() {
-        document.getElementById('loading-overlay').style.display = 'none';
+    function toggleSection(id, el) {
+        const content = document.getElementById(id);
+        const isOpen = content.style.display === 'block';
+        content.style.display = isOpen ? 'none' : 'block';
+        el.classList.toggle('open', !isOpen);
     }
 
     function popolaOrari() {
@@ -220,36 +204,39 @@
         });
     }
 
-    async function fetchData() {
-        setSyncState('working', 'Sincronizzazione...');
-        try {
-            const response = await fetch(WEB_APP_URL);
-            const res = await response.json();
-            dati = res.data || [];
-            dati.sort((a, b) => new Date(b.data) - new Date(a.data));
-            renderTabella();
-            updateLuoghiSuggeriti();
-            setSyncState('success', 'Sincronizzato');
-        } catch (e) { setSyncState('error', 'Errore Cloud'); }
+    function aggiornaPreview() {
+        const s = document.getElementById('ora-inizio').value;
+        const e = document.getElementById('ora-fine').value;
+        const dVal = document.getElementById('data').value;
+        if (!s || !e || !dVal) return;
+
+        const [h1, m1] = s.split(':').map(Number);
+        const [h2, m2] = e.split(':').map(Number);
+        let min = (h2*60+m2) - (h1*60+m1);
+        if (document.getElementById('pausa').checked) min -= 60;
+        
+        let oreTot = Math.max(0, min/60);
+        let oreExtra = 0;
+
+        const dateObj = new Date(dVal);
+        const day = dateObj.getDay(); // 0=Dom, 6=Sab
+
+        if (day === 0 || day === 6) {
+            oreExtra = oreTot;
+        } else {
+            if (oreTot > 8) {
+                oreExtra = oreTot - 8;
+            }
+        }
+
+        document.getElementById('ore-tot').textContent = oreTot.toFixed(2);
+        document.getElementById('ore-extra').textContent = oreExtra.toFixed(2);
     }
 
-    function setSyncState(state, text) {
-        const ind = document.getElementById('sync-indicator');
-        ind.className = `sync-${state}`;
-        const icon = state === 'working' ? 'fa-sync fa-spin' : (state === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle');
-        ind.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
-    }
-
-    function togglePausa() {
-        const p = document.getElementById('pausa');
-        p.checked = !p.checked;
-        aggiornaPreview();
-    }
-
-    function logicModalita() {
-        const mod = document.getElementById('modalita').value;
-        if (mod === "In Sede") {
-            document.getElementById('assenza').value = "";
+    function logicAttivita() {
+        const att = document.getElementById('attivita').value;
+        const isSede = att === "In Sede";
+        if (isSede) {
             document.getElementById('luogo').value = "TECNOSISTEM";
             document.getElementById('ora-inizio').value = "08:00";
             document.getElementById('ora-fine').value = "17:00";
@@ -258,112 +245,92 @@
         aggiornaPreview();
     }
 
-    function logicAssenza() {
-        if (document.getElementById('assenza').value) {
-            document.getElementById('modalita').value = "";
-            document.getElementById('luogo').value = "-";
-            document.getElementById('pausa').checked = false;
-            document.getElementById('ora-inizio').value = "08:00";
-            document.getElementById('ora-fine').value = "17:00";
-        }
+    function togglePausa() {
+        const p = document.getElementById('pausa');
+        p.checked = !p.checked;
         aggiornaPreview();
     }
 
-    function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value;
-        const e = document.getElementById('ora-fine').value;
-        if (!s || !e) return "0.00";
-        const [h1, m1] = s.split(':').map(Number);
-        const [h2, m2] = e.split(':').map(Number);
-        let min = (h2*60+m2) - (h1*60+m1);
-        if (document.getElementById('pausa').checked) min -= 60;
-        const ore = Math.max(0, min/60).toFixed(2);
-        document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore}h</span>`;
-        return ore;
+    async function fetchData() {
+        setSyncState('working', 'Sincronizzazione...');
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const res = await response.json();
+            dati = res.data || [];
+            dati.sort((a, b) => new Date(b.data) - new Date(a.data));
+            renderTabella();
+            renderRiepilogo();
+            updateLuoghiSuggeriti();
+            setSyncState('success', 'Sincronizzato');
+        } catch (e) { setSyncState('error', 'Errore Cloud'); }
+    }
+
+    function renderRiepilogo() {
+        const stats = {};
+        dati.forEach(d => {
+            stats[d.tipo] = (stats[d.tipo] || 0) + parseFloat(d.ore);
+        });
+        const html = Object.keys(stats).map(key => `
+            <div class="summary-item">
+                <span class="sum-label">${key}</span>
+                <span class="sum-val">${stats[key].toFixed(2)}h</span>
+            </div>
+        `).join('');
+        document.getElementById('summary-list').innerHTML = html || "Nessun dato presente.";
     }
 
     async function salva() {
+        const att = document.getElementById('attivita').value;
         const record = {
             id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
-            tipo: document.getElementById('modalita').value || document.getElementById('assenza').value,
-            categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
+            tipo: att,
+            categoria: ["Ferie","Permesso","Malattia"].includes(att) ? 'assenza' : 'lavoro',
             luogo: document.getElementById('luogo').value || "-",
             data: document.getElementById('data').value,
             inizio: document.getElementById('ora-inizio').value,
             fine: document.getElementById('ora-fine').value,
             pausa: document.getElementById('pausa').checked,
-            note: document.getElementById('note').value || "",
-            ore: aggiornaPreview()
+            ore: document.getElementById('ore-tot').textContent
         };
-        if (!record.tipo) { alert("Scegli un'attività!"); return; }
-        
-        showOverlay("Salvataggio...");
+
+        document.getElementById('loading-overlay').style.display = 'flex';
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
-            setTimeout(() => {
-                hideOverlay();
-                fetchData();
-            }, 1000);
-        } catch (e) { 
-            hideOverlay();
-            setSyncState('error', 'Errore Invio');
-        }
+            setTimeout(fetchData, 1200);
+            setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 1500);
+        } catch (e) { setSyncState('error', 'Errore!'); }
     }
 
     async function elimina(index) {
-        if (!confirm("Sei sicuro di voler eliminare questo report?")) return;
-        
-        showOverlay("Eliminazione...");
+        if (!confirm("Eliminare definitivamente?")) return;
+        document.getElementById('loading-text').textContent = "Eliminazione...";
+        document.getElementById('loading-overlay').style.display = 'flex';
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[index].id.toString() }) });
-            setTimeout(() => {
-                hideOverlay();
-                fetchData();
-            }, 1000);
-        } catch (e) { 
-            hideOverlay();
-            setSyncState('error', 'Errore'); 
-        }
-    }
-
-    function cleanTime(t) {
-        if (!t) return "--:--";
-        let str = t.toString();
-        return str.includes("T") ? str.split("T")[1].substring(0, 5) : str.substring(0, 5);
-    }
-
-    function getBadgeClass(tipo) {
-        if (tipo === "In Sede") return "bg-sede";
-        if (tipo === "Trasferta Rientro") return "bg-rientro";
-        if (tipo === "Trasferta Pernotto") return "bg-pernotto";
-        if (tipo === "Trasferta Estero") return "bg-estero";
-        return "bg-assenza";
+            setTimeout(fetchData, 1200);
+            setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 1500);
+        } catch (e) { setSyncState('error', 'Errore!'); }
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => {
-            let dObj = new Date(d.data);
-            let dFmt = isNaN(dObj) ? d.data : dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
+            const dObj = new Date(d.data);
+            const dFmt = dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
+            const badgeCls = d.tipo === "In Sede" ? "bg-sede" : d.tipo.includes("Trasferta") ? "bg-rientro" : "bg-assenza";
             return `
                 <tr>
-                    <td style="width:38%">
+                    <td style="width:35%">
                         <span class="item-data">${dFmt}</span>
-                        <span class="item-orario">${cleanTime(d.inizio)}-${cleanTime(d.fine)}</span>
-                        <span class="item-luogo">${d.luogo}</span>
+                        <span class="item-orario">${d.inizio}-${d.fine}</span>
                     </td>
-                    <td style="text-align:center; width:28%;">
-                        <span class="badge ${getBadgeClass(d.tipo)}">${d.tipo}</span>
-                        ${d.note ? `<div style="font-size:9px; color:#666; font-style:italic; line-height:1.1; margin-top:3px;">${d.note}</div>` : ''}
-                    </td>
-                    <td style="width:34%">
-                        <div class="result-cell">
-                            <span class="ore-val">${d.ore}h</span>
-                            <div class="actions-row">
-                                <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
-                                <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash delete-icon"></i></button>
-                            </div>
+                    <td style="width:35%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
+                    <td style="width:30%">
+                        <div class="actions-row">
+                            <span style="font-weight:800; font-size:13px; margin-right:5px;">${d.ore}h</span>
+                            <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
+                            <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash delete-icon"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -371,23 +338,15 @@
         }).join('');
     }
 
-    function updateLuoghiSuggeriti() {
-        const list = document.getElementById('luoghi-suggeriti');
-        const uniqueLuoghi = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
-        list.innerHTML = uniqueLuoghi.map(l => `<option value="${l}">`).join('');
-    }
-
     function avviaModifica(index) {
         const d = dati[index];
         editIndex = index;
-        document.getElementById('data').value = d.data.toString().split('T')[0];
-        document.getElementById('modalita').value = d.categoria === 'lavoro' ? d.tipo : "";
-        document.getElementById('assenza').value = d.categoria === 'assenza' ? d.tipo : "";
+        document.getElementById('data').value = d.data.split('T')[0];
+        document.getElementById('attivita').value = d.tipo;
         document.getElementById('luogo').value = d.luogo;
-        document.getElementById('ora-inizio').value = cleanTime(d.inizio);
-        document.getElementById('ora-fine').value = cleanTime(d.fine);
-        document.getElementById('pausa').checked = (d.pausa === "SI" || d.pausa === true);
-        document.getElementById('note').value = d.note || "";
+        document.getElementById('ora-inizio').value = d.inizio;
+        document.getElementById('ora-fine').value = d.fine;
+        document.getElementById('pausa').checked = (d.pausa === true || d.pausa === "SI");
         document.getElementById('btn-save').textContent = "AGGIORNA REPORT";
         document.getElementById('btn-cancel-edit').style.display = "block";
         aggiornaPreview();
@@ -396,16 +355,26 @@
 
     function resetForm() {
         editIndex = -1;
-        document.getElementById('modalita').value = "";
-        document.getElementById('assenza').value = "";
-        document.getElementById('luogo').value = "";
-        document.getElementById('note').value = "";
-        document.getElementById('ora-inizio').value = "";
-        document.getElementById('ora-fine').value = "";
-        document.getElementById('pausa').checked = false;
         document.getElementById('btn-save').textContent = "REGISTRA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display = "none";
-        document.getElementById('preview-text').innerHTML = "Ore Nette: 0.00h";
+        document.getElementById('ora-inizio').value = "";
+        document.getElementById('ora-fine').value = "";
+        document.getElementById('luogo').value = "";
+        document.getElementById('pausa').checked = false;
+        document.getElementById('ore-tot').textContent = "0.00";
+        document.getElementById('ore-extra').textContent = "0.00";
+    }
+
+    function setSyncState(state, text) {
+        const ind = document.getElementById('sync-indicator');
+        ind.className = `sync-${state}`;
+        ind.innerHTML = `<i class="fas ${state==='working'?'fa-sync fa-spin':'fa-cloud'}"></i> ${text}`;
+    }
+
+    function updateLuoghiSuggeriti() {
+        const list = document.getElementById('luoghi-suggeriti');
+        const unique = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
+        list.innerHTML = unique.map(l => `<option value="${l}">`).join('');
     }
 </script>
 </body>
