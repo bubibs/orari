@@ -18,7 +18,8 @@
         header { text-align: center; margin-bottom: 25px; }
         .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
         #sync-indicator { font-size: 11px; margin-top: 5px; font-weight: 700; }
-        .sync-none { color: #8E8E93; } .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
+        
+        .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
         #loading-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -30,51 +31,45 @@
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
         h2 { font-size: 17px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; cursor: pointer; justify-content: space-between; }
         
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; font-weight: 700; color: #8E8E93; margin-bottom: 4px; text-transform: uppercase; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 12px; font-weight: 700; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; }
         
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 12px; font-size: 18px; height: 52px; color: var(--text); }
-        textarea { height: 80px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 12px; font-size: 18px; height: 52px; color: var(--text); background: #FFF; -webkit-appearance: none; }
+        textarea { height: 90px; padding-top: 12px; }
         
-        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: #F9F9F9; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; height: 52px; cursor: pointer; }
+        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: #F9F9F9; padding: 12px 14px; border-radius: 12px; border: 1px solid #D1D1D6; height: 52px; cursor: pointer; }
         
-        /* CALCOLO ORE */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-        .stat-box { background: #F2F2F7; padding: 10px; border-radius: 10px; text-align: center; }
-        .stat-label { font-size: 10px; font-weight: 700; color: #8E8E93; text-transform: uppercase; }
-        .stat-val { font-size: 18px; font-weight: 800; color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
+        .stat-box { background: #F2F2F7; padding: 12px; border-radius: 12px; text-align: center; }
+        .stat-label { font-size: 11px; font-weight: 700; color: #8E8E93; text-transform: uppercase; }
+        .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
         .stat-val.extra { color: var(--warning); }
 
         .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
 
-        /* RIEPILOGO */
-        .summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F2F2F7; font-size: 14px; }
-        .summary-item:last-child { border: none; }
-        .sum-label { font-weight: 600; }
-        .sum-val { font-weight: 800; color: var(--primary); }
-
-        /* STORICO COLLAPSIBLE */
-        #registro-content { display: none; margin-top: 10px; }
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F2F2F7; font-size: 15px; }
+        #registro-content, #riepilogo-content { display: none; margin-top: 10px; }
         .chevron { transition: 0.3s; }
         .open .chevron { transform: rotate(180deg); }
 
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 12px 2px; vertical-align: middle; }
+        td { padding: 14px 2px; vertical-align: middle; }
         .item-data { font-weight: 800; font-size: 13px; display: block; }
         .item-orario { color: #8E8E93; font-size: 11px; display: block; }
         .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; width: 100%; text-align: center; }
         .bg-sede { background: #E1F5FE; color: #0288D1; } .bg-rientro { background: #FFF3E0; color: #EF6C00; } .bg-pernotto { background: #F3E5F5; color: #7B1FA2; } .bg-estero { background: #E8F5E9; color: #2E7D32; } .bg-assenza { background: #FCE4EC; color: #D81B60; }
-        .actions-row { display: flex; gap: 5px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 18px; padding: 5px; cursor: pointer; }
-        .edit-icon { color: var(--primary); } .delete-icon { color: var(--danger); }
+        
+        .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+        .ore-val-tab { font-size: 14px; font-weight: 800; min-width: 45px; text-align: right; }
+        .actions-row { display: flex; gap: 5px; }
+        .btn-icon { border: none; background: none; font-size: 19px; padding: 4px; cursor: pointer; }
 
-        /* SWITCH */
-        .switch { position: relative; width: 46px; height: 26px; }
+        .switch { position: relative; width: 46px; height: 26px; pointer-events: none; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(20px); }
@@ -84,31 +79,44 @@
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <p id="loading-text" style="margin-top:10px; font-weight:700; color:var(--primary);">Sincronizzazione...</p>
+    <p id="loading-text" style="margin-top:10px; font-weight:700; color:var(--primary);">Operazione...</p>
 </div>
 
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
-        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Inizializzazione...</div>
+        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Sincronizzazione...</div>
     </header>
 
     <div class="card">
-        <h2 onclick="toggleSection('riepilogo-content', this)">
-            <span><i class="fas fa-chart-pie"></i> Riepilogo Mensile</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
-        <div id="riepilogo-content">
-            <div id="summary-list">Caricamento dati...</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2><span><i class="fas fa-plus-circle"></i> Nuovo Report</span></h2>
+        <h2><span><i class="fas fa-plus-circle"></i> Inserimento</span></h2>
+        
         <div class="form-group">
             <label>Data</label>
             <input type="date" id="data" onchange="aggiornaPreview()">
         </div>
+
+        <div class="form-group">
+            <label>Modalità Lavoro</label>
+            <select id="modalita" onchange="logicModalita()">
+                <option value="">-- Seleziona --</option>
+                <option value="In Sede">In Sede</option>
+                <option value="Trasferta Rientro">Trasferta Rientro</option>
+                <option value="Trasferta Pernotto">Trasferta Pernotto</option>
+                <option value="Trasferta Estero">Trasferta Estero</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Assenza</label>
+            <select id="assenza" onchange="logicAssenza()">
+                <option value="">-- Nessuna --</option>
+                <option value="Ferie">Ferie</option>
+                <option value="Permesso">Permesso</option>
+                <option value="Malattia">Malattia</option>
+            </select>
+        </div>
+
         <div class="time-row">
             <div class="form-group">
                 <label>Inizio</label>
@@ -119,48 +127,49 @@
                 <select id="ora-fine" onchange="aggiornaPreview()"></select>
             </div>
         </div>
-        <div class="form-group">
-            <label>Modalità / Assenza</label>
-            <select id="attivita" onchange="logicAttivita()">
-                <optgroup label="Lavoro">
-                    <option value="In Sede">In Sede</option>
-                    <option value="Trasferta Rientro">Trasferta Rientro</option>
-                    <option value="Trasferta Pernotto">Trasferta Pernotto</option>
-                    <option value="Trasferta Estero">Trasferta Estero</option>
-                </optgroup>
-                <optgroup label="Assenze">
-                    <option value="Ferie">Ferie</option>
-                    <option value="Permesso">Permesso</option>
-                    <option value="Malattia">Malattia</option>
-                </optgroup>
-            </select>
-        </div>
+
         <div class="form-group">
             <label>Luogo / Cliente</label>
             <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Destinazione">
             <datalist id="luoghi-suggeriti"></datalist>
         </div>
+
         <div class="pausa-row" onclick="togglePausa()">
-            <label style="margin:0; font-size: 14px; font-weight:600;">Pausa Pranzo (1h)</label>
+            <label style="margin:0; font-size: 15px; font-weight:600;">Pausa Mensa (1h)</label>
             <label class="switch">
                 <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
                 <span class="slider"></span>
             </label>
         </div>
-        
+
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-label">Ore Totali</div>
                 <div class="stat-val" id="ore-tot">0.00</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">Straordinari</div>
+                <div class="stat-label">Straordinarie</div>
                 <div class="stat-val extra" id="ore-extra">0.00</div>
             </div>
         </div>
 
+        <div class="form-group">
+            <label>Note Intervento</label>
+            <textarea id="note" placeholder="Note facoltative..."></textarea>
+        </div>
+
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA NEL CLOUD</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA MODIFICA</button>
+    </div>
+
+    <div class="card">
+        <h2 onclick="toggleSection('riepilogo-content', this)">
+            <span><i class="fas fa-chart-pie"></i> Riepilogo Mensile</span>
+            <i class="fas fa-chevron-down chevron"></i>
+        </h2>
+        <div id="riepilogo-content">
+            <div id="summary-list">Caricamento...</div>
+        </div>
     </div>
 
     <div class="card">
@@ -204,6 +213,37 @@
         });
     }
 
+    function logicModalita() {
+        const mod = document.getElementById('modalita').value;
+        if (mod) {
+            document.getElementById('assenza').value = "";
+            if (mod === "In Sede") {
+                document.getElementById('luogo').value = "TECNOSISTEM";
+                document.getElementById('ora-inizio').value = "08:00";
+                document.getElementById('ora-fine').value = "17:00";
+                document.getElementById('pausa').checked = true;
+            }
+        }
+        aggiornaPreview();
+    }
+
+    function logicAssenza() {
+        if (document.getElementById('assenza').value) {
+            document.getElementById('modalita').value = "";
+            document.getElementById('luogo').value = "-";
+            document.getElementById('ora-inizio').value = "08:00";
+            document.getElementById('ora-fine').value = "17:00";
+            document.getElementById('pausa').checked = false;
+        }
+        aggiornaPreview();
+    }
+
+    function togglePausa() {
+        const p = document.getElementById('pausa');
+        p.checked = !p.checked;
+        aggiornaPreview();
+    }
+
     function aggiornaPreview() {
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
@@ -218,37 +258,15 @@
         let oreTot = Math.max(0, min/60);
         let oreExtra = 0;
 
-        const dateObj = new Date(dVal);
-        const day = dateObj.getDay(); // 0=Dom, 6=Sab
-
+        const day = new Date(dVal).getDay(); // 0 Dom, 6 Sab
         if (day === 0 || day === 6) {
             oreExtra = oreTot;
-        } else {
-            if (oreTot > 8) {
-                oreExtra = oreTot - 8;
-            }
+        } else if (oreTot > 8) {
+            oreExtra = oreTot - 8;
         }
 
         document.getElementById('ore-tot').textContent = oreTot.toFixed(2);
         document.getElementById('ore-extra').textContent = oreExtra.toFixed(2);
-    }
-
-    function logicAttivita() {
-        const att = document.getElementById('attivita').value;
-        const isSede = att === "In Sede";
-        if (isSede) {
-            document.getElementById('luogo').value = "TECNOSISTEM";
-            document.getElementById('ora-inizio').value = "08:00";
-            document.getElementById('ora-fine').value = "17:00";
-            document.getElementById('pausa').checked = true;
-        }
-        aggiornaPreview();
-    }
-
-    function togglePausa() {
-        const p = document.getElementById('pausa');
-        p.checked = !p.checked;
-        aggiornaPreview();
     }
 
     async function fetchData() {
@@ -262,7 +280,7 @@
             renderRiepilogo();
             updateLuoghiSuggeriti();
             setSyncState('success', 'Sincronizzato');
-        } catch (e) { setSyncState('error', 'Errore Cloud'); }
+        } catch (e) { setSyncState('error', 'Errore!'); }
     }
 
     function renderRiepilogo() {
@@ -273,44 +291,46 @@
         const html = Object.keys(stats).map(key => `
             <div class="summary-item">
                 <span class="sum-label">${key}</span>
-                <span class="sum-val">${stats[key].toFixed(2)}h</span>
+                <span style="font-weight:800; color:var(--primary);">${stats[key].toFixed(2)}h</span>
             </div>
         `).join('');
-        document.getElementById('summary-list').innerHTML = html || "Nessun dato presente.";
+        document.getElementById('summary-list').innerHTML = html || "Nessun dato.";
     }
 
     async function salva() {
-        const att = document.getElementById('attivita').value;
+        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
+        if (!tipo) { alert("Scegli un'attività!"); return; }
+
         const record = {
             id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
-            tipo: att,
-            categoria: ["Ferie","Permesso","Malattia"].includes(att) ? 'assenza' : 'lavoro',
+            tipo: tipo,
+            categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
             luogo: document.getElementById('luogo').value || "-",
             data: document.getElementById('data').value,
             inizio: document.getElementById('ora-inizio').value,
             fine: document.getElementById('ora-fine').value,
             pausa: document.getElementById('pausa').checked,
+            note: document.getElementById('note').value || "",
             ore: document.getElementById('ore-tot').textContent
         };
 
-        document.getElementById('loading-overlay').style.display = 'flex';
+        showLoading("Salvataggio...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
             setTimeout(fetchData, 1200);
-            setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 1500);
-        } catch (e) { setSyncState('error', 'Errore!'); }
+            setTimeout(hideLoading, 1500);
+        } catch (e) { hideLoading(); setSyncState('error', 'Errore!'); }
     }
 
     async function elimina(index) {
-        if (!confirm("Eliminare definitivamente?")) return;
-        document.getElementById('loading-text').textContent = "Eliminazione...";
-        document.getElementById('loading-overlay').style.display = 'flex';
+        if (!confirm("Eliminare?")) return;
+        showLoading("Eliminazione...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[index].id.toString() }) });
             setTimeout(fetchData, 1200);
-            setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 1500);
-        } catch (e) { setSyncState('error', 'Errore!'); }
+            setTimeout(hideLoading, 1500);
+        } catch (e) { hideLoading(); setSyncState('error', 'Errore!'); }
     }
 
     function renderTabella() {
@@ -318,19 +338,22 @@
         body.innerHTML = dati.map((d, i) => {
             const dObj = new Date(d.data);
             const dFmt = dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
-            const badgeCls = d.tipo === "In Sede" ? "bg-sede" : d.tipo.includes("Trasferta") ? "bg-rientro" : "bg-assenza";
+            const badgeCls = d.tipo === "In Sede" ? "bg-sede" : d.categoria === "lavoro" ? "bg-rientro" : "bg-assenza";
             return `
                 <tr>
-                    <td style="width:35%">
+                    <td style="width:38%">
                         <span class="item-data">${dFmt}</span>
                         <span class="item-orario">${d.inizio}-${d.fine}</span>
+                        <span style="font-size:10px; color:var(--primary); font-weight:700;">${d.luogo}</span>
                     </td>
-                    <td style="width:35%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
-                    <td style="width:30%">
-                        <div class="actions-row">
-                            <span style="font-weight:800; font-size:13px; margin-right:5px;">${d.ore}h</span>
-                            <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
-                            <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash delete-icon"></i></button>
+                    <td style="width:28%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
+                    <td style="width:34%">
+                        <div class="result-cell">
+                            <span class="ore-val-tab">${d.ore}h</span>
+                            <div class="actions-row">
+                                <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit" style="color:var(--primary)"></i></button>
+                                <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash" style="color:var(--danger)"></i></button>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -342,11 +365,18 @@
         const d = dati[index];
         editIndex = index;
         document.getElementById('data').value = d.data.split('T')[0];
-        document.getElementById('attivita').value = d.tipo;
+        if (d.categoria === 'lavoro') {
+            document.getElementById('modalita').value = d.tipo;
+            document.getElementById('assenza').value = "";
+        } else {
+            document.getElementById('assenza').value = d.tipo;
+            document.getElementById('modalita').value = "";
+        }
         document.getElementById('luogo').value = d.luogo;
         document.getElementById('ora-inizio').value = d.inizio;
         document.getElementById('ora-fine').value = d.fine;
         document.getElementById('pausa').checked = (d.pausa === true || d.pausa === "SI");
+        document.getElementById('note').value = d.note || "";
         document.getElementById('btn-save').textContent = "AGGIORNA REPORT";
         document.getElementById('btn-cancel-edit').style.display = "block";
         aggiornaPreview();
@@ -355,12 +385,15 @@
 
     function resetForm() {
         editIndex = -1;
-        document.getElementById('btn-save').textContent = "REGISTRA NEL CLOUD";
-        document.getElementById('btn-cancel-edit').style.display = "none";
+        document.getElementById('modalita').value = "";
+        document.getElementById('assenza').value = "";
+        document.getElementById('luogo').value = "";
+        document.getElementById('note').value = "";
         document.getElementById('ora-inizio').value = "";
         document.getElementById('ora-fine').value = "";
-        document.getElementById('luogo').value = "";
         document.getElementById('pausa').checked = false;
+        document.getElementById('btn-save').textContent = "REGISTRA NEL CLOUD";
+        document.getElementById('btn-cancel-edit').style.display = "none";
         document.getElementById('ore-tot').textContent = "0.00";
         document.getElementById('ore-extra').textContent = "0.00";
     }
@@ -371,6 +404,8 @@
         ind.innerHTML = `<i class="fas ${state==='working'?'fa-sync fa-spin':'fa-cloud'}"></i> ${text}`;
     }
 
+    function showLoading(t) { document.getElementById('loading-text').textContent = t; document.getElementById('loading-overlay').style.display = 'flex'; }
+    function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
     function updateLuoghiSuggeriti() {
         const list = document.getElementById('luoghi-suggeriti');
         const unique = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
