@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECNOSISTEM - Analisi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">TECNOSISTEM</div>
+            <div id="sync-indicator"><i class="fas fa-cloud"></i> CARICAMENTO</div>
+            <nav class="nav-bar">
+                <a href="index.html" class="nav-btn"><i class="fas fa-edit"></i> Report</a>
+                <a href="calcoli.html" class="nav-btn active"><i class="fas fa-wallet"></i> Calcoli & Storico</a>
+            </nav>
+        </header>
+
+        <div class="card card-accent">
+            <h2><span><i class="fas fa-chart-line"></i> Guadagni Stimati</span></h2>
+            <div class="form-group">
+                <label>Mese di Analisi</label>
+                <input type="month" id="mese-calcolo" onchange="renderTabella()">
+            </div>
+            <div class="money-grid">
+                <div class="money-box">
+                    <span class="m-label">Lordo Mensile</span>
+                    <div id="val-lordo" class="m-val">€ 0.00</div>
+                </div>
+                <div class="money-box highlight">
+                    <span class="m-label">Netto Stimato</span>
+                    <div id="val-netto" class="m-val">€ 0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span><i class="fas fa-history"></i> Storico Report</span></h2>
+            <table><tbody id="registro-body"></tbody></table>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
