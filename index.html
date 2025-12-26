@@ -24,7 +24,7 @@
         body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px 15px; padding-bottom: 50px; }
         .container { max-width: 500px; margin: 0 auto; }
 
-        header { text-align: center; margin-bottom: 25px; position: relative; }
+        header { text-align: center; margin-bottom: 25px; }
         .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         #sync-indicator { font-size: 11px; color: var(--text-secondary); margin-top: 5px; height: 15px; }
@@ -104,7 +104,7 @@
         </div>
 
         <div class="form-group">
-            <label>Tipo Assenza (opzionale)</label>
+            <label>Tipo Assenza</label>
             <select id="assenza" onchange="logicAssenza()">
                 <option value="">-- Nessuna --</option>
                 <option value="Ferie">Ferie</option>
@@ -160,7 +160,7 @@
     let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
-        popolaOrari();
+        popolaOrariMezzore();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
         fetchData();
     });
@@ -183,15 +183,16 @@
         document.getElementById('btn-save').disabled = isSyncing;
     }
 
-    function popolaOrari() {
+    // NUOVA FUNZIONE: Solo ore intere e mezz'ore
+    function popolaOrariMezzore() {
         const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
         selects.forEach(s => {
+            s.innerHTML = "";
             s.add(new Option("--:--", ""));
             for (let h = 0; h < 24; h++) {
-                for (let m = 0; m < 60; m += 15) {
-                    const t = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                    s.add(new Option(t, t));
-                }
+                const hh = h.toString().padStart(2, '0');
+                s.add(new Option(`${hh}:00`, `${hh}:00`));
+                s.add(new Option(`${hh}:30`, `${hh}:30`));
             }
         });
     }
@@ -249,9 +250,9 @@
             ore: calcolaOreFrazione().toFixed(2)
         };
 
-        if (!record.tipo || !record.inizio || !record.fine) { alert("Inserisci orari e attività!"); return; }
+        if (!record.tipo || !record.inizio || !record.fine) { alert("Completa i dati!"); return; }
 
-        showSync(true, "Invio...");
+        showSync(true, "Salvataggio...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
@@ -260,7 +261,7 @@
     }
 
     async function elimina(index) {
-        if (!confirm("Eliminare dal cloud?")) return;
+        if (!confirm("Eliminare definitivamente?")) return;
         showSync(true, "Eliminazione...");
         try {
             await fetch(WEB_APP_URL, { 
@@ -272,15 +273,20 @@
         } catch (e) { showSync(false, "Errore"); }
     }
 
-    // Funzione per pulire l'ora da Google (evita 1899-12-30...)
-    function formattaOra(valore) {
+    // Funzione potenziata per pulire la stringa di Google
+    function formattaOraPulita(valore) {
         if (!valore) return "--:--";
-        let stringa = valore.toString();
-        if (stringa.includes('T')) {
-            let tempo = stringa.split('T')[1]; // Prendi parte dopo T
-            return tempo.substring(0, 5); // Prendi HH:mm
+        let s = valore.toString();
+        // Se contiene la data del 1899 o simili (formato ISO)
+        if (s.includes('T')) {
+            return s.split('T')[1].substring(0, 5);
         }
-        return stringa.substring(0, 5);
+        // Se è già un orario HH:mm:ss o HH:mm
+        if (s.includes(':')) {
+            let parti = s.split(':');
+            return `${parti[0].padStart(2, '0')}:${parti[1].padStart(2, '0')}`;
+        }
+        return s;
     }
 
     function renderTabella() {
@@ -292,8 +298,8 @@
 
             return `
                 <tr>
-                    <td style="width:40%">
-                        <b>${dataFmt}</b> <small style="color:#888">(${formattaOra(d.inizio)}-${formattaOra(d.fine)})</small>
+                    <td style="width:42%">
+                        <b>${dataFmt}</b> <small style="color:#888">(${formattaOraPulita(d.inizio)}-${formattaOraPulita(d.fine)})</small>
                         <span class="luogo-label"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
                         ${d.note ? `<span class="note-label"><i class="fas fa-sticky-note"></i> ${d.note}</span>` : ''}
                     </td>
@@ -315,8 +321,8 @@
         document.getElementById('modalita').value = d.categoria === 'lavoro' ? d.tipo : "";
         document.getElementById('assenza').value = d.categoria === 'assenza' ? d.tipo : "";
         document.getElementById('luogo').value = d.luogo;
-        document.getElementById('ora-inizio').value = formattaOra(d.inizio);
-        document.getElementById('ora-fine').value = formattaOra(d.fine);
+        document.getElementById('ora-inizio').value = formattaOraPulita(d.inizio);
+        document.getElementById('ora-fine').value = formattaOraPulita(d.fine);
         document.getElementById('pausa').checked = (d.pausa === "SI" || d.pausa === true);
         document.getElementById('note').value = d.note || "";
         
