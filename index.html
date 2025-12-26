@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Registro Lavoro PRO</title>
+    <title>Registro Lavoro PRO v5</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -17,7 +17,6 @@
             --border: #D1D1D6;
             --success: #34C759;
             --danger: #FF3B30;
-            --warning: #FF9500;
             --radius: 14px;
         }
 
@@ -32,7 +31,7 @@
         h2 { font-size: 17px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; }
+        label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
 
         input, select { 
             width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; 
@@ -59,17 +58,16 @@
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; }
         .btn-cancel { background: #E5E5EA; color: var(--text); border: none; border-radius: 14px; padding: 10px; width: 100%; margin-top: 10px; font-weight: 600; display: none; }
 
-        /* Tabella con Azioni */
-        .table-container { margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; }
+        /* Registro */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 15px 5px; font-size: 14px; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-        .badge-sede { background: #E1F5FE; color: #0288D1; }
-        .badge-assenza { background: #FFF3E0; color: #EF6C00; }
+        td { padding: 15px 5px; font-size: 14px; vertical-align: middle; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .badge-lavoro { background: #E1F5FE; color: #0288D1; }
+        .badge-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .actions { display: flex; gap: 10px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 16px; padding: 5px; cursor: pointer; }
+        .actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-icon { border: none; background: none; font-size: 18px; padding: 5px; cursor: pointer; }
         .edit-icon { color: var(--primary); }
         .delete-icon { color: var(--danger); }
     </style>
@@ -80,14 +78,23 @@
     <header><div class="logo">WORK LOG PRO</div></header>
 
     <div class="card">
-        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Nuovo Inserimento</h2>
+        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Inserimento</h2>
         
         <div class="form-group">
-            <label>Tipo Attività / Assenza</label>
-            <select id="tipo" onchange="handleTipoChange()">
-                <option value="" disabled selected>Seleziona...</option>
-                <option value="Sede">Sede (Tecnosistem)</option>
-                <option value="Trasferta">Trasferta</option>
+            <label>Modalità Lavoro</label>
+            <select id="modalita" onchange="logicModalita()">
+                <option value="">Nessuna (Seleziona Assenza)</option>
+                <option value="In Sede">In Sede</option>
+                <option value="Trasferta Rientro">Trasferta con Rientro</option>
+                <option value="Trasferta Pernotto">Trasferta con Pernottamento</option>
+                <option value="Trasferta Estero">Trasferta Estero</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Oppure Tipo Assenza</label>
+            <select id="assenza" onchange="logicAssenza()">
+                <option value="">Nessuna (Lavoro Attivo)</option>
                 <option value="Ferie">Ferie</option>
                 <option value="Permesso">Permesso</option>
                 <option value="Malattia">Malattia</option>
@@ -122,23 +129,20 @@
 
         <div class="preview-box" id="preview-text">Ore Nette: 0.00h</div>
 
-        <input type="hidden" id="edit-id" value="">
-        <button class="btn-main" id="btn-save" onclick="salva()">SALVA REPORT</button>
+        <button class="btn-main" id="btn-save" onclick="salva()">SALVA ATTIVITÀ</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla Modifica</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-list"></i> Registro Attività</h2>
-        <div class="table-container">
-            <table>
-                <tbody id="registro-body"></tbody>
-            </table>
+        <h2><i class="fas fa-history"></i> Registro</h2>
+        <div id="registro-container">
+            <table><tbody id="registro-body"></tbody></table>
         </div>
     </div>
 </div>
 
 <script>
-    let dati = JSON.parse(localStorage.getItem('registro_v4')) || [];
+    let dati = JSON.parse(localStorage.getItem('registro_v5')) || [];
     let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -160,22 +164,30 @@
         });
     }
 
-    function handleTipoChange() {
-        const tipo = document.getElementById('tipo').value;
-        const orariSection = document.getElementById('orari-container');
-        const pausa = document.getElementById('pausa');
+    function logicModalita() {
+        const mod = document.getElementById('modalita').value;
+        const ass = document.getElementById('assenza');
+        if (mod !== "") {
+            ass.value = ""; // Se lavori, non sei assente
+            if (mod === "In Sede") {
+                document.getElementById('ora-inizio').value = "08:00";
+                document.getElementById('ora-fine').value = "17:00";
+                document.getElementById('pausa').checked = true;
+            }
+        }
+        aggiornaPreview();
+    }
 
-        if (tipo === "Sede") {
-            orariSection.style.opacity = "1";
-            document.getElementById('ora-inizio').value = "08:00";
-            document.getElementById('ora-fine').value = "17:00";
-            pausa.checked = true;
-        } else if (["Ferie", "Malattia"].includes(tipo)) {
-            document.getElementById('ora-inizio').value = "08:00";
-            document.getElementById('ora-fine').value = "16:00";
-            pausa.checked = false;
-        } else {
-            pausa.checked = false;
+    function logicAssenza() {
+        const ass = document.getElementById('assenza').value;
+        const mod = document.getElementById('modalita');
+        if (ass !== "") {
+            mod.value = ""; // Se sei assente, non hai modalità lavoro
+            document.getElementById('pausa').checked = false;
+            if (ass === "Ferie" || ass === "Malattia") {
+                document.getElementById('ora-inizio').value = "08:00";
+                document.getElementById('ora-fine').value = "16:00";
+            }
         }
         aggiornaPreview();
     }
@@ -184,8 +196,10 @@
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
         const p = document.getElementById('pausa').checked;
-        if (!s || !e) return;
-
+        if (!s || !e) {
+            document.getElementById('preview-text').textContent = "Seleziona orari...";
+            return;
+        }
         const ore = calcolaOre(s, e, p);
         document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore.toFixed(2)}h</span>`;
     }
@@ -199,36 +213,37 @@
     }
 
     function salva() {
-        const tipo = document.getElementById('tipo').value;
+        const mod = document.getElementById('modalita').value;
+        const ass = document.getElementById('assenza').value;
         const data = document.getElementById('data').value;
         const inizio = document.getElementById('ora-inizio').value;
         const fine = document.getElementById('ora-fine').value;
         const pChecked = document.getElementById('pausa').checked;
 
-        if (!tipo || !inizio || !fine) { alert("Dati incompleti!"); return; }
+        if ((!mod && !ass) || !inizio || !fine) { alert("Mancano dei dati!"); return; }
 
-        const record = { tipo, data, inizio, fine, pausa: pChecked, ore: calcolaOre(inizio, fine, pChecked) };
+        const record = { 
+            tipo: mod || ass, 
+            categoria: mod ? 'lavoro' : 'assenza',
+            data, inizio, fine, pausa: pChecked, 
+            ore: calcolaOre(inizio, fine, pChecked) 
+        };
 
-        if (editIndex > -1) {
-            dati[editIndex] = record;
-            editIndex = -1;
-        } else {
-            dati.unshift(record);
-        }
+        if (editIndex > -1) dati[editIndex] = record;
+        else dati.unshift(record);
 
-        localStorage.setItem('registro_v4', JSON.stringify(dati));
+        localStorage.setItem('registro_v5', JSON.stringify(dati));
         resetForm();
         renderTabella();
-        alert("Salvato correttamente!");
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => `
             <tr>
-                <td><b>${d.data.split('-').reverse().slice(0,2).join('/')}</b></td>
-                <td><span class="badge ${d.tipo==='Sede'?'badge-sede':'badge-assenza'}">${d.tipo}</span></td>
-                <td>${d.ore.toFixed(2)}h</td>
+                <td style="width:20%"><b>${d.data.split('-').reverse().slice(0,2).join('/')}</b></td>
+                <td><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
+                <td style="text-align:right"><b>${d.ore.toFixed(2)}h</b></td>
                 <td class="actions">
                     <button class="btn-icon edit-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon delete-icon" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
@@ -240,34 +255,39 @@
     function avviaModifica(index) {
         const d = dati[index];
         editIndex = index;
-        document.getElementById('form-title').innerHTML = `<i class="fas fa-edit"></i> Modifica Report`;
-        document.getElementById('tipo').value = d.tipo;
+        if (d.categoria === 'lavoro') {
+            document.getElementById('modalita').value = d.tipo;
+            document.getElementById('assenza').value = "";
+        } else {
+            document.getElementById('assenza').value = d.tipo;
+            document.getElementById('modalita').value = "";
+        }
         document.getElementById('data').value = d.data;
         document.getElementById('ora-inizio').value = d.inizio;
         document.getElementById('ora-fine').value = d.fine;
         document.getElementById('pausa').checked = d.pausa;
-        document.getElementById('btn-save').textContent = "AGGIORNA REPORT";
+        document.getElementById('btn-save').textContent = "AGGIORNA";
         document.getElementById('btn-cancel-edit').style.display = "block";
         aggiornaPreview();
         window.scrollTo(0,0);
     }
 
     function elimina(index) {
-        if (confirm("Eliminare definitivamente questo report?")) {
+        if (confirm("Eliminare?")) {
             dati.splice(index, 1);
-            localStorage.setItem('registro_v4', JSON.stringify(dati));
+            localStorage.setItem('registro_v5', JSON.stringify(dati));
             renderTabella();
         }
     }
 
     function resetForm() {
         editIndex = -1;
-        document.getElementById('form-title').innerHTML = `<i class="fas fa-plus-circle"></i> Nuovo Inserimento`;
-        document.getElementById('tipo').value = "";
+        document.getElementById('modalita').value = "";
+        document.getElementById('assenza').value = "";
         document.getElementById('ora-inizio').value = "";
         document.getElementById('ora-fine').value = "";
         document.getElementById('pausa').checked = false;
-        document.getElementById('btn-save').textContent = "SALVA REPORT";
+        document.getElementById('btn-save').textContent = "SALVA ATTIVITÀ";
         document.getElementById('btn-cancel-edit').style.display = "none";
         document.getElementById('preview-text').textContent = "Ore Nette: 0.00h";
     }
