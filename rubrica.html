@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubrica Tecnosistem</title>
+    <title>Rubrica Cloud - TECNOSISTEM</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -11,26 +11,24 @@
     <div class="container">
         <header class="header-back">
             <a href="index.html"><i class="fas fa-chevron-left"></i> Home</a>
-            <div class="logo-small">RUBRICA CLIENTI</div>
+            <div id="sync-indicator"><i class="fas fa-cloud"></i></div>
         </header>
 
         <div class="card card-accent">
-            <h2 onclick="toggleSection('form-add')">
-                <span><i class="fas fa-plus-circle"></i> Aggiungi Destinazione</span>
-                <i class="fas fa-chevron-down"></i>
-            </h2>
-            <div id="form-add">
-                <div class="form-group"><label>Nome Azienda / Cliente</label><input type="text" id="add-nome" placeholder="es. Officine Meccaniche"></div>
-                <div class="row-2">
-                    <div class="form-group"><label>Via e Civico</label><input type="text" id="add-via" placeholder="Via Roma 10"></div>
-                    <div class="form-group"><label>Città</label><input type="text" id="add-citta" placeholder="Milano"></div>
-                </div>
-                <div class="row-2">
-                    <div class="form-group"><label>Referente</label><input type="text" id="add-ref" placeholder="Sig. Rossi"></div>
-                    <div class="form-group"><label>Telefono</label><input type="tel" id="add-tel" placeholder="02 123456"></div>
-                </div>
-                <button class="btn-main" onclick="salvaIndirizzo()">SALVA IN RUBRICA</button>
+            <h2><span><i class="fas fa-address-book"></i> Nuovo Contatto</span></h2>
+            <div class="form-group"><label>Azienda</label><input type="text" id="add-nome" placeholder="Nome Cliente"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Via</label><input type="text" id="add-via" placeholder="Via Roma 1"></div>
+                <div class="form-group"><label>Città</label><input type="text" id="add-citta" placeholder="Milano"></div>
             </div>
+            <div class="row-2">
+                <div class="form-group"><label>Referente</label><input type="text" id="add-ref" placeholder="Nome"></div>
+                <div class="form-group"><label>Telefono</label><input type="tel" id="add-tel" placeholder="333..."></div>
+            </div>
+            <button class="btn-main" id="btn-save-rubrica" onclick="salvaIndirizzoCloud()">
+                <span id="btn-text">SALVA NEL CLOUD</span>
+                <i id="btn-spinner" class="fas fa-sync fa-spin" style="display:none"></i>
+            </button>
         </div>
 
         <div id="lista-rubrica">
