@@ -3,179 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Registro Orario Lavoro Cloud</title>
+    <title>Registro Lavoro PRO</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --primary: #007AFF; /* Blu Apple */
+            --bg: #F2F2F7;
+            --card: #FFFFFF;
+            --text: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --border: #D1D1D6;
+            --success: #34C759;
+            --danger: #FF3B30;
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px 15px;
+            line-height: 1.5;
+        }
+
+        .container { max-width: 500px; margin: 0 auto; }
+
+        /* Header Professionale */
+        header { text-align: center; margin-bottom: 25px; }
+        .logo { 
+            font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* Card Apple Style */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        h2 { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 15px; }
+
+        /* Input & Form */
+        .form-group { margin-bottom: 15px; }
+        label { 
+            display: block; font-size: 13px; font-weight: 600; 
+            color: var(--text-secondary); margin-bottom: 5px; margin-left: 4px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 16px; /* Evita zoom su iPhone */
+            background: #FFF;
+            appearance: none; /* Rimuove stile default iOS */
+        }
+
+        /* Pulsanti Uniformi */
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.1s;
+            width: 100%;
+        }
+
+        .btn:active { transform: scale(0.98); opacity: 0.8; }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-secondary { background-color: #E5E5EA; color: var(--text); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+
+        /* Dropdown Orari Personalizzati per Touch */
+        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .custom-select {
+            background: #F9F9F9;
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* Tabella Responsive per iPhone */
+        .table-container { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; color: var(--text-secondary); padding: 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 10px; border-bottom: 1px solid #F2F2F7; }
+
+        /* Widget Statistiche */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-box { 
+            background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;
+        }
+        .stat-val { display: block; font-size: 18px; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; }
+
+        .notification {
+            position: fixed; top: 20px; left: 20px; right: 20px;
+            padding: 15px; border-radius: 12px; color: white;
+            text-align: center; font-weight: 600; display: none; z-index: 9999;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <div class="logo-area">
-                <div class="logo-icon"><i class="fas fa-clock"></i></div>
-                <div class="logo-text">REGISTRO<span>LAVORO</span></div>
-            </div>
-            <p class="subtitle">Gestione Ore, Trasferte e Note Cloud</p>
-        </header>
+<div class="container">
+    <header>
+        <div class="logo">WORK LOG PRO</div>
+    </header>
 
-        <div class="card">
-            <h2 class="section-title"><i class="fas fa-plus-circle"></i> Inserimento Ore</h2>
-            <div class="input-grid">
-                <div class="input-group">
-                    <label for="data"><i class="fas fa-calendar-day"></i> Data</label>
-                    <input type="date" id="data">
-                </div>
-                <div class="input-group">
-                    <label for="tipo"><i class="fas fa-briefcase"></i> Modalità</label>
-                    <select id="tipo">
-                        <option value="Sede">Sede (Tecnosistem)</option>
-                        <option value="Trasferta Rientro">Trasferta (Rientro)</option>
-                        <option value="Trasferta Pernotto">Trasferta (Pernotto)</option>
-                        <option value="Trasferta Estero">Trasferta (Estero)</option>
-                        <option value="Ferie">Ferie</option>
-                        <option value="Permesso">Permesso</option>
-                        <option value="Malattia">Malattia</option>
+    <div class="card">
+        <h2><i class="fas fa-plus-circle"></i> Nuovo Inserimento</h2>
+        <div class="form-group">
+            <label>DATA</label>
+            <input type="date" id="data">
+        </div>
+        
+        <div class="time-row">
+            <div class="form-group">
+                <label>INIZIO</label>
+                <select id="ora-inizio">
                     </select>
-                </div>
             </div>
-
-            <div class="input-grid">
-                <div class="input-group">
-                    <label><i class="fas fa-sign-in-alt"></i> Ora Inizio</label>
-                    <div class="custom-dropdown" id="dropdown-inizio">
-                        <div class="selected-option" id="inizio-text">08:00</div>
-                        <div class="options-list" id="inizio-options"></div>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label><i class="fas fa-sign-out-alt"></i> Ora Fine</label>
-                    <div class="custom-dropdown" id="dropdown-fine">
-                        <div class="selected-option" id="fine-text">17:00</div>
-                        <div class="options-list" id="fine-options"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-grid">
-                <div class="input-group checkbox-group">
-                    <label><input type="checkbox" id="pausa" checked> Pausa Pranzo (1h)</label>
-                </div>
-                <div class="input-group">
-                    <label for="luogo"><i class="fas fa-map-marker-alt"></i> Luogo</label>
-                    <input type="text" id="luogo" placeholder="Es. Milano, Roma..." list="luoghi-comuni">
-                    <datalist id="luoghi-comuni"></datalist>
-                </div>
-            </div>
-
-            <div class="input-group full-width">
-                <label for="note"><i class="fas fa-sticky-note"></i> Note / Attività Svolta</label>
-                <textarea id="note" placeholder="Descrivi il lavoro svolto..."></textarea>
-            </div>
-
-            <div class="calc-preview" id="preview-ore">
-                Ore calcolate: <span>8.0</span> | Straordinario: <span>0.0</span>
-            </div>
-
-            <div class="button-group">
-                <button id="save-btn" class="btn-main"><i class="fas fa-save"></i> Salva Attività</button>
-                <button id="cloud-import-btn" class="btn-outline"><i class="fas fa-sync"></i> Sincronizza Cloud</button>
-            </div>
-            <p id="cloud-status-msg" class="status-msg"></p>
-        </div>
-
-        <div class="card">
-            <div class="card-header-toggle" id="toggle-registro">
-                <h2 class="section-title"><i class="fas fa-list"></i> Registro Attività</h2>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-content" id="registro-content">
-                <div class="filter-bar">
-                    <input type="text" id="search-input" placeholder="Cerca luogo o note...">
-                    <select id="filter-month"><option value="all">Tutti i mesi</option></select>
-                    <select id="filter-year"></select>
-                </div>
-                <div class="table-responsive">
-                    <table id="table-registro">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Orario</th>
-                                <th>Tot</th>
-                                <th>Str</th>
-                                <th>Tipo</th>
-                                <th>Luogo</th>
-                                <th>Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
-                </div>
+            <div class="form-group">
+                <label>FINE</label>
+                <select id="ora-fine">
+                    </select>
             </div>
         </div>
 
-        <div class="card">
-            <h2 class="section-title"><i class="fas fa-chart-pie"></i> Riepilogo Economico</h2>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <label>Totale Mese Lordo</label>
-                    <div id="stat-lordo">€ 0.00</div>
-                </div>
-                <div class="stat-item highlight">
-                    <label>Netto Stimato</label>
-                    <div id="stat-netto">€ 0.00</div>
-                </div>
-                <div class="stat-item">
-                    <label>Ore Straordinario</label>
-                    <div id="stat-str">0.0 h</div>
-                </div>
-            </div>
-            <div class="chart-container" style="height: 300px; margin-top: 20px;">
-                <canvas id="monthlyChart"></canvas>
-            </div>
-            <div class="button-group center">
-                <button id="export-pdf-btn" class="btn-pdf"><i class="fas fa-file-pdf"></i> Esporta Report PDF</button>
-            </div>
+        <div class="form-group">
+            <label>MODALITÀ</label>
+            <select id="tipo">
+                <option value="Sede">Sede</option>
+                <option value="Trasferta">Trasferta</option>
+                <option value="Ferie">Ferie</option>
+            </select>
         </div>
 
-        <div class="card">
-            <div class="card-header-toggle" id="toggle-settings">
-                <h2 class="section-title"><i class="fas fa-cogs"></i> Impostazioni e Backup</h2>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-content" id="settings-content" style="display:none;">
-                <div class="input-grid">
-                    <div class="input-group">
-                        <label>Base Lorda (€)</label>
-                        <input type="number" id="setting-base" value="2300">
-                    </div>
-                    <div class="input-group">
-                        <label>Tariffa Str. 25% (€/h)</label>
-                        <input type="number" id="setting-over25" value="14.5">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>URL Google Apps Script</label>
-                    <input type="text" id="setting-cloud-url" placeholder="https://script.google.com/...">
-                </div>
-                <div class="button-group">
-                    <button id="backup-json-btn" class="btn-small">Backup JSON</button>
-                    <button id="restore-json-btn" class="btn-small">Ripristina JSON</button>
-                    <input type="file" id="file-input" style="display: none;">
-                </div>
-            </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="salvaAttivita()">
+                <i class="fas fa-save"></i> Salva Attività
+            </button>
         </div>
     </div>
 
-    <div id="notification" class="notification"></div>
+    <div class="card">
+        <h2><i class="fas fa-chart-bar"></i> Riepilogo Mese</h2>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-label">Lordo</span>
+                <span class="stat-val" id="stat-lordo">€ 0.00</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Ore Totali</span>
+                <span class="stat-val" id="stat-ore">0.0</span>
+            </div>
+        </div>
+        <canvas id="myChart" style="margin-top:20px; max-height:150px;"></canvas>
+    </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/logic.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/app.js"></script>
+    <div class="card">
+        <h2><i class="fas fa-list"></i> Ultime Attività</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Ore</th>
+                        <th>Tipo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="registro-body">
+                    </tbody>
+            </table>
+        </div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="exportPDF()">
+                <i class="fas fa-file-pdf"></i> Esporta PDF
+            </button>
+            <button class="btn btn-outline" onclick="sincronizzaCloud()">
+                <i class="fas fa-sync"></i> Sincronizza Cloud
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<script>
+    // --- LOGICA APP ---
+    let dati = JSON.parse(localStorage.getItem('registro_lavoro')) || [];
+    let chart = null;
+
+    // Inizializzazione
+    document.addEventListener('DOMContentLoaded', () => {
+        popolaOrari();
+        document.getElementById('data').value = new Date().toISOString().split('T')[0];
+        aggiornaTutto();
+    });
+
+    function popolaOrari() {
+        const start = document.getElementById('ora-inizio');
+        const end = document.getElementById('ora-fine');
+        for (let h = 0; h < 24; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                const t = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                start.add(new Option(t, t));
+                end.add(new Option(t, t));
+            }
+        }
+        start.value = "08:00";
+        end.value = "17:00";
+    }
+
+    function salvaAttivita() {
+        const nuova = {
+            id: Date.now(),
+            data: document.getElementById('data').value,
+            inizio: document.getElementById('ora-inizio').value,
+            fine: document.getElementById('ora-fine').value,
+            tipo: document.getElementById('tipo').value,
+            ore: calcolaDifferenza(document.getElementById('ora-inizio').value, document.getElementById('ora-fine').value)
+        };
+
+        dati.unshift(nuova);
+        localStorage.setItem('registro_lavoro', JSON.stringify(dati));
+        notify("Salvato!");
+        aggiornaTutto();
+    }
+
+    function calcolaDifferenza(start, end) {
+        const [h1, m1] = start.split(':').map(Number);
+        const [h2, m2] = end.split(':').map(Number);
+        let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+        return Math.max(0, (diff / 60) - 1); // Sottrae 1h pausa default
+    }
+
+    function aggiornaTutto() {
+        renderTabella();
+        renderStats();
+        initChart();
+    }
+
+    function renderTabella() {
+        const body = document.getElementById('registro-body');
+        body.innerHTML = dati.slice(0, 5).map((d, i) => `
+            <tr>
+                <td>${d.data.split('-').reverse().slice(0,2).join('/')}</td>
+                <td><b>${d.ore.toFixed(1)}h</b></td>
+                <td>${d.tipo}</td>
+                <td onclick="elimina(${i})"><i class="fas fa-trash" style="color:#FF3B30"></i></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderStats() {
+        const totaleOre = dati.reduce((acc, curr) => acc + curr.ore, 0);
+        document.getElementById('stat-ore').textContent = totaleOre.toFixed(1);
+        document.getElementById('stat-lordo').textContent = '€ ' + (totaleOre * 14.5).toFixed(2);
+    }
+
+    function notify(msg) {
+        const n = document.getElementById('notification');
+        n.textContent = msg;
+        n.style.display = 'block';
+        n.style.backgroundColor = 'var(--success)';
+        setTimeout(() => n.style.display = 'none', 2000);
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dati.slice(0,7).map(d => d.data).reverse(),
+                datasets: [{
+                    label: 'Ore',
+                    data: dati.slice(0,7).map(d => d.ore).reverse(),
+                    borderColor: '#007AFF',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 122, 255, 0.1)'
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false } } }
+        });
+    }
+
+    function elimina(index) {
+        if(confirm("Eliminare?")) {
+            dati.splice(index, 1);
+            localStorage.setItem('registro_lavoro', JSON.stringify(dati));
+            aggiornaTutto();
+        }
+    }
+</script>
+
 </body>
 </html>
