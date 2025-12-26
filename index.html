@@ -22,17 +22,15 @@
         header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 24px; font-weight: 800; color: var(--primary); }
         
-        /* Stili Feedback Sincronizzazione */
-        #sync-indicator { font-size: 11px; margin-top: 5px; font-weight: 600; transition: color 0.3s; }
+        #sync-indicator { font-size: 11px; margin-top: 5px; font-weight: 600; }
         .sync-none { color: #8E8E93; }
         .sync-working { color: var(--primary); }
         .sync-success { color: var(--success); }
         .sync-error { color: var(--danger); }
 
-        /* Overlay di caricamento salvataggio */
         #loading-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.7); z-index: 9999;
+            background: rgba(255,255,255,0.8); z-index: 9999;
             flex-direction: column; align-items: center; justify-content: center;
         }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -45,12 +43,24 @@
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 10px; font-size: 16px; background: #FFF; }
         
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: #F9F9F9; padding: 10px 14px; border-radius: 10px; border: 1px solid #D1D1D6; }
+        
+        /* FIX SWITCH PAUSA */
+        .pausa-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: #F9F9F9; padding: 12px 14px; border-radius: 10px; 
+            border: 1px solid #D1D1D6; cursor: pointer;
+        }
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; pointer-events: none; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
         
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 10px; }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 12px; padding: 10px; width: 100%; margin-top: 8px; display: none; }
         
-        /* Tabella */
+        /* COLORI PULSANTI REGISTRO */
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid #F2F2F7; }
         td { padding: 12px 4px; vertical-align: middle; }
@@ -60,25 +70,28 @@
         .badge { padding: 3px 6px; border-radius: 5px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
-        .actions { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon { border: none; background: none; font-size: 18px; color: #C7C7CC; }
+        
+        .actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .btn-icon { border: none; background: none; font-size: 20px; cursor: pointer; padding: 5px; }
+        .edit-icon { color: var(--primary); }
+        .delete-icon { color: var(--danger); }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <p style="margin-top:10px; font-weight:600; color:var(--primary);">Salvataggio in corso...</p>
+    <p style="margin-top:10px; font-weight:600; color:var(--primary);">Salvataggio...</p>
 </div>
 
 <div class="container">
     <header>
         <div class="logo">WORK LOG CLOUD</div>
-        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Inizializzazione...</div>
+        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Caricamento...</div>
     </header>
 
     <div class="card">
-        <h2 id="form-title"><i class="fas fa-calendar-day"></i> Inserimento</h2>
+        <h2><i class="fas fa-calendar-day"></i> Inserimento</h2>
         
         <div class="form-group">
             <label>Data</label>
@@ -123,12 +136,12 @@
             <datalist id="luoghi-suggeriti"></datalist>
         </div>
 
-        <div class="pausa-row" onclick="document.getElementById('pausa').click()">
-            <label style="margin:0; font-size: 14px; font-weight:600;">Pausa Mensa (1h)</label>
-            <div class="switch-container">
+        <div class="pausa-row" onclick="togglePausa()">
+            <label style="margin:0; font-size: 14px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
+            <label class="switch">
                 <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
                 <span class="slider"></span>
-            </div>
+            </label>
         </div>
 
         <div class="form-group" style="margin-top:12px;">
@@ -139,7 +152,7 @@
         <div id="preview-text" style="text-align:center; font-weight:700; color:var(--primary); margin: 10px 0;">Ore Nette: 0.00h</div>
 
         <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
-        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla Modifica</button>
+        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla</button>
     </div>
 
     <div class="card">
@@ -181,41 +194,30 @@
             renderTabella();
             updateLuoghiSuggeriti();
             setSyncState('success', 'Sincronizzato');
-        } catch (e) { 
-            setSyncState('error', 'Errore Sincronizzazione'); 
-        }
+        } catch (e) { setSyncState('error', 'Errore Cloud'); }
     }
 
     function setSyncState(state, text) {
         const ind = document.getElementById('sync-indicator');
         ind.className = `sync-${state}`;
-        const icon = state === 'working' ? 'fa-sync fa-spin' : (state === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle');
+        const icon = state === 'working' ? 'fa-sync fa-spin' : (state === 'error' ? 'fa-exclamation-triangle' : 'fa-cloud');
         ind.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
-        
-        if(state === 'success' || state === 'error') {
-            setTimeout(() => {
-                ind.className = 'sync-none';
-                ind.innerHTML = `<i class="fas fa-cloud"></i> Pronto`;
-            }, 3000);
-        }
     }
 
-    function updateLuoghiSuggeriti() {
-        const list = document.getElementById('luoghi-suggeriti');
-        const uniqueLuoghi = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
-        list.innerHTML = uniqueLuoghi.map(l => `<option value="${l}">`).join('');
+    function togglePausa() {
+        const p = document.getElementById('pausa');
+        p.checked = !p.checked;
+        aggiornaPreview();
     }
 
     function logicModalita() {
         const mod = document.getElementById('modalita').value;
-        if (mod) {
+        if (mod === "In Sede") {
             document.getElementById('assenza').value = "";
-            if (mod === "In Sede") {
-                document.getElementById('luogo').value = "TECNOSISTEM";
-                document.getElementById('ora-inizio').value = "08:00";
-                document.getElementById('ora-fine').value = "17:00";
-                document.getElementById('pausa').checked = true;
-            }
+            document.getElementById('luogo').value = "TECNOSISTEM";
+            document.getElementById('ora-inizio').value = "08:00";
+            document.getElementById('ora-fine').value = "17:00";
+            document.getElementById('pausa').checked = true;
         }
         aggiornaPreview();
     }
@@ -225,6 +227,8 @@
             document.getElementById('modalita').value = "";
             document.getElementById('luogo').value = "-";
             document.getElementById('pausa').checked = false;
+            document.getElementById('ora-inizio').value = "08:00";
+            document.getElementById('ora-fine').value = "17:00";
         }
         aggiornaPreview();
     }
@@ -256,11 +260,9 @@
             ore: aggiornaPreview()
         };
         
-        if (!record.tipo || !record.inizio || !record.fine) { alert("Dati incompleti!"); return; }
+        if (!record.tipo) { alert("Scegli attività!"); return; }
 
         document.getElementById('loading-overlay').style.display = 'flex';
-        setSyncState('working', 'Salvataggio...');
-
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
@@ -270,7 +272,7 @@
             }, 1000);
         } catch (e) { 
             document.getElementById('loading-overlay').style.display = 'none';
-            setSyncState('error', 'Errore Invio'); 
+            setSyncState('error', 'Errore Invio');
         }
     }
 
@@ -286,8 +288,7 @@
     function cleanTime(t) {
         if (!t) return "--:--";
         let str = t.toString();
-        if (str.includes("T")) return str.split("T")[1].substring(0, 5);
-        return str.substring(0, 5);
+        return str.includes("T") ? str.split("T")[1].substring(0, 5) : str.substring(0, 5);
     }
 
     function renderTabella() {
@@ -302,7 +303,7 @@
                         <span class="item-luogo"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
                         ${d.note ? `<div style="font-size:10px; color:#666; font-style:italic;">${d.note}</div>` : ''}
                     </td>
-                    <td style="text-align:center"><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
+                    <td><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
                     <td style="text-align:right"><b>${d.ore}h</b></td>
                     <td class="actions">
                         <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit edit-icon"></i></button>
@@ -311,6 +312,12 @@
                 </tr>
             `;
         }).join('');
+    }
+
+    function updateLuoghiSuggeriti() {
+        const list = document.getElementById('luoghi-suggeriti');
+        const uniqueLuoghi = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
+        list.innerHTML = uniqueLuoghi.map(l => `<option value="${l}">`).join('');
     }
 
     function avviaModifica(index) {
