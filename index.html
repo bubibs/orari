@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TECNOSISTEM PRO LOG</title>
+    <title>TECNOSISTEM - Pro Log</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
@@ -12,59 +12,70 @@
             --accent: linear-gradient(135deg, #007AFF 0%, #0051a8 100%);
             --subtext: #8E8E93; --border: #D1D1D6; --input-bg: #FFFFFF;
         }
+
         @media (prefers-color-scheme: dark) {
-            :root { --bg: #000000; --card: #1C1C1E; --text: #FFFFFF; --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E; }
+            :root {
+                --bg: #000000; --card: #1C1C1E; --text: #FFFFFF;
+                --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E;
+            }
         }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 50px; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
         
         header { text-align: center; margin-bottom: 20px; }
-        .logo { font-size: 28px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
+        .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
+        #daily-quote { font-size: 12px; font-style: italic; color: var(--subtext); margin-top: 5px; }
         
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; transition: all 0.3s; }
-        .sync-working { color: var(--primary); } 
-        .sync-success { color: var(--success); } 
-        .sync-error { color: var(--danger); }
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; }
+        .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
-        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2 { font-size: 15px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; text-transform: uppercase; }
+        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
         
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 10px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
+        label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
         
         input, select, textarea { 
             width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; 
-            font-size: 16px; color: var(--text); background: var(--input-bg); -webkit-appearance: none;
+            font-size: 16px; height: 50px; color: var(--text); background: var(--input-bg);
+            -webkit-appearance: none; appearance: none;
         }
-        input[type="number"] { font-weight: 800; color: var(--success); }
+
+        input[type="date"], #filtro-mese { width: 100%; text-transform: uppercase; }
+        textarea { height: 70px; resize: none; text-transform: none; }
+
+        .pause-container {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--bg); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px;
+        }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
-        
-        .btn-main { 
-            background: var(--accent); color: white; border: none; border-radius: 14px; 
-            padding: 16px; font-size: 16px; font-weight: 800; width: 100%; margin-top: 10px;
-            transition: all 0.2s ease; cursor: pointer;
-        }
-        .btn-main:active { transform: scale(0.97); }
-        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* Tabelle Storico */
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
+        
+        /* TABELLA STORICO STILE AVANZATO */
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 4px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; color: white; margin-bottom: 3px; text-transform: uppercase; }
-        .bg-sede { background: var(--success); } 
-        .bg-trasf { background: var(--warning); } 
+        td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: white; margin-bottom: 3px; }
+        .bg-sede { background: var(--success); }
+        .bg-trasf { background: var(--warning); }
         .bg-assenza { background: var(--danger); }
         .bg-estero { background: #5856D6; }
         
         .extra-label { font-size: 10px; color: var(--warning); font-weight: 700; display: block; margin-top: 2px; }
         .luogo-label { font-size: 10px; color: var(--subtext); display: block; font-weight: 500; }
 
-        .eco-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); }
-        .eco-val { font-weight: 800; font-size: 16px; }
-        .chevron { transition: transform 0.3s; font-size: 12px; color: var(--subtext); }
+        .actions-cell { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-icon { border: none; background: #f0f0f5; font-size: 14px; padding: 8px; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -72,74 +83,58 @@
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
+        <div id="daily-quote">"L'unico modo per fare un ottimo lavoro è amare quello che fai."</div>
         <div id="sync-indicator"></div>
     </header>
 
     <div class="card">
-        <h2><span><i class="fas fa-edit"></i> Nuovo Report</span></h2>
-        
-        <div class="row-2">
-            <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
-            <div class="form-group"><label>Paga Oraria (€)</label><input type="number" id="paga-attuale" value="12.50" step="0.10"></div>
+        <h2><span><i class="fas fa-plus"></i> Inserimento</span></h2>
+        <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
+        <div class="form-group">
+            <label>Tipo Lavoro</label>
+            <select id="modalita" onchange="logicModalita()">
+                <option value="">-- SELEZIONA --</option>
+                <option value="In Sede">IN SEDE</option>
+                <option value="Trasferta Rientro">TRASFERTA RIENTRO</option>
+                <option value="Trasferta Pernotto">TRASFERTA PERNOTTO</option>
+                <option value="Trasferta Estero">TRASFERTA ESTERO</option>
+            </select>
         </div>
-
-        <div class="row-2">
-            <div class="form-group">
-                <label>Lavoro</label>
-                <select id="modalita" onchange="logicModalita()">
-                    <option value="">--</option>
-                    <option value="In Sede">IN SEDE</option>
-                    <option value="Trasferta Rientro">TRASFERTA R.</option>
-                    <option value="Trasferta Pernotto">TRASFERTA P.</option>
-                    <option value="Trasferta Estero">ESTERO</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Assenza</label>
-                <select id="assenza" onchange="logicAssenza()">
-                    <option value="">--</option>
-                    <option value="Ferie">FERIE</option>
-                    <option value="Permesso">PERMESSO</option>
-                    <option value="Malattia">MALATTIA</option>
-                </select>
-            </div>
+        <div class="form-group">
+            <label>Assenza</label>
+            <select id="assenza" onchange="logicAssenza()">
+                <option value="">-- NESSUNA --</option>
+                <option value="Ferie">FERIE</option>
+                <option value="Permesso">PERMESSO</option>
+                <option value="Malattia">MALATTIA</option>
+            </select>
         </div>
-
         <div class="row-2">
             <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
             <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
         </div>
-
-        <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="Destinazione..."></div>
-        <div class="form-group"><label>Note</label><textarea id="note" rows="2" placeholder="Note intervento..."></textarea></div>
-        
-        <div class="row-2">
-            <div class="box-preview"><label>Ore</label><div id="prev-tot" style="font-weight:800; color:var(--primary); font-size:18px;">0.00</div></div>
-            <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-weight:800; color:var(--warning); font-size:18px;">0.00</div></div>
+        <div class="pause-container">
+            <span style="font-size: 14px; font-weight: 700;"><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
+            <label class="switch"><input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()"><span class="slider"></span></label>
         </div>
-
+        <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
+        <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
+        <div class="row-2">
+            <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800; color:var(--primary);">0.00</div></div>
+            <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
+        </div>
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-chart-pie"></i> Riepilogo Mese</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="riepilogo-content" style="display:none;">
-            <input type="month" id="filtro-mese" onchange="renderTabella()" style="margin-bottom:15px;">
-            <div class="row-2">
-                <div class="box-preview"><label>Ore Totali</label><div id="stat-ore-tot" style="font-weight:800;">0.00</div></div>
-                <div class="box-preview"><label>Extra Tot.</label><div id="stat-ore-ex" style="font-weight:800;">0.00</div></div>
+            <div class="form-group"><label>Seleziona Mese</label><input type="month" id="filtro-mese" onchange="fetchData()"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Totali</label><div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div></div>
+                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Extra</label><div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div></div>
             </div>
-        </div>
-    </div>
-
-    <div class="card" style="border-left: 5px solid var(--success);">
-        <h2 onclick="toggleSection('eco-content', this)"><span style="color:var(--success)"><i class="fas fa-wallet"></i> Calcolatore Economico</span><i class="fas fa-chevron-down chevron"></i></h2>
-        <div id="eco-content" style="display:none;">
-            <div class="eco-row"><span>Lordo (da Colonna K)</span><span class="eco-val" id="eco-lordo">€ 0.00</span></div>
-            <div class="eco-row" style="margin-top:10px; background:var(--bg); padding:12px; border-radius:10px;">
-                <span style="font-weight:800;">NETTO STIMATO</span><span class="eco-val" style="color:var(--success)" id="eco-netto">€ 0.00</span>
-            </div>
-            <p style="font-size:10px; color:var(--subtext); text-align:center; margin-top:8px;">Il calcolo utilizza la paga specifica salvata per ogni riga nel file.</p>
+            <div id="summary-list" style="font-size: 13px; font-weight: 600;"></div>
         </div>
     </div>
 
@@ -164,13 +159,50 @@
     });
 
     function popolaOrari() {
-        const s1 = document.getElementById('ora-inizio'), s2 = document.getElementById('ora-fine');
-        for(let h=0; h<24; h++){
-            let hh = h.toString().padStart(2,'0');
-            [s1, s2].forEach(s => {
-                s.add(new Option(`${hh}:00`,`${hh}:00`)); s.add(new Option(`${hh}:30`,`${hh}:30`));
-            });
+        const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
+        selects.forEach(s => {
+            s.add(new Option("--:--", ""));
+            for (let h = 0; h < 24; h++) {
+                let hh = h.toString().padStart(2, '0');
+                s.add(new Option(`${hh}:00`, `${hh}:00`)); s.add(new Option(`${hh}:30`, `${hh}:30`));
+            }
+        });
+    }
+
+    function logicModalita() {
+        const val = document.getElementById('modalita').value;
+        if(val) document.getElementById('assenza').value = "";
+        if(val === "In Sede") {
+            document.getElementById('luogo').value = "TECNOSISTEM";
+            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
+            document.getElementById('pausa-mensa').checked = true;
         }
+        aggiornaPreview();
+    }
+
+    function logicAssenza() {
+        if(document.getElementById('assenza').value) {
+            document.getElementById('modalita').value = "";
+            document.getElementById('pausa-mensa').checked = false;
+        }
+        aggiornaPreview();
+    }
+
+    function aggiornaPreview() {
+        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, d = document.getElementById('data').value;
+        if(!s || !e || !d) return;
+        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
+        let ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
+        if(document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
+        document.getElementById('prev-tot').textContent = ore.toFixed(2);
+        const dataObj = new Date(d);
+        const isWE = (dataObj.getDay() === 0 || dataObj.getDay() === 6);
+        document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
+    }
+
+    function toggleSection(id, el) {
+        const c = document.getElementById(id);
+        c.style.display = (c.style.display === 'block') ? 'none' : 'block';
     }
 
     async function fetchData() {
@@ -180,134 +212,73 @@
             const res = await r.json();
             dati = res.data || [];
             renderTabella();
-            setSyncState('success', 'Dati Aggiornati');
-        } catch(e) { setSyncState('error', 'Errore Connessione'); }
+            setSyncState('success', 'Sincronizzato');
+        } catch(e) { setSyncState('error', 'Errore'); }
     }
 
     function renderTabella() {
         const filtro = document.getElementById('filtro-mese').value;
-        const filtered = dati.filter(d => d.data && d.data.startsWith(filtro));
+        const filteredData = dati.filter(d => d.data.startsWith(filtro));
         
-        let totOre = 0, totEx = 0, lordoMese = 0;
-        let html = "";
+        let totOre = 0, totEx = 0, conteggio = {};
 
-        filtered.forEach(d => {
-            // Mappatura Colonne: Ore(J) è indice 9, Paga(K) è indice 10
+        document.getElementById('registro-body').innerHTML = filteredData.map((d) => {
             const h = parseFloat(d.ore) || 0;
-            const pagaGiorno = parseFloat(d.paga) || 0;
-            
             totOre += h;
-            lordoMese += (h * pagaGiorno);
-
             const dObj = new Date(d.data);
-            const isWE = (dObj.getDay()===0||dObj.getDay()===6);
+            const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
             const ex = isWE ? h : Math.max(0, h-8);
             totEx += ex;
+            conteggio[d.tipo] = (conteggio[d.tipo] || 0) + 1;
 
             let bClass = "bg-sede";
             if(d.tipo.includes("Trasferta")) bClass = "bg-trasf";
             if(d.tipo.includes("Estero")) bClass = "bg-estero";
             if(["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
 
-            html += `<tr>
-                <td style="width:65px;"><div style="font-weight:800;">${dObj.getDate()}/${dObj.getMonth()+1}</div><div style="font-size:9px; color:var(--subtext); text-transform:uppercase;">${dObj.toLocaleDateString('it-IT',{weekday:'short'})}</div></td>
+            return `
+            <tr>
+                <td style="width:70px;"><div style="font-size:12px; font-weight:800;">${dObj.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}</div><div style="font-size:9px; color:var(--subtext); text-transform:uppercase;">${dObj.toLocaleDateString('it-IT',{weekday:'short'})}</div></td>
                 <td>
                     <span class="badge ${bClass}">${d.tipo}</span>
                     <span class="luogo-label">${d.luogo || '-'}</span>
                 </td>
                 <td style="text-align:right;">
-                    <div style="font-weight:800;">${h.toFixed(2)}H</div>
+                    <div style="font-weight:800; font-size:14px;">${h.toFixed(2)}H</div>
                     ${ex > 0 ? `<span class="extra-label">+${ex.toFixed(2)} EX</span>` : ''}
                 </td>
+                <td><div class="actions-cell"><button class="btn-icon" style="color:var(--primary)"><i class="fas fa-edit"></i></button></div></td>
             </tr>`;
-        });
+        }).join('');
 
-        document.getElementById('registro-body').innerHTML = html || "<tr><td colspan='3' style='text-align:center; padding:20px;'>Nessun dato per questo mese</td></tr>";
         document.getElementById('stat-ore-tot').textContent = totOre.toFixed(2);
         document.getElementById('stat-ore-ex').textContent = totEx.toFixed(2);
-        document.getElementById('eco-lordo').textContent = `€ ${lordoMese.toFixed(2)}`;
-        document.getElementById('eco-netto').textContent = `€ ${(lordoMese * 0.73).toFixed(2)}`; // Stima media netto 73%
+        document.getElementById('summary-list').innerHTML = Object.entries(conteggio).map(([t, c]) => `
+            <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                <span style="text-transform: uppercase;">${t}</span><span>${c} GG</span>
+            </div>`).join('');
     }
 
     async function salva() {
-        const btn = document.getElementById('btn-save');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> INVIO IN CORSO...';
-
+        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
+        if(!tipo) return alert("Seleziona attività");
         const rec = {
-            id: Date.now().toString(),
-            data: document.getElementById('data').value,
-            tipo: document.getElementById('modalita').value || document.getElementById('assenza').value,
+            id: Date.now().toString(), tipo,
             luogo: document.getElementById('luogo').value,
+            data: document.getElementById('data').value,
             inizio: document.getElementById('ora-inizio').value,
             fine: document.getElementById('ora-fine').value,
-            note: document.getElementById('note').value,
             ore: document.getElementById('prev-tot').textContent,
-            paga: document.getElementById('paga-attuale').value
+            note: document.getElementById('note').value
         };
-
-        if(!rec.tipo) {
-            alert("Seleziona il tipo di lavoro o assenza!");
-            btn.disabled = false;
-            btn.innerHTML = 'REGISTRA REPORT';
-            return;
-        }
-
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-            setSyncState('success', 'Report Salvato');
-            await fetchData();
-            document.getElementById('note').value = "";
-            document.getElementById('luogo').value = "";
-        } catch(e) { 
-            setSyncState('error', 'Errore Invio'); 
-            alert("Errore durante il salvataggio. Riprova.");
-        }
-
-        btn.disabled = false;
-        btn.innerHTML = 'REGISTRA REPORT';
-    }
-
-    function toggleSection(id, el) {
-        const c = document.getElementById(id);
-        const chevron = el.querySelector('.chevron');
-        if (c.style.display === 'block') {
-            c.style.display = 'none';
-            if(chevron) chevron.style.transform = 'rotate(0deg)';
-        } else {
-            c.style.display = 'block';
-            if(chevron) chevron.style.transform = 'rotate(180deg)';
-        }
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
+        fetchData(); document.getElementById('note').value = "";
     }
 
     function setSyncState(s, t) {
         const i = document.getElementById('sync-indicator');
         i.className = `sync-${s}`;
-        i.innerHTML = `<i class="fas ${s==='working'?'fa-sync-alt fa-spin':'fa-cloud'}"></i> ${t.toUpperCase()}`;
-    }
-
-    function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value;
-        if(!s || !e) return;
-        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
-        let ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
-        document.getElementById('prev-tot').textContent = ore.toFixed(2);
-        
-        const dObj = new Date(document.getElementById('data').value);
-        const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
-        document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
-    }
-    
-    function logicModalita() { 
-        if(document.getElementById('modalita').value) {
-            document.getElementById('assenza').value = "";
-            if(document.getElementById('modalita').value === "In Sede") document.getElementById('luogo').value = "TECNOSISTEM";
-        }
-        aggiornaPreview(); 
-    }
-    function logicAssenza() { 
-        if(document.getElementById('assenza').value) document.getElementById('modalita').value = ""; 
-        aggiornaPreview(); 
+        i.innerHTML = `<i class="fas ${s==='working'?'fa-sync fa-spin':'fa-cloud'}"></i> ${t.toUpperCase()}`;
     }
 </script>
 </body>
