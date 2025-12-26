@@ -27,88 +27,79 @@
         
         header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 32px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
-        .quote-container { margin-top: 5px; padding: 0 20px; min-height: 40px; }
-        #daily-quote { font-size: 13px; font-style: italic; color: var(--subtext); line-height: 1.4; }
+        .quote-container { margin-top: 5px; padding: 0 15px; min-height: 35px; }
+        #daily-quote { font-size: 12px; font-style: italic; color: var(--subtext); line-height: 1.3; }
         
         #sync-indicator { font-size: 11px; margin-top: 10px; font-weight: 700; }
         .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
         #loading-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.7); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px);
         }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 35px; height: 35px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        h2 { font-size: 17px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; cursor: pointer; justify-content: space-between; }
+        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
         
-        .form-group { margin-bottom: 14px; }
-        label { display: block; font-size: 11px; font-weight: 700; color: var(--subtext); margin-bottom: 6px; text-transform: uppercase; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 10px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
         
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 17px; height: 50px; color: var(--text); background: var(--input-bg); -webkit-appearance: none; }
-        textarea { height: 80px; padding-top: 12px; font-size: 15px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; height: 48px; color: var(--text); background: var(--input-bg); }
         
-        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
-        .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-        /* RIEPILOGO & BUSTA PAGA */
-        .summary-header { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; align-items: center; }
-        .sum-label { font-weight: 600; }
-        .sum-days { font-size: 11px; color: var(--subtext); margin-left: 5px; }
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,122,255,0.3); }
+
+        /* RIEPILOGO GIORNI */
+        .day-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .day-stat-card { background: var(--bg); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
+        .day-stat-count { font-size: 18px; font-weight: 800; color: var(--primary); display: block; }
+        .day-stat-label { font-size: 10px; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
+
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .sum-val-ord { font-weight: 800; color: var(--primary); }
         .sum-val-extra { font-weight: 800; color: var(--warning); }
-        
-        .pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .total-box { background: var(--bg); padding: 15px; border-radius: 12px; text-align: center; margin-top: 10px; border: 1px dashed var(--primary); }
-        .total-label { font-size: 12px; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
-        .total-amount { font-size: 24px; font-weight: 900; color: var(--success); }
 
         #registro-content, #riepilogo-content, #payroll-content { display: none; margin-top: 10px; }
-        .chevron { transition: 0.3s; }
+        .chevron { transition: 0.3s; font-size: 12px; }
         .open .chevron { transform: rotate(180deg); }
 
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid var(--border); }
         td { padding: 12px 2px; vertical-align: middle; }
-        .item-data { font-weight: 800; font-size: 13px; display: block; }
-        .item-orario { color: var(--subtext); font-size: 11px; display: block; }
-        .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; width: 100%; text-align: center; }
         
-        .bg-sede { background: #E1F5FE; color: #0288D1; } 
-        .bg-rientro { background: #FFF3E0; color: #EF6C00; } 
-        .bg-pernotto { background: #F3E5F5; color: #7B1FA2; } 
-        .bg-estero { background: #E8F5E9; color: #2E7D32; } 
-        .bg-assenza { background: #FCE4EC; color: #D81B60; }
+        .ore-col-tab { display: flex; flex-direction: column; align-items: flex-end; }
+        .ore-tot-tab { font-size: 14px; font-weight: 800; color: var(--primary); }
+        .ore-ext-tab { font-size: 11px; font-weight: 700; color: var(--warning); margin-top: -2px; }
+
+        .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; display: block; }
+        .bg-sede { background: #E1F5FE; color: #0288D1; } .bg-rientro { background: #FFF3E0; color: #EF6C00; } .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-        .btn-icon { border: none; background: none; font-size: 18px; padding: 6px; cursor: pointer; }
-        .btn-del { color: var(--danger); } .btn-edit { color: var(--primary); }
+        .btn-icon { border: none; background: none; font-size: 18px; padding: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay">
-    <div class="spinner"></div>
-    <p id="loading-text" style="color:white; font-weight:700; margin-top:10px;">Cloud Sync...</p>
-</div>
+<div id="loading-overlay"><div class="spinner"></div><p id="loading-text" style="color:white; font-weight:700; margin-top:10px;"></p></div>
 
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
         <div class="quote-container"><div id="daily-quote"></div></div>
-        <div id="sync-indicator"><i class="fas fa-cloud"></i> Sincronizzazione...</div>
+        <div id="sync-indicator"></div>
     </header>
 
     <div class="card">
-        <h2><span><i class="fas fa-edit"></i> Nuovo Report</span></h2>
+        <h2><span><i class="fas fa-plus"></i> Nuovo Report</span></h2>
         <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
-        <div class="pay-row">
+        
+        <div class="row-2">
             <div class="form-group">
-                <label>Lavoro</label>
+                <label>Tipo Lavoro</label>
                 <select id="modalita" onchange="logicModalita()">
-                    <option value="">-- Seleziona --</option>
+                    <option value="">--</option>
                     <option value="In Sede">In Sede</option>
                     <option value="Trasferta Rientro">Trasferta Rientro</option>
                     <option value="Trasferta Pernotto">Trasferta Pernotto</option>
@@ -118,66 +109,55 @@
             <div class="form-group">
                 <label>Assenza</label>
                 <select id="assenza" onchange="logicAssenza()">
-                    <option value="">-- No --</option>
+                    <option value="">--</option>
                     <option value="Ferie">Ferie</option>
                     <option value="Permesso">Permesso</option>
                     <option value="Malattia">Malattia</option>
                 </select>
             </div>
         </div>
-        <div class="pay-row">
+
+        <div class="row-2">
             <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
             <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
         </div>
-        <div class="form-group">
-            <label>Luogo</label>
-            <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Cliente o Sede">
-            <datalist id="luoghi-suggeriti"></datalist>
+        
+        <div class="form-group"><label>Luogo</label><input type="text" id="luogo" list="luoghi-suggeriti"><datalist id="luoghi-suggeriti"></datalist></div>
+        
+        <div class="row-2" style="background:var(--bg); padding:10px; border-radius:12px; margin-bottom:10px;">
+            <div><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800;">0.00</div></div>
+            <div><label>Straordinarie</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
         </div>
-        <div class="form-group">
-            <label>Note</label>
-            <textarea id="note" placeholder="Descrizione intervento..."></textarea>
-        </div>
-        <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
-        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA</button>
+
+        <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('riepilogo-content', this)">
-            <span><i class="fas fa-calendar-alt"></i> Riepilogo Mese</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
+        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-chart-bar"></i> Riepilogo Mese</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="riepilogo-content">
-            <div class="summary-header">
-                <input type="month" id="filtro-mese" onchange="refreshAll()">
-            </div>
-            <div id="summary-list"></div>
+            <input type="month" id="filtro-mese" onchange="refreshAll()" style="margin-bottom:15px;">
+            <div id="day-stats" class="day-grid"></div>
+            <div id="summary-list" style="margin-top:15px;"></div>
         </div>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('payroll-content', this)">
-            <span><i class="fas fa-calculator"></i> Stima Busta Paga</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
+        <h2 onclick="toggleSection('payroll-content', this)"><span><i class="fas fa-euro-sign"></i> Calcolo Busta Paga</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="payroll-content">
-            <div class="pay-row">
-                <div class="form-group"><label>Paga Oraria (€)</label><input type="number" id="paga-h" value="12.50" oninput="calcolaBusta()"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Paga Base (€)</label><input type="number" id="paga-h" value="12.50" oninput="calcolaBusta()"></div>
                 <div class="form-group"><label>Diaria (€)</label><input type="number" id="diaria" value="30.00" oninput="calcolaBusta()"></div>
             </div>
             <div id="payroll-details"></div>
-            <div class="total-box">
-                <div class="total-label">Totale Lordo Stimato</div>
-                <div class="total-amount" id="netto-stima">€ 0.00</div>
+            <div style="background:var(--bg); padding:15px; border-radius:12px; text-align:center; margin-top:10px; border:2px solid var(--success);">
+                <label>Totale Lordo Stimato</label>
+                <div id="netto-stima" style="font-size:26px; font-weight:900; color:var(--success);">€ 0.00</div>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('registro-content', this)">
-            <span><i class="fas fa-list"></i> Storico Registro</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
+        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico Registro</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="registro-content">
             <table><tbody id="registro-body"></tbody></table>
         </div>
@@ -186,7 +166,7 @@
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-    const quotes = ["La precisione è l'anima del lavoro.", "Ogni grande opera è frutto di costanza.", "La sicurezza sul lavoro è la prima priorità.", "L'eccellenza non è un atto, ma un'abitudine."];
+    const quotes = ["L'unico modo per fare un ottimo lavoro è amare quello che fai.", "Qualunque cosa tu faccia, falla bene.", "La qualità è fare le cose bene quando nessuno ti guarda."];
     let dati = [];
     let editIndex = -1;
 
@@ -200,10 +180,10 @@
     });
 
     function toggleSection(id, el) {
-        const content = document.getElementById(id);
-        const isOpen = content.style.display === 'block';
-        content.style.display = isOpen ? 'none' : 'block';
-        if(el) el.classList.toggle('open', !isOpen);
+        const c = document.getElementById(id);
+        const open = c.style.display === 'block';
+        c.style.display = open ? 'none' : 'block';
+        el.querySelector('.chevron').parentElement.classList.toggle('open', !open);
     }
 
     function popolaOrari() {
@@ -217,24 +197,25 @@
         });
     }
 
-    function logicModalita() {
-        const m = document.getElementById('modalita').value;
-        if(m) { document.getElementById('assenza').value = ""; if(m==="In Sede") document.getElementById('luogo').value="TECNOSISTEM"; }
-        aggiornaPreview();
-    }
-    function logicAssenza() {
-        if(document.getElementById('assenza').value) { document.getElementById('modalita').value = ""; document.getElementById('luogo').value="-"; }
-        aggiornaPreview();
-    }
+    function logicModalita() { if(document.getElementById('modalita').value) document.getElementById('assenza').value=""; aggiornaPreview(); }
+    function logicAssenza() { if(document.getElementById('assenza').value) document.getElementById('modalita').value=""; aggiornaPreview(); }
 
-    function calcolaDettaglio(data, ore) {
+    function getDettaglioOre(data, ore) {
         const d = new Date(data);
         const isWE = (d.getDay() === 0 || d.getDay() === 6);
-        let ord = 0, extra = 0, extra50 = 0;
-        if(isWE) extra50 = ore;
-        else if(ore > 8) { ord = 8; extra = ore - 8; }
-        else ord = ore;
-        return { ord, extra, extra50, isTrasferta: data && !isWE };
+        if(isWE) return { ord: 0, extra: 0, extra50: ore };
+        if(ore > 8) return { ord: 8, extra: ore - 8, extra50: 0 };
+        return { ord: ore, extra: 0, extra50: 0 };
+    }
+
+    function aggiornaPreview() {
+        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, d = document.getElementById('data').value;
+        if(!s || !e || !d) return;
+        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
+        const ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
+        const dett = getDettaglioOre(d, ore);
+        document.getElementById('prev-tot').textContent = ore.toFixed(2);
+        document.getElementById('prev-extra').textContent = (dett.extra + dett.extra50).toFixed(2);
     }
 
     async function fetchData() {
@@ -243,9 +224,8 @@
             const r = await fetch(WEB_APP_URL);
             const res = await r.json();
             dati = res.data || [];
-            dati.sort((a,b) => new Date(b.data) - new Date(a.data));
             refreshAll();
-            setSyncState('success', 'Dati Aggiornati');
+            setSyncState('success', 'Sincronizzato');
         } catch(e) { setSyncState('error', 'Errore Cloud'); }
     }
 
@@ -253,114 +233,86 @@
         renderRiepilogo();
         calcolaBusta();
         renderTabella();
-        updateLuoghiSuggeriti();
     }
 
     function renderRiepilogo() {
         const filtro = document.getElementById('filtro-mese').value;
-        const stats = {};
+        const stats = { giorni: {}, oreOrd: 0, oreExtra: 0, oreExtra50: 0 };
+        
         dati.filter(d => d.data.startsWith(filtro)).forEach(d => {
-            if(!stats[d.tipo]) stats[d.tipo] = { ore: 0, giorni: 0 };
-            stats[d.tipo].ore += parseFloat(d.ore);
-            stats[d.tipo].giorni += 1;
+            const h = parseFloat(d.ore);
+            const dett = getDettaglioOre(d.data, h);
+            stats.giorni[d.tipo] = (stats.giorni[d.tipo] || 0) + 1;
+            stats.oreOrd += dett.ord;
+            stats.oreExtra += dett.extra;
+            stats.oreExtra50 += dett.extra50;
         });
 
-        let html = '';
-        for(let t in stats) {
-            html += `<div class="summary-item">
-                <span class="sum-label">${t} <span class="sum-days">(${stats[t].giorni} gg)</span></span>
-                <span class="sum-val-ord">${stats[t].ore.toFixed(2)}h</span>
-            </div>`;
-        }
-        document.getElementById('summary-list').innerHTML = html || "Nessun dato.";
+        // Grid Giorni
+        document.getElementById('day-stats').innerHTML = Object.entries(stats.giorni).map(([tipo, count]) => `
+            <div class="day-stat-card"><span class="day-stat-count">${count}</span><span class="day-stat-label">${tipo}</span></div>
+        `).join('');
+
+        // Lista Ore
+        document.getElementById('summary-list').innerHTML = `
+            <div class="summary-item"><span>Ore Ordinarie Totali</span><span class="sum-val-ord">${stats.oreOrd.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Straordinari 25%</span><span class="sum-val-extra">${stats.oreExtra.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Straordinari 50% (S/D)</span><span class="sum-val-extra" style="color:var(--danger)">${stats.oreExtra50.toFixed(2)}h</span></div>
+        `;
     }
 
     function calcolaBusta() {
         const filtro = document.getElementById('filtro-mese').value;
         const pOraria = parseFloat(document.getElementById('paga-h').value) || 0;
         const diariaVal = parseFloat(document.getElementById('diaria').value) || 0;
-        
-        let tOrd = 0, tExtra = 0, tExtra50 = 0, nTrasferte = 0;
+        let tOrd=0, tEx=0, tEx50=0, nTr=0;
 
         dati.filter(d => d.data.startsWith(filtro)).forEach(d => {
-            const dett = calcolaDettaglio(d.data, parseFloat(d.ore));
-            tOrd += dett.ord; tExtra += dett.extra; tExtra50 += dett.extra50;
-            if(d.tipo.includes("Trasferta")) nTrasferte++;
+            const dett = getDettaglioOre(d.data, parseFloat(d.ore));
+            tOrd += dett.ord; tEx += dett.extra; tEx50 += dett.extra50;
+            if(d.tipo.includes("Trasferta")) nTr++;
         });
 
-        const lordo = (tOrd * pOraria) + (tExtra * pOraria * 1.25) + (tExtra50 * pOraria * 1.5) + (nTrasferte * diariaVal);
+        const lordo = (tOrd * pOraria) + (tEx * pOraria * 1.25) + (tEx50 * pOraria * 1.5) + (nTr * diariaVal);
         document.getElementById('netto-stima').textContent = `€ ${lordo.toFixed(2)}`;
-        
-        document.getElementById('payroll-details').innerHTML = `
-            <div class="summary-item"><span>Ore Ordinarie</span><span>${tOrd.toFixed(2)}h</span></div>
-            <div class="summary-item"><span>Straord. 25%</span><span>${tExtra.toFixed(2)}h</span></div>
-            <div class="summary-item"><span>Straord. 50%</span><span>${tExtra50.toFixed(2)}h</span></div>
-            <div class="summary-item"><span>Indennità Trasf. (${nTrasferte})</span><span>€ ${(nTrasferte*diariaVal).toFixed(2)}</span></div>
-        `;
+        document.getElementById('payroll-details').innerHTML = `<div class="summary-item"><span>Indennità Trasf. (${nTr})</span><span>€ ${(nTr*diariaVal).toFixed(2)}</span></div>`;
     }
 
     function renderTabella() {
         document.getElementById('registro-body').innerHTML = dati.map((d, i) => {
-            const badgeCls = d.tipo === "In Sede" ? "bg-sede" : d.categoria === "lavoro" ? "bg-rientro" : "bg-assenza";
+            const dett = getDettaglioOre(d.data, parseFloat(d.ore));
+            const badgeCls = d.tipo.includes("Sede") ? "bg-sede" : d.categoria === "lavoro" ? "bg-rientro" : "bg-assenza";
             return `<tr>
                 <td><span class="item-data">${new Date(d.data).toLocaleDateString('it-IT')}</span><span class="item-orario">${d.inizio}-${d.fine}</span></td>
                 <td><span class="badge ${badgeCls}">${d.tipo}</span></td>
-                <td><div class="result-cell"><b>${d.ore}h</b>
-                    <button class="btn-icon btn-edit" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
-                    <button class="btn-icon btn-del" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
+                <td><div class="ore-col-tab">
+                    <span class="ore-tot-tab">${d.ore}h</span>
+                    ${(dett.extra+dett.extra50) > 0 ? `<span class="ore-ext-tab">+${(dett.extra+dett.extra50).toFixed(2)}</span>` : ''}
                 </div></td>
+                <td><button class="btn-icon" style="color:var(--danger)" onclick="elimina(${i})"><i class="fas fa-trash"></i></button></td>
             </tr>`;
         }).join('');
     }
 
     async function salva() {
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
-        if(!tipo) return alert("Scegli attività");
+        if(!tipo) return alert("Seleziona attività");
+        showLoading("Invio dati...");
         const rec = {
-            id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
-            tipo, categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
+            id: Date.now().toString(), tipo, categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
             luogo: document.getElementById('luogo').value || "-", data: document.getElementById('data').value,
             inizio: document.getElementById('ora-inizio').value, fine: document.getElementById('ora-fine').value,
-            ore: calcolaOre(), note: document.getElementById('note').value
+            ore: document.getElementById('prev-tot').textContent
         };
-        showLoading("Salvataggio...");
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-        resetForm(); setTimeout(fetchData, 1000); hideLoading();
-    }
-
-    async function elimina(idx) {
-        if(!confirm("Eliminare definitivamente?")) return;
-        showLoading("Eliminazione...");
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[idx].id.toString() })});
         setTimeout(fetchData, 1000); hideLoading();
     }
 
-    function calcolaOre() {
-        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value;
-        if(!s || !e) return "0.00";
-        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
-        return (( (h2*60+m2)-(h1*60+m1) ) / 60).toFixed(2);
-    }
-
-    function avviaModifica(i) {
-        const d = dati[i]; editIndex = i;
-        document.getElementById('data').value = d.data.split('T')[0];
-        if(d.categoria==='lavoro') document.getElementById('modalita').value = d.tipo;
-        else document.getElementById('assenza').value = d.tipo;
-        document.getElementById('luogo').value = d.luogo;
-        document.getElementById('ora-inizio').value = d.inizio;
-        document.getElementById('ora-fine').value = d.fine;
-        document.getElementById('note').value = d.note || "";
-        document.getElementById('btn-save').textContent = "AGGIORNA";
-        document.getElementById('btn-cancel-edit').style.display="block";
-        window.scrollTo(0,0);
-    }
-
-    function resetForm() {
-        editIndex = -1; document.getElementById('modalita').value=""; document.getElementById('assenza').value="";
-        document.getElementById('luogo').value=""; document.getElementById('note').value="";
-        document.getElementById('btn-save').textContent="SALVA NEL CLOUD";
-        document.getElementById('btn-cancel-edit').style.display="none";
+    async function elimina(idx) {
+        if(!confirm("Eliminare?")) return;
+        showLoading("Eliminazione...");
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[idx].id.toString() })});
+        setTimeout(fetchData, 1000); hideLoading();
     }
 
     function setSyncState(s, t) {
@@ -370,12 +322,6 @@
     }
     function showLoading(t) { document.getElementById('loading-text').textContent=t; document.getElementById('loading-overlay').style.display='flex'; }
     function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
-    function updateLuoghiSuggeriti() {
-        const list = document.getElementById('luoghi-suggeriti');
-        const unique = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
-        list.innerHTML = unique.map(l => `<option value="${l}">`).join('');
-    }
-    function aggiornaPreview() {} // Placeholder per logica futura
 </script>
 </body>
 </html>
