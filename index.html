@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Work Log PRO</title>
+    <title>TECNOSISTEM - Work Log</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
@@ -14,15 +14,26 @@
             --success: #34C759; 
             --danger: #FF3B30; 
             --radius: 14px; 
+            --accent: linear-gradient(135deg, #007AFF 0%, #0051a8 100%);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 40px; }
         .container { max-width: 500px; margin: 0 auto; }
         
-        header { text-align: center; margin-bottom: 20px; }
-        .logo { font-size: 24px; font-weight: 800; color: var(--primary); }
+        /* HEADER ACCATTIVANTE */
+        header { text-align: center; margin-bottom: 25px; padding-top: 10px; }
+        .logo { 
+            font-size: 32px; 
+            font-weight: 900; 
+            letter-spacing: -1px;
+            background: var(--accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        .subtitle { font-size: 12px; font-weight: 600; color: #8E8E93; letter-spacing: 2px; margin-top: -5px; }
         
-        #sync-indicator { font-size: 11px; margin-top: 5px; font-weight: 600; }
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; }
         .sync-none { color: #8E8E93; }
         .sync-working { color: var(--primary); }
         .sync-success { color: var(--success); }
@@ -30,14 +41,15 @@
 
         #loading-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); z-index: 9999;
+            background: rgba(255,255,255,0.85); z-index: 9999;
             flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
         }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 45px; height: 45px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #3A3A3C; }
         
         .form-group { margin-bottom: 14px; position: relative; }
         label { display: block; font-size: 12px; font-weight: 700; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; }
@@ -63,10 +75,10 @@
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(20px); }
         
-        .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; margin-top: 10px; }
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
         
-        /* REGISTRO OTTIMIZZATO */
+        /* REGISTRO */
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid #F2F2F7; }
         td { padding: 14px 2px; vertical-align: middle; }
@@ -83,7 +95,6 @@
         .bg-estero { background: #E8F5E9; color: #2E7D32; }
         .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
-        /* ORE E AZIONI AFFIANCATE */
         .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
         .ore-val { font-size: 14px; font-weight: 800; min-width: 45px; text-align: right; }
         .actions-row { display: flex; gap: 6px; }
@@ -96,25 +107,26 @@
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <p style="margin-top:10px; font-weight:600; color:var(--primary);">Salvataggio...</p>
+    <p id="loading-text" style="margin-top:10px; font-weight:700; color:var(--primary);">Operazione...</p>
 </div>
 
 <div class="container">
     <header>
-        <div class="logo">WORK LOG CLOUD</div>
-        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Caricamento...</div>
+        <div class="logo">TECNOSISTEM</div>
+        <div class="subtitle">REGISTRO ATTIVITÀ</div>
+        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Inizializzazione...</div>
     </header>
 
     <div class="card">
-        <h2><i class="fas fa-calendar-day"></i> Inserimento</h2>
+        <h2><i class="fas fa-plus-circle"></i> Inserimento Dati</h2>
         
         <div class="form-group">
-            <label>Data</label>
+            <label>Data Intervento</label>
             <input type="date" id="data">
         </div>
 
         <div class="form-group">
-            <label>Modalità Lavoro</label>
+            <label>Modalità</label>
             <select id="modalita" onchange="logicModalita()">
                 <option value="">-- Seleziona --</option>
                 <option value="In Sede">In Sede</option>
@@ -146,7 +158,7 @@
         </div>
 
         <div class="form-group">
-            <label>Luogo / Cliente</label>
+            <label>Cliente / Cantiere</label>
             <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Destinazione">
             <datalist id="luoghi-suggeriti"></datalist>
         </div>
@@ -160,18 +172,18 @@
         </div>
 
         <div class="form-group" style="margin-top:12px;">
-            <label>Note</label>
-            <textarea id="note" placeholder="Opzionale..."></textarea>
+            <label>Note Intervento</label>
+            <textarea id="note" placeholder="Note aggiuntive..."></textarea>
         </div>
 
-        <div id="preview-text" style="text-align:center; font-weight:700; color:var(--primary); margin: 10px 0; font-size: 18px;">Ore Nette: 0.00h</div>
+        <div id="preview-text" style="text-align:center; font-weight:800; color:var(--primary); margin: 10px 0; font-size: 20px;">Ore Nette: 0.00h</div>
 
-        <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
-        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla</button>
+        <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA NEL CLOUD</button>
+        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA MODIFICA</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-list-ul"></i> Registro Online</h2>
+        <h2><i class="fas fa-history"></i> Storico Online</h2>
         <table><tbody id="registro-body"></tbody></table>
     </div>
 </div>
@@ -186,6 +198,15 @@
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
         fetchData();
     });
+
+    function showOverlay(text) {
+        document.getElementById('loading-text').textContent = text;
+        document.getElementById('loading-overlay').style.display = 'flex';
+    }
+
+    function hideOverlay() {
+        document.getElementById('loading-overlay').style.display = 'none';
+    }
 
     function popolaOrari() {
         const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
@@ -274,28 +295,36 @@
             note: document.getElementById('note').value || "",
             ore: aggiornaPreview()
         };
-        if (!record.tipo) { alert("Scegli attività!"); return; }
-        document.getElementById('loading-overlay').style.display = 'flex';
+        if (!record.tipo) { alert("Scegli un'attività!"); return; }
+        
+        showOverlay("Salvataggio...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
             setTimeout(() => {
-                document.getElementById('loading-overlay').style.display = 'none';
+                hideOverlay();
                 fetchData();
             }, 1000);
         } catch (e) { 
-            document.getElementById('loading-overlay').style.display = 'none';
+            hideOverlay();
             setSyncState('error', 'Errore Invio');
         }
     }
 
     async function elimina(index) {
-        if (!confirm("Eliminare?")) return;
-        setSyncState('working', 'Eliminazione...');
+        if (!confirm("Sei sicuro di voler eliminare questo report?")) return;
+        
+        showOverlay("Eliminazione...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[index].id.toString() }) });
-            setTimeout(fetchData, 1000);
-        } catch (e) { setSyncState('error', 'Errore'); }
+            setTimeout(() => {
+                hideOverlay();
+                fetchData();
+            }, 1000);
+        } catch (e) { 
+            hideOverlay();
+            setSyncState('error', 'Errore'); 
+        }
     }
 
     function cleanTime(t) {
@@ -359,7 +388,7 @@
         document.getElementById('ora-fine').value = cleanTime(d.fine);
         document.getElementById('pausa').checked = (d.pausa === "SI" || d.pausa === true);
         document.getElementById('note').value = d.note || "";
-        document.getElementById('btn-save').textContent = "AGGIORNA";
+        document.getElementById('btn-save').textContent = "AGGIORNA REPORT";
         document.getElementById('btn-cancel-edit').style.display = "block";
         aggiornaPreview();
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -374,7 +403,7 @@
         document.getElementById('ora-inizio').value = "";
         document.getElementById('ora-fine').value = "";
         document.getElementById('pausa').checked = false;
-        document.getElementById('btn-save').textContent = "SALVA NEL CLOUD";
+        document.getElementById('btn-save').textContent = "REGISTRA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display = "none";
         document.getElementById('preview-text').innerHTML = "Ore Nette: 0.00h";
     }
