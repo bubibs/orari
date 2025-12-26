@@ -52,11 +52,17 @@ function initTimeDropdowns() {
     });
 }
 
+// Dentro js/app.js, modifica la funzione selectTime così:
 function selectTime(time, elementId) {
-    document.getElementById(elementId).textContent = time;
-    // Chiudi tutti i menu dopo la selezione
+    const el = document.getElementById(elementId);
+    el.textContent = time;
+    el.style.color = "var(--accent-color)"; // Feedback visivo della selezione
+    
     document.querySelectorAll('.options-list').forEach(l => l.classList.remove('show'));
     updatePreview();
+    
+    // Feedback tattile (vibrazione leggera se supportata)
+    if (window.navigator.vibrate) window.navigator.vibrate(10);
 }
 
 function initEventListeners() {
@@ -135,3 +141,4 @@ window.deleteEntry = function(index) {
         refreshUI();
     }
 };
+
