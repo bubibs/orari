@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Registro Lavoro PRO v5</title>
+    <title>Registro Lavoro PRO v6</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -61,7 +61,8 @@
         /* Registro */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 15px 5px; font-size: 14px; vertical-align: middle; }
+        td { padding: 15px 5px; font-size: 13px; vertical-align: middle; }
+        .luogo-text { font-size: 11px; color: var(--text-secondary); display: block; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
@@ -99,6 +100,11 @@
                 <option value="Permesso">Permesso</option>
                 <option value="Malattia">Malattia</option>
             </select>
+        </div>
+
+        <div class="form-group">
+            <label>Luogo di Lavoro</label>
+            <input type="text" id="luogo" placeholder="Inserisci luogo o cliente...">
         </div>
 
         <div class="form-group">
@@ -142,7 +148,7 @@
 </div>
 
 <script>
-    let dati = JSON.parse(localStorage.getItem('registro_v5')) || [];
+    let dati = JSON.parse(localStorage.getItem('registro_v6')) || [];
     let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -167,12 +173,17 @@
     function logicModalita() {
         const mod = document.getElementById('modalita').value;
         const ass = document.getElementById('assenza');
+        const luogo = document.getElementById('luogo');
+        
         if (mod !== "") {
-            ass.value = ""; // Se lavori, non sei assente
+            ass.value = ""; 
             if (mod === "In Sede") {
+                luogo.value = "TECNOSISTEM";
                 document.getElementById('ora-inizio').value = "08:00";
                 document.getElementById('ora-fine').value = "17:00";
                 document.getElementById('pausa').checked = true;
+            } else {
+                luogo.value = ""; // Pulisce se non è sede per permettere inserimento manuale
             }
         }
         aggiornaPreview();
@@ -181,8 +192,11 @@
     function logicAssenza() {
         const ass = document.getElementById('assenza').value;
         const mod = document.getElementById('modalita');
+        const luogo = document.getElementById('luogo');
+        
         if (ass !== "") {
-            mod.value = ""; // Se sei assente, non hai modalità lavoro
+            mod.value = "";
+            luogo.value = "-"; // Le assenze non hanno luogo
             document.getElementById('pausa').checked = false;
             if (ass === "Ferie" || ass === "Malattia") {
                 document.getElementById('ora-inizio').value = "08:00";
@@ -215,6 +229,7 @@
     function salva() {
         const mod = document.getElementById('modalita').value;
         const ass = document.getElementById('assenza').value;
+        const luogo = document.getElementById('luogo').value;
         const data = document.getElementById('data').value;
         const inizio = document.getElementById('ora-inizio').value;
         const fine = document.getElementById('ora-fine').value;
@@ -225,6 +240,7 @@
         const record = { 
             tipo: mod || ass, 
             categoria: mod ? 'lavoro' : 'assenza',
+            luogo: luogo || "-",
             data, inizio, fine, pausa: pChecked, 
             ore: calcolaOre(inizio, fine, pChecked) 
         };
@@ -232,7 +248,7 @@
         if (editIndex > -1) dati[editIndex] = record;
         else dati.unshift(record);
 
-        localStorage.setItem('registro_v5', JSON.stringify(dati));
+        localStorage.setItem('registro_v6', JSON.stringify(dati));
         resetForm();
         renderTabella();
     }
@@ -241,7 +257,10 @@
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => `
             <tr>
-                <td style="width:20%"><b>${d.data.split('-').reverse().slice(0,2).join('/')}</b></td>
+                <td style="width:25%">
+                    <b>${d.data.split('-').reverse().slice(0,2).join('/')}</b>
+                    <span class="luogo-text">${d.luogo}</span>
+                </td>
                 <td><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
                 <td style="text-align:right"><b>${d.ore.toFixed(2)}h</b></td>
                 <td class="actions">
@@ -262,6 +281,7 @@
             document.getElementById('assenza').value = d.tipo;
             document.getElementById('modalita').value = "";
         }
+        document.getElementById('luogo').value = d.luogo;
         document.getElementById('data').value = d.data;
         document.getElementById('ora-inizio').value = d.inizio;
         document.getElementById('ora-fine').value = d.fine;
@@ -275,7 +295,7 @@
     function elimina(index) {
         if (confirm("Eliminare?")) {
             dati.splice(index, 1);
-            localStorage.setItem('registro_v5', JSON.stringify(dati));
+            localStorage.setItem('registro_v6', JSON.stringify(dati));
             renderTabella();
         }
     }
@@ -284,6 +304,7 @@
         editIndex = -1;
         document.getElementById('modalita').value = "";
         document.getElementById('assenza').value = "";
+        document.getElementById('luogo').value = "";
         document.getElementById('ora-inizio').value = "";
         document.getElementById('ora-fine').value = "";
         document.getElementById('pausa').checked = false;
