@@ -26,10 +26,11 @@
         
         header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
-        #daily-quote { font-size: 12px; font-style: italic; color: var(--subtext); margin-top: 5px; }
         
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; }
-        .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; height: 20px; }
+        .sync-working { color: var(--primary); } 
+        .sync-success { color: var(--success); } 
+        .sync-error { color: var(--danger); }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; }
@@ -46,8 +47,9 @@
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
 
-        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
-        .btn-main:disabled { opacity: 0.6; }
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn-main:active { opacity: 0.8; transform: scale(0.98); }
+        .btn-main:disabled { background: #AEAEB2; }
 
         .pause-container {
             display: flex; align-items: center; justify-content: space-between;
@@ -60,15 +62,14 @@
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        /* CALCOLO ECONOMICO */
         .money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .money-box { padding: 15px; border-radius: 12px; background: var(--bg); text-align: center; }
+        .money-box { padding: 15px; border-radius: 12px; background: var(--bg); text-align: center; border: 1px solid var(--border); }
         .money-val { font-size: 19px; font-weight: 900; margin-top: 5px; }
         .money-label { font-size: 10px; font-weight: 800; color: var(--subtext); text-transform: uppercase; }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: white; }
+        td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; color: white; }
         .bg-sede { background: var(--success); } .bg-trasf { background: var(--warning); } .bg-assenza { background: var(--danger); } .bg-estero { background: #5856D6; }
         
         .chevron { transition: transform 0.3s; }
@@ -84,7 +85,7 @@
     </header>
 
     <div class="card">
-        <h2><span><i class="fas fa-plus"></i> Inserimento</span></h2>
+        <h2><span><i class="fas fa-plus"></i> Inserimento Report</span></h2>
         <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
         <div class="form-group">
             <label>Tipo Lavoro</label>
@@ -115,10 +116,12 @@
         </div>
         <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
         <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
+        
         <div class="row-2">
-            <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800; color:var(--primary);">0.00</div></div>
-            <div class="box-preview"><label>Extra</label><div id="prev-extra" style="font-size:20px; font-weight:800; color:var(--warning);">0.00</div></div>
+            <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="color:var(--primary); font-weight:800;">0.00</div></div>
+            <div class="box-preview"><label>Di cui Extra</label><div id="prev-extra" style="color:var(--warning); font-weight:800;">0.00</div></div>
         </div>
+        
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
     </div>
 
@@ -128,32 +131,32 @@
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="calcolo-content" style="display:none;">
-            <div class="form-group"><label>Mese</label><input type="month" id="mese-calcolo" onchange="fetchData()"></div>
+            <div class="form-group"><label>Mese di Analisi</label><input type="month" id="mese-calcolo" onchange="renderTabella()"></div>
             <div class="money-grid">
                 <div class="money-box">
-                    <div class="money-label">Lordo</div>
+                    <div class="money-label">Lordo Mensile</div>
                     <div id="val-lordo" class="money-val">€ 0.00</div>
                 </div>
                 <div class="money-box" style="background: var(--accent);">
-                    <div class="money-label" style="color:white">Netto Est.</div>
+                    <div class="money-label" style="color:white">Netto Stimato</div>
                     <div id="val-netto" class="money-val" style="color:white">€ 0.00</div>
                 </div>
             </div>
-            <div style="margin-top:15px; font-size:11px; color:var(--subtext)">
-                <div style="display:flex; justify-content:space-between"><span>Base:</span><span id="calc-base">€ 0.00</span></div>
-                <div style="display:flex; justify-content:space-between"><span>Straordinari:</span><span id="calc-extra">€ 0.00</span></div>
-                <div style="display:flex; justify-content:space-between"><span>Indennità:</span><span id="calc-ind">€ 0.00</span></div>
+            <div style="margin-top:15px; font-size:11px; color:var(--subtext); line-height:1.8;">
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>PAGA BASE:</span><span id="calc-base" style="color:var(--text)">€ 0.00</span></div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>STRAORDINARI (TOT):</span><span id="calc-extra" style="color:var(--text)">€ 0.00</span></div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>INDENNITÀ TRASFERTA:</span><span id="calc-ind" style="color:var(--text)">€ 0.00</span></div>
             </div>
         </div>
     </div>
 
     <div class="card">
         <h2 onclick="toggleSection('settings-content', this)">
-            <span><i class="fas fa-cog"></i> Configurazione Tariffe</span>
+            <span><i class="fas fa-cog"></i> Tariffe Personali</span>
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="settings-content" style="display:none;">
-            <div class="form-group"><label>Paga Mensile (€)</label><input type="number" id="t-base" value="1800"></div>
+            <div class="form-group"><label>Paga Base Mensile (€)</label><input type="number" id="t-base" value="1800"></div>
             <div class="row-2">
                 <div class="form-group"><label>S. 25% (€/h)</label><input type="number" id="t-25" value="12"></div>
                 <div class="form-group"><label>S. 50% (€/h)</label><input type="number" id="t-50" value="15"></div>
@@ -161,12 +164,12 @@
             <div class="form-group"><label>Ind. Rientro (€)</label><input type="number" id="t-rientro" value="15"></div>
             <div class="form-group"><label>Ind. Pernotto (€)</label><input type="number" id="t-pernotto" value="30"></div>
             <div class="form-group"><label>Ind. Estero (€)</label><input type="number" id="t-estero" value="50"></div>
-            <button class="btn-main" onclick="salvaTariffe()" style="background:var(--success)">SALVA SU CLOUD</button>
+            <button class="btn-main" id="btn-save-settings" onclick="salvaTariffe()" style="background:var(--success)">SALVA TARIFFE SU CLOUD</button>
         </div>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico Online</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="registro-content" style="display:none;">
             <table><tbody id="registro-body"></tbody></table>
         </div>
@@ -194,6 +197,136 @@
                 s.add(new Option(`${hh}:00`, `${hh}:00`)); s.add(new Option(`${hh}:30`, `${hh}:30`));
             }
         });
+    }
+
+    function toggleSection(id, el) {
+        const c = document.getElementById(id);
+        const isOpen = c.style.display === 'block';
+        c.style.display = isOpen ? 'none' : 'block';
+        el.classList.toggle('open', !isOpen);
+    }
+
+    // --- FETCH DATA COMPILATO CORRETTAMENTE ---
+    async function fetchData() {
+        setSyncState('working', 'Sincronizzazione...');
+        try {
+            const r = await fetch(WEB_APP_URL);
+            const res = await r.json();
+            
+            // 1. Carica i dati dei report
+            dati = res.data || [];
+            
+            // 2. Carica le tariffe salvate sul cloud se esistono
+            if (res.settings && res.settings.base) {
+                document.getElementById('t-base').value = res.settings.base;
+                document.getElementById('t-25').value = res.settings.s25;
+                document.getElementById('t-50').value = res.settings.s50;
+                document.getElementById('t-rientro').value = res.settings.rientro;
+                document.getElementById('t-pernotto').value = res.settings.pernotto;
+                document.getElementById('t-estero').value = res.settings.estero;
+            }
+
+            renderTabella();
+            setSyncState('success', 'Sincronizzato');
+        } catch(e) { 
+            console.error(e);
+            setSyncState('error', 'Errore Cloud'); 
+        }
+    }
+
+    function renderTabella() {
+        const filtro = document.getElementById('mese-calcolo').value;
+        const filteredData = dati.filter(d => d.data.startsWith(filtro));
+        
+        // Lettura tariffe attuali (scaricate o inserite)
+        const T_BASE = parseFloat(document.getElementById('t-base').value) || 0;
+        const T_25 = parseFloat(document.getElementById('t-25').value) || 0;
+        const T_50 = parseFloat(document.getElementById('t-50').value) || 0;
+        const T_RIEN = parseFloat(document.getElementById('t-rientro').value) || 0;
+        const T_PERN = parseFloat(document.getElementById('t-pernotto').value) || 0;
+        const T_EST = parseFloat(document.getElementById('t-estero').value) || 0;
+
+        let somme = { extra: 0, ind: 0 };
+
+        document.getElementById('registro-body').innerHTML = filteredData.map(d => {
+            const h = parseFloat(d.ore) || 0;
+            const dObj = new Date(d.data);
+            const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
+            let ex = isWE ? h : Math.max(0, h-8);
+            
+            // Calcolo economico
+            somme.extra += isWE ? (ex * T_50) : (ex * T_25);
+            if(d.tipo === "Trasferta Rientro") somme.ind += T_RIEN;
+            else if(d.tipo === "Trasferta Pernotto") somme.ind += T_PERN;
+            else if(d.tipo === "Trasferta Estero") somme.ind += T_EST;
+
+            let bClass = "bg-sede";
+            if(d.tipo.includes("Trasferta")) bClass = "bg-trasf";
+            if(d.tipo.includes("Estero")) bClass = "bg-estero";
+            if(["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
+
+            return `<tr>
+                <td><b>${d.data.split('-')[2]}/${d.data.split('-')[1]}</b></td>
+                <td><span class="badge ${bClass}">${d.tipo}</span><br><small>${d.luogo || '-'}</small></td>
+                <td style="text-align:right;">${h.toFixed(2)}H</td>
+            </tr>`;
+        }).join('');
+
+        const lordo = T_BASE + somme.extra + somme.ind;
+        document.getElementById('val-lordo').textContent = `€ ${lordo.toFixed(2)}`;
+        document.getElementById('val-netto').textContent = `€ ${(lordo * 0.76).toFixed(2)}`;
+        document.getElementById('calc-base').textContent = `€ ${T_BASE.toFixed(2)}`;
+        document.getElementById('calc-extra').textContent = `€ ${somme.extra.toFixed(2)}`;
+        document.getElementById('calc-ind').textContent = `€ ${somme.ind.toFixed(2)}`;
+    }
+
+    async function salva() {
+        const btn = document.getElementById('btn-save');
+        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
+        if(!tipo) return alert("Seleziona attività");
+        
+        btn.disabled = true;
+        setSyncState('working', 'Invio Report...');
+        
+        const rec = {
+            id: Date.now().toString(), tipo,
+            luogo: document.getElementById('luogo').value,
+            data: document.getElementById('data').value,
+            inizio: document.getElementById('ora-inizio').value,
+            fine: document.getElementById('ora-fine').value,
+            ore: document.getElementById('prev-tot').textContent,
+            note: document.getElementById('note').value
+        };
+
+        try {
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
+            setSyncState('success', 'Report Salvato');
+            fetchData();
+            document.getElementById('note').value = "";
+        } catch(e) { setSyncState('error', 'Errore'); }
+        btn.disabled = false;
+    }
+
+    async function salvaTariffe() {
+        const btn = document.getElementById('btn-save-settings');
+        const config = {
+            azione: "config_tariffe",
+            base: document.getElementById('t-base').value,
+            s25: document.getElementById('t-25').value,
+            s50: document.getElementById('t-50').value,
+            rientro: document.getElementById('t-rientro').value,
+            pernotto: document.getElementById('t-pernotto').value,
+            estero: document.getElementById('t-estero').value
+        };
+        btn.disabled = true;
+        setSyncState('working', 'Sincronizzo Tariffe...');
+        try {
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(config) });
+            setSyncState('success', 'Tariffe Cloud OK');
+            renderTabella();
+            alert("Tariffe salvate sul Cloud con successo!");
+        } catch(e) { setSyncState('error', 'Errore Cloud'); }
+        btn.disabled = false;
     }
 
     function logicModalita() {
@@ -225,102 +358,6 @@
         const dataObj = new Date(d);
         const isWE = (dataObj.getDay() === 0 || dataObj.getDay() === 6);
         document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
-    }
-
-    function toggleSection(id, el) {
-        const c = document.getElementById(id);
-        const isOpen = c.style.display === 'block';
-        c.style.display = isOpen ? 'none' : 'block';
-        el.classList.toggle('open', !isOpen);
-    }
-
-    async function fetchData() {
-        setSyncState('working', 'Sincronizzazione...');
-        try {
-            const r = await fetch(WEB_APP_URL);
-            const res = await r.json();
-            dati = res.data || [];
-            renderTabella();
-            setSyncState('success', 'Sincronizzato');
-        } catch(e) { setSyncState('error', 'Errore'); }
-    }
-
-    function renderTabella() {
-        const filtro = document.getElementById('mese-calcolo').value;
-        const filteredData = dati.filter(d => d.data.startsWith(filtro));
-        
-        const T_BASE = parseFloat(document.getElementById('t-base').value) || 0;
-        const T_25 = parseFloat(document.getElementById('t-25').value) || 0;
-        const T_50 = parseFloat(document.getElementById('t-50').value) || 0;
-        const T_RIEN = parseFloat(document.getElementById('t-rientro').value) || 0;
-        const T_PERN = parseFloat(document.getElementById('t-pernotto').value) || 0;
-        const T_EST = parseFloat(document.getElementById('t-estero').value) || 0;
-
-        let somme = { extra: 0, ind: 0 };
-
-        document.getElementById('registro-body').innerHTML = filteredData.map(d => {
-            const h = parseFloat(d.ore) || 0;
-            const dObj = new Date(d.data);
-            const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
-            let ex = isWE ? h : Math.max(0, h-8);
-            
-            somme.extra += isWE ? (ex * T_50) : (ex * T_25);
-            if(d.tipo === "Trasferta Rientro") somme.ind += T_RIEN;
-            else if(d.tipo === "Trasferta Pernotto") somme.ind += T_PERN;
-            else if(d.tipo === "Trasferta Estero") somme.ind += T_EST;
-
-            return `<tr><td>${d.data.split('-')[2]}/${d.data.split('-')[1]}</td><td><span class="badge bg-sede">${d.tipo}</span><br><small>${d.luogo}</small></td><td style="text-align:right;">${h.toFixed(2)}H</td></tr>`;
-        }).join('');
-
-        const lordo = T_BASE + somme.extra + somme.ind;
-        document.getElementById('val-lordo').textContent = `€ ${lordo.toFixed(2)}`;
-        document.getElementById('val-netto').textContent = `€ ${(lordo * 0.76).toFixed(2)}`;
-        document.getElementById('calc-base').textContent = `€ ${T_BASE.toFixed(2)}`;
-        document.getElementById('calc-extra').textContent = `€ ${somme.extra.toFixed(2)}`;
-        document.getElementById('calc-ind').textContent = `€ ${somme.ind.toFixed(2)}`;
-    }
-
-    async function salva() {
-        const btn = document.getElementById('btn-save');
-        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
-        if(!tipo) return alert("Seleziona attività");
-        
-        btn.disabled = true;
-        setSyncState('working', 'Salvataggio...');
-        
-        const rec = {
-            id: Date.now().toString(), tipo,
-            luogo: document.getElementById('luogo').value,
-            data: document.getElementById('data').value,
-            inizio: document.getElementById('ora-inizio').value,
-            fine: document.getElementById('ora-fine').value,
-            ore: document.getElementById('prev-tot').textContent,
-            note: document.getElementById('note').value
-        };
-
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-            setSyncState('success', 'Salvato');
-            fetchData();
-            document.getElementById('note').value = "";
-        } catch(e) { setSyncState('error', 'Errore'); }
-        btn.disabled = false;
-    }
-
-    async function salvaTariffe() {
-        const config = {
-            azione: "config_tariffe",
-            base: document.getElementById('t-base').value,
-            s25: document.getElementById('t-25').value,
-            s50: document.getElementById('t-50').value,
-            rientro: document.getElementById('t-rientro').value,
-            pernotto: document.getElementById('t-pernotto').value,
-            estero: document.getElementById('t-estero').value
-        };
-        setSyncState('working', 'Invio Tariffe...');
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(config) });
-        setSyncState('success', 'Config salvata');
-        renderTabella();
     }
 
     function setSyncState(s, t) {
