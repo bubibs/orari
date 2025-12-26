@@ -6,13 +6,25 @@
     <title>TECNOSISTEM - Pro Log</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* TEMA CHIARO (Default) */
         :root { 
             --primary: #007AFF; --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; 
             --success: #34C759; --danger: #FF3B30; --warning: #FF9500; --radius: 14px; 
             --accent: linear-gradient(135deg, #007AFF 0%, #0051a8 100%);
+            --subtext: #8E8E93; --border: #D1D1D6; --input-bg: #FFFFFF;
         }
+
+        /* TEMA SCURO (Automatico Night Shift) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000; --card: #1C1C1E; --text: #FFFFFF;
+                --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E;
+                --warning: #FFD60A;
+            }
+        }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 60px; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 60px; transition: background 0.3s; }
         .container { max-width: 500px; margin: 0 auto; }
         
         header { text-align: center; margin-bottom: 25px; }
@@ -23,49 +35,53 @@
 
         #loading-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.6); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px);
         }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         h2 { font-size: 17px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; cursor: pointer; justify-content: space-between; }
         
         .form-group { margin-bottom: 14px; }
-        label { display: block; font-size: 12px; font-weight: 700; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; }
+        label { display: block; font-size: 12px; font-weight: 700; color: var(--subtext); margin-bottom: 6px; text-transform: uppercase; }
         
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 12px; font-size: 18px; height: 52px; color: var(--text); background: #FFF; -webkit-appearance: none; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 18px; height: 52px; color: var(--text); background: var(--input-bg); -webkit-appearance: none; }
         textarea { height: 90px; padding-top: 12px; }
         
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: #F9F9F9; padding: 12px 14px; border-radius: 12px; border: 1px solid #D1D1D6; height: 52px; cursor: pointer; }
+        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); height: 52px; cursor: pointer; }
         
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
-        .stat-box { background: #F2F2F7; padding: 12px; border-radius: 12px; text-align: center; }
-        .stat-label { font-size: 11px; font-weight: 700; color: #8E8E93; text-transform: uppercase; }
+        .stat-box { background: var(--bg); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
+        .stat-label { font-size: 11px; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
         .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
         .stat-val.extra { color: var(--warning); }
 
         .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
 
-        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F2F2F7; font-size: 15px; }
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
         #registro-content, #riepilogo-content { display: none; margin-top: 10px; }
         .chevron { transition: 0.3s; }
         .open .chevron { transform: rotate(180deg); }
 
         table { width: 100%; border-collapse: collapse; }
-        tr { border-bottom: 1px solid #F2F2F7; }
+        tr { border-bottom: 1px solid var(--border); }
         td { padding: 14px 2px; vertical-align: middle; }
         .item-data { font-weight: 800; font-size: 13px; display: block; }
-        .item-orario { color: #8E8E93; font-size: 11px; display: block; }
+        .item-orario { color: var(--subtext); font-size: 11px; display: block; }
         .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; width: 100%; text-align: center; }
+        
         .bg-sede { background: #E1F5FE; color: #0288D1; } .bg-rientro { background: #FFF3E0; color: #EF6C00; } .bg-pernotto { background: #F3E5F5; color: #7B1FA2; } .bg-estero { background: #E8F5E9; color: #2E7D32; } .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
         .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-        .ore-val-tab { font-size: 14px; font-weight: 800; min-width: 45px; text-align: right; }
+        .ore-col-tab { display: flex; flex-direction: column; align-items: flex-end; min-width: 50px; }
+        .ore-val-tab { font-size: 14px; font-weight: 800; }
+        .ore-extra-tab { font-size: 10px; font-weight: 700; color: var(--warning); margin-top: -2px; }
+        
         .actions-row { display: flex; gap: 5px; }
-        .btn-icon { border: none; background: none; font-size: 19px; padding: 4px; cursor: pointer; }
+        .btn-icon { border: none; background: none; font-size: 19px; padding: 4px; cursor: pointer; color: var(--primary); }
 
         .switch { position: relative; width: 46px; height: 26px; pointer-events: none; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -79,13 +95,13 @@
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <p id="loading-text" style="margin-top:10px; font-weight:700; color:var(--primary);">Operazione...</p>
+    <p id="loading-text" style="margin-top:10px; font-weight:700; color:white;">Operazione...</p>
 </div>
 
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
-        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Sincronizzazione...</div>
+        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Cloud Sync...</div>
     </header>
 
     <div class="card">
@@ -155,7 +171,7 @@
 
         <div class="form-group">
             <label>Note Intervento</label>
-            <textarea id="note" placeholder="Note facoltative..."></textarea>
+            <textarea id="note" placeholder="Inserisci qui eventuali note..."></textarea>
         </div>
 
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA NEL CLOUD</button>
@@ -244,6 +260,12 @@
         aggiornaPreview();
     }
 
+    function calcolaStraordinarie(data, oreTot) {
+        const day = new Date(data).getDay(); // 0 Dom, 6 Sab
+        if (day === 0 || day === 6) return oreTot;
+        return oreTot > 8 ? oreTot - 8 : 0;
+    }
+
     function aggiornaPreview() {
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
@@ -256,14 +278,7 @@
         if (document.getElementById('pausa').checked) min -= 60;
         
         let oreTot = Math.max(0, min/60);
-        let oreExtra = 0;
-
-        const day = new Date(dVal).getDay(); // 0 Dom, 6 Sab
-        if (day === 0 || day === 6) {
-            oreExtra = oreTot;
-        } else if (oreTot > 8) {
-            oreExtra = oreTot - 8;
-        }
+        let oreExtra = calcolaStraordinarie(dVal, oreTot);
 
         document.getElementById('ore-tot').textContent = oreTot.toFixed(2);
         document.getElementById('ore-extra').textContent = oreExtra.toFixed(2);
@@ -324,7 +339,7 @@
     }
 
     async function elimina(index) {
-        if (!confirm("Eliminare?")) return;
+        if (!confirm("Vuoi eliminare questo report?")) return;
         showLoading("Eliminazione...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[index].id.toString() }) });
@@ -339,6 +354,9 @@
             const dObj = new Date(d.data);
             const dFmt = dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
             const badgeCls = d.tipo === "In Sede" ? "bg-sede" : d.categoria === "lavoro" ? "bg-rientro" : "bg-assenza";
+            const oreT = parseFloat(d.ore);
+            const oreE = calcolaStraordinarie(d.data, oreT);
+
             return `
                 <tr>
                     <td style="width:38%">
@@ -349,9 +367,12 @@
                     <td style="width:28%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
                     <td style="width:34%">
                         <div class="result-cell">
-                            <span class="ore-val-tab">${d.ore}h</span>
+                            <div class="ore-col-tab">
+                                <span class="ore-val-tab">${oreT.toFixed(2)}h</span>
+                                ${oreE > 0 ? `<span class="ore-extra-tab">+${oreE.toFixed(2)}</span>` : ''}
+                            </div>
                             <div class="actions-row">
-                                <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit" style="color:var(--primary)"></i></button>
+                                <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
                                 <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash" style="color:var(--danger)"></i></button>
                             </div>
                         </div>
