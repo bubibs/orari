@@ -17,34 +17,32 @@
             :root {
                 --bg: #000000; --card: #1C1C1E; --text: #FFFFFF;
                 --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E;
-                --warning: #FFD60A;
             }
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 60px; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
         
         header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
+        #daily-quote { font-size: 12px; font-style: italic; color: var(--subtext); margin-top: 5px; }
         
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; }
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; }
         .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; }
+        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
         
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
         
-        /* INPUT UNIFORMATI */
-        input, select, textarea { 
+        /* DIMENSIONI UNIFICATE PER TUTTI GLI INPUT */
+        input, select { 
             width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; 
             font-size: 16px; height: 50px; color: var(--text); background: var(--input-bg);
-            text-transform: uppercase; /* Forza maiuscolo visivo */
         }
-        
-        /* TOGGLE PAUSA MENSA */
+
         .pause-container {
             display: flex; align-items: center; justify-content: space-between;
             background: var(--bg); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px;
@@ -60,40 +58,19 @@
         .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
 
         .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
-        .saving-active { animation: pulse 1s infinite; opacity: 0.7; pointer-events: none; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(0.98); } 100% { transform: scale(1); } }
-
-        /* RIEPILOGO */
-        .day-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .day-stat-card { background: var(--bg); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-        .day-stat-count { font-size: 18px; font-weight: 800; color: var(--primary); }
-        .day-stat-label { font-size: 10px; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
-
-        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         
-        #registro-content, #riepilogo-content, #payroll-content { display: none; margin-top: 10px; }
-        .chevron { transition: 0.3s; font-size: 12px; }
-        .open .chevron { transform: rotate(180deg); }
-
-        /* TABELLA STORICO */
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 2px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        td { padding: 12px 2px; border-bottom: 1px solid var(--border); }
         .actions-cell { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon { border: none; background: #f0f0f5; font-size: 16px; padding: 10px; border-radius: 10px; cursor: pointer; }
-        
-        #loading-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px);
-        }
+        .btn-icon { border: none; background: #f0f0f5; font-size: 16px; padding: 8px; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay"><div style="width:40px;height:40px;border:4px solid #fff;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div></div>
-
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
+        <div id="daily-quote">"L'unico modo per fare un ottimo lavoro è amare quello che fai."</div>
         <div id="sync-indicator"></div>
     </header>
 
@@ -151,19 +128,18 @@
 
     <div class="card">
         <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo</span><i class="fas fa-chevron-down chevron"></i></h2>
-        <div id="riepilogo-content">
+        <div id="riepilogo-content" style="display:none;">
             <div class="form-group">
                 <label>Seleziona Mese</label>
                 <input type="month" id="filtro-mese" onchange="refreshAll()">
             </div>
-            <div id="day-stats" class="day-grid"></div>
-            <div id="summary-list" style="margin-top:15px;"></div>
+            <div id="summary-list"></div>
         </div>
     </div>
 
     <div class="card">
         <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico Online</span><i class="fas fa-chevron-down chevron"></i></h2>
-        <div id="registro-content">
+        <div id="registro-content" style="display:none;">
             <table><tbody id="registro-body"></tbody></table>
         </div>
     </div>
@@ -172,7 +148,6 @@
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
     let dati = [];
-    let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
@@ -193,17 +168,9 @@
         });
     }
 
-    function toggleSection(id, el) {
-        const c = document.getElementById(id);
-        const open = c.style.display === 'block';
-        c.style.display = open ? 'none' : 'block';
-        el.classList.toggle('open', !open);
-    }
-
     function logicModalita() {
         const val = document.getElementById('modalita').value;
         if(val) document.getElementById('assenza').value = "";
-        
         if(val === "In Sede") {
             document.getElementById('luogo').value = "TECNOSISTEM";
             document.getElementById('ora-inizio').value = "08:00";
@@ -222,19 +189,18 @@
     }
 
     function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, d = document.getElementById('data').value;
-        if(!s || !e || !d) return;
+        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value;
+        if(!s || !e) return;
         const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
         let ore = Math.max(0, ((h2*60+m2)-(h1*60+m1))/60);
-        
         if(document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
-
-        const dataObj = new Date(d);
-        const isWE = (dataObj.getDay() === 0 || dataObj.getDay() === 6);
-        let extra = isWE ? ore : Math.max(0, ore - 8);
-
         document.getElementById('prev-tot').textContent = ore.toFixed(2);
-        document.getElementById('prev-extra').textContent = extra.toFixed(2);
+        document.getElementById('prev-extra').textContent = Math.max(0, ore - 8).toFixed(2);
+    }
+
+    function toggleSection(id, el) {
+        const c = document.getElementById(id);
+        c.style.display = (c.style.display === 'block') ? 'none' : 'block';
     }
 
     async function fetchData() {
@@ -245,69 +211,41 @@
             dati = res.data || [];
             refreshAll();
             setSyncState('success', 'Sincronizzato');
-        } catch(e) { setSyncState('error', 'Errore Cloud'); }
+        } catch(e) { setSyncState('error', 'Errore'); }
     }
 
     function refreshAll() {
-        renderRiepilogo();
         renderTabella();
-    }
-
-    function renderRiepilogo() {
-        const filtro = document.getElementById('filtro-mese').value;
-        const stats = { giorni: {}, oreOrd: 0, oreEx: 0 };
-        dati.filter(d => d.data.startsWith(filtro)).forEach(d => {
-            const h = parseFloat(d.ore);
-            const dObj = new Date(d.data);
-            const isWE = (dObj.getDay() === 0 || dObj.getDay() === 6);
-            stats.giorni[d.tipo] = (stats.giorni[d.tipo] || 0) + 1;
-            if(isWE) stats.oreEx += h; else { stats.oreOrd += Math.min(8, h); stats.oreEx += Math.max(0, h-8); }
-        });
-        document.getElementById('day-stats').innerHTML = Object.entries(stats.giorni).map(([tipo, count]) => `
-            <div class="day-stat-card"><span class="day-stat-label">${tipo}</span><span class="day-stat-count">${count}</span></div>
-        `).join('');
-        document.getElementById('summary-list').innerHTML = `
-            <div class="summary-item"><span>ORDNARIE</span><span>${stats.oreOrd.toFixed(2)}H</span></div>
-            <div class="summary-item"><span>STRAORDINARIE</span><span style="color:var(--warning); font-weight:800;">${stats.oreEx.toFixed(2)}H</span></div>
-        `;
     }
 
     function renderTabella() {
         document.getElementById('registro-body').innerHTML = dati.map((d, i) => `
             <tr>
-                <td style="font-size:12px; font-weight:800;">${new Date(d.data).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'})}</td>
-                <td style="font-size:10px; font-weight:700;">${d.tipo.toUpperCase()}</td>
-                <td style="text-align:right; font-weight:800; color:var(--primary);">${d.ore}H</td>
+                <td style="font-size:12px; font-weight:800;">${new Date(d.data).toLocaleDateString('it-IT')}</td>
+                <td style="font-size:11px;">${d.tipo.toUpperCase()}</td>
+                <td style="text-align:right; font-weight:800;">${d.ore}H</td>
                 <td><div class="actions-cell">
-                    <button class="btn-icon" style="color:var(--primary)" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
-                    <button class="btn-icon" style="color:var(--danger)" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
+                    <button class="btn-icon" style="color:var(--primary)"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
                 </div></td>
             </tr>
         `).join('');
     }
 
     async function salva() {
-        const btn = document.getElementById('btn-save');
-        btn.classList.add('saving-active');
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
         if(!tipo) return alert("Seleziona attività");
-        
         const rec = {
-            id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
-            tipo, categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
-            luogo: document.getElementById('luogo').value, data: document.getElementById('data').value,
-            inizio: document.getElementById('ora-inizio').value, fine: document.getElementById('ora-fine').value,
+            id: Date.now().toString(),
+            tipo,
+            luogo: document.getElementById('luogo').value,
+            data: document.getElementById('data').value,
+            inizio: document.getElementById('ora-inizio').value,
+            fine: document.getElementById('ora-fine').value,
             ore: document.getElementById('prev-tot').textContent
         };
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-        btn.classList.remove('saving-active');
-        resetForm(); setTimeout(fetchData, 1000);
-    }
-
-    function resetForm() {
-        editIndex = -1; document.getElementById('modalita').value=""; document.getElementById('assenza').value="";
-        document.getElementById('luogo').value=""; document.getElementById('pausa-mensa').checked=false;
-        document.getElementById('btn-save').textContent="REGISTRA REPORT"; aggiornaPreview();
+        fetchData();
     }
 
     function setSyncState(s, t) {
