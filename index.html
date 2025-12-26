@@ -17,7 +17,11 @@
 
     <div class="card">
         <h2><span><i class="fas fa-plus"></i> Inserimento Report</span></h2>
-        <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
+        
+        <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="data" onchange="aggiornaPreview()">
+        </div>
         
         <div class="row-2">
             <div class="form-group">
@@ -42,13 +46,22 @@
         </div>
 
         <div class="row-2">
-            <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
-            <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
+            <div class="form-group">
+                <label>Inizio</label>
+                <select id="ora-inizio" onchange="aggiornaPreview()"></select>
+            </div>
+            <div class="form-group">
+                <label>Fine</label>
+                <select id="ora-fine" onchange="aggiornaPreview()"></select>
+            </div>
         </div>
 
         <div class="pause-container">
-            <span style="font-size: 14px; font-weight: 700;"><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
-            <label class="switch"><input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()"><span class="slider"></span></label>
+            <span><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
+            <label class="switch">
+                <input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()">
+                <span class="slider"></span>
+            </label>
         </div>
 
         <div class="form-group">
@@ -57,11 +70,20 @@
             <datalist id="lista-luoghi"></datalist>
         </div>
 
-        <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
+        <div class="form-group">
+            <label>Note</label>
+            <textarea id="note" rows="2" placeholder="Dettagli intervento..."></textarea>
+        </div>
         
         <div class="row-2">
-            <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" class="preview-val">0.00</div></div>
-            <div class="box-preview"><label>Extra</label><div id="prev-extra" class="preview-val" style="color:var(--warning)">0.00</div></div>
+            <div class="box-preview">
+                <label>Ore Totali</label>
+                <div id="prev-tot" class="val">0.00</div>
+            </div>
+            <div class="box-preview">
+                <label>Extra</label>
+                <div id="prev-extra" class="val warning">0.00</div>
+            </div>
         </div>
         
         <button class="btn-main" id="btn-save" onclick="salva()">
@@ -76,44 +98,17 @@
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="calcolo-content" style="display:none;">
-            <div class="form-group"><label>Mese di Analisi</label><input type="month" id="mese-calcolo" onchange="renderTabella()"></div>
+            <input type="month" id="mese-calcolo" onchange="renderTabella()">
             <div class="money-grid">
                 <div class="money-box">
-                    <div class="money-label">Lordo Mensile</div>
-                    <div id="val-lordo" class="money-val">€ 0.00</div>
+                    <span class="m-label">Lordo</span>
+                    <div id="val-lordo" class="m-val">€ 0.00</div>
                 </div>
                 <div class="money-box highlight">
-                    <div class="money-label">Netto Stima</div>
-                    <div id="val-netto" class="money-val">€ 0.00</div>
+                    <span class="m-label">Netto Stima</span>
+                    <div id="val-netto" class="m-val">€ 0.00</div>
                 </div>
             </div>
-            <div class="details-list">
-                <div class="detail-row"><span>PAGA BASE:</span><span id="calc-base">€ 0.00</span></div>
-                <div class="detail-row"><span>STRAORDINARI:</span><span id="calc-extra">€ 0.00</span></div>
-                <div class="detail-row"><span>INDENNITÀ:</span><span id="calc-ind">€ 0.00</span></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2 onclick="toggleSection('settings-content', this)">
-            <span><i class="fas fa-cog"></i> Tariffe Cloud</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
-        <div id="settings-content" style="display:none;">
-            <div class="form-group"><label>Paga Base (€)</label><input type="number" id="t-base"></div>
-            <div class="row-2">
-                <div class="form-group"><label>S. 25% (€/h)</label><input type="number" id="t-25"></div>
-                <div class="form-group"><label>S. 50% (€/h)</label><input type="number" id="t-50"></div>
-            </div>
-            <button class="btn-main btn-success" id="btn-save-settings" onclick="salvaTariffe()">AGGIORNA CLOUD</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico Online</span><i class="fas fa-chevron-down chevron"></i></h2>
-        <div id="registro-content" style="display:none;">
-            <table><tbody id="registro-body"></tbody></table>
         </div>
     </div>
 </div>
