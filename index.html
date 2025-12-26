@@ -738,37 +738,33 @@
     
     <hr>
     
-    <h2><i class="fas fa-file-export"></i> Esporta e gestisci i dati</h2>
-    
-    <div class="form-group" style="margin-top: 20px;">
-        <label>Esporta un periodo specifico:</label>
-        <div class="export-options-container">
-            <select id="export-year">
-                <option value="">Seleziona Anno</option>
-            </select>
-            <div class="multiselect-dropdown" id="multiselect-month-container">
-                <div class="multiselect-selected">Seleziona Mese(i)</div>
-                <div class="multiselect-options" id="multiselect-month-options"></div>
-            </div>
+ <h2><i class="fas fa-file-export"></i> Esporta e gestisci i dati</h2>
+
+<div class="form-group" style="margin-top: 20px;">
+    <label>Esporta un periodo specifico:</label>
+    <div class="export-options-container">
+        <select id="export-year">
+            <option value="">Seleziona Anno</option>
+        </select>
+        <div class="multiselect-dropdown" id="multiselect-month-container">
+            <div class="multiselect-selected">Seleziona Mese(i)</div>
+            <div class="multiselect-options" id="multiselect-month-options"></div>
         </div>
     </div>
-    <div class="button-group-responsive">
-        <button id="export-selected-btn" class="btn btn-green"><i class="fas fa-file-csv"></i> Esporta in CSV</button>
-        <button id="export-selected-pdf-btn" class="btn btn-pdf"><i class="fas fa-file-pdf"></i> Esporta in PDF</button>
-    </div>
-    <div class="button-group-responsive">
-        <button id="export-all-btn" class="btn btn-green"><i class="fas fa-file-csv"></i> Esporta tutto in CSV</button>
-        <button id="export-pdf-btn" class="btn btn-pdf"><i class="fas fa-file-pdf"></i> Esporta tutto in PDF</button>
-    </div>
-    
-    <div class="button-group-responsive" style="margin-top: 20px;">
-        <button id="export-data-btn" class="btn btn-backup"><i class="fas fa-download"></i> Crea Backup Locale</button>
-        <button id="import-data-btn" class="btn btn-backup"><i class="fas fa-upload"></i> Importa Backup Locale</button>
-        <input type="file" id="import-file" accept=".json" style="display: none;">
-    </div>
-    
 </div>
 
+<div class="form-group" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
+    <label><i class="fas fa-sync"></i> Sincronizzazione Cloud:</label>
+    <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">
+        Usa questo tasto su un nuovo dispositivo per recuperare tutti i dati salvati su Google Sheets.
+    </p>
+    <div class="button-group-responsive">
+        <button id="import-cloud-btn" class="btn btn-backup" style="background-color: #28a745;">
+            <i class="fas fa-cloud-download-alt"></i> Importa dati dal Cloud
+        </button>
+    </div>
+    <div id="cloud-status-msg" style="margin-top: 10px; font-weight: bold; font-size: 0.9em;"></div>
+</div>
 <div id="notification"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1143,21 +1139,21 @@
     }
 
  function deleteEntry(index) {
-    if (confirm('Sei sicuro di voler eliminare questo record?')) {
-        const entryToDelete = registerData[index]; // Prendiamo i dati prima di eliminarli dal locale
+    if (confirm('Sei sicuro di voler eliminare questo record? Verrà rimosso anche da Google Sheets.')) {
+        const entryToDelete = registerData[index];
 
-        // 1. Eliminazione locale (quella che hai già)
+        // 1. Eliminazione locale immediata
         registerData.splice(index, 1);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
         renderAllData();
         showNotification('Record eliminato localmente', 'info');
 
-        // 2. Eliminazione dal Cloud
-        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
+        // 2. Eliminazione dal Cloud (Google Sheets)
+        if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== '' && GOOGLE_SCRIPT_URL !== 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'cors',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                mode: 'no-cors', // Usiamo no-cors per evitare blocchi di sicurezza durante l'invio
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'delete',
                     date: entryToDelete.date,
@@ -1165,19 +1161,16 @@
                     endTime: entryToDelete.endTime
                 })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.result === 'deleted') {
-                    showNotification('Eliminato anche da Google Sheets!', 'success');
-                } else {
-                    console.log("Riga non trovata sul cloud o già eliminata.");
-                }
+            .then(() => {
+                showNotification('Richiesta di eliminazione cloud inviata!', 'success');
             })
-            .catch(err => console.error('Errore durante eliminazione cloud:', err));
+            .catch(err => {
+                console.error('Errore eliminazione cloud:', err);
+                showNotification('Errore durante l\'eliminazione cloud', 'error');
+            });
         }
     }
 }
-
     function editEntry(id) {
         const entryToEdit = registerData.find(entry => entry.id === id);
         if (entryToEdit) {
@@ -1963,10 +1956,50 @@
         calculateHours();
     }
     initialize();
+    async function importFromCloud() {
+    const statusMsg = document.getElementById('cloud-status-msg');
+    
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
+        showNotification('Configura prima l\'URL di Google Script!', 'error');
+        return;
+    }
+
+    if (!confirm('Questa operazione caricherà tutti i dati dal Cloud e sovrascriverà quelli attuali su questo dispositivo. Continuare?')) return;
+
+    statusMsg.innerHTML = '<span style="color: #007bff;"><i class="fas fa-spinner fa-spin"></i> Collegamento al Cloud in corso...</span>';
+
+    try {
+        // Effettua una chiamata GET al tuo script
+        const response = await fetch(GOOGLE_SCRIPT_URL);
+        const cloudData = await response.json();
+
+        if (Array.isArray(cloudData) && cloudData.length > 0) {
+            // Aggiorna il database locale
+            registerData = cloudData;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
+            
+            // Ricarica la tabella e i grafici
+            renderAllData();
+            
+            statusMsg.innerHTML = '<span style="color: #28a745;"><i class="fas fa-check-circle"></i> Importazione completata! ' + cloudData.length + ' record caricati.</span>';
+            showNotification('Dati sincronizzati dal Cloud!', 'success');
+        } else {
+            statusMsg.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-times-circle"></i> Nessun dato trovato sul Cloud.</span>';
+        }
+    } catch (error) {
+        console.error('Errore importazione:', error);
+        statusMsg.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> Errore di connessione al Cloud.</span>';
+        showNotification('Errore durante l\'importazione.', 'error');
+    }
+}
+
+// Collega il pulsante alla funzione
+document.getElementById('import-cloud-btn').addEventListener('click', importFromCloud);
 </script>
 
 </body>
 </html>
+
 
 
 
