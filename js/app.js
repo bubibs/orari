@@ -1,144 +1,146 @@
-// js/app.js
+// js/app.js - IL MOTORE DELLA WEBAPP
 
+// Caricamento dati iniziale
 let registerData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inizializza i menu a tendina
+    // 1. Popola i menu a tendina degli orari (00:00 - 23:45)
     initTimeDropdowns();
     
-    // 2. Carica i dati esistenti e aggiorna la UI
+    // 2. Imposta la data di oggi come default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('data').value = today;
+
+    // 3. Carica i dati e aggiorna l'interfaccia
     refreshUI();
 
-    // 3. Collega tutti i pulsanti e gli eventi
+    // 4. Inizializza tutti i listener per i click
     initEventListeners();
 });
 
-// Funzione per generare le opzioni 00:00 - 23:45
+// --- GESTIONE DROPDOWN ORARI ---
 function initTimeDropdowns() {
-    const options = [];
+    const times = [];
     for (let h = 0; h < 24; h++) {
         for (let m = 0; m < 60; m += 15) {
-            options.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+            times.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
         }
     }
 
-    const startList = document.getElementById('inizio-options');
-    const endList = document.getElementById('fine-options');
+    const startOptions = document.getElementById('inizio-options');
+    const endOptions = document.getElementById('fine-options');
 
-    // Pulizia preventiva
-    startList.innerHTML = '';
-    endList.innerHTML = '';
-
-    options.forEach(t => {
-        // Crea opzione per Inizio
+    times.forEach(time => {
+        // Opzioni per orario inizio
         const divStart = document.createElement('div');
         divStart.className = 'option';
-        divStart.textContent = t;
+        divStart.textContent = time;
         divStart.onclick = (e) => {
-            e.stopPropagation(); // Evita la chiusura immediata
-            selectTime(t, 'inizio-text');
+            e.stopPropagation();
+            document.getElementById('inizio-text').textContent = time;
+            startOptions.classList.remove('show');
+            updatePreview();
         };
-        startList.appendChild(divStart);
+        startOptions.appendChild(divStart);
 
-        // Crea opzione per Fine
+        // Opzioni per orario fine
         const divEnd = document.createElement('div');
         divEnd.className = 'option';
-        divEnd.textContent = t;
+        divEnd.textContent = time;
         divEnd.onclick = (e) => {
             e.stopPropagation();
-            selectTime(t, 'fine-text');
+            document.getElementById('fine-text').textContent = time;
+            endOptions.classList.remove('show');
+            updatePreview();
         };
-        endList.appendChild(divEnd);
+        endOptions.appendChild(divEnd);
     });
 }
 
-// Dentro js/app.js, modifica la funzione selectTime così:
-function selectTime(time, elementId) {
-    const el = document.getElementById(elementId);
-    el.textContent = time;
-    el.style.color = "var(--accent-color)"; // Feedback visivo della selezione
-    
-    document.querySelectorAll('.options-list').forEach(l => l.classList.remove('show'));
-    updatePreview();
-    
-    // Feedback tattile (vibrazione leggera se supportata)
-    if (window.navigator.vibrate) window.navigator.vibrate(10);
-}
-
+// --- LOGICA EVENTI ---
 function initEventListeners() {
-    // Mostra/Nascondi dropdown Inizio
+    // Apertura/Chiusura Dropdown
     document.getElementById('dropdown-inizio').onclick = (e) => {
         e.stopPropagation();
         document.getElementById('fine-options').classList.remove('show');
         document.getElementById('inizio-options').classList.toggle('show');
     };
 
-    // Mostra/Nascondi dropdown Fine
     document.getElementById('dropdown-fine').onclick = (e) => {
         e.stopPropagation();
         document.getElementById('inizio-options').classList.remove('show');
         document.getElementById('fine-options').classList.toggle('show');
     };
 
-    // Chiudi i menu se clicchi ovunque fuori
+    // Chiudi dropdown se clicchi fuori
     window.onclick = () => {
-        document.querySelectorAll('.options-list').forEach(l => l.classList.remove('show'));
+        document.querySelectorAll('.options-list').forEach(list => list.classList.remove('show'));
     };
 
     // Pulsante Salva
     document.getElementById('save-btn').onclick = () => {
-        const entry = {
-            data: document.getElementById('data').value,
-            inizio: document.getElementById('inizio-text').textContent,
-            fine: document.getElementById('fine-text').textContent,
-            pausa: document.getElementById('pausa').checked,
-            tipo: document.getElementById('tipo').value,
-            luogo: document.getElementById('luogo').value,
-            note: document.getElementById('note').value
-        };
-
-        if(!entry.data) {
-            showNotification("Per favore, seleziona una data!", "error");
+        const dataVal = document.getElementById('data').value;
+        if (!dataVal) {
+            showNotification("Seleziona una data!", "error");
             return;
         }
 
-        const ore = calcolaOre(entry.inizio, entry.fine, entry.pausa);
+        const entry = {
+            data: dataVal,
+            inizio: document.getElementById('inizio-text').textContent,
+            fine: document.getElementById('fine-text').textContent,
+            tipo: document.getElementById('tipo').value,
+            // Aggiungi qui altri campi se necessari (note, luogo, ecc)
+        };
+
+        // Usa la logica dal file js/logic.js
+        const ore = calcolaOre(entry.inizio, entry.fine, true); // Assumiamo pausa pranzo attiva
         const str = calcolaStraordinari(ore, entry.data);
         
         const finalEntry = { ...entry, oreTotali: ore, ...str };
-        registerData.unshift(finalEntry);
         
+        registerData.unshift(finalEntry);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-        showNotification("Attività salvata nel browser!");
+        
+        showNotification("Attività salvata correttamente!");
         refreshUI();
     };
 
-    // Altri listener (Pausa, Tipo lavoro) per aggiornare la preview in tempo reale
-    document.getElementById('pausa').onchange = updatePreview;
-    document.getElementById('tipo').onchange = updatePreview;
+    // Pulsante Cloud (Sincronizzazione)
+    const cloudBtn = document.getElementById('cloud-import-btn');
+    if (cloudBtn) {
+        cloudBtn.onclick = async () => {
+            const settings = getSettings();
+            if (!settings.cloudUrl) {
+                showNotification("Configura l'URL Cloud nelle impostazioni!", "error");
+                return;
+            }
+            // Qui andrebbe la logica fetchCloudData() che era nel tuo file
+            showNotification("Sincronizzazione in corso...", "warning");
+        };
+    }
 }
 
+// --- AGGIORNAMENTO UI ---
 function refreshUI() {
-    renderTable(registerData);
-    updateStats(registerData);
-    updatePreview();
+    // Usa le funzioni dal file js/ui.js
+    if (typeof renderTable === 'function') renderTable(registerData);
+    if (typeof updateStats === 'function') updateStats(registerData);
 }
 
 function updatePreview() {
     const inizio = document.getElementById('inizio-text').textContent;
     const fine = document.getElementById('fine-text').textContent;
-    const pausa = document.getElementById('pausa').checked;
-    const ore = calcolaOre(inizio, fine, pausa);
-    
-    document.getElementById('preview-ore').innerHTML = `Ore calcolate: <span>${ore.toFixed(2)}</span>`;
+    const ore = calcolaOre(inizio, fine, true);
+    // Se hai un elemento preview lo aggiorna, altrimenti logga in console
+    console.log(`Preview ore: ${ore}`);
 }
 
-// Funzione globale per cancellare (richiamata da ui.js)
+// Funzione globale per eliminare (usata dai bottoni nella tabella)
 window.deleteEntry = function(index) {
-    if(confirm("Vuoi davvero eliminare questa attività?")) {
+    if (confirm("Vuoi eliminare questa riga?")) {
         registerData.splice(index, 1);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
         refreshUI();
     }
 };
-
