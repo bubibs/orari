@@ -5,7 +5,7 @@
     --text: #1C1C1E;
     --subtext: #8E8E93;
     --border: #D1D1D6;
-    --input-bg: #FFFFFF;
+    --input-bg: #F2F2F7;
     --radius: 18px;
 }
 
@@ -24,50 +24,52 @@
 body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 15px; }
 .container { max-width: 500px; margin: 0 auto; }
 
-/* --- GRAFICA HOME (INDEX) --- */
-.main-home { text-align: center; padding-top: 40px; }
-.logo { font-size: 32px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
-.quote { font-style: italic; color: var(--subtext); margin: 15px 0 30px; min-height: 40px; font-size: 15px; }
-
-.menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+/* --- HOME (INDEX) --- */
+.main-home { text-align: center; padding-top: 30px; }
+.logo { font-size: 28px; font-weight: 900; color: var(--primary); }
+.quote { font-style: italic; color: var(--subtext); margin: 15px 0 25px; font-size: 14px; }
+.menu-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .menu-card { 
-    background: var(--card); padding: 25px; border-radius: var(--radius); text-decoration: none; 
+    background: var(--card); padding: 20px; border-radius: var(--radius); text-decoration: none; 
     color: var(--text); display: flex; flex-direction: column; align-items: center; 
-    border: 1px solid var(--border); transition: 0.2s;
+    border: 1px solid var(--border);
 }
-.menu-card i { font-size: 28px; color: var(--primary); margin-bottom: 10px; }
-.menu-card span { font-weight: 800; font-size: 18px; }
-.menu-card small { color: var(--subtext); margin-top: 4px; }
+.menu-card i { font-size: 24px; color: var(--primary); margin-bottom: 8px; }
+.menu-card span { font-weight: 700; }
 
-/* --- GRAFICA RUBRICA & FORMS --- */
+/* --- RUBRICA PAGE --- */
 .header-back { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.header-back a { text-decoration: none; color: var(--primary); font-weight: 700; }
+.header-back a { text-decoration: none; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 5px; }
 
-.card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
+.card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); }
 .card-accent { border-top: 4px solid var(--primary); }
 
+/* Form Layout */
 .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .form-group { margin-bottom: 12px; }
 label { display: block; font-size: 10px; font-weight: 800; color: var(--subtext); margin-bottom: 4px; text-transform: uppercase; }
-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; background: var(--input-bg); color: var(--text); }
+input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; background: var(--input-bg); color: var(--text); outline: none; }
+input:focus { border-color: var(--primary); }
 
-/* RICERCA */
+/* Search Box */
 .search-box { 
-    background: var(--card); border-radius: 12px; padding: 12px; display: flex; 
-    align-items: center; gap: 10px; margin-bottom: 20px; border: 1px solid var(--border);
+    background: var(--card); border-radius: 12px; padding: 10px 15px; display: flex; 
+    align-items: center; gap: 10px; margin-bottom: 15px; border: 1px solid var(--border);
 }
-.search-box input { border: none; padding: 0; margin: 0; background: transparent; }
+.search-box input { border: none; padding: 5px; margin: 0; background: transparent; flex: 1; }
 
-/* PULSANTI MAPPA E AZIONI */
-.btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 16px; font-weight: 700; width: 100%; cursor: pointer; }
-
-.addr-card { border-left: 5px solid var(--primary); }
-.addr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+/* Card Cliente in Lista */
+.addr-card { border-left: 5px solid var(--primary); position: relative; }
+.addr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .primary-text { color: var(--primary); font-weight: 800; font-size: 17px; }
 
+.info-row { font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.info-row i { color: var(--subtext); width: 16px; text-align: center; }
+.info-row a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+/* Azioni Apple/Google */
 .addr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
 .btn-nav { text-decoration: none; text-align: center; padding: 12px; border-radius: 10px; color: white; font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-
 .apple-btn { background: #000; color: #fff; }
 .google-btn { background: #4285F4; color: #fff; }
 
@@ -75,10 +77,13 @@ input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radi
     .apple-btn { background: #fff; color: #000; }
 }
 
-.admin-btns button { background: var(--bg); border: none; padding: 8px; border-radius: 6px; color: var(--text); margin-left: 4px; }
+/* Modifica/Elimina */
+.admin-btns { display: flex; gap: 5px; }
+.admin-btns button { background: var(--bg); border: none; padding: 8px; border-radius: 8px; color: var(--text); cursor: pointer; }
+.btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 16px; font-weight: 700; width: 100%; margin-top: 5px; }
 
-/* FEEDBACK SYNC */
-#sync-indicator { font-size: 18px; transition: 0.3s; }
+/* Sync Icons */
+#sync-indicator { font-size: 18px; }
 .sync-working { color: var(--warning); animation: pulse 1s infinite; }
 .sync-success { color: #34C759; }
 .sync-error { color: #FF3B30; }
