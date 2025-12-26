@@ -25,7 +25,6 @@
             --shadow-color: rgba(0, 0, 0, 0.1);
             --logo-gradient: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
         }
-
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-body: #121212;
@@ -47,7 +46,6 @@
                 --logo-gradient: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
             }
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-body);
@@ -527,12 +525,11 @@
 <body>
 <div class="container">
     <div class="logo-text">TECNOSISTEM</div>
-    
+   
     <div class="form-group">
         <label for="date">Seleziona Giorno:</label>
         <input type="date" id="date">
     </div>
-
     <div class="form-group">
         <label for="workModeSelect">Modalità di lavoro:</label>
         <select id="workModeSelect">
@@ -543,7 +540,6 @@
             <option value="Estero">Trasferta (Estero)</option>
         </select>
     </div>
-
     <div class="form-group">
         <label for="absenceType">Tipo di Assenza:</label>
         <select id="absenceType">
@@ -553,7 +549,6 @@
             <option value="Malattia">Malattia</option>
         </select>
     </div>
-
     <div id="work-fields">
         <div class="form-group">
             <label>Orario Inizio:</label>
@@ -574,7 +569,6 @@
             <label for="lunchBreak">Pausa pranzo (1 ora)</label>
         </div>
     </div>
-
     <div class="form-group">
         <label for="location">Luogo Intervento:</label>
         <input type="text" id="location" list="location-suggestions">
@@ -584,27 +578,27 @@
         <label for="notes">Note:</label>
         <textarea id="notes"></textarea>
     </div>
-    
+   
     <div id="results">
         <h3>Riepilogo giornaliero</h3>
         <p id="totalHoursContainer"><strong>Ore totali:</strong> <span id="totalHours">0</span></p>
         <p id="overtimeHoursContainer"><strong>Ore straordinarie:</strong> <span id="overtimeHours">0</span></p>
         <p id="absenceHoursContainer" style="display: none;"><strong>Ore di assenza:</strong> <span id="absenceHours">0</span></p>
     </div>
-    
+   
     <button id="save-btn" class="btn btn-save-anim">
         <span class="btn-text"><i class="fas fa-save"></i> Salva e Sincronizza</span>
         <span class="btn-icon"><i class="fas fa-check"></i></span>
     </button>
     <div id="cloud-status-msg" class="cloud-status"></div>
-    
+   
     <hr>
-    
+   
     <h2>Riepilogo Mensile</h2>
     <div class="chart-container">
         <canvas id="monthlyChart"></canvas>
     </div>
-    
+   
     <div class="table-container">
         <table id="monthly-summary-table">
             <thead>
@@ -621,9 +615,9 @@
             </tbody>
         </table>
     </div>
-    
+   
     <hr>
-    
+   
     <h2 class="collapsible-header" id="toggle-settings"><i class="fas fa-cog"></i> Impostazioni Avanzate <span class="arrow"><i class="fas fa-chevron-down"></i></span></h2>
     <div class="collapsible-content" id="settings-content">
         <p>Modifica i valori usati per i calcoli economici. I cambiamenti verranno salvati.</p>
@@ -660,9 +654,9 @@
             <input type="number" id="thirteenthMonthInput" step="0.01" min="0">
         </div>
     </div>
-    
+   
     <hr>
-    
+   
     <h2 class="collapsible-header" id="toggle-gross-net"><i class="fas fa-money-bill-wave"></i> Riepilogo Lordo/Netto <span class="arrow"><i class="fas fa-chevron-down"></i></span></h2>
     <div class="collapsible-content" id="gross-net-content">
         <div class="form-group">
@@ -693,9 +687,9 @@
         <p style="font-size: 0.8em; color: var(--text-color);">Nota: Stime approssimative. Consulta un professionista per calcoli fiscali precisi.</p>
         <button id="export-gross-net-pdf" class="btn btn-pdf"><i class="fas fa-file-pdf"></i> Esporta Riepilogo in PDF</button>
     </div>
-    
+   
     <hr>
-    
+   
     <h2 class="collapsible-header" id="toggle-register"><i class="fas fa-clipboard"></i> Registro Completo Locale <span class="arrow"><i class="fas fa-chevron-down"></i></span></h2>
     <div class="collapsible-content" id="register-content">
         <div class="form-group" style="margin-top: 20px;">
@@ -735,11 +729,10 @@
             </table>
         </div>
     </div>
-    
+   
     <hr>
-    
+   
  <h2><i class="fas fa-file-export"></i> Esporta e gestisci i dati</h2>
-
 <div class="form-group" style="margin-top: 20px;">
     <label>Esporta un periodo specifico:</label>
     <div class="export-options-container">
@@ -752,7 +745,6 @@
         </div>
     </div>
 </div>
-
 <div class="form-group" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
     <label><i class="fas fa-sync"></i> Sincronizzazione Cloud:</label>
     <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">
@@ -766,7 +758,6 @@
     <div id="cloud-status-msg" style="margin-top: 10px; font-weight: bold; font-size: 0.9em;"></div>
 </div>
 <div id="notification"></div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -775,13 +766,12 @@
     // CONFIGURAZIONE CLOUD (GOOGLE SHEETS)
     // ==========================================
     // URL INSERITO CORRETTAMENTE
-    
+   
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec';
-    
+   
     // ==========================================
     // FINE CONFIGURAZIONE
     // ==========================================
-
     // Selezioni elementi del DOM
     const dateInput = document.getElementById('date');
     const workModeSelect = document.getElementById('workModeSelect');
@@ -809,13 +799,13 @@
     const notification = document.getElementById('notification');
     const searchInput = document.getElementById('search-input');
     const cloudStatusMsg = document.getElementById('cloud-status-msg');
-    
+   
     const standardWorkDay = 8;
     const standardStartTime = '08:00';
     const standardEndTime = '17:00';
     let registerData = [];
     let entryCounter = 0; // Per ID univoci
-    
+   
     // Variabili per i calcoli economici
     let grossBaseSalary = 3480.79;
     let overtimeRate = 21.53;
@@ -826,7 +816,7 @@
     let taxRate = 0.30;
     let thirteenthMonth = 3480.79;
     const socialSecurityRate = 0.0949;
-    
+   
     // Elementi del menu impostazioni
     const toggleSettingsHeader = document.getElementById('toggle-settings');
     const settingsContent = document.getElementById('settings-content');
@@ -838,11 +828,9 @@
     const tripAllowanceAbroadInput = document.getElementById('tripAllowanceAbroadInput');
     const taxRateInput = document.getElementById('taxRateInput');
     const thirteenthMonthInput = document.getElementById('thirteenthMonthInput');
-
     // Chiavi per localStorage
     const STORAGE_KEY = 'registroOrario';
     const SETTINGS_KEY = 'registroSettings';
-
     // Elementi di esportazione e filtro
     const exportYearSelect = document.getElementById('export-year');
     const multiselectMonthContainer = document.getElementById('multiselect-month-container');
@@ -859,11 +847,10 @@
     const exportDataBtn = document.getElementById('export-data-btn');
     const importDataBtn = document.getElementById('import-data-btn');
     const importFile = document.getElementById('import-file');
-    
+   
     // Elementi del grafico
     const monthlyChartCanvas = document.getElementById('monthlyChart');
     let monthlyChart = null;
-
     // Elementi del riepilogo lordo/netto
     const toggleGrossNetHeader = document.getElementById('toggle-gross-net');
     const grossNetContent = document.getElementById('gross-net-content');
@@ -871,7 +858,6 @@
     const grossNetYearSelect = document.getElementById('gross-net-year');
     const exportGrossNetPdfButton = document.getElementById('export-gross-net-pdf');
     let grossNetChart = null;
-
     // Funzioni di utilità
     function showNotification(message, type) {
         notification.innerHTML = message;
@@ -881,7 +867,6 @@
             notification.classList.remove('show');
         }, 8000);
     }
-
     function generateTimeOptions() {
         let optionsHtml = '';
         for (let h = 0; h < 24; h++) {
@@ -895,13 +880,11 @@
         startTimeOptions.innerHTML = optionsHtml;
         endTimeOptions.innerHTML = optionsHtml;
     }
-
     function formatDate(dateString) {
         if (!dateString) return '';
         const [year, month, day] = dateString.split('-');
         return `${day}-${month}-${year.substring(2)}`;
     }
-
     function setTimeDropdown(display, options, time) {
         display.textContent = time || 'Seleziona orario';
         display.setAttribute('data-value', time || '');
@@ -913,18 +896,15 @@
             }
         });
     }
-
     function clearTimeDropdowns() {
         setTimeDropdown(startTimeDisplay, startTimeOptions, '');
         setTimeDropdown(endTimeDisplay, endTimeOptions, '');
     }
-
     function calculateHours() {
         const absenceType = absenceTypeSelect.value;
         const startTime = startTimeDisplay.getAttribute('data-value');
         const endTime = endTimeDisplay.getAttribute('data-value');
         const lunchBreak = lunchBreakCheckbox.checked;
-
         if (absenceType) {
             totalHoursSpan.textContent = '0';
             overtimeHoursSpan.textContent = '0';
@@ -934,11 +914,10 @@
             absenceHoursContainer.style.display = 'block';
             return;
         }
-        
+       
         totalHoursContainer.style.display = 'block';
         overtimeHoursContainer.style.display = 'block';
         absenceHoursContainer.style.display = 'none';
-
         if (startTime && endTime && dateInput.value) {
             const start = new Date(`2025-01-01T${startTime}:00`);
             const end = new Date(`2025-01-01T${endTime}:00`);
@@ -951,14 +930,14 @@
                 totalHours -= 1;
             }
             totalHours = Math.max(0, totalHours);
-            
+           
             const totalHoursFixed = totalHours.toFixed(2);
             totalHoursSpan.textContent = totalHoursFixed;
-            
+           
             const dayOfWeek = new Date(dateInput.value + 'T12:00:00').getDay();
             const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
             let overtimeHours = 0;
-            
+           
             if (isWeekend) {
                 overtimeHours = totalHours;
                 overtimeHoursContainer.querySelector('strong').textContent = 'Ore straordinarie (50%):';
@@ -969,13 +948,11 @@
                 overtimeHoursContainer.querySelector('strong').textContent = 'Ore straordinarie:';
             }
             overtimeHoursSpan.textContent = overtimeHours.toFixed(2);
-
         } else {
             totalHoursSpan.textContent = '0';
             overtimeHoursSpan.textContent = '0';
         }
     }
-
     function createRow(entry) {
         const row = document.createElement('tr');
         row.setAttribute('data-id', entry.id);
@@ -997,18 +974,15 @@
         `;
         return row;
     }
-
     function saveEntry() {
         const date = dateInput.value;
         if (!date) {
             showNotification('Per favore, seleziona una data.', 'error');
             return;
         }
-
         const absenceType = absenceTypeSelect.value;
         const workMode = workModeSelect.value;
         let startTime, endTime, lunchBreak, location, notes, totalHours, overtimeHours = 0, overtimeHours50 = 0, absenceHours = 0;
-
         if (absenceType) {
             startTime = '08:00';
             endTime = '17:00';
@@ -1030,30 +1004,25 @@
                 showNotification('L\'orario di fine non può essere precedente a quello di inizio.', 'error');
                 return;
             }
-
             lunchBreak = lunchBreakCheckbox.checked;
             location = locationInput.value;
             notes = notesInput.value;
-
             let totalMilliseconds = end - start;
             totalHours = totalMilliseconds / (1000 * 60 * 60);
             if (lunchBreak) totalHours -= 1;
             totalHours = Math.max(0, totalHours);
-            
+           
             const dayOfWeek = new Date(date + 'T12:00:00').getDay();
             const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
-
             if (isWeekend) {
                 overtimeHours50 = totalHours;
             } else {
                 overtimeHours = totalHours > standardWorkDay ? totalHours - standardWorkDay : 0;
             }
         }
-        
+       
         saveButton.classList.add('saved');
-
         const entryId = `entry_${Date.now()}_${entryCounter++}`;
-
         const newEntry = {
             id: entryId,
             date: date,
@@ -1069,13 +1038,12 @@
             absenceType: absenceType,
             absenceHours: absenceHours
         };
-
         registerData.push(newEntry);
         registerData.sort((a, b) => {
             if (a.date !== b.date) return new Date(b.date) - new Date(a.date);
             return a.startTime.localeCompare(b.startTime);
         });
-        
+       
         // Salvataggio Locale
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
@@ -1085,13 +1053,12 @@
             console.error(e);
             return;
         }
-
         // ===========================================
         // SALVATAGGIO CLOUD (Google Sheets)
         // ===========================================
         if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
             cloudStatusMsg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Invio al Cloud in corso...';
-            
+           
             // Invio dei dati
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
@@ -1123,9 +1090,8 @@
             cloudStatusMsg.innerHTML = '<i class="fas fa-info-circle"></i> Cloud non configurato (Solo locale)';
         }
         // ===========================================
-
         renderAllData();
-        
+       
         setTimeout(() => {
             saveButton.classList.remove('saved');
             workModeSelect.value = '';
@@ -1137,23 +1103,23 @@
             calculateHours();
         }, 1000);
     }
-
- function deleteEntry(index) {
+ function deleteEntry(id) {  // Cambiato da index a id per coerenza con il tuo codice
     if (confirm('Sei sicuro di voler eliminare questo record? Verrà rimosso anche da Google Sheets.')) {
-        const entryToDelete = registerData[index];
+        const entryToDelete = registerData.find(entry => entry.id === id);
+        if (!entryToDelete) return;
 
         // 1. Eliminazione locale immediata
-        registerData.splice(index, 1);
+        registerData = registerData.filter(entry => entry.id !== id);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
         renderAllData();
-        showNotification('Record eliminato localmente', 'info');
+        showNotification('Record eliminato localmente', 'success');
 
         // 2. Eliminazione dal Cloud (Google Sheets)
-        if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== '' && GOOGLE_SCRIPT_URL !== 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
+        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Usiamo no-cors per evitare blocchi di sicurezza durante l'invio
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',  // Uniformato a 'cors' come nel salvataggio
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },  // Cambiato da application/json per evitare preflight CORS complessi
                 body: JSON.stringify({
                     action: 'delete',
                     date: entryToDelete.date,
@@ -1161,12 +1127,20 @@
                     endTime: entryToDelete.endTime
                 })
             })
-            .then(() => {
-                showNotification('Richiesta di eliminazione cloud inviata!', 'success');
+            .then(response => {
+                if (!response.ok) throw new Error('Errore rete: ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (data.result === 'success') {
+                    showNotification('Record eliminato anche dal Cloud!', 'success');
+                } else {
+                    throw new Error(data.error || 'Errore sconosciuto dal server');
+                }
             })
             .catch(err => {
                 console.error('Errore eliminazione cloud:', err);
-                showNotification('Errore durante l\'eliminazione cloud', 'error');
+                showNotification('Errore durante l\'eliminazione dal Cloud: ' + err.message, 'error');
             });
         }
     }
@@ -1175,25 +1149,23 @@
         const entryToEdit = registerData.find(entry => entry.id === id);
         if (entryToEdit) {
             alert("Attenzione: Stai modificando un evento. Quando salverai, verrà creata una NUOVA riga su Google Sheets con i dati corretti. Dovrai cancellare manualmente la riga vecchia errata dal foglio Google.");
-            
+           
             dateInput.value = entryToEdit.date;
             workModeSelect.value = entryToEdit.workMode || '';
             absenceTypeSelect.value = entryToEdit.absenceType || '';
-            
+           
             if (entryToEdit.startTime) setTimeDropdown(startTimeDisplay, startTimeOptions, entryToEdit.startTime);
             if (entryToEdit.endTime) setTimeDropdown(endTimeDisplay, endTimeOptions, entryToEdit.endTime);
-            
+           
             lunchBreakCheckbox.checked = entryToEdit.lunchBreak || false;
             locationInput.value = entryToEdit.location || '';
             notesInput.value = entryToEdit.notes || '';
-            
+           
             calculateHours();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-
             registerData = registerData.filter(e => e.id !== id);
         }
     }
-
     function renderRegisterTable(data) {
         registerBody.innerHTML = '';
         if (data.length === 0) {
@@ -1207,7 +1179,6 @@
             registerBody.appendChild(row);
         });
     }
-
     function updateMonthlySummary() {
         const monthlySummary = {};
         const locations = new Set();
@@ -1233,7 +1204,6 @@
             if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
             if (entry.location) locations.add(entry.location);
         });
-
         const sortedMonths = Object.keys(monthlySummary).sort().reverse();
         monthlySummaryBody.innerHTML = '';
         sortedMonths.forEach(monthYear => {
@@ -1252,12 +1222,10 @@
             `;
             monthlySummaryBody.appendChild(row);
         });
-
         const sortedLocations = [...locations].sort();
         locationDatalist.innerHTML = sortedLocations.map(loc => `<option value="${loc}"></option>`).join('');
         updateChart(monthlySummary);
     }
-
     function calculateIRPEF(gross, year, month) {
         if (parseInt(year) < 2026 || (parseInt(year) === 2025 && parseInt(month) <= 12)) {
             return gross * taxRate;
@@ -1273,13 +1241,11 @@
             return tax;
         }
     }
-
     function calculateGrossNetSummary(year = null) {
         let filteredData = registerData;
         if (year) {
             filteredData = registerData.filter(entry => entry.date.startsWith(year));
         }
-
         const monthlySummary = {};
         filteredData.forEach(entry => {
             const monthYear = entry.date.substring(0, 7);
@@ -1298,35 +1264,32 @@
             if (entry.workMode === 'Pernottamento') monthlySummary[monthYear].totalOvernightTripCount++;
             if (entry.workMode === 'Estero') monthlySummary[monthYear].totalAbroadTripCount++;
         });
-
         const sortedMonths = Object.keys(monthlySummary).sort().reverse();
         grossNetBody.innerHTML = '';
-
         let totalGrossYear = 0;
         let totalNetYear = 0;
         let totalOvertimeYear = 0;
         let totalTripsYear = 0;
         let totalDeductionsYear = 0;
-
         sortedMonths.forEach(monthYear => {
             const summary = monthlySummary[monthYear];
             const [y, m] = monthYear.split('-');
             const monthName = new Date(y, m - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
-            
+           
             const grossOvertime = summary.totalOvertimeHours * overtimeRate;
             const grossOvertime50 = summary.totalOvertimeHours50 * overtimeRate50;
             const grossReturnTripAllowance = summary.totalReturnTripCount * tripAllowanceReturn;
             const grossOvernightTripAllowance = summary.totalOvernightTripCount * tripAllowanceOvernight;
             const grossAbroadTripAllowance = summary.totalAbroadTripCount * tripAllowanceAbroad;
             const grossTrips = grossReturnTripAllowance + grossOvernightTripAllowance + grossAbroadTripAllowance;
-            
+           
             const totalGross = grossBaseSalary + grossOvertime + grossOvertime50 + grossTrips;
-            
+           
             const afterSocialSecurity = totalGross - (totalGross * socialSecurityRate);
             const taxDeduction = calculateIRPEF(afterSocialSecurity, y, m);
             const netIncome = afterSocialSecurity - taxDeduction;
             const deductions = (totalGross * socialSecurityRate) + taxDeduction;
-            
+           
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</td>
@@ -1337,26 +1300,22 @@
                 <td>€ ${deductions.toFixed(2)}</td>
             `;
             grossNetBody.appendChild(row);
-
             totalGrossYear += totalGross;
             totalNetYear += netIncome;
             totalOvertimeYear += grossOvertime + grossOvertime50;
             totalTripsYear += grossTrips;
             totalDeductionsYear += deductions;
         });
-
         if (year && sortedMonths.length > 0) {
             const y = year;
             const thirteenthAfterSS = thirteenthMonth - (thirteenthMonth * socialSecurityRate);
-            const thirteenthTax = calculateIRPEF(thirteenthAfterSS, y, '12'); 
+            const thirteenthTax = calculateIRPEF(thirteenthAfterSS, y, '12');
             const thirteenthNet = thirteenthAfterSS - thirteenthTax;
             const thirteenthDeductions = (thirteenthMonth * socialSecurityRate) + thirteenthTax;
-
             totalGrossYear += thirteenthMonth;
             totalNetYear += thirteenthNet;
             totalDeductionsYear += thirteenthDeductions;
         }
-
         if (sortedMonths.length > 0) {
             const totalRow = document.createElement('tr');
             totalRow.innerHTML = `
@@ -1369,10 +1328,8 @@
             `;
             grossNetBody.appendChild(totalRow);
         }
-
         updateGrossNetChart(monthlySummary);
     }
-
     function updateGrossNetChart(monthlySummary) {
         const sortedMonths = Object.keys(monthlySummary).sort();
         const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
@@ -1392,11 +1349,9 @@
             const taxDeduction = calculateIRPEF(afterSS, y, m);
             return afterSS - taxDeduction;
         });
-
         if (grossNetChart) {
             grossNetChart.destroy();
         }
-
         grossNetChart = new Chart(document.getElementById('grossNetChart'), {
             type: 'bar',
             data: {
@@ -1414,11 +1369,9 @@
             }
         });
     }
-
     function generateGrossNetPdf() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
-
         const tableData = [];
         const rows = grossNetBody.querySelectorAll('tr');
         rows.forEach(row => {
@@ -1427,7 +1380,6 @@
                 tableData.push(Array.from(cells).map(cell => cell.textContent));
             }
         });
-
         doc.text("Riepilogo Lordo/Netto", 40, 40);
         doc.autoTable({
             startY: 50,
@@ -1436,11 +1388,9 @@
             styles: { fontSize: 8, cellPadding: 4 },
             headStyles: { fillColor: '#00a2e3' }
         });
-
         doc.save('Riepilogo_Lordo_Netto.pdf');
         showNotification('Esportazione PDF completata!', 'success');
     }
-
     function loadData() {
         try {
             const storedData = localStorage.getItem(STORAGE_KEY);
@@ -1466,7 +1416,6 @@
             console.error(e);
         }
     }
-
     function renderAllData() {
         renderRegisterTable(registerData);
         updateMonthlySummary();
@@ -1475,23 +1424,19 @@
         updateExportOptions();
         updateGrossNetYearOptions();
     }
-
     function updateGrossNetYearOptions() {
         const years = [...new Set(registerData.map(entry => entry.date.substring(0, 4)))].sort().reverse();
         grossNetYearSelect.innerHTML = `<option value="">Tutti gli Anni</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
     }
-
     function updateChart(monthlySummary) {
         const sortedMonths = Object.keys(monthlySummary).sort();
         const labels = sortedMonths.map(monthYear => new Date(monthYear).toLocaleString('it-IT', { month: 'short', year: '2-digit' }));
         const onSiteCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].onSiteCount);
         const tripCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].returnTripCount + monthlySummary[monthYear].overnightTripCount + monthlySummary[monthYear].abroadTripCount);
         const absenceCounts = sortedMonths.map(monthYear => monthlySummary[monthYear].absenceCount);
-
         if (monthlyChart) {
             monthlyChart.destroy();
         }
-
         const data = {
             labels: labels,
             datasets: [{
@@ -1516,7 +1461,6 @@
                 borderWidth: 1
             }]
         };
-
         const config = {
             type: 'bar',
             data: data,
@@ -1526,19 +1470,17 @@
                 scales: { x: { stacked: false }, y: { beginAtZero: true, stacked: false, title: { display: true, text: 'Numero di Giorni' } } }
             }
         };
-
         monthlyChart = new Chart(monthlyChartCanvas, config);
     }
-    
+   
     function filterRegister() {
         const query = searchInput.value.toLowerCase();
         const selectedYear = filterYearSelect.value;
         const selectedMonths = Array.from(filterMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
-
         const filteredData = registerData.filter(entry => {
-            const matchQuery = !query || 
-                                formatDate(entry.date).includes(query) || 
-                                (entry.location && entry.location.toLowerCase().includes(query)) || 
+            const matchQuery = !query ||
+                                formatDate(entry.date).includes(query) ||
+                                (entry.location && entry.location.toLowerCase().includes(query)) ||
                                 (entry.notes && entry.notes.toLowerCase().includes(query));
             const matchYear = !selectedYear || entry.date.startsWith(selectedYear);
             const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(entry.date.substring(5, 7));
@@ -1546,28 +1488,25 @@
         });
         renderRegisterTable(filteredData);
     }
-    
+   
     function updateFilterOptions() {
         const years = [...new Set(registerData.map(entry => entry.date.substring(0, 4)))].sort().reverse();
         filterYearSelect.innerHTML = `<option value="">Tutti gli Anni</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
         exportYearSelect.innerHTML = `<option value="">Seleziona Anno</option>` + years.map(year => `<option value="${year}">${year}</option>`).join('');
-
         const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
         const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-        
+       
         filterMonthOptions.innerHTML = months.map((month, index) =>
             `<div class="multiselect-option">
                 <input type="checkbox" id="filter-month-${month}" value="${month}">
                 <label for="filter-month-${month}">${monthNames[index]}</label>
             </div>`).join('');
-
         multiselectMonthOptions.innerHTML = months.map((month, index) =>
             `<div class="multiselect-option">
                 <input type="checkbox" id="export-month-${month}" value="${month}">
                 <label for="export-month-${month}">${monthNames[index]}</label>
             </div>`).join('');
     }
-
     function updateExportOptions() {
         const selectedYear = exportYearSelect.value;
         const multiselect = document.getElementById('multiselect-month-container');
@@ -1577,7 +1516,7 @@
             multiselect.classList.add('disabled');
         }
     }
-    
+   
     function generateCsvData(data) {
         const headers = ["Data", "Orario Inizio", "Orario Fine", "Assenza", "Ore Totali", "Ore Straordinarie", "Modalità", "Luogo Intervento", "Note"];
         let csv = headers.join(";") + "\n";
@@ -1598,7 +1537,7 @@
         });
         return csv;
     }
-    
+   
     function exportCsv(data, filename) {
         const csv = generateCsvData(data);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1614,12 +1553,11 @@
         }
         showNotification('Esportazione CSV completata!', 'success');
     }
-    
+   
     function generatePdf(data) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
         const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
-
         const monthlySummary = {};
         sortedData.forEach(entry => {
             const monthYear = entry.date.substring(0, 7);
@@ -1632,7 +1570,6 @@
             if (entry.workMode === 'In Sede') monthlySummary[monthYear].onSiteCount++;
             if (entry.absenceType) monthlySummary[monthYear].absenceCount++;
         });
-
         const summaryData = Object.keys(monthlySummary).sort().map(monthYear => {
             const summary = monthlySummary[monthYear];
             const [year, month] = monthYear.split('-');
@@ -1646,9 +1583,7 @@
                 summary.absenceCount
             ];
         });
-
         let lastY = 40;
-
         if (summaryData.length > 0) {
             doc.text("Riepilogo Mensile", 40, lastY);
             lastY += 10;
@@ -1661,7 +1596,6 @@
             });
             lastY = doc.autoTable.previous.finalY;
         }
-
         const tableData = sortedData.map(entry => {
             const totalOvertime = (entry.overtimeHours || 0) + (entry.overtimeHours50 || 0);
             return [
@@ -1676,9 +1610,8 @@
                 entry.notes || ''
             ];
         });
-        
+       
         const head = [["Data", "Inizio", "Fine", "Assenza", "Ore Tot.", "Ore Str.", "Modalità", "Luogo", "Note"]];
-
         lastY += 20;
         doc.text("Registro Completo", 40, lastY);
         lastY += 10;
@@ -1689,11 +1622,11 @@
             styles: { fontSize: 8, cellPadding: 4 },
             headStyles: { fillColor: '#00a2e3' }
         });
-        
+       
         doc.save('Registro_Lavoro.pdf');
         showNotification('Esportazione PDF avviata!', 'success');
     }
-    
+   
     function saveSettings() {
         const settings = {
             grossBaseSalary: parseFloat(grossBaseSalaryInput.value) || 0,
@@ -1706,7 +1639,7 @@
             thirteenthMonth: parseFloat(thirteenthMonthInput.value) || 0
         };
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-        
+       
         grossBaseSalary = settings.grossBaseSalary;
         overtimeRate = settings.overtimeRate;
         overtimeRate50 = settings.overtimeRate50;
@@ -1715,11 +1648,11 @@
         tripAllowanceAbroad = settings.tripAllowanceAbroad;
         taxRate = settings.taxRate;
         thirteenthMonth = settings.thirteenthMonth;
-        
+       
         calculateGrossNetSummary();
         showNotification('Impostazioni salvate!', 'success');
     }
-    
+   
     function loadSettings() {
         const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
         grossBaseSalaryInput.value = storedSettings.grossBaseSalary || grossBaseSalary;
@@ -1731,10 +1664,9 @@
         taxRateInput.value = (storedSettings.taxRate * 100) || (taxRate * 100);
         thirteenthMonthInput.value = storedSettings.thirteenthMonth || thirteenthMonth;
     }
-
     // Event Listeners
     dateInput.addEventListener('change', calculateHours);
-    
+   
     workModeSelect.addEventListener('change', () => {
         const mode = workModeSelect.value;
         if (mode === 'In Sede') {
@@ -1753,7 +1685,6 @@
         }
         calculateHours();
     });
-
     absenceTypeSelect.addEventListener('change', () => {
         const absence = absenceTypeSelect.value;
         if (absence) {
@@ -1765,7 +1696,7 @@
         }
         calculateHours();
     });
-    
+   
     [startTimeDisplay, endTimeDisplay].forEach(display => {
         display.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1781,14 +1712,12 @@
             }
         });
     });
-
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.time-dropdown-container')) {
             startTimeOptions.classList.remove('visible');
             endTimeOptions.classList.remove('visible');
         }
     });
-
     [startTimeOptions, endTimeOptions].forEach(options => {
         options.addEventListener('click', (e) => {
             const display = options === startTimeOptions ? startTimeDisplay : endTimeDisplay;
@@ -1804,10 +1733,9 @@
             }
         });
     });
-    
+   
     lunchBreakCheckbox.addEventListener('change', calculateHours);
     saveButton.addEventListener('click', saveEntry);
-
     registerBody.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-small');
         if (!btn) return;
@@ -1818,7 +1746,7 @@
             editEntry(id);
         }
     });
-    
+   
     [toggleRegisterHeader, toggleSettingsHeader, toggleGrossNetHeader].forEach(header => {
         header.addEventListener('click', () => {
             const content = document.getElementById(header.id.replace('toggle-', '') + '-content');
@@ -1826,31 +1754,28 @@
             content.classList.toggle('open');
         });
     });
-
     searchInput.addEventListener('input', filterRegister);
     filterYearSelect.addEventListener('change', filterRegister);
     filterMonthOptions.addEventListener('change', filterRegister);
-    
+   
     multiselectMonthContainer.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!exportYearSelect.value) return;
         multiselectMonthOptions.classList.toggle('visible');
     });
-    
+   
     filterMonthContainer.addEventListener('click', (e) => {
         e.stopPropagation();
         filterMonthOptions.classList.toggle('visible');
     });
-
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.multiselect-dropdown')) {
             filterMonthOptions.classList.remove('visible');
             multiselectMonthOptions.classList.remove('visible');
         }
     });
-
     exportYearSelect.addEventListener('change', updateExportOptions);
-    
+   
     exportSelectedButton.addEventListener('click', () => {
         const year = exportYearSelect.value;
         const months = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
@@ -1865,7 +1790,6 @@
             showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
         }
     });
-
     exportAllButton.addEventListener('click', () => {
         if (registerData.length > 0) {
             exportCsv(registerData, 'Registro_Completo.csv');
@@ -1873,7 +1797,7 @@
             showNotification('Nessun dato da esportare.', 'error');
         }
     });
-    
+   
     exportPdfButton.addEventListener('click', () => {
         if (registerData.length > 0) {
             generatePdf(registerData);
@@ -1881,7 +1805,6 @@
             showNotification('Nessun dato da esportare.', 'error');
         }
     });
-
     exportSelectedPdfButton.addEventListener('click', () => {
         const year = exportYearSelect.value;
         const months = Array.from(multiselectMonthOptions.querySelectorAll('input:checked')).map(cb => cb.value);
@@ -1896,7 +1819,6 @@
             showNotification('Nessun dato trovato per il periodo selezionato.', 'error');
         }
     });
-
     exportDataBtn.addEventListener('click', () => {
         const dataStr = JSON.stringify(registerData);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -1908,11 +1830,9 @@
         document.body.removeChild(link);
         showNotification('Backup creato con successo!', 'success');
     });
-
     importDataBtn.addEventListener('click', () => {
         importFile.click();
     });
-
     importFile.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -1935,18 +1855,14 @@
         };
         reader.readAsText(file);
     });
-
     [grossBaseSalaryInput, overtimeRateInput, overtimeRate50Input, tripAllowanceReturnInput, tripAllowanceOvernightInput, tripAllowanceAbroadInput, taxRateInput, thirteenthMonthInput].forEach(input => {
         input.addEventListener('change', saveSettings);
     });
-
     grossNetYearSelect.addEventListener('change', () => {
         const selectedYear = grossNetYearSelect.value;
         calculateGrossNetSummary(selectedYear);
     });
-
     exportGrossNetPdfButton.addEventListener('click', generateGrossNetPdf);
-
     // Inizializzazione
     function initialize() {
         generateTimeOptions();
@@ -1958,49 +1874,45 @@
     initialize();
     async function importFromCloud() {
     const statusMsg = document.getElementById('cloud-status-msg');
-    
+   
     if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'INCOLLA_QUI_IL_TUO_URL_APPS_SCRIPT') {
         showNotification('Configura prima l\'URL di Google Script!', 'error');
         return;
     }
-
     if (!confirm('Questa operazione caricherà tutti i dati dal Cloud e sovrascriverà quelli attuali su questo dispositivo. Continuare?')) return;
-
     statusMsg.innerHTML = '<span style="color: #007bff;"><i class="fas fa-spinner fa-spin"></i> Collegamento al Cloud in corso...</span>';
-
     try {
-        // Effettua una chiamata GET al tuo script
-        const response = await fetch(GOOGLE_SCRIPT_URL);
+        // Aggiunto ?action=getAll per richiedere tutti i dati
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll`, {
+            method: 'GET',
+            mode: 'cors'  // Aggiunto per coerenza
+        });
+
+        if (!response.ok) throw new Error('Errore rete: ' + response.status);
+
         const cloudData = await response.json();
 
         if (Array.isArray(cloudData) && cloudData.length > 0) {
             // Aggiorna il database locale
             registerData = cloudData;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(registerData));
-            
+
             // Ricarica la tabella e i grafici
             renderAllData();
-            
+
             statusMsg.innerHTML = '<span style="color: #28a745;"><i class="fas fa-check-circle"></i> Importazione completata! ' + cloudData.length + ' record caricati.</span>';
             showNotification('Dati sincronizzati dal Cloud!', 'success');
         } else {
-            statusMsg.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-times-circle"></i> Nessun dato trovato sul Cloud.</span>';
+            statusMsg.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-times-circle"></i> Nessun dato trovato sul Cloud o formato errato.</span>';
         }
     } catch (error) {
         console.error('Errore importazione:', error);
-        statusMsg.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> Errore di connessione al Cloud.</span>';
+        statusMsg.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> Errore di connessione al Cloud: ' + error.message + '</span>';
         showNotification('Errore durante l\'importazione.', 'error');
     }
 }
-
 // Collega il pulsante alla funzione
 document.getElementById('import-cloud-btn').addEventListener('click', importFromCloud);
 </script>
-
 </body>
 </html>
-
-
-
-
-
