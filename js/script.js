@@ -1,4 +1,4 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzu-vvnbWmcWiQkhkAueSJ_Y8mbgRszJ3NEjy7TOwMFp9yiVUgaw10gTEGrBJCcAe8q/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 let editIndex = null;
 
 document.addEventListener('DOMContentLoaded', () => {
