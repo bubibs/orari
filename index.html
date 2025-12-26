@@ -6,7 +6,6 @@
     <title>TECNOSISTEM - Pro Log</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* TEMA CHIARO (Default) */
         :root { 
             --primary: #007AFF; --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; 
             --success: #34C759; --danger: #FF3B30; --warning: #FF9500; --radius: 14px; 
@@ -14,7 +13,6 @@
             --subtext: #8E8E93; --border: #D1D1D6; --input-bg: #FFFFFF;
         }
 
-        /* TEMA SCURO (Automatico Night Shift) */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #000000; --card: #1C1C1E; --text: #FFFFFF;
@@ -29,8 +27,6 @@
         
         header { text-align: center; margin-bottom: 25px; }
         .logo { font-size: 32px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
-        
-        /* FRASE MOTIVAZIONALE */
         .quote-container { margin-top: 5px; padding: 0 20px; }
         #daily-quote { font-size: 13px; font-style: italic; color: var(--subtext); line-height: 1.4; font-weight: 500; }
         
@@ -65,7 +61,13 @@
         .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
 
-        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
+        /* RIEPILOGO STYLES */
+        .summary-header { margin-bottom: 15px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        .summary-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 15px; align-items: center; }
+        .sum-label { font-weight: 600; }
+        .sum-val-ord { font-weight: 800; color: var(--primary); }
+        .sum-val-extra { font-weight: 800; color: var(--warning); }
+
         #registro-content, #riepilogo-content { display: none; margin-top: 10px; }
         .chevron { transition: 0.3s; }
         .open .chevron { transform: rotate(180deg); }
@@ -80,7 +82,7 @@
         
         .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
         .ore-col-tab { display: flex; flex-direction: column; align-items: flex-end; min-width: 50px; }
-        .ore-val-tab { font-size: 14px; font-weight: 800; }
+        .ore-val-tab { font-size: 14px; font-weight: 800; color: var(--primary); }
         .ore-extra-tab { font-size: 10px; font-weight: 700; color: var(--warning); margin-top: -2px; }
         
         .actions-row { display: flex; gap: 5px; }
@@ -112,12 +114,10 @@
 
     <div class="card">
         <h2><span><i class="fas fa-plus-circle"></i> Inserimento</span></h2>
-        
         <div class="form-group">
-            <label>Data</label>
+            <label>Data Intervento</label>
             <input type="date" id="data" onchange="aggiornaPreview()">
         </div>
-
         <div class="form-group">
             <label>Modalità Lavoro</label>
             <select id="modalita" onchange="logicModalita()">
@@ -128,7 +128,6 @@
                 <option value="Trasferta Estero">Trasferta Estero</option>
             </select>
         </div>
-
         <div class="form-group">
             <label>Assenza</label>
             <select id="assenza" onchange="logicAssenza()">
@@ -138,65 +137,45 @@
                 <option value="Malattia">Malattia</option>
             </select>
         </div>
-
         <div class="time-row">
-            <div class="form-group">
-                <label>Inizio</label>
-                <select id="ora-inizio" onchange="aggiornaPreview()"></select>
-            </div>
-            <div class="form-group">
-                <label>Fine</label>
-                <select id="ora-fine" onchange="aggiornaPreview()"></select>
-            </div>
+            <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
+            <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
         </div>
-
         <div class="form-group">
             <label>Luogo / Cliente</label>
             <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Destinazione">
             <datalist id="luoghi-suggeriti"></datalist>
         </div>
-
         <div class="pausa-row" onclick="togglePausa()">
             <label style="margin:0; font-size: 15px; font-weight:600;">Pausa Mensa (1h)</label>
-            <label class="switch">
-                <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
-                <span class="slider"></span>
-            </label>
+            <label class="switch"><input type="checkbox" id="pausa" onchange="aggiornaPreview()"><span class="slider"></span></label>
         </div>
-
         <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-label">Ore Totali</div>
-                <div class="stat-val" id="ore-tot">0.00</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Straordinarie</div>
-                <div class="stat-val extra" id="ore-extra">0.00</div>
-            </div>
+            <div class="stat-box"><div class="stat-label">Ore Totali</div><div class="stat-val" id="ore-tot">0.00</div></div>
+            <div class="stat-box"><div class="stat-label">Straordinarie</div><div class="stat-val extra" id="ore-extra">0.00</div></div>
         </div>
-
-        <div class="form-group">
-            <label>Note Intervento</label>
-            <textarea id="note" placeholder="Inserisci qui eventuali note..."></textarea>
-        </div>
-
+        <div class="form-group"><label>Note</label><textarea id="note"></textarea></div>
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA NEL CLOUD</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA MODIFICA</button>
     </div>
 
     <div class="card">
         <h2 onclick="toggleSection('riepilogo-content', this)">
-            <span><i class="fas fa-chart-pie"></i> Riepilogo Mensile</span>
+            <span><i class="fas fa-chart-pie"></i> Riepilogo Ore</span>
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="riepilogo-content">
-            <div id="summary-list">Caricamento...</div>
+            <div class="summary-header">
+                <label>Seleziona Mese</label>
+                <input type="month" id="filtro-mese" onchange="renderRiepilogo()">
+            </div>
+            <div id="summary-list"></div>
         </div>
     </div>
 
     <div class="card">
         <h2 onclick="toggleSection('registro-content', this)">
-            <span><i class="fas fa-history"></i> Storico Online</span>
+            <span><i class="fas fa-history"></i> Storico Registro</span>
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="registro-content">
@@ -207,32 +186,22 @@
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-    const quotes = [
-        "L'unico modo per fare un ottimo lavoro è amare quello che fai.",
-        "Il successo non è definitivo, il fallimento non è fatale: ciò che conta è il coraggio di andare avanti.",
-        "Qualunque cosa tu faccia, falla bene.",
-        "La qualità è fare le cose bene quando nessuno ti sta guardando.",
-        "Il lavoro di squadra divide i compiti e moltiplica il successo.",
-        "Non contare i giorni, fai in modo che i giorni contino.",
-        "L'ispirazione esiste, ma deve trovarti già al lavoro.",
-        "Le grandi cose non vengono mai dalle zone di comfort.",
-        "Scegli un lavoro che ami e non dovrai lavorare neanche un giorno in vita tua.",
-        "Il genio è per l'1% ispirazione e per il 99% sudore."
-    ];
+    const quotes = ["L'unico modo per fare un ottimo lavoro è amare quello che fai.", "Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.", "Qualunque cosa tu faccia, falla bene.", "La qualità è fare le cose bene quando nessuno ti guarda.", "Le grandi cose non vengono mai dalle zone di comfort."];
 
     let dati = [];
     let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
-        document.getElementById('data').value = new Date().toISOString().split('T')[0];
+        const oggi = new Date();
+        document.getElementById('data').value = oggi.toISOString().split('T')[0];
+        document.getElementById('filtro-mese').value = oggi.toISOString().slice(0, 7);
         setDailyQuote();
         fetchData();
     });
 
     function setDailyQuote() {
-        const today = new Date();
-        const index = (today.getDate() + today.getMonth()) % quotes.length;
+        const index = new Date().getDate() % quotes.length;
         document.getElementById('daily-quote').textContent = `"${quotes[index]}"`;
     }
 
@@ -249,8 +218,7 @@
             s.add(new Option("--:--", ""));
             for (let h = 0; h < 24; h++) {
                 let hh = h.toString().padStart(2, '0');
-                s.add(new Option(`${hh}:00`, `${hh}:00`));
-                s.add(new Option(`${hh}:30`, `${hh}:30`));
+                s.add(new Option(`${hh}:00`, `${hh}:00`)); s.add(new Option(`${hh}:30`, `${hh}:30`));
             }
         });
     }
@@ -261,8 +229,7 @@
             document.getElementById('assenza').value = "";
             if (mod === "In Sede") {
                 document.getElementById('luogo').value = "TECNOSISTEM";
-                document.getElementById('ora-inizio').value = "08:00";
-                document.getElementById('ora-fine').value = "17:00";
+                document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
                 document.getElementById('pausa').checked = true;
             }
         }
@@ -271,43 +238,33 @@
 
     function logicAssenza() {
         if (document.getElementById('assenza').value) {
-            document.getElementById('modalita').value = "";
-            document.getElementById('luogo').value = "-";
-            document.getElementById('ora-inizio').value = "08:00";
-            document.getElementById('ora-fine').value = "17:00";
+            document.getElementById('modalita').value = ""; document.getElementById('luogo').value = "-";
+            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
             document.getElementById('pausa').checked = false;
         }
         aggiornaPreview();
     }
 
-    function togglePausa() {
-        const p = document.getElementById('pausa');
-        p.checked = !p.checked;
-        aggiornaPreview();
-    }
+    function togglePausa() { document.getElementById('pausa').checked = !document.getElementById('pausa').checked; aggiornaPreview(); }
 
-    function calcolaStraordinarie(data, oreTot) {
-        const day = new Date(data).getDay(); // 0 Dom, 6 Sab
-        if (day === 0 || day === 6) return oreTot;
-        return oreTot > 8 ? oreTot - 8 : 0;
+    function calcolaDettaglioOre(data, oreTot) {
+        const d = new Date(data);
+        const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+        if (isWeekend) return { ordinarie: 0, straordinarie: oreTot, tipoExtra: "Straordinario 50%" };
+        if (oreTot > 8) return { ordinarie: 8, straordinarie: oreTot - 8, tipoExtra: "Straordinario" };
+        return { ordinarie: oreTot, straordinarie: 0, tipoExtra: "" };
     }
 
     function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value;
-        const e = document.getElementById('ora-fine').value;
-        const dVal = document.getElementById('data').value;
+        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, dVal = document.getElementById('data').value;
         if (!s || !e || !dVal) return;
-
-        const [h1, m1] = s.split(':').map(Number);
-        const [h2, m2] = e.split(':').map(Number);
+        const [h1, m1] = s.split(':').map(Number), [h2, m2] = e.split(':').map(Number);
         let min = (h2*60+m2) - (h1*60+m1);
         if (document.getElementById('pausa').checked) min -= 60;
-        
-        let oreTot = Math.max(0, min/60);
-        let oreExtra = calcolaStraordinarie(dVal, oreTot);
-
+        const oreTot = Math.max(0, min/60);
+        const dett = calcolaDettaglioOre(dVal, oreTot);
         document.getElementById('ore-tot').textContent = oreTot.toFixed(2);
-        document.getElementById('ore-extra').textContent = oreExtra.toFixed(2);
+        document.getElementById('ore-extra').textContent = dett.straordinarie.toFixed(2);
     }
 
     async function fetchData() {
@@ -317,132 +274,81 @@
             const res = await response.json();
             dati = res.data || [];
             dati.sort((a, b) => new Date(b.data) - new Date(a.data));
-            renderTabella();
-            renderRiepilogo();
-            updateLuoghiSuggeriti();
+            renderTabella(); renderRiepilogo(); updateLuoghiSuggeriti();
             setSyncState('success', 'Sincronizzato');
         } catch (e) { setSyncState('error', 'Errore!'); }
     }
 
     function renderRiepilogo() {
-        const stats = {};
-        dati.forEach(d => {
-            stats[d.tipo] = (stats[d.tipo] || 0) + parseFloat(d.ore);
+        const filtro = document.getElementById('filtro-mese').value;
+        const stats = { ord: {}, extra: 0, extra50: 0 };
+        
+        dati.filter(d => d.data.startsWith(filtro)).forEach(d => {
+            const dett = calcolaDettaglioOre(d.data, parseFloat(d.ore));
+            stats.ord[d.tipo] = (stats.ord[d.tipo] || 0) + dett.ordinarie;
+            if (dett.tipoExtra === "Straordinario 50%") stats.extra50 += dett.straordinarie;
+            else stats.extra += dett.straordinarie;
         });
-        const html = Object.keys(stats).map(key => `
-            <div class="summary-item">
-                <span class="sum-label">${key}</span>
-                <span style="font-weight:800; color:var(--primary);">${stats[key].toFixed(2)}h</span>
-            </div>
-        `).join('');
-        document.getElementById('summary-list').innerHTML = html || "Nessun dato.";
+
+        let html = '';
+        for (let t in stats.ord) {
+            html += `<div class="summary-item"><span class="sum-label">${t}</span><span class="sum-val-ord">${stats.ord[t].toFixed(2)}h</span></div>`;
+        }
+        if (stats.extra > 0) html += `<div class="summary-item"><span class="sum-label">Straordinario</span><span class="sum-val-extra">${stats.extra.toFixed(2)}h</span></div>`;
+        if (stats.extra50 > 0) html += `<div class="summary-item"><span class="sum-label">Straordinario 50% (S/D)</span><span class="sum-val-extra" style="color:#FF3B30">${stats.extra50.toFixed(2)}h</span></div>`;
+        
+        document.getElementById('summary-list').innerHTML = html || `<p style="text-align:center; color:var(--subtext)">Nessun dato per questo mese.</p>`;
     }
 
     async function salva() {
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
-        if (!tipo) { alert("Scegli un'attività!"); return; }
-
+        if (!tipo) return alert("Scegli un'attività!");
         const record = {
             id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
-            tipo: tipo,
-            categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
-            luogo: document.getElementById('luogo').value || "-",
-            data: document.getElementById('data').value,
-            inizio: document.getElementById('ora-inizio').value,
-            fine: document.getElementById('ora-fine').value,
-            pausa: document.getElementById('pausa').checked,
-            note: document.getElementById('note').value || "",
-            ore: document.getElementById('ore-tot').textContent
+            tipo: tipo, categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
+            luogo: document.getElementById('luogo').value || "-", data: document.getElementById('data').value,
+            inizio: document.getElementById('ora-inizio').value, fine: document.getElementById('ora-fine').value,
+            pausa: document.getElementById('pausa').checked, note: document.getElementById('note').value, ore: document.getElementById('ore-tot').textContent
         };
-
         showLoading("Salvataggio...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
-            resetForm();
-            setTimeout(fetchData, 1200);
-            setTimeout(hideLoading, 1500);
-        } catch (e) { hideLoading(); setSyncState('error', 'Errore!'); }
-    }
-
-    async function elimina(index) {
-        if (!confirm("Vuoi eliminare questo report?")) return;
-        showLoading("Eliminazione...");
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[index].id.toString() }) });
-            setTimeout(fetchData, 1200);
-            setTimeout(hideLoading, 1500);
+            resetForm(); setTimeout(fetchData, 1200); setTimeout(hideLoading, 1500);
         } catch (e) { hideLoading(); setSyncState('error', 'Errore!'); }
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => {
-            const dObj = new Date(d.data);
-            const dFmt = dObj.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
+            const dFmt = new Date(d.data).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
+            const dett = calcolaDettaglioOre(d.data, parseFloat(d.ore));
             const badgeCls = d.tipo === "In Sede" ? "bg-sede" : d.categoria === "lavoro" ? "bg-rientro" : "bg-assenza";
-            const oreT = parseFloat(d.ore);
-            const oreE = calcolaStraordinarie(d.data, oreT);
-
-            return `
-                <tr>
-                    <td style="width:38%">
-                        <span class="item-data">${dFmt}</span>
-                        <span class="item-orario">${d.inizio}-${d.fine}</span>
-                        <span style="font-size:10px; color:var(--primary); font-weight:700;">${d.luogo}</span>
-                    </td>
-                    <td style="width:28%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
-                    <td style="width:34%">
-                        <div class="result-cell">
-                            <div class="ore-col-tab">
-                                <span class="ore-val-tab">${oreT.toFixed(2)}h</span>
-                                ${oreE > 0 ? `<span class="ore-extra-tab">+${oreE.toFixed(2)}</span>` : ''}
-                            </div>
-                            <div class="actions-row">
-                                <button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon" onclick="elimina(${i})"><i class="fas fa-trash" style="color:var(--danger)"></i></button>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            return `<tr>
+                <td style="width:38%"><span class="item-data">${dFmt}</span><span class="item-orario">${d.inizio}-${d.fine}</span><span style="font-size:10px; color:var(--primary); font-weight:700;">${d.luogo}</span></td>
+                <td style="width:28%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
+                <td style="width:34%"><div class="result-cell"><div class="ore-col-tab"><span class="ore-val-tab">${dett.ordinarie.toFixed(2)}h</span>${dett.straordinarie > 0 ? `<span class="ore-extra-tab">+${dett.straordinarie.toFixed(2)}</span>` : ''}</div>
+                <div class="actions-row"><button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button></div></div></td>
+            </tr>`;
         }).join('');
     }
 
     function avviaModifica(index) {
-        const d = dati[index];
-        editIndex = index;
+        const d = dati[index]; editIndex = index;
         document.getElementById('data').value = d.data.split('T')[0];
-        if (d.categoria === 'lavoro') {
-            document.getElementById('modalita').value = d.tipo;
-            document.getElementById('assenza').value = "";
-        } else {
-            document.getElementById('assenza').value = d.tipo;
-            document.getElementById('modalita').value = "";
-        }
-        document.getElementById('luogo').value = d.luogo;
-        document.getElementById('ora-inizio').value = d.inizio;
-        document.getElementById('ora-fine').value = d.fine;
-        document.getElementById('pausa').checked = (d.pausa === true || d.pausa === "SI");
-        document.getElementById('note').value = d.note || "";
-        document.getElementById('btn-save').textContent = "AGGIORNA REPORT";
-        document.getElementById('btn-cancel-edit').style.display = "block";
-        aggiornaPreview();
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        if (d.categoria === 'lavoro') { document.getElementById('modalita').value = d.tipo; document.getElementById('assenza').value = ""; }
+        else { document.getElementById('assenza').value = d.tipo; document.getElementById('modalita').value = ""; }
+        document.getElementById('luogo').value = d.luogo; document.getElementById('ora-inizio').value = d.inizio;
+        document.getElementById('ora-fine').value = d.fine; document.getElementById('pausa').checked = (d.pausa === true || d.pausa === "SI");
+        document.getElementById('note').value = d.note || ""; document.getElementById('btn-save').textContent = "AGGIORNA";
+        document.getElementById('btn-cancel-edit').style.display = "block"; aggiornaPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function resetForm() {
-        editIndex = -1;
-        document.getElementById('modalita').value = "";
-        document.getElementById('assenza').value = "";
-        document.getElementById('luogo').value = "";
-        document.getElementById('note').value = "";
-        document.getElementById('ora-inizio').value = "";
-        document.getElementById('ora-fine').value = "";
-        document.getElementById('pausa').checked = false;
-        document.getElementById('btn-save').textContent = "REGISTRA NEL CLOUD";
-        document.getElementById('btn-cancel-edit').style.display = "none";
-        document.getElementById('ore-tot').textContent = "0.00";
-        document.getElementById('ore-extra').textContent = "0.00";
+        editIndex = -1; document.getElementById('modalita').value = ""; document.getElementById('assenza').value = "";
+        document.getElementById('luogo').value = ""; document.getElementById('note').value = "";
+        document.getElementById('ora-inizio').value = ""; document.getElementById('ora-fine').value = "";
+        document.getElementById('pausa').checked = false; document.getElementById('btn-save').textContent = "REGISTRA NEL CLOUD";
+        document.getElementById('btn-cancel-edit').style.display = "none"; document.getElementById('ore-tot').textContent = "0.00"; document.getElementById('ore-extra').textContent = "0.00";
     }
 
     function setSyncState(state, text) {
