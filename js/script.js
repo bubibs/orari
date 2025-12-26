@@ -1,112 +1,96 @@
-const WEB_APP_URL = "INSERISCI_URL_QUI";
-
-// Configurazione Frasi
-const frasi = [
-    "Precisione nel lavoro, successo assicurato!",
-    "La qualità è fare le cose bene quando nessuno guarda.",
-    "Ogni report corretto è un passo verso il weekend.",
-    "Lavora sodo in silenzio, il successo sarà il tuo rumore."
-];
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Frase motivazionale in Home
+    // Gestione Frase Home
     const quoteEl = document.getElementById('quote');
-    if (quoteEl) quoteEl.innerText = `"${frasi[Math.floor(Math.random() * frasi.length)]}"`;
-
-    // 2. Setup Report
-    if (document.getElementById('ora-inizio')) {
-        popolaOrari();
-        document.getElementById('data').value = new Date().toISOString().split('T')[0];
-        aggiornaListaLuoghi();
-        aggiornaPreview();
+    if (quoteEl) {
+        const frasi = ["Precisione nel lavoro, successo assicurato!", "La qualità è la nostra firma.", "Sincronizzazione Cloud attiva."];
+        quoteEl.innerText = `"${frasi[Math.floor(Math.random() * frasi.length)]}"`;
     }
 
-    // 3. Setup Rubrica
-    if (document.getElementById('lista-rubrica')) renderingRubrica();
+    // Se siamo in rubrica, scarica i contatti dal Cloud
+    if (document.getElementById('lista-rubrica')) {
+        caricaRubricaCloud();
+    }
 });
 
-// POPOLA SELECT ORARI
-function popolaOrari() {
-    const s1 = document.getElementById('ora-inizio'), s2 = document.getElementById('ora-fine');
-    for (let h = 7; h < 22; h++) {
-        let hh = h.toString().padStart(2, '0');
-        [hh + ":00", hh + ":30"].forEach(t => {
-            s1.add(new Option(t, t)); s2.add(new Option(t, t));
-        });
-    }
-    s1.value = "08:00"; s2.value = "17:00";
-}
+// --- SALVATAGGIO CLOUD ---
+async function salvaIndirizzoCloud() {
+    const btn = document.getElementById('btn-save-rubrica');
+    const nome = document.getElementById('add-nome').value;
+    const via = document.getElementById('add-via').value;
+    const citta = document.getElementById('add-citta').value;
+    const ref = document.getElementById('add-ref').value;
+    const tel = document.getElementById('add-tel').value;
 
-// CALCOLO ORE E PREVIEW
-function aggiornaPreview() {
-    if (!document.getElementById('ora-inizio')) return;
-    const inizio = document.getElementById('ora-inizio').value;
-    const fine = document.getElementById('ora-fine').value;
-    const pausa = document.getElementById('pausa-mensa').checked ? 1 : 0;
-    
-    let [h1, m1] = inizio.split(':').map(Number);
-    let [h2, m2] = fine.split(':').map(Number);
-    let totali = (h2 + m2/60) - (h1 + m1/60) - pausa;
-    
-    if (totali < 0) totali = 0;
-    document.getElementById('prev-tot').innerText = totali.toFixed(2);
-    document.getElementById('prev-extra').innerText = (totali > 8 ? totali - 8 : 0).toFixed(2);
-}
-
-// SALVATAGGIO REPORT CON ANIMAZIONE
-async function salvaReport() {
-    const btn = document.getElementById('btn-save');
-    const spinner = document.getElementById('btn-spinner');
-    const text = document.getElementById('btn-text');
+    if (!nome || !via) return alert("Nome e Via obbligatori!");
 
     btn.disabled = true;
-    spinner.style.display = 'inline-block';
-    text.innerText = "SALVATAGGIO...";
+    setSyncState('working', 'Salvataggio...');
 
     const payload = {
-        data: document.getElementById('data').value,
-        luogo: document.getElementById('luogo').value,
-        ore: document.getElementById('prev-tot').innerText,
-        tipo: document.getElementById('modalita').value
+        azione: "salva_rubrica", // Identificatore per Google Sheets
+        nome, via, citta, ref, tel
     };
 
     try {
-        // Simulazione o invio reale
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert("Report Salvato!");
-        window.location.href = "index.html";
+        setSyncState('success', 'Sincronizzato');
+        alert("Salvato nel Cloud!");
+        window.location.reload();
     } catch (e) {
-        alert("Errore invio!");
+        setSyncState('error', 'Errore Cloud');
         btn.disabled = false;
-        spinner.style.display = 'none';
-        text.innerText = "SALVA REPORT";
     }
 }
 
-// RUBRICA E SUGGERIMENTI
-function salvaIndirizzo() {
-    const n = document.getElementById('add-nome').value;
-    const v = document.getElementById('add-via').value;
-    if (!n || !v) return;
-
-    let r = JSON.parse(localStorage.getItem('rubrica')) || [];
-    r.push({ nome: n, via: v });
-    localStorage.setItem('rubrica', JSON.stringify(r));
-    window.location.reload();
+// --- CARICAMENTO CLOUD ---
+async function caricaRubricaCloud() {
+    setSyncState('working', 'Caricamento...');
+    try {
+        const response = await fetch(`${WEB_APP_URL}?tipo=rubrica`);
+        const result = await response.json();
+        renderizzaRubrica(result.data);
+        setSyncState('success', 'Cloud Attivo');
+    } catch (e) {
+        setSyncState('error', 'Errore');
+    }
 }
 
-function renderingRubrica() {
-    let r = JSON.parse(localStorage.getItem('rubrica')) || [];
-    document.getElementById('lista-rubrica').innerHTML = r.map((item, index) => `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-            <div><b>${item.nome}</b><br><small>${item.via}</small></div>
-            <a href="https://www.google.com/maps/search/${encodeURIComponent(item.via)}" target="_blank" style="color:var(--primary); font-size:20px;"><i class="fas fa-directions"></i></a>
+// --- RENDERING E APPLE MAPS ---
+function renderizzaRubrica(contatti) {
+    const lista = document.getElementById('lista-rubrica');
+    if (!contatti || contatti.length === 0) {
+        lista.innerHTML = "<p style='text-align:center; padding:20px; color:gray;'>Nessun contatto nel cloud.</p>";
+        return;
+    }
+
+    lista.innerHTML = contatti.map(c => {
+        const indirizzoFull = `${c.via}, ${c.citta}`;
+        // Protocollo specifico per iPhone (Apple Maps)
+        const linkApple = `maps://?q=${encodeURIComponent(indirizzoFull)}`;
+        const linkGoogle = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(indirizzoFull)}`;
+
+        return `
+        <div class="card addr-card">
+            <div class="addr-details">
+                <b class="primary-text">${c.nome.toUpperCase()}</b>
+                <div class="info-row"><i class="fas fa-map-marker-alt"></i> ${indirizzoFull}</div>
+                <div class="info-row"><i class="fas fa-user"></i> ${c.ref || '-'}</div>
+                <div class="info-row"><i class="fas fa-phone"></i> <a href="tel:${c.tel}">${c.tel || '-'}</a></div>
+            </div>
+            <div class="addr-actions">
+                <a href="${linkApple}" class="btn-nav a-maps"><i class="fab fa-apple"></i> MAPPE APPLE</a>
+                <a href="${linkGoogle}" target="_blank" class="btn-nav g-maps"><i class="fab fa-google"></i> GOOGLE</a>
+            </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
-function aggiornaListaLuoghi() {
-    let r = JSON.parse(localStorage.getItem('rubrica')) || [];
-    const dl = document.getElementById('lista-luoghi');
-    dl.innerHTML = r.map(i => `<option value="${i.nome} - ${i.via}">`).join('');
+function setSyncState(stato, testo) {
+    const ind = document.getElementById('sync-indicator');
+    if (!ind) return;
+    ind.className = `sync-${stato}`;
+    ind.innerHTML = `<i class="fas ${stato === 'working' ? 'fa-sync fa-spin' : 'fa-cloud'}"></i> ${testo ? testo.toUpperCase() : ''}`;
 }
