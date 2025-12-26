@@ -16,18 +16,42 @@
             --text: #1C1C1E;
             --text-secondary: #8E8E93;
             --border: #D1D1D6;
+            --success: #34C759; /* Verde iOS */
             --radius: 14px;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: -apple-system, system-ui, sans-serif; 
+        }
 
-        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px 15px; }
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 20px 15px; 
+        }
+
         .container { max-width: 500px; margin: 0 auto; }
 
         header { text-align: center; margin-bottom: 25px; }
-        .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo { 
+            font-size: 26px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #007AFF, #5856D6); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
 
-        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .card { 
+            background: var(--card); 
+            border-radius: var(--radius); 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+        }
+
         h2 { font-size: 17px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
         .form-group { margin-bottom: 15px; }
@@ -38,29 +62,54 @@
             font-size: 16px; background: #FFF; appearance: none; transition: all 0.2s;
         }
 
-        select:focus { border-color: var(--primary); outline: none; }
-
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        .checkbox-container {
-            display: flex; align-items: center; gap: 10px; background: #F9F9F9;
-            padding: 12px; border-radius: 12px; border: 1px solid var(--border);
-            margin-top: 10px; cursor: pointer;
+        /* --- STILE SWITCH iOS --- */
+        .pausa-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F9F9F9;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-top: 10px;
+            cursor: pointer;
         }
 
-        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary); }
+        .switch-container { position: relative; width: 50px; height: 28px; }
+        .switch-container input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #E5E5EA; transition: .3s; border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute; content: ""; height: 24px; width: 24px;
+            left: 2px; bottom: 2px; background-color: white;
+            transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* --- PREVIEW E BOTTONE --- */
+        .preview-box {
+            background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px;
+            text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2);
+        }
+        .preview-box span { font-size: 20px; }
 
         .btn-main {
             background: var(--primary); color: white; border: none; border-radius: 14px;
             padding: 18px; font-size: 16px; font-weight: 700; width: 100%;
             margin-top: 15px; box-shadow: 0 4px 15px rgba(0,122,255,0.3);
+            transition: transform 0.1s;
         }
+        .btn-main:active { transform: scale(0.98); }
 
-        .preview-box {
-            background: #EBF5FF; color: #007AFF; padding: 15px; border-radius: 12px;
-            text-align: center; font-weight: 700; margin-top: 15px; border: 1px dashed var(--primary);
-        }
-
+        /* --- REGISTRO --- */
         .table-container { margin-top: 10px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         td { padding: 12px 8px; border-bottom: 1px solid #F2F2F7; }
@@ -73,7 +122,7 @@
     <header><div class="logo">WORK LOG PRO</div></header>
 
     <div class="card">
-        <h2><i class="fas fa-edit"></i> Inserimento</h2>
+        <h2><i class="fas fa-edit"></i> Nuovo Inserimento</h2>
         
         <div class="form-group">
             <label>Modalità Lavoro</label>
@@ -102,13 +151,16 @@
             </div>
         </div>
 
-        <div class="checkbox-container" onclick="toggleCheckbox()">
-            <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
-            <label style="margin:0; color:var(--text); cursor:pointer;">Pausa Mensa (1h)</label>
+        <div class="pausa-row" onclick="document.getElementById('pausa').click()">
+            <label style="margin:0; color:var(--text); font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
+            <div class="switch-container">
+                <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
+                <span class="slider"></span>
+            </div>
         </div>
 
         <div class="preview-box" id="preview-text">
-            Seleziona orari per il calcolo
+            Seleziona modalità e orari
         </div>
 
         <button class="btn-main" onclick="salva()">
@@ -117,7 +169,7 @@
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-history"></i> Ultime Attività</h2>
+        <h2><i class="fas fa-history"></i> Ultime 5 Attività</h2>
         <div class="table-container">
             <table>
                 <tbody id="registro-body"></tbody>
@@ -127,7 +179,7 @@
 </div>
 
 <script>
-    let dati = JSON.parse(localStorage.getItem('registro_lavoro_v2')) || [];
+    let dati = JSON.parse(localStorage.getItem('registro_lavoro_v3')) || [];
 
     document.addEventListener('DOMContentLoaded', () => {
         popolaSelectOrari();
@@ -138,7 +190,6 @@
     function popolaSelectOrari() {
         const start = document.getElementById('ora-inizio');
         const end = document.getElementById('ora-fine');
-        // Aggiungiamo un'opzione vuota iniziale
         start.add(new Option("--:--", ""));
         end.add(new Option("--:--", ""));
         
@@ -162,15 +213,8 @@
             end.value = "17:00";
             pausa.checked = true;
         } else {
-            // Se cambi modalità resettiamo o lasciamo all'utente
             pausa.checked = false;
         }
-        aggiornaPreview();
-    }
-
-    function toggleCheckbox() {
-        const cb = document.getElementById('pausa');
-        cb.checked = !cb.checked;
         aggiornaPreview();
     }
 
@@ -180,7 +224,7 @@
         const p = document.getElementById('pausa').checked;
         
         if (!s || !e) {
-            document.getElementById('preview-text').textContent = "Seleziona orari...";
+            document.getElementById('preview-text').innerHTML = "In attesa di orari...";
             return;
         }
 
@@ -192,29 +236,35 @@
         const [h1, m1] = start.split(':').map(Number);
         const [h2, m2] = end.split(':').map(Number);
         let minuti = (h2 * 60 + m2) - (h1 * 60 + m1);
-        if (conPausa) minuti -= 60; // Toglie 60 minuti di mensa
+        if (conPausa) minuti -= 60; 
         return Math.max(0, minuti / 60);
     }
 
     function salva() {
         const modalita = document.getElementById('tipo').value;
-        if (!modalita) { alert("Scegli una modalità!"); return; }
+        const start = document.getElementById('ora-inizio').value;
+        const end = document.getElementById('ora-fine').value;
+
+        if (!modalita || !start || !end) { 
+            alert("Compila tutti i campi!"); 
+            return; 
+        }
         
         const entry = {
             data: document.getElementById('data').value,
             tipo: modalita,
-            ore: calcolaOreNette(document.getElementById('ora-inizio').value, document.getElementById('ora-fine').value, document.getElementById('pausa').checked)
+            ore: calcolaOreNette(start, end, document.getElementById('pausa').checked)
         };
 
         dati.unshift(entry);
-        localStorage.setItem('registro_lavoro_v2', JSON.stringify(dati));
+        localStorage.setItem('registro_lavoro_v3', JSON.stringify(dati));
         renderTabella();
-        alert("Salvato con successo!");
+        alert("Salvato!");
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
-        body.innerHTML = dati.slice(0, 10).map((d, i) => `
+        body.innerHTML = dati.slice(0, 5).map((d) => `
             <tr>
                 <td>${d.data.split('-').reverse().join('/')}</td>
                 <td><span class="badge">${d.tipo}</span></td>
