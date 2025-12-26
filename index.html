@@ -28,9 +28,13 @@
         .container { max-width: 500px; margin: 0 auto; }
         
         header { text-align: center; margin-bottom: 25px; }
-        .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
-        #sync-indicator { font-size: 11px; margin-top: 5px; font-weight: 700; }
+        .logo { font-size: 32px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
         
+        /* FRASE MOTIVAZIONALE */
+        .quote-container { margin-top: 5px; padding: 0 20px; }
+        #daily-quote { font-size: 13px; font-style: italic; color: var(--subtext); line-height: 1.4; font-weight: 500; }
+        
+        #sync-indicator { font-size: 11px; margin-top: 10px; font-weight: 700; }
         .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
         #loading-overlay {
@@ -72,7 +76,6 @@
         .item-data { font-weight: 800; font-size: 13px; display: block; }
         .item-orario { color: var(--subtext); font-size: 11px; display: block; }
         .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; width: 100%; text-align: center; }
-        
         .bg-sede { background: #E1F5FE; color: #0288D1; } .bg-rientro { background: #FFF3E0; color: #EF6C00; } .bg-pernotto { background: #F3E5F5; color: #7B1FA2; } .bg-estero { background: #E8F5E9; color: #2E7D32; } .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
         .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
@@ -101,6 +104,9 @@
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
+        <div class="quote-container">
+            <div id="daily-quote">"Caricamento ispirazione..."</div>
+        </div>
         <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Cloud Sync...</div>
     </header>
 
@@ -201,14 +207,34 @@
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
+    const quotes = [
+        "L'unico modo per fare un ottimo lavoro è amare quello che fai.",
+        "Il successo non è definitivo, il fallimento non è fatale: ciò che conta è il coraggio di andare avanti.",
+        "Qualunque cosa tu faccia, falla bene.",
+        "La qualità è fare le cose bene quando nessuno ti sta guardando.",
+        "Il lavoro di squadra divide i compiti e moltiplica il successo.",
+        "Non contare i giorni, fai in modo che i giorni contino.",
+        "L'ispirazione esiste, ma deve trovarti già al lavoro.",
+        "Le grandi cose non vengono mai dalle zone di comfort.",
+        "Scegli un lavoro che ami e non dovrai lavorare neanche un giorno in vita tua.",
+        "Il genio è per l'1% ispirazione e per il 99% sudore."
+    ];
+
     let dati = [];
     let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
         popolaOrari();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
+        setDailyQuote();
         fetchData();
     });
+
+    function setDailyQuote() {
+        const today = new Date();
+        const index = (today.getDate() + today.getMonth()) % quotes.length;
+        document.getElementById('daily-quote').textContent = `"${quotes[index]}"`;
+    }
 
     function toggleSection(id, el) {
         const content = document.getElementById(id);
