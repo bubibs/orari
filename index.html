@@ -36,10 +36,11 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        input, select { 
+        input, select, textarea { 
             width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; 
             font-size: 16px; background: #FFF; appearance: none;
         }
+        textarea { resize: none; height: 80px; font-family: inherit; }
 
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
@@ -57,16 +58,15 @@
 
         .preview-box { background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2); }
         
-        .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; transition: opacity 0.2s; }
-        .btn-main:disabled { opacity: 0.5; }
+        .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; }
         .btn-cancel { background: #E5E5EA; color: var(--text); border: none; border-radius: 14px; padding: 10px; width: 100%; margin-top: 10px; font-weight: 600; display: none; }
 
-        /* Stile Tabella Registro */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         tr { border-bottom: 1px solid #F2F2F7; }
         td { padding: 15px 5px; font-size: 13px; vertical-align: middle; }
         .luogo-label { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .note-label { display: block; font-size: 11px; color: var(--text-secondary); font-style: italic; margin-top: 2px; line-height: 1.2; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
         
@@ -81,27 +81,27 @@
 <div class="container">
     <header>
         <div class="logo">WORK LOG CLOUD</div>
-        <div id="sync-indicator">Connessione al cloud...</div>
+        <div id="sync-indicator">Connessione...</div>
     </header>
 
     <div class="card">
-        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Nuovo Inserimento</h2>
+        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Nuovo Record</h2>
         
         <div class="form-group">
             <label>Modalità Lavoro</label>
             <select id="modalita" onchange="logicModalita()">
-                <option value="">Nessuna (Seleziona Assenza)</option>
+                <option value="">Nessuna</option>
                 <option value="In Sede">In Sede</option>
-                <option value="Trasferta Rientro">Trasferta con Rientro</option>
-                <option value="Trasferta Pernotto">Trasferta con Pernottamento</option>
+                <option value="Trasferta Rientro">Trasferta Rientro</option>
+                <option value="Trasferta Pernotto">Trasferta Pernotto</option>
                 <option value="Trasferta Estero">Trasferta Estero</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>Oppure Tipo Assenza</label>
+            <label>Assenza</label>
             <select id="assenza" onchange="logicAssenza()">
-                <option value="">Nessuna (Lavoro Attivo)</option>
+                <option value="">Nessuna</option>
                 <option value="Ferie">Ferie</option>
                 <option value="Permesso">Permesso</option>
                 <option value="Malattia">Malattia</option>
@@ -109,8 +109,8 @@
         </div>
 
         <div class="form-group">
-            <label>Luogo di Lavoro</label>
-            <input type="text" id="luogo" placeholder="Specifica luogo o cliente">
+            <label>Luogo</label>
+            <input type="text" id="luogo" placeholder="Dove hai lavorato?">
         </div>
 
         <div class="form-group">
@@ -118,47 +118,44 @@
             <input type="date" id="data">
         </div>
 
-        <div id="orari-container">
-            <div class="time-row">
-                <div class="form-group">
-                    <label>Inizio</label>
-                    <select id="ora-inizio" onchange="aggiornaPreview()"></select>
-                </div>
-                <div class="form-group">
-                    <label>Fine</label>
-                    <select id="ora-fine" onchange="aggiornaPreview()"></select>
-                </div>
+        <div class="time-row">
+            <div class="form-group">
+                <label>Inizio</label>
+                <select id="ora-inizio" onchange="aggiornaPreview()"></select>
             </div>
+            <div class="form-group">
+                <label>Fine</label>
+                <select id="ora-fine" onchange="aggiornaPreview()"></select>
+            </div>
+        </div>
 
-            <div class="pausa-row" onclick="document.getElementById('pausa').click()">
-                <label style="margin:0; font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
-                <div class="switch-container">
-                    <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
-                    <span class="slider"></span>
-                </div>
+        <div class="pausa-row" onclick="document.getElementById('pausa').click()">
+            <label style="margin:0; font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
+            <div class="switch-container">
+                <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
+                <span class="slider"></span>
             </div>
+        </div>
+
+        <div class="form-group" style="margin-top:15px;">
+            <label>Note / Dettagli</label>
+            <textarea id="note" placeholder="Aggiungi dettagli extra..."></textarea>
         </div>
 
         <div class="preview-box" id="preview-text">Ore Nette: 0.00h</div>
 
         <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
-        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla Modifica</button>
+        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-history"></i> Storico Attività</h2>
-        <div style="overflow-x:auto;">
-            <table>
-                <tbody id="registro-body"></tbody>
-            </table>
-        </div>
+        <h2><i class="fas fa-history"></i> Registro Online</h2>
+        <table><tbody id="registro-body"></tbody></table>
     </div>
 </div>
 
 <script>
-    // INSERISCI QUI IL TUO URL DI GOOGLE SCRIPT
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-    
     let dati = [];
     let editIndex = -1;
 
@@ -174,11 +171,14 @@
             const response = await fetch(WEB_APP_URL);
             const res = await response.json();
             dati = res.data || [];
+            
+            // ORDINAMENTO: Dal più recente al più vecchio
+            dati.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
             renderTabella();
             showSync(false, "Sincronizzato");
         } catch (e) {
-            showSync(false, "Errore di connessione");
-            console.error(e);
+            showSync(false, "Errore Cloud");
         }
     }
 
@@ -204,11 +204,10 @@
 
     function logicModalita() {
         const mod = document.getElementById('modalita').value;
-        const luogo = document.getElementById('luogo');
         if (mod !== "") {
             document.getElementById('assenza').value = "";
             if (mod === "In Sede") {
-                luogo.value = "TECNOSISTEM";
+                document.getElementById('luogo').value = "TECNOSISTEM";
                 document.getElementById('ora-inizio').value = "08:00";
                 document.getElementById('ora-fine').value = "17:00";
                 document.getElementById('pausa').checked = true;
@@ -218,15 +217,10 @@
     }
 
     function logicAssenza() {
-        const ass = document.getElementById('assenza').value;
-        if (ass !== "") {
+        if (document.getElementById('assenza').value !== "") {
             document.getElementById('modalita').value = "";
             document.getElementById('luogo').value = "-";
             document.getElementById('pausa').checked = false;
-            if (ass === "Ferie" || ass === "Malattia") {
-                document.getElementById('ora-inizio').value = "08:00";
-                document.getElementById('ora-fine').value = "16:00";
-            }
         }
         aggiornaPreview();
     }
@@ -234,123 +228,88 @@
     function aggiornaPreview() {
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
-        const p = document.getElementById('pausa').checked;
         if (!s || !e) return;
-        const ore = calcolaOre(s, e, p);
+        const h1 = s.split(':').map(Number);
+        const h2 = e.split(':').map(Number);
+        let min = (h2[0]*60+h2[1]) - (h1[0]*60+h1[1]);
+        if (document.getElementById('pausa').checked) min -= 60;
+        const ore = Math.max(0, min/60);
         document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore.toFixed(2)}h</span>`;
-    }
-
-    function calcolaOre(start, end, conPausa) {
-        const [h1, m1] = start.split(':').map(Number);
-        const [h2, m2] = end.split(':').map(Number);
-        let min = (h2 * 60 + m2) - (h1 * 60 + m1);
-        if (conPausa) min -= 60;
-        return Math.max(0, min / 60);
+        return ore.toFixed(2);
     }
 
     async function salva() {
-        const mod = document.getElementById('modalita').value;
-        const ass = document.getElementById('assenza').value;
-        const s = document.getElementById('ora-inizio').value;
-        const e = document.getElementById('ora-fine').value;
-
-        if ((!mod && !ass) || !s || !e) { alert("Completa tutti i campi!"); return; }
-
         const record = {
             id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
-            tipo: mod || ass,
-            categoria: mod ? 'lavoro' : 'assenza',
+            tipo: document.getElementById('modalita').value || document.getElementById('assenza').value,
+            categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
             luogo: document.getElementById('luogo').value || "-",
             data: document.getElementById('data').value,
-            inizio: s,
-            fine: e,
+            inizio: document.getElementById('ora-inizio').value,
+            fine: document.getElementById('ora-fine').value,
             pausa: document.getElementById('pausa').checked,
-            ore: calcolaOre(s, e, document.getElementById('pausa').checked).toFixed(2)
+            note: document.getElementById('note').value || "",
+            ore: aggiornaPreview()
         };
 
         showSync(true, "Salvataggio...");
-
         try {
-            await fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(record)
-            });
-            
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
-            setTimeout(fetchData, 1500); // Ricarica dati reali dal cloud
-        } catch (err) {
-            alert("Errore salvataggio cloud");
-            showSync(false, "Errore");
-        }
+            setTimeout(fetchData, 1500);
+        } catch (e) { alert("Errore!"); showSync(false, "Errore"); }
     }
 
     async function elimina(index) {
-        if (!confirm("Vuoi eliminare definitivamente questo record dal Cloud?")) return;
-        
-        const idToDelete = dati[index].id.toString();
+        if (!confirm("Eliminare definitivamente dal cloud?")) return;
         showSync(true, "Eliminazione...");
-
         try {
-            await fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ action: "DELETE", id: idToDelete })
+            await fetch(WEB_APP_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({ action: "DELETE", id: dati[index].id.toString() }) 
             });
-
-            // Feedback immediato e ricarica
-            dati.splice(index, 1);
-            renderTabella();
             setTimeout(fetchData, 1500);
-        } catch (err) {
-            alert("Errore eliminazione");
-            showSync(false, "Errore");
-        }
+        } catch (e) { showSync(false, "Errore"); }
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
-        if (dati.length === 0) {
-            body.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px; color:#8E8E93;'>Nessun dato trovato</td></tr>";
-            return;
-        }
-        
-        body.innerHTML = dati.map((d, i) => `
-            <tr>
-                <td style="width:30%">
-                    <b>${d.data.split('-').reverse().slice(0,2).join('/')}</b>
-                    <span class="luogo-label"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
-                </td>
-                <td><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
-                <td style="text-align:right"><b>${d.ore}h</b></td>
-                <td class="actions">
-                    <button class="btn-icon edit-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
-                    <button class="btn-icon delete-icon" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `).join('');
+        body.innerHTML = dati.map((d, i) => {
+            let dataPulita = d.data.toString().includes('T') ? d.data.split('T')[0] : d.data;
+            let parti = dataPulita.split('-');
+            let dataFmt = parti.length >= 3 ? `${parti[2]}/${parti[1]}` : dataPulita;
+
+            return `
+                <tr>
+                    <td style="width:35%">
+                        <b>${dataFmt}</b>
+                        <span class="luogo-label"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
+                        ${d.note ? `<span class="note-label"><i class="fas fa-sticky-note"></i> ${d.note}</span>` : ''}
+                    </td>
+                    <td><span class="badge ${d.categoria==='lavoro'?'badge-lavoro':'badge-assenza'}">${d.tipo}</span></td>
+                    <td style="text-align:right"><b>${d.ore}h</b></td>
+                    <td class="actions">
+                        <button class="btn-icon edit-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon delete-icon" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     function avviaModifica(index) {
         const d = dati[index];
         editIndex = index;
-        
-        if (d.categoria === 'lavoro') {
-            document.getElementById('modalita').value = d.tipo;
-            document.getElementById('assenza').value = "";
-        } else {
-            document.getElementById('assenza').value = d.tipo;
-            document.getElementById('modalita').value = "";
-        }
-        
+        document.getElementById('modalita').value = d.categoria === 'lavoro' ? d.tipo : "";
+        document.getElementById('assenza').value = d.categoria === 'assenza' ? d.tipo : "";
         document.getElementById('luogo').value = d.luogo;
-        document.getElementById('data').value = d.data;
+        document.getElementById('data').value = d.data.includes('T') ? d.data.split('T')[0] : d.data;
         document.getElementById('ora-inizio').value = d.inizio;
         document.getElementById('ora-fine').value = d.fine;
         document.getElementById('pausa').checked = (d.pausa === "SI" || d.pausa === true);
-        
-        document.getElementById('form-title').innerHTML = `<i class="fas fa-edit"></i> Modifica Record`;
-        document.getElementById('btn-save').textContent = "AGGIORNA NEL CLOUD";
+        document.getElementById('note').value = d.note || "";
+        document.getElementById('btn-save').textContent = "AGGIORNA RECORD";
         document.getElementById('btn-cancel-edit').style.display = "block";
         aggiornaPreview();
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -361,13 +320,12 @@
         document.getElementById('modalita').value = "";
         document.getElementById('assenza').value = "";
         document.getElementById('luogo').value = "";
+        document.getElementById('note').value = "";
         document.getElementById('ora-inizio').value = "";
         document.getElementById('ora-fine').value = "";
         document.getElementById('pausa').checked = false;
-        document.getElementById('form-title').innerHTML = `<i class="fas fa-plus-circle"></i> Nuovo Inserimento`;
         document.getElementById('btn-save').textContent = "SALVA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display = "none";
-        document.getElementById('preview-text').textContent = "Ore Nette: 0.00h";
     }
 </script>
 
