@@ -15,50 +15,35 @@
         </header>
 
         <div class="card card-accent">
-            <h2 id="form-title" style="font-size: 18px; margin-bottom: 15px;">Gestione Contatto</h2>
+            <h2 id="form-title" style="font-size: 18px; margin-bottom: 15px;">Nuovo Contatto</h2>
             
             <div class="form-group">
-                <label>Ragione Sociale / Nome</label>
-                <input type="text" id="add-nome" placeholder="es. Officina Meccanica">
+                <label>Ragione Sociale / Azienda</label>
+                <input type="text" id="add-nome" placeholder="Nome cliente">
             </div>
 
             <div class="row-2">
-                <div class="form-group">
-                    <label>Via e Civico</label>
-                    <input type="text" id="add-via" placeholder="Via Roma 1">
-                </div>
-                <div class="form-group">
-                    <label>Città</label>
-                    <input type="text" id="add-citta" placeholder="Milano">
-                </div>
+                <div class="form-group"><label>Via e Civico</label><input type="text" id="add-via"></div>
+                <div class="form-group"><label>Città</label><input type="text" id="add-citta"></div>
             </div>
 
             <div class="row-2">
-                <div class="form-group">
-                    <label>Referente</label>
-                    <input type="text" id="add-ref" placeholder="Sig. Rossi">
-                </div>
-                <div class="form-group">
-                    <label>Telefono</label>
-                    <input type="tel" id="add-tel" placeholder="02 123456">
-                </div>
+                <div class="form-group"><label>Referente</label><input type="text" id="add-ref"></div>
+                <div class="form-group"><label>Telefono</label><input type="tel" id="add-tel"></div>
             </div>
 
-            <button class="btn-main" id="btn-save" onclick="azioneSalva()">
-                SALVA NEL CLOUD
-            </button>
+            <button class="btn-main" id="btn-save" onclick="azioneSalva()">SALVA NEL CLOUD</button>
         </div>
 
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="search-input" placeholder="Cerca cliente o città..." onkeyup="filtraRubrica()">
+            <input type="text" id="search-input" placeholder="Cerca nome o città..." onkeyup="filtraRubrica()">
         </div>
 
         <div id="lista-rubrica">
-            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento rubrica...</p>
+            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento dati...</p>
         </div>
     </div>
-
     <script src="js/script.js"></script>
 </body>
 </html>
