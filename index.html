@@ -40,14 +40,14 @@
             width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; 
             font-size: 16px; background: #FFF; appearance: none;
         }
-        textarea { resize: none; height: 80px; font-family: inherit; }
+        textarea { resize: none; height: 70px; font-family: inherit; }
 
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         .pausa-row {
             display: flex; justify-content: space-between; align-items: center;
             background: #F9F9F9; padding: 12px 16px; border-radius: 12px;
-            border: 1px solid var(--border); margin-top: 10px; cursor: pointer;
+            border: 1px solid var(--border); margin-top: 5px; cursor: pointer;
         }
         .switch-container { position: relative; width: 50px; height: 28px; }
         .switch-container input { opacity: 0; width: 0; height: 0; }
@@ -56,21 +56,21 @@
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        .preview-box { background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2); }
+        .preview-box { background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; margin-top: 15px; border: 1px solid rgba(0,122,255,0.2); }
         
         .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; }
         .btn-cancel { background: #E5E5EA; color: var(--text); border: none; border-radius: 14px; padding: 10px; width: 100%; margin-top: 10px; font-weight: 600; display: none; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         tr { border-bottom: 1px solid #F2F2F7; }
-        td { padding: 15px 5px; font-size: 13px; vertical-align: middle; }
+        td { padding: 12px 5px; font-size: 13px; vertical-align: middle; }
         .luogo-label { display: block; font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px; }
-        .note-label { display: block; font-size: 11px; color: var(--text-secondary); font-style: italic; margin-top: 2px; line-height: 1.2; }
+        .note-label { display: block; font-size: 11px; color: var(--text-secondary); font-style: italic; margin-top: 2px; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
         .badge-lavoro { background: #E1F5FE; color: #0288D1; }
         .badge-assenza { background: #FCE4EC; color: #D81B60; }
         
-        .actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .actions { display: flex; gap: 8px; justify-content: flex-end; }
         .btn-icon { border: none; background: none; font-size: 18px; padding: 5px; cursor: pointer; }
         .edit-icon { color: var(--primary); }
         .delete-icon { color: var(--danger); }
@@ -85,12 +85,17 @@
     </header>
 
     <div class="card">
-        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Nuovo Record</h2>
+        <h2 id="form-title"><i class="fas fa-edit"></i> Inserimento</h2>
         
+        <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="data">
+        </div>
+
         <div class="form-group">
             <label>Modalità Lavoro</label>
             <select id="modalita" onchange="logicModalita()">
-                <option value="">Nessuna</option>
+                <option value="">-- Seleziona --</option>
                 <option value="In Sede">In Sede</option>
                 <option value="Trasferta Rientro">Trasferta Rientro</option>
                 <option value="Trasferta Pernotto">Trasferta Pernotto</option>
@@ -99,38 +104,33 @@
         </div>
 
         <div class="form-group">
-            <label>Assenza</label>
+            <label>Tipo Assenza (opzionale)</label>
             <select id="assenza" onchange="logicAssenza()">
-                <option value="">Nessuna</option>
+                <option value="">-- Nessuna --</option>
                 <option value="Ferie">Ferie</option>
                 <option value="Permesso">Permesso</option>
                 <option value="Malattia">Malattia</option>
             </select>
         </div>
 
-        <div class="form-group">
-            <label>Luogo</label>
-            <input type="text" id="luogo" placeholder="Dove hai lavorato?">
-        </div>
-
-        <div class="form-group">
-            <label>Data</label>
-            <input type="date" id="data">
-        </div>
-
         <div class="time-row">
             <div class="form-group">
-                <label>Inizio</label>
+                <label>Ora Inizio</label>
                 <select id="ora-inizio" onchange="aggiornaPreview()"></select>
             </div>
             <div class="form-group">
-                <label>Fine</label>
+                <label>Ora Fine</label>
                 <select id="ora-fine" onchange="aggiornaPreview()"></select>
             </div>
         </div>
 
+        <div class="form-group">
+            <label>Luogo / Cliente</label>
+            <input type="text" id="luogo" placeholder="Inserisci destinazione">
+        </div>
+
         <div class="pausa-row" onclick="document.getElementById('pausa').click()">
-            <label style="margin:0; font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
+            <label style="margin:0; font-size: 14px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
             <div class="switch-container">
                 <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
                 <span class="slider"></span>
@@ -138,18 +138,18 @@
         </div>
 
         <div class="form-group" style="margin-top:15px;">
-            <label>Note / Dettagli</label>
-            <textarea id="note" placeholder="Aggiungi dettagli extra..."></textarea>
+            <label>Note</label>
+            <textarea id="note" placeholder="Dettagli aggiuntivi..."></textarea>
         </div>
 
-        <div class="preview-box" id="preview-text">Ore Nette: 0.00h</div>
+        <div class="preview-box" id="preview-text">Ore Totali: 0.00h</div>
 
         <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
         <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-history"></i> Registro Online</h2>
+        <h2><i class="fas fa-list-ul"></i> Registro Online</h2>
         <table><tbody id="registro-body"></tbody></table>
     </div>
 </div>
@@ -166,26 +166,20 @@
     });
 
     async function fetchData() {
-        showSync(true, "Sincronizzazione...");
+        showSync(true, "Aggiornamento...");
         try {
             const response = await fetch(WEB_APP_URL);
             const res = await response.json();
             dati = res.data || [];
-            
-            // ORDINAMENTO: Dal più recente al più vecchio
             dati.sort((a, b) => new Date(b.data) - new Date(a.data));
-            
             renderTabella();
             showSync(false, "Sincronizzato");
-        } catch (e) {
-            showSync(false, "Errore Cloud");
-        }
+        } catch (e) { showSync(false, "Errore Cloud"); }
     }
 
     function showSync(isSyncing, text) {
         const ind = document.getElementById('sync-indicator');
         ind.innerHTML = isSyncing ? `<i class="fas fa-sync fa-spin"></i> ${text}` : `<i class="fas fa-cloud"></i> ${text}`;
-        ind.className = isSyncing ? "syncing" : "";
         document.getElementById('btn-save').disabled = isSyncing;
     }
 
@@ -225,17 +219,20 @@
         aggiornaPreview();
     }
 
-    function aggiornaPreview() {
+    function calcolaOreFrazione() {
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
-        if (!s || !e) return;
+        if (!s || !e) return 0;
         const h1 = s.split(':').map(Number);
         const h2 = e.split(':').map(Number);
         let min = (h2[0]*60+h2[1]) - (h1[0]*60+h1[1]);
         if (document.getElementById('pausa').checked) min -= 60;
-        const ore = Math.max(0, min/60);
+        return Math.max(0, min/60);
+    }
+
+    function aggiornaPreview() {
+        const ore = calcolaOreFrazione();
         document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore.toFixed(2)}h</span>`;
-        return ore.toFixed(2);
     }
 
     async function salva() {
@@ -249,19 +246,21 @@
             fine: document.getElementById('ora-fine').value,
             pausa: document.getElementById('pausa').checked,
             note: document.getElementById('note').value || "",
-            ore: aggiornaPreview()
+            ore: calcolaOreFrazione().toFixed(2)
         };
 
-        showSync(true, "Salvataggio...");
+        if (!record.tipo || !record.inizio || !record.fine) { alert("Inserisci orari e attività!"); return; }
+
+        showSync(true, "Invio...");
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
             resetForm();
             setTimeout(fetchData, 1500);
-        } catch (e) { alert("Errore!"); showSync(false, "Errore"); }
+        } catch (e) { showSync(false, "Errore"); }
     }
 
     async function elimina(index) {
-        if (!confirm("Eliminare definitivamente dal cloud?")) return;
+        if (!confirm("Eliminare dal cloud?")) return;
         showSync(true, "Eliminazione...");
         try {
             await fetch(WEB_APP_URL, { 
@@ -273,17 +272,28 @@
         } catch (e) { showSync(false, "Errore"); }
     }
 
+    // Funzione per pulire l'ora da Google (evita 1899-12-30...)
+    function formattaOra(valore) {
+        if (!valore) return "--:--";
+        let stringa = valore.toString();
+        if (stringa.includes('T')) {
+            let tempo = stringa.split('T')[1]; // Prendi parte dopo T
+            return tempo.substring(0, 5); // Prendi HH:mm
+        }
+        return stringa.substring(0, 5);
+    }
+
     function renderTabella() {
         const body = document.getElementById('registro-body');
         body.innerHTML = dati.map((d, i) => {
             let dataPulita = d.data.toString().includes('T') ? d.data.split('T')[0] : d.data;
-            let parti = dataPulita.split('-');
-            let dataFmt = parti.length >= 3 ? `${parti[2]}/${parti[1]}` : dataPulita;
+            let p = dataPulita.split('-');
+            let dataFmt = p.length >= 3 ? `${p[2]}/${p[1]}` : dataPulita;
 
             return `
                 <tr>
-                    <td style="width:35%">
-                        <b>${dataFmt}</b>
+                    <td style="width:40%">
+                        <b>${dataFmt}</b> <small style="color:#888">(${formattaOra(d.inizio)}-${formattaOra(d.fine)})</small>
                         <span class="luogo-label"><i class="fas fa-map-marker-alt"></i> ${d.luogo}</span>
                         ${d.note ? `<span class="note-label"><i class="fas fa-sticky-note"></i> ${d.note}</span>` : ''}
                     </td>
@@ -301,15 +311,16 @@
     function avviaModifica(index) {
         const d = dati[index];
         editIndex = index;
+        document.getElementById('data').value = d.data.includes('T') ? d.data.split('T')[0] : d.data;
         document.getElementById('modalita').value = d.categoria === 'lavoro' ? d.tipo : "";
         document.getElementById('assenza').value = d.categoria === 'assenza' ? d.tipo : "";
         document.getElementById('luogo').value = d.luogo;
-        document.getElementById('data').value = d.data.includes('T') ? d.data.split('T')[0] : d.data;
-        document.getElementById('ora-inizio').value = d.inizio;
-        document.getElementById('ora-fine').value = d.fine;
+        document.getElementById('ora-inizio').value = formattaOra(d.inizio);
+        document.getElementById('ora-fine').value = formattaOra(d.fine);
         document.getElementById('pausa').checked = (d.pausa === "SI" || d.pausa === true);
         document.getElementById('note').value = d.note || "";
-        document.getElementById('btn-save').textContent = "AGGIORNA RECORD";
+        
+        document.getElementById('btn-save').textContent = "AGGIORNA";
         document.getElementById('btn-cancel-edit').style.display = "block";
         aggiornaPreview();
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -326,6 +337,7 @@
         document.getElementById('pausa').checked = false;
         document.getElementById('btn-save').textContent = "SALVA NEL CLOUD";
         document.getElementById('btn-cancel-edit').style.display = "none";
+        document.getElementById('preview-text').textContent = "Ore Totali: 0.00h";
     }
 </script>
 
