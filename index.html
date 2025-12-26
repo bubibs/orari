@@ -7,232 +7,141 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         :root {
-            --primary: #007AFF; /* Blu Apple */
+            --primary: #007AFF;
             --bg: #F2F2F7;
             --card: #FFFFFF;
             --text: #1C1C1E;
             --text-secondary: #8E8E93;
             --border: #D1D1D6;
-            --success: #34C759;
-            --danger: #FF3B30;
             --radius: 14px;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px 15px;
-            line-height: 1.5;
-        }
-
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px 15px; }
         .container { max-width: 500px; margin: 0 auto; }
 
-        /* Header Professionale */
         header { text-align: center; margin-bottom: 25px; }
-        .logo { 
-            font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #007AFF, #5856D6);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
+        .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* Card Apple Style */
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
+        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { font-size: 17px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
-        h2 { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 15px; }
-
-        /* Input & Form */
         .form-group { margin-bottom: 15px; }
-        label { 
-            display: block; font-size: 13px; font-weight: 600; 
-            color: var(--text-secondary); margin-bottom: 5px; margin-left: 4px;
+        label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; }
+
+        input, select { 
+            width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; 
+            font-size: 16px; background: #FFF; appearance: none; transition: all 0.2s;
         }
 
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 16px; /* Evita zoom su iPhone */
-            background: #FFF;
-            appearance: none; /* Rimuove stile default iOS */
-        }
+        select:focus { border-color: var(--primary); outline: none; }
 
-        /* Pulsanti Uniformi */
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-
-        .btn {
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: opacity 0.2s, transform 0.1s;
-            width: 100%;
-        }
-
-        .btn:active { transform: scale(0.98); opacity: 0.8; }
-
-        .btn-primary { background-color: var(--primary); color: white; }
-        .btn-secondary { background-color: #E5E5EA; color: var(--text); }
-        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
-
-        /* Dropdown Orari Personalizzati per Touch */
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .custom-select {
-            background: #F9F9F9;
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 700;
+
+        .checkbox-container {
+            display: flex; align-items: center; gap: 10px; background: #F9F9F9;
+            padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+            margin-top: 10px; cursor: pointer;
         }
 
-        /* Tabella Responsive per iPhone */
-        .table-container { overflow-x: auto; margin-top: 10px; }
+        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary); }
+
+        .btn-main {
+            background: var(--primary); color: white; border: none; border-radius: 14px;
+            padding: 18px; font-size: 16px; font-weight: 700; width: 100%;
+            margin-top: 15px; box-shadow: 0 4px 15px rgba(0,122,255,0.3);
+        }
+
+        .preview-box {
+            background: #EBF5FF; color: #007AFF; padding: 15px; border-radius: 12px;
+            text-align: center; font-weight: 700; margin-top: 15px; border: 1px dashed var(--primary);
+        }
+
+        .table-container { margin-top: 10px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { text-align: left; color: var(--text-secondary); padding: 10px; border-bottom: 1px solid var(--border); }
-        td { padding: 12px 10px; border-bottom: 1px solid #F2F2F7; }
-
-        /* Widget Statistiche */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-box { 
-            background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;
-        }
-        .stat-val { display: block; font-size: 18px; font-weight: 800; color: var(--primary); }
-        .stat-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; }
-
-        .notification {
-            position: fixed; top: 20px; left: 20px; right: 20px;
-            padding: 15px; border-radius: 12px; color: white;
-            text-align: center; font-weight: 600; display: none; z-index: 9999;
-        }
+        td { padding: 12px 8px; border-bottom: 1px solid #F2F2F7; }
+        .badge { background: #E5E5EA; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <div class="logo">WORK LOG PRO</div>
-    </header>
+    <header><div class="logo">WORK LOG PRO</div></header>
 
     <div class="card">
-        <h2><i class="fas fa-plus-circle"></i> Nuovo Inserimento</h2>
-        <div class="form-group">
-            <label>DATA</label>
-            <input type="date" id="data">
-        </div>
+        <h2><i class="fas fa-edit"></i> Inserimento</h2>
         
-        <div class="time-row">
-            <div class="form-group">
-                <label>INIZIO</label>
-                <select id="ora-inizio">
-                    </select>
-            </div>
-            <div class="form-group">
-                <label>FINE</label>
-                <select id="ora-fine">
-                    </select>
-            </div>
-        </div>
-
         <div class="form-group">
-            <label>MODALITÀ</label>
-            <select id="tipo">
-                <option value="Sede">Sede</option>
+            <label>Modalità Lavoro</label>
+            <select id="tipo" onchange="handleModalitaChange()">
+                <option value="" disabled selected>Scegli modalità...</option>
+                <option value="Sede">Sede (Tecnosistem)</option>
                 <option value="Trasferta">Trasferta</option>
                 <option value="Ferie">Ferie</option>
+                <option value="Permesso">Permesso</option>
             </select>
         </div>
 
-        <div class="btn-group">
-            <button class="btn btn-primary" onclick="salvaAttivita()">
-                <i class="fas fa-save"></i> Salva Attività
-            </button>
+        <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="data">
         </div>
+
+        <div class="time-row">
+            <div class="form-group">
+                <label>Inizio</label>
+                <select id="ora-inizio" onchange="aggiornaPreview()"></select>
+            </div>
+            <div class="form-group">
+                <label>Fine</label>
+                <select id="ora-fine" onchange="aggiornaPreview()"></select>
+            </div>
+        </div>
+
+        <div class="checkbox-container" onclick="toggleCheckbox()">
+            <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
+            <label style="margin:0; color:var(--text); cursor:pointer;">Pausa Mensa (1h)</label>
+        </div>
+
+        <div class="preview-box" id="preview-text">
+            Seleziona orari per il calcolo
+        </div>
+
+        <button class="btn-main" onclick="salva()">
+            <i class="fas fa-check-circle"></i> SALVA ATTIVITÀ
+        </button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-chart-bar"></i> Riepilogo Mese</h2>
-        <div class="stats-grid">
-            <div class="stat-box">
-                <span class="stat-label">Lordo</span>
-                <span class="stat-val" id="stat-lordo">€ 0.00</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-label">Ore Totali</span>
-                <span class="stat-val" id="stat-ore">0.0</span>
-            </div>
-        </div>
-        <canvas id="myChart" style="margin-top:20px; max-height:150px;"></canvas>
-    </div>
-
-    <div class="card">
-        <h2><i class="fas fa-list"></i> Ultime Attività</h2>
+        <h2><i class="fas fa-history"></i> Ultime Attività</h2>
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Ore</th>
-                        <th>Tipo</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="registro-body">
-                    </tbody>
+                <tbody id="registro-body"></tbody>
             </table>
-        </div>
-        <div class="btn-group" style="margin-top: 20px;">
-            <button class="btn btn-secondary" onclick="exportPDF()">
-                <i class="fas fa-file-pdf"></i> Esporta PDF
-            </button>
-            <button class="btn btn-outline" onclick="sincronizzaCloud()">
-                <i class="fas fa-sync"></i> Sincronizza Cloud
-            </button>
         </div>
     </div>
 </div>
 
-<div id="notification" class="notification"></div>
-
 <script>
-    // --- LOGICA APP ---
-    let dati = JSON.parse(localStorage.getItem('registro_lavoro')) || [];
-    let chart = null;
+    let dati = JSON.parse(localStorage.getItem('registro_lavoro_v2')) || [];
 
-    // Inizializzazione
     document.addEventListener('DOMContentLoaded', () => {
-        popolaOrari();
+        popolaSelectOrari();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
-        aggiornaTutto();
+        renderTabella();
     });
 
-    function popolaOrari() {
+    function popolaSelectOrari() {
         const start = document.getElementById('ora-inizio');
         const end = document.getElementById('ora-fine');
+        // Aggiungiamo un'opzione vuota iniziale
+        start.add(new Option("--:--", ""));
+        end.add(new Option("--:--", ""));
+        
         for (let h = 0; h < 24; h++) {
             for (let m = 0; m < 60; m += 15) {
                 const t = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
@@ -240,91 +149,78 @@
                 end.add(new Option(t, t));
             }
         }
-        start.value = "08:00";
-        end.value = "17:00";
     }
 
-    function salvaAttivita() {
-        const nuova = {
-            id: Date.now(),
-            data: document.getElementById('data').value,
-            inizio: document.getElementById('ora-inizio').value,
-            fine: document.getElementById('ora-fine').value,
-            tipo: document.getElementById('tipo').value,
-            ore: calcolaDifferenza(document.getElementById('ora-inizio').value, document.getElementById('ora-fine').value)
-        };
+    function handleModalitaChange() {
+        const modalita = document.getElementById('tipo').value;
+        const start = document.getElementById('ora-inizio');
+        const end = document.getElementById('ora-fine');
+        const pausa = document.getElementById('pausa');
 
-        dati.unshift(nuova);
-        localStorage.setItem('registro_lavoro', JSON.stringify(dati));
-        notify("Salvato!");
-        aggiornaTutto();
+        if (modalita === "Sede") {
+            start.value = "08:00";
+            end.value = "17:00";
+            pausa.checked = true;
+        } else {
+            // Se cambi modalità resettiamo o lasciamo all'utente
+            pausa.checked = false;
+        }
+        aggiornaPreview();
     }
 
-    function calcolaDifferenza(start, end) {
+    function toggleCheckbox() {
+        const cb = document.getElementById('pausa');
+        cb.checked = !cb.checked;
+        aggiornaPreview();
+    }
+
+    function aggiornaPreview() {
+        const s = document.getElementById('ora-inizio').value;
+        const e = document.getElementById('ora-fine').value;
+        const p = document.getElementById('pausa').checked;
+        
+        if (!s || !e) {
+            document.getElementById('preview-text').textContent = "Seleziona orari...";
+            return;
+        }
+
+        const ore = calcolaOreNette(s, e, p);
+        document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore.toFixed(2)}h</span>`;
+    }
+
+    function calcolaOreNette(start, end, conPausa) {
         const [h1, m1] = start.split(':').map(Number);
         const [h2, m2] = end.split(':').map(Number);
-        let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-        return Math.max(0, (diff / 60) - 1); // Sottrae 1h pausa default
+        let minuti = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (conPausa) minuti -= 60; // Toglie 60 minuti di mensa
+        return Math.max(0, minuti / 60);
     }
 
-    function aggiornaTutto() {
+    function salva() {
+        const modalita = document.getElementById('tipo').value;
+        if (!modalita) { alert("Scegli una modalità!"); return; }
+        
+        const entry = {
+            data: document.getElementById('data').value,
+            tipo: modalita,
+            ore: calcolaOreNette(document.getElementById('ora-inizio').value, document.getElementById('ora-fine').value, document.getElementById('pausa').checked)
+        };
+
+        dati.unshift(entry);
+        localStorage.setItem('registro_lavoro_v2', JSON.stringify(dati));
         renderTabella();
-        renderStats();
-        initChart();
+        alert("Salvato con successo!");
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
-        body.innerHTML = dati.slice(0, 5).map((d, i) => `
+        body.innerHTML = dati.slice(0, 10).map((d, i) => `
             <tr>
-                <td>${d.data.split('-').reverse().slice(0,2).join('/')}</td>
-                <td><b>${d.ore.toFixed(1)}h</b></td>
-                <td>${d.tipo}</td>
-                <td onclick="elimina(${i})"><i class="fas fa-trash" style="color:#FF3B30"></i></td>
+                <td>${d.data.split('-').reverse().join('/')}</td>
+                <td><span class="badge">${d.tipo}</span></td>
+                <td style="text-align:right"><b>${d.ore.toFixed(2)}h</b></td>
             </tr>
         `).join('');
-    }
-
-    function renderStats() {
-        const totaleOre = dati.reduce((acc, curr) => acc + curr.ore, 0);
-        document.getElementById('stat-ore').textContent = totaleOre.toFixed(1);
-        document.getElementById('stat-lordo').textContent = '€ ' + (totaleOre * 14.5).toFixed(2);
-    }
-
-    function notify(msg) {
-        const n = document.getElementById('notification');
-        n.textContent = msg;
-        n.style.display = 'block';
-        n.style.backgroundColor = 'var(--success)';
-        setTimeout(() => n.style.display = 'none', 2000);
-    }
-
-    function initChart() {
-        const ctx = document.getElementById('myChart').getContext('2d');
-        if (chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dati.slice(0,7).map(d => d.data).reverse(),
-                datasets: [{
-                    label: 'Ore',
-                    data: dati.slice(0,7).map(d => d.ore).reverse(),
-                    borderColor: '#007AFF',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(0, 122, 255, 0.1)'
-                }]
-            },
-            options: { plugins: { legend: { display: false } }, scales: { y: { display: false } } }
-        });
-    }
-
-    function elimina(index) {
-        if(confirm("Eliminare?")) {
-            dati.splice(index, 1);
-            localStorage.setItem('registro_lavoro', JSON.stringify(dati));
-            aggiornaTutto();
-        }
     }
 </script>
 
