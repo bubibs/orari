@@ -1,27 +1,64 @@
-<div class="container">
-    <header class="header-back">
-        <a href="index.html"><i class="fas fa-arrow-left"></i> Home</a>
-        <div id="sync-indicator" class="sync-idle"><i class="fas fa-cloud"></i></div>
-    </header>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rubrica Tecnosistem</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header-back">
+            <a href="index.html"><i class="fas fa-chevron-left"></i> Home</a>
+            <div id="sync-indicator" class="sync-idle"><i class="fas fa-cloud"></i></div>
+        </header>
 
-    <div class="card card-accent">
-        <h2 id="form-title">Gestione Contatto</h2>
-        <div class="form-group"><label>Azienda</label><input type="text" id="add-nome"></div>
-        <div class="row-2">
-            <div class="form-group"><label>Via</label><input type="text" id="add-via"></div>
-            <div class="form-group"><label>Città</label><input type="text" id="add-citta"></div>
+        <div class="card card-accent">
+            <h2 id="form-title" style="font-size: 18px; margin-bottom: 15px;">Gestione Contatto</h2>
+            
+            <div class="form-group">
+                <label>Ragione Sociale / Nome</label>
+                <input type="text" id="add-nome" placeholder="es. Officina Meccanica">
+            </div>
+
+            <div class="row-2">
+                <div class="form-group">
+                    <label>Via e Civico</label>
+                    <input type="text" id="add-via" placeholder="Via Roma 1">
+                </div>
+                <div class="form-group">
+                    <label>Città</label>
+                    <input type="text" id="add-citta" placeholder="Milano">
+                </div>
+            </div>
+
+            <div class="row-2">
+                <div class="form-group">
+                    <label>Referente</label>
+                    <input type="text" id="add-ref" placeholder="Sig. Rossi">
+                </div>
+                <div class="form-group">
+                    <label>Telefono</label>
+                    <input type="tel" id="add-tel" placeholder="02 123456">
+                </div>
+            </div>
+
+            <button class="btn-main" id="btn-save" onclick="azioneSalva()">
+                SALVA NEL CLOUD
+            </button>
         </div>
-        <div class="row-2">
-            <div class="form-group"><label>Referente</label><input type="text" id="add-ref"></div>
-            <div class="form-group"><label>Telefono</label><input type="tel" id="add-tel"></div>
+
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Cerca cliente o città..." onkeyup="filtraRubrica()">
         </div>
-        <button class="btn-main" id="btn-save" onclick="azioneSalva()">SALVA NEL CLOUD</button>
+
+        <div id="lista-rubrica">
+            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento rubrica...</p>
+        </div>
     </div>
 
-    <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" id="search-input" placeholder="Cerca cliente o città..." onkeyup="filtraRubrica()">
-    </div>
-
-    <div id="lista-rubrica"></div>
-</div>
+    <script src="js/script.js"></script>
+</body>
+</html>
