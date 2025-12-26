@@ -28,7 +28,7 @@
         .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
         #daily-quote { font-size: 12px; font-style: italic; color: var(--subtext); margin-top: 5px; }
         
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; }
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; }
         .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
@@ -37,11 +37,25 @@
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
         
-        /* DIMENSIONI UNIFICATE PER TUTTI GLI INPUT */
-        input, select { 
+        /* STILE BASE INPUT */
+        input, select, textarea { 
             width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; 
             font-size: 16px; height: 50px; color: var(--text); background: var(--input-bg);
+            -webkit-appearance: none; appearance: none;
         }
+
+        /* LARGHEZZA DATA SPECIFICA */
+        input[type="date"] { 
+            width: 55%; /* Larghezza ridotta come richiesto */
+        }
+        
+        /* LARGHEZZA MESE RIEPILOGO */
+        #filtro-mese { 
+            width: 60%; 
+            text-transform: uppercase; 
+        }
+
+        textarea { height: 70px; resize: none; text-transform: none; }
 
         .pause-container {
             display: flex; align-items: center; justify-content: space-between;
@@ -117,6 +131,8 @@
         </div>
         
         <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
+
+        <div class="form-group"><label>Note</label><textarea id="note" placeholder="NOTE INTERVENTO..."></textarea></div>
         
         <div class="row-2">
             <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="font-size:20px; font-weight:800; color:var(--primary);">0.00</div></div>
@@ -131,7 +147,7 @@
         <div id="riepilogo-content" style="display:none;">
             <div class="form-group">
                 <label>Seleziona Mese</label>
-                <input type="month" id="filtro-mese" onchange="refreshAll()">
+                <input type="month" id="filtro-mese" onchange="fetchData()">
             </div>
             <div id="summary-list"></div>
         </div>
@@ -209,17 +225,16 @@
             const r = await fetch(WEB_APP_URL);
             const res = await r.json();
             dati = res.data || [];
-            refreshAll();
+            renderTabella();
             setSyncState('success', 'Sincronizzato');
         } catch(e) { setSyncState('error', 'Errore'); }
     }
 
-    function refreshAll() {
-        renderTabella();
-    }
-
     function renderTabella() {
-        document.getElementById('registro-body').innerHTML = dati.map((d, i) => `
+        const filtro = document.getElementById('filtro-mese').value;
+        document.getElementById('registro-body').innerHTML = dati
+            .filter(d => d.data.startsWith(filtro))
+            .map((d, i) => `
             <tr>
                 <td style="font-size:12px; font-weight:800;">${new Date(d.data).toLocaleDateString('it-IT')}</td>
                 <td style="font-size:11px;">${d.tipo.toUpperCase()}</td>
@@ -242,10 +257,12 @@
             data: document.getElementById('data').value,
             inizio: document.getElementById('ora-inizio').value,
             fine: document.getElementById('ora-fine').value,
-            ore: document.getElementById('prev-tot').textContent
+            ore: document.getElementById('prev-tot').textContent,
+            note: document.getElementById('note').value
         };
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
         fetchData();
+        document.getElementById('note').value = "";
     }
 
     function setSyncState(s, t) {
