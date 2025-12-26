@@ -28,10 +28,8 @@
         .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
         #daily-quote { font-size: 12px; font-style: italic; color: var(--subtext); margin-top: 5px; }
         
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; transition: all 0.3s; }
-        .sync-working { color: var(--primary); opacity: 0.7; } 
-        .sync-success { color: var(--success); } 
-        .sync-error { color: var(--danger); }
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; }
+        .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; }
@@ -45,8 +43,11 @@
             -webkit-appearance: none; appearance: none;
         }
 
-        input[type="date"], #filtro-mese { width: 100%; text-transform: uppercase; }
-        textarea { height: 70px; resize: none; text-transform: none; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
+
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
+        .btn-main:disabled { opacity: 0.6; }
 
         .pause-container {
             display: flex; align-items: center; justify-content: space-between;
@@ -59,25 +60,17 @@
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
+        /* CALCOLO ECONOMICO */
+        .money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .money-box { padding: 15px; border-radius: 12px; background: var(--bg); text-align: center; }
+        .money-val { font-size: 19px; font-weight: 900; margin-top: 5px; }
+        .money-label { font-size: 10px; font-weight: 800; color: var(--subtext); text-transform: uppercase; }
 
-        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; transition: opacity 0.2s; }
-        .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
-        
         table { width: 100%; border-collapse: collapse; }
         td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: white; margin-bottom: 3px; }
-        .bg-sede { background: var(--success); }
-        .bg-trasf { background: var(--warning); }
-        .bg-assenza { background: var(--danger); }
-        .bg-estero { background: #5856D6; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: white; }
+        .bg-sede { background: var(--success); } .bg-trasf { background: var(--warning); } .bg-assenza { background: var(--danger); } .bg-estero { background: #5856D6; }
         
-        .extra-label { font-size: 10px; color: var(--warning); font-weight: 700; display: block; margin-top: 2px; }
-        .luogo-label { font-size: 10px; color: var(--subtext); display: block; font-weight: 500; }
-
-        .actions-cell { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon { border: none; background: #f0f0f5; font-size: 14px; padding: 8px; border-radius: 10px; cursor: pointer; }
         .chevron { transition: transform 0.3s; }
         .open .chevron { transform: rotate(180deg); }
     </style>
@@ -87,7 +80,6 @@
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
-        <div id="daily-quote">"L'unico modo per fare un ottimo lavoro è amare quello che fai."</div>
         <div id="sync-indicator"></div>
     </header>
 
@@ -130,41 +122,51 @@
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
     </div>
 
+    <div class="card" style="border: 2px solid var(--primary);">
+        <h2 onclick="toggleSection('calcolo-content', this)">
+            <span><i class="fas fa-wallet"></i> Calcolo Lordo/Netto</span>
+            <i class="fas fa-chevron-down chevron"></i>
+        </h2>
+        <div id="calcolo-content" style="display:none;">
+            <div class="form-group"><label>Mese</label><input type="month" id="mese-calcolo" onchange="fetchData()"></div>
+            <div class="money-grid">
+                <div class="money-box">
+                    <div class="money-label">Lordo</div>
+                    <div id="val-lordo" class="money-val">€ 0.00</div>
+                </div>
+                <div class="money-box" style="background: var(--accent);">
+                    <div class="money-label" style="color:white">Netto Est.</div>
+                    <div id="val-netto" class="money-val" style="color:white">€ 0.00</div>
+                </div>
+            </div>
+            <div style="margin-top:15px; font-size:11px; color:var(--subtext)">
+                <div style="display:flex; justify-content:space-between"><span>Base:</span><span id="calc-base">€ 0.00</span></div>
+                <div style="display:flex; justify-content:space-between"><span>Straordinari:</span><span id="calc-extra">€ 0.00</span></div>
+                <div style="display:flex; justify-content:space-between"><span>Indennità:</span><span id="calc-ind">€ 0.00</span></div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <h2 onclick="toggleSection('settings-content', this)">
             <span><i class="fas fa-cog"></i> Configurazione Tariffe</span>
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
-        <div id="settings-content" style="display:none; padding-top:10px;">
-            <div class="form-group">
-                <label>Paga Mensile (€)</label>
-                <input type="number" id="paga-mensile" placeholder="es. 1800">
-            </div>
+        <div id="settings-content" style="display:none;">
+            <div class="form-group"><label>Paga Mensile (€)</label><input type="number" id="t-base" value="1800"></div>
             <div class="row-2">
-                <div class="form-group"><label>Straord. 25% (€/h)</label><input type="number" id="s-25" placeholder="0.00"></div>
-                <div class="form-group"><label>Straord. 50% (€/h)</label><input type="number" id="s-50" placeholder="0.00"></div>
+                <div class="form-group"><label>S. 25% (€/h)</label><input type="number" id="t-25" value="12"></div>
+                <div class="form-group"><label>S. 50% (€/h)</label><input type="number" id="t-50" value="15"></div>
             </div>
-            <div class="form-group"><label>Indennità Rientro (€)</label><input type="number" id="i-rientro" placeholder="0.00"></div>
-            <div class="form-group"><label>Indennità Pernotto (€)</label><input type="number" id="i-pernotto" placeholder="0.00"></div>
-            <div class="form-group"><label>Indennità Estero (€)</label><input type="number" id="i-estero" placeholder="0.00"></div>
-            <button class="btn-main" id="btn-save-settings" onclick="salvaTariffe()" style="background:var(--success)">SALVA TARIFFE</button>
+            <div class="form-group"><label>Ind. Rientro (€)</label><input type="number" id="t-rientro" value="15"></div>
+            <div class="form-group"><label>Ind. Pernotto (€)</label><input type="number" id="t-pernotto" value="30"></div>
+            <div class="form-group"><label>Ind. Estero (€)</label><input type="number" id="t-estero" value="50"></div>
+            <button class="btn-main" onclick="salvaTariffe()" style="background:var(--success)">SALVA SU CLOUD</button>
         </div>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('riepilogo-content', this)"><span><i class="fas fa-calendar-alt"></i> Riepilogo</span><i class="fas fa-chevron-down chevron"></i></h2>
-        <div id="riepilogo-content" style="display:none;">
-            <div class="form-group"><label>Seleziona Mese</label><input type="month" id="filtro-mese" onchange="fetchData()"></div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Totali</label><div id="stat-ore-tot" style="font-size:18px; font-weight:800; color:var(--primary);">0.00</div></div>
-                <div class="box-preview" style="background: var(--card); border: 1px solid var(--border);"><label>Ore Extra</label><div id="stat-ore-ex" style="font-size:18px; font-weight:800; color:var(--warning);">0.00</div></div>
-            </div>
-            <div id="summary-list" style="font-size: 13px; font-weight: 600;"></div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico Online</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico</span><i class="fas fa-chevron-down chevron"></i></h2>
         <div id="registro-content" style="display:none;">
             <table><tbody id="registro-body"></tbody></table>
         </div>
@@ -179,7 +181,7 @@
         popolaOrari();
         const oggi = new Date();
         document.getElementById('data').value = oggi.toISOString().split('T')[0];
-        document.getElementById('filtro-mese').value = oggi.toISOString().slice(0, 7);
+        document.getElementById('mese-calcolo').value = oggi.toISOString().slice(0, 7);
         fetchData();
     });
 
@@ -196,14 +198,11 @@
 
     function logicModalita() {
         const val = document.getElementById('modalita').value;
-        if(val) {
-            document.getElementById('assenza').value = "";
-            // Suggerimento automatico luogo
-            if(val === "In Sede") {
-                document.getElementById('luogo').value = "TECNOSISTEM";
-                document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
-                document.getElementById('pausa-mensa').checked = true;
-            }
+        if(val) document.getElementById('assenza').value = "";
+        if(val === "In Sede") {
+            document.getElementById('luogo').value = "TECNOSISTEM";
+            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
+            document.getElementById('pausa-mensa').checked = true;
         }
         aggiornaPreview();
     }
@@ -232,7 +231,7 @@
         const c = document.getElementById(id);
         const isOpen = c.style.display === 'block';
         c.style.display = isOpen ? 'none' : 'block';
-        el.parentElement.classList.toggle('open', !isOpen);
+        el.classList.toggle('open', !isOpen);
     }
 
     async function fetchData() {
@@ -247,52 +246,48 @@
     }
 
     function renderTabella() {
-        const filtro = document.getElementById('filtro-mese').value;
+        const filtro = document.getElementById('mese-calcolo').value;
         const filteredData = dati.filter(d => d.data.startsWith(filtro));
-        let totOre = 0, totEx = 0, conteggio = {};
+        
+        const T_BASE = parseFloat(document.getElementById('t-base').value) || 0;
+        const T_25 = parseFloat(document.getElementById('t-25').value) || 0;
+        const T_50 = parseFloat(document.getElementById('t-50').value) || 0;
+        const T_RIEN = parseFloat(document.getElementById('t-rientro').value) || 0;
+        const T_PERN = parseFloat(document.getElementById('t-pernotto').value) || 0;
+        const T_EST = parseFloat(document.getElementById('t-estero').value) || 0;
 
-        document.getElementById('registro-body').innerHTML = filteredData.map((d) => {
+        let somme = { extra: 0, ind: 0 };
+
+        document.getElementById('registro-body').innerHTML = filteredData.map(d => {
             const h = parseFloat(d.ore) || 0;
-            totOre += h;
             const dObj = new Date(d.data);
             const isWE = (dObj.getDay()===0 || dObj.getDay()===6);
-            const ex = isWE ? h : Math.max(0, h-8);
-            totEx += ex;
-            conteggio[d.tipo] = (conteggio[d.tipo] || 0) + 1;
+            let ex = isWE ? h : Math.max(0, h-8);
+            
+            somme.extra += isWE ? (ex * T_50) : (ex * T_25);
+            if(d.tipo === "Trasferta Rientro") somme.ind += T_RIEN;
+            else if(d.tipo === "Trasferta Pernotto") somme.ind += T_PERN;
+            else if(d.tipo === "Trasferta Estero") somme.ind += T_EST;
 
-            let bClass = "bg-sede";
-            if(d.tipo.includes("Trasferta")) bClass = "bg-trasf";
-            if(d.tipo.includes("Estero")) bClass = "bg-estero";
-            if(["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
-
-            return `
-            <tr>
-                <td style="width:70px;"><div style="font-size:12px; font-weight:800;">${dObj.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}</div><div style="font-size:9px; color:var(--subtext); text-transform:uppercase;">${dObj.toLocaleDateString('it-IT',{weekday:'short'})}</div></td>
-                <td>
-                    <span class="badge ${bClass}">${d.tipo}</span>
-                    <span class="luogo-label">${d.luogo || '-'}</span>
-                </td>
-                <td style="text-align:right;">
-                    <div style="font-weight:800; font-size:14px;">${h.toFixed(2)}H</div>
-                    ${ex > 0 ? `<span class="extra-label">+${ex.toFixed(2)} EX</span>` : ''}
-                </td>
-                <td><div class="actions-cell"><button class="btn-icon" style="color:var(--primary)"><i class="fas fa-edit"></i></button></div></td>
-            </tr>`;
+            return `<tr><td>${d.data.split('-')[2]}/${d.data.split('-')[1]}</td><td><span class="badge bg-sede">${d.tipo}</span><br><small>${d.luogo}</small></td><td style="text-align:right;">${h.toFixed(2)}H</td></tr>`;
         }).join('');
 
-        document.getElementById('stat-ore-tot').textContent = totOre.toFixed(2);
-        document.getElementById('stat-ore-ex').textContent = totEx.toFixed(2);
-        document.getElementById('summary-list').innerHTML = Object.entries(conteggio).map(([t, c]) => `
-            <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-                <span style="text-transform: uppercase;">${t}</span><span>${c} GG</span>
-            </div>`).join('');
+        const lordo = T_BASE + somme.extra + somme.ind;
+        document.getElementById('val-lordo').textContent = `€ ${lordo.toFixed(2)}`;
+        document.getElementById('val-netto').textContent = `€ ${(lordo * 0.76).toFixed(2)}`;
+        document.getElementById('calc-base').textContent = `€ ${T_BASE.toFixed(2)}`;
+        document.getElementById('calc-extra').textContent = `€ ${somme.extra.toFixed(2)}`;
+        document.getElementById('calc-ind').textContent = `€ ${somme.ind.toFixed(2)}`;
     }
 
     async function salva() {
         const btn = document.getElementById('btn-save');
         const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
         if(!tipo) return alert("Seleziona attività");
-
+        
+        btn.disabled = true;
+        setSyncState('working', 'Salvataggio...');
+        
         const rec = {
             id: Date.now().toString(), tipo,
             luogo: document.getElementById('luogo').value,
@@ -303,45 +298,29 @@
             note: document.getElementById('note').value
         };
 
-        btn.disabled = true;
-        setSyncState('working', 'Salvataggio...');
-
         try {
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
             setSyncState('success', 'Salvato');
-            fetchData(); 
+            fetchData();
             document.getElementById('note').value = "";
-        } catch(e) {
-            setSyncState('error', 'Errore Invio');
-        } finally {
-            btn.disabled = false;
-        }
+        } catch(e) { setSyncState('error', 'Errore'); }
+        btn.disabled = false;
     }
 
     async function salvaTariffe() {
-        const btn = document.getElementById('btn-save-settings');
         const config = {
             azione: "config_tariffe",
-            paga_mensile: document.getElementById('paga-mensile').value,
-            straordinario_25: document.getElementById('s-25').value,
-            straordinario_50: document.getElementById('s-50').value,
-            ind_rientro: document.getElementById('i-rientro').value,
-            ind_pernotto: document.getElementById('i-pernotto').value,
-            ind_estero: document.getElementById('i-estero').value
+            base: document.getElementById('t-base').value,
+            s25: document.getElementById('t-25').value,
+            s50: document.getElementById('t-50').value,
+            rientro: document.getElementById('t-rientro').value,
+            pernotto: document.getElementById('t-pernotto').value,
+            estero: document.getElementById('t-estero').value
         };
-
-        btn.disabled = true;
-        setSyncState('working', 'Aggiornamento Tariffe...');
-
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(config) });
-            setSyncState('success', 'Tariffe Aggiornate');
-            alert("Tariffe salvate correttamente!");
-        } catch(e) {
-            setSyncState('error', 'Errore Tariffe');
-        } finally {
-            btn.disabled = false;
-        }
+        setSyncState('working', 'Invio Tariffe...');
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(config) });
+        setSyncState('success', 'Config salvata');
+        renderTabella();
     }
 
     function setSyncState(s, t) {
