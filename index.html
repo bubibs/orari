@@ -12,71 +12,49 @@
             --accent: linear-gradient(135deg, #007AFF 0%, #0051a8 100%);
             --subtext: #8E8E93; --border: #D1D1D6; --input-bg: #FFFFFF;
         }
-
         @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #000000; --card: #1C1C1E; --text: #FFFFFF;
-                --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E;
-            }
+            :root { --bg: #000000; --card: #1C1C1E; --text: #FFFFFF; --subtext: #AEAEB2; --border: #38383A; --input-bg: #2C2C2E; }
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 50px; }
         .container { max-width: 500px; margin: 0 auto; }
-        
         header { text-align: center; margin-bottom: 20px; }
-        .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
+        .logo { font-size: 30px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
         
-        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; height: 20px; }
-        .sync-working { color: var(--primary); } 
-        .sync-success { color: var(--success); } 
-        .sync-error { color: var(--danger); }
+        #sync-indicator { font-size: 11px; margin-top: 8px; font-weight: 700; text-align: center; transition: all 0.3s; padding: 5px; border-radius: 20px; }
+        .sync-working { color: var(--primary); background: rgba(0,122,255,0.1); } 
+        .sync-success { color: var(--success); background: rgba(52,199,89,0.1); } 
+        .sync-error { color: var(--danger); background: rgba(255,59,48,0.1); }
 
         .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; cursor: pointer; }
-        
+        h2 { font-size: 16px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 11px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
         
         input, select, textarea { 
             width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; 
-            font-size: 16px; height: 50px; color: var(--text); background: var(--input-bg);
-            -webkit-appearance: none; appearance: none;
+            font-size: 16px; color: var(--text); background: var(--input-bg); height: 48px;
         }
 
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .box-preview { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
-
-        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; transition: 0.2s; }
-        .btn-main:active { opacity: 0.8; transform: scale(0.98); }
-        .btn-main:disabled { background: #AEAEB2; opacity: 0.6; }
-
-        .pause-container {
-            display: flex; align-items: center; justify-content: space-between;
-            background: var(--bg); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px;
-        }
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(22px); }
-
-        .money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .money-box { padding: 15px; border-radius: 12px; background: var(--bg); text-align: center; border: 1px solid var(--border); }
-        .money-val { font-size: 19px; font-weight: 900; margin-top: 5px; }
-        .money-label { font-size: 10px; font-weight: 800; color: var(--subtext); text-transform: uppercase; }
-
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 5px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; color: white; }
-        .bg-sede { background: var(--success); } .bg-trasf { background: var(--warning); } .bg-assenza { background: var(--danger); } .bg-estero { background: #5856D6; }
         
-        .chevron { transition: transform 0.3s; }
-        .open .chevron { transform: rotate(180deg); }
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; display: block; }
+        .btn-main:active { opacity: 0.8; transform: scale(0.98); }
+        .btn-main:disabled { background: #AEAEB2; cursor: not-allowed; animation: pulse 1.5s infinite; }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .saving { animation: pulse 1s infinite; }
+        .pause-toggle { display: flex; align-items: center; justify-content: space-between; background: var(--bg); padding: 10px; border-radius: 12px; margin: 10px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        td { padding: 12px 5px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .actions { text-align: right; white-space: nowrap; }
+        .btn-icon { background: none; border: none; padding: 10px; font-size: 16px; cursor: pointer; }
+        
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; color: white; }
+        .bg-sede { background: var(--success); } .bg-trasf { background: var(--warning); } .bg-assenza { background: var(--danger); }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        .chevron { transition: transform 0.3s; } .open .chevron { transform: rotate(180deg); }
     </style>
 </head>
 <body>
@@ -84,122 +62,71 @@
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
-        <div id="sync-indicator"></div>
+        <div id="sync-indicator"><i class="fas fa-cloud"></i> PRONTO</div>
     </header>
 
     <div class="card">
-        <h2><span><i class="fas fa-plus"></i> Inserimento Report</span></h2>
+        <h2 id="form-title"><span><i class="fas fa-plus"></i> Nuovo Report</span></h2>
+        <input type="hidden" id="edit-id">
+        
         <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
+        
         <div class="form-group">
-            <label>Tipo Lavoro</label>
+            <label>Attività</label>
             <select id="modalita" onchange="logicModalita()">
-                <option value="">-- SELEZIONA --</option>
                 <option value="In Sede">IN SEDE</option>
                 <option value="Trasferta Rientro">TRASFERTA RIENTRO</option>
                 <option value="Trasferta Pernotto">TRASFERTA PERNOTTO</option>
-                <option value="Trasferta Estero">TRASFERTA ESTERO</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Assenza</label>
-            <select id="assenza" onchange="logicAssenza()">
-                <option value="">-- NESSUNA --</option>
                 <option value="Ferie">FERIE</option>
-                <option value="Permesso">PERMESSO</option>
                 <option value="Malattia">MALATTIA</option>
             </select>
         </div>
+
         <div class="row-2">
-            <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
-            <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
+            <div class="form-group"><label>Inizio</label><input type="time" id="ora-inizio" value="08:00" onchange="aggiornaPreview()"></div>
+            <div class="form-group"><label>Fine</label><input type="time" id="ora-fine" value="17:00" onchange="aggiornaPreview()"></div>
         </div>
-        <div class="pause-container">
-            <span style="font-size: 14px; font-weight: 700;"><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
-            <label class="switch"><input type="checkbox" id="pausa-mensa" onchange="aggiornaPreview()"><span class="slider"></span></label>
+
+        <div class="pause-toggle">
+            <span style="font-size: 12px; font-weight: 700;">PAUSA MENSA (-1h)</span>
+            <input type="checkbox" id="pausa-check" checked onchange="aggiornaPreview()" style="width:25px; height:25px;">
         </div>
-        <div class="form-group"><label>Luogo</label><input type="text" id="luogo" placeholder="DESTINAZIONE..."></div>
-        <div class="form-group"><label>Note</label><textarea id="note" placeholder="Note intervento..."></textarea></div>
-        
+
+        <div class="form-group">
+            <label>Luogo</label>
+            <input type="text" id="luogo" list="lista-luoghi" placeholder="Cerca o inserisci...">
+            <datalist id="lista-luoghi"></datalist>
+        </div>
+
         <div class="row-2">
-            <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" style="color:var(--primary); font-weight:800;">0.00</div></div>
-            <div class="box-preview"><label>Extra</label><div id="prev-extra" style="color:var(--warning); font-weight:800;">0.00</div></div>
+            <div class="box-preview"><label>Ore Effettive</label><div id="prev-tot" style="font-weight:800; color:var(--primary)">0.00</div></div>
+            <div class="box-preview"><label>Straordinario</label><div id="prev-extra" style="font-weight:800; color:var(--warning)">0.00</div></div>
         </div>
+
         <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA REPORT</button>
+        <button id="btn-cancel-edit" style="display:none; background:#8E8E93; margin-top:8px" class="btn-main" onclick="annullaModifica()">ANNULLA</button>
     </div>
 
-    <div class="card" style="border: 2px solid var(--primary);">
-        <h2 onclick="toggleSection('calcolo-content', this)">
-            <span><i class="fas fa-wallet"></i> Calcolo Lordo/Netto</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
-        <div id="calcolo-content" style="display:none;">
-            <div class="form-group"><label>Mese di Analisi</label><input type="month" id="mese-calcolo" onchange="renderTabella()"></div>
+    <div class="card" style="border-left: 5px solid var(--primary);">
+        <h2 onclick="toggleSection('calc-area', this)"><span><i class="fas fa-wallet"></i> Calcolo Mensile</span><i class="fas fa-chevron-down chevron"></i></h2>
+        <div id="calc-area">
+            <input type="month" id="mese-calcolo" onchange="renderTabella()" style="margin-bottom:15px;">
             <div class="money-grid">
-                <div class="money-box">
-                    <div class="money-label">Lordo Mensile</div>
-                    <div id="val-lordo" class="money-val">€ 0.00</div>
-                </div>
-                <div class="money-box" style="background: var(--accent);">
-                    <div class="money-label" style="color:white">Netto Est.</div>
-                    <div id="val-netto" class="money-val" style="color:white">€ 0.00</div>
-                </div>
-            </div>
-            <div style="margin-top:15px; font-size:11px; color:var(--subtext); line-height:1.8;">
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>PAGA BASE:</span><span id="calc-base" style="color:var(--text)">€ 0.00</span></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>STRAORDINARI:</span><span id="calc-extra" style="color:var(--text)">€ 0.00</span></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border)"><span>INDENNITÀ:</span><span id="calc-ind" style="color:var(--text)">€ 0.00</span></div>
+                <div class="money-box"><div class="money-val" id="val-lordo">€ 0.00</div><div style="font-size:9px; color:var(--subtext)">LORDO (BASE+EXTRA+IND)</div></div>
+                <div class="money-box" style="background:var(--accent); color:white"><div class="money-val" id="val-netto">€ 0.00</div><div style="font-size:9px">NETTO STIMATO</div></div>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <h2 onclick="toggleSection('settings-content', this)">
-            <span><i class="fas fa-cog"></i> Tariffe Cloud</span>
-            <i class="fas fa-chevron-down chevron"></i>
-        </h2>
-        <div id="settings-content" style="display:none;">
-            <div class="form-group"><label>Base Mensile (€)</label><input type="number" id="t-base" value="1800"></div>
-            <div class="row-2">
-                <div class="form-group"><label>S. 25% (€/h)</label><input type="number" id="t-25" value="12"></div>
-                <div class="form-group"><label>S. 50% (€/h)</label><input type="number" id="t-50" value="15"></div>
-            </div>
-            <div class="form-group"><label>Ind. Rientro (€)</label><input type="number" id="t-rientro" value="15"></div>
-            <div class="form-group"><label>Ind. Pernotto (€)</label><input type="number" id="t-pernotto" value="30"></div>
-            <div class="form-group"><label>Ind. Estero (€)</label><input type="number" id="t-estero" value="50"></div>
-            <button class="btn-main" onclick="salvaTariffe()" style="background:var(--success)">SALVA TARIFFE SU CLOUD</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2 onclick="toggleSection('registro-content', this)"><span><i class="fas fa-history"></i> Storico</span><i class="fas fa-chevron-down chevron"></i></h2>
-        <div id="registro-content" style="display:none;">
-            <table><tbody id="registro-body"></tbody></table>
-        </div>
+        <h2><span><i class="fas fa-history"></i> Storico Report</span></h2>
+        <table><tbody id="registro-body"></tbody></table>
     </div>
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec"; 
+    const WEB_APP_URL = "INSERISCI_TUO_URL_QUI"; // <--- METTI IL TUO URL QUI
     let dati = [];
-
-    document.addEventListener('DOMContentLoaded', () => {
-        popolaOrari();
-        const oggi = new Date();
-        document.getElementById('data').value = oggi.toISOString().split('T')[0];
-        document.getElementById('mese-calcolo').value = oggi.toISOString().slice(0, 7);
-        fetchData();
-    });
-
-    function popolaOrari() {
-        const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
-        selects.forEach(s => {
-            s.add(new Option("--:--", ""));
-            for (let h = 0; h < 24; h++) {
-                let hh = h.toString().padStart(2, '0');
-                s.add(new Option(`${hh}:00`, `${hh}:00`)); s.add(new Option(`${hh}:30`, `${hh}:30`));
-            }
-        });
-    }
 
     async function fetchData() {
         setSyncState('working', 'Sincronizzazione...');
@@ -207,160 +134,149 @@
             const r = await fetch(WEB_APP_URL);
             const res = await r.json();
             dati = res.data || [];
-            if (res.settings && res.settings.base) {
-                document.getElementById('t-base').value = res.settings.base;
-                document.getElementById('t-25').value = res.settings.s25;
-                document.getElementById('t-50').value = res.settings.s50;
-                document.getElementById('t-rientro').value = res.settings.rientro;
-                document.getElementById('t-pernotto').value = res.settings.pernotto;
-                document.getElementById('t-estero').value = res.settings.estero;
-            }
+            aggiornaSuggerimentiLuoghi();
             renderTabella();
             setSyncState('success', 'Sincronizzato');
-        } catch(e) { 
-            console.error(e);
-            setSyncState('error', 'Errore Cloud'); 
-        }
+        } catch(e) { setSyncState('error', 'Errore Cloud'); }
     }
 
     function renderTabella() {
         const filtro = document.getElementById('mese-calcolo').value;
-        const T_BASE = parseFloat(document.getElementById('t-base').value) || 0;
-        let totEx = 0, totInd = 0;
+        const T_BASE = 1800; // Esempio base. In un sistema reale lo carichi dai settings
+        let totExtraVal = 0, totIndVal = 0;
 
-        const filteredData = dati.filter(d => {
-            if (!d.data) return false;
-            const dataPura = d.data.toString().split('T')[0];
-            return dataPura.startsWith(filtro);
-        });
-
-        document.getElementById('registro-body').innerHTML = filteredData.map(d => {
-            const exVal = parseFloat(d.extra_valore) || 0;
-            const indVal = parseFloat(d.indennita_valore) || 0;
-            totEx += exVal;
-            totInd += indVal;
-
-            const partiData = d.data.toString().split('T')[0].split('-');
-            const dataDisplay = partiData.length === 3 ? `${partiData[2]}/${partiData[1]}` : "??/??";
-
-            let bClass = "bg-sede";
-            if(d.tipo.includes("Trasferta")) bClass = "bg-trasf";
-            if(d.tipo.includes("Estero")) bClass = "bg-estero";
-            if(["Ferie","Malattia","Permesso"].includes(d.tipo)) bClass = "bg-assenza";
+        const filtered = dati.filter(d => d.data.toString().startsWith(filtro));
+        
+        document.getElementById('registro-body').innerHTML = filtered.sort((a,b) => b.data.localeCompare(a.data)).map(d => {
+            totExtraVal += parseFloat(d.extra_valore || 0);
+            totIndVal += parseFloat(d.indennita_valore || 0);
+            
+            const dP = d.data.split('T')[0].split('-');
+            const dDisp = `${dP[2]}/${dP[1]}`;
+            const bCls = d.tipo.includes("Sede") ? "bg-sede" : (d.tipo.includes("Trasf") ? "bg-trasf" : "bg-assenza");
 
             return `<tr>
-                <td><b>${dataDisplay}</b></td>
-                <td><span class="badge ${bClass}">${d.tipo}</span><br><small>${d.luogo || '-'}</small></td>
-                <td style="text-align:right;">${parseFloat(d.ore).toFixed(2)}H</td>
+                <td><b>${dDisp}</b></td>
+                <td><span class="badge ${bCls}">${d.tipo}</span><br><small>${d.luogo || '-'}</small></td>
+                <td style="text-align:right"><b>${d.ore}h</b></td>
+                <td class="actions">
+                    <button class="btn-icon" style="color:var(--primary)" onclick="caricaModifica('${d.id}')"><i class="fas fa-pen"></i></button>
+                    <button class="btn-icon" style="color:var(--danger)" onclick="eliminaReport('${d.id}')"><i class="fas fa-trash"></i></button>
+                </td>
             </tr>`;
-        }).sort().reverse().join('');
+        }).join('');
 
-        const lordo = T_BASE + totEx + totInd;
+        const lordo = T_BASE + totExtraVal + totIndVal;
         document.getElementById('val-lordo').textContent = `€ ${lordo.toFixed(2)}`;
         document.getElementById('val-netto').textContent = `€ ${(lordo * 0.76).toFixed(2)}`;
-        document.getElementById('calc-base').textContent = `€ ${T_BASE.toFixed(2)}`;
-        document.getElementById('calc-extra').textContent = `€ ${totEx.toFixed(2)}`;
-        document.getElementById('calc-ind').textContent = `€ ${totInd.toFixed(2)}`;
     }
 
     async function salva() {
         const btn = document.getElementById('btn-save');
-        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
-        if(!tipo) return alert("Seleziona attività!");
-
-        const ore = parseFloat(document.getElementById('prev-tot').textContent) || 0;
-        const exOre = parseFloat(document.getElementById('prev-extra').textContent) || 0;
-        const dVal = document.getElementById('data').value;
-        const isWE = (new Date(dVal).getDay() % 6 === 0);
+        const id = document.getElementById('edit-id').value || Date.now().toString();
         
-        const valEx = isWE ? (exOre * document.getElementById('t-50').value) : (exOre * document.getElementById('t-25').value);
+        // Calcolo Valori Snapshot
+        const ore = parseFloat(document.getElementById('prev-tot').textContent);
+        const extra = parseFloat(document.getElementById('prev-extra').textContent);
+        const tipo = document.getElementById('modalita').value;
+        
+        // Esempio logica economica interna
+        const valExtra = extra * 12; // 12€/h
         let valInd = 0;
-        if(tipo === "Trasferta Rientro") valInd = document.getElementById('t-rientro').value;
-        else if(tipo === "Trasferta Pernotto") valInd = document.getElementById('t-pernotto').value;
-        else if(tipo === "Trasferta Estero") valInd = document.getElementById('t-estero').value;
+        if(tipo === "Trasferta Rientro") valInd = 15;
+        if(tipo === "Trasferta Pernotto") valInd = 35;
 
-        const rec = {
-            id: Date.now().toString(), data: dVal, tipo, luogo: document.getElementById('luogo').value,
-            inizio: document.getElementById('ora-inizio').value, fine: document.getElementById('ora-fine').value,
-            ore, extra_valore: valEx, indennita_valore: valInd, note: document.getElementById('note').value
+        const payload = {
+            id,
+            data: document.getElementById('data').value,
+            tipo: tipo,
+            luogo: document.getElementById('luogo').value,
+            ore: ore,
+            extra_valore: valExtra,
+            indennita_valore: valInd
         };
 
-        btn.disabled = true; btn.classList.add('saving');
-        setSyncState('working', 'Salvataggio...');
+        btn.disabled = true;
+        setSyncState('working', 'Salvataggio in corso...');
         
         try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
-            setSyncState('success', 'Salvato!');
-            fetchData();
-        } catch(e) { setSyncState('error', 'Errore!'); }
-        btn.disabled = false; btn.classList.remove('saving');
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            setSyncState('success', 'Salvato con successo');
+            annullaModifica();
+            setTimeout(fetchData, 500);
+        } catch(e) { setSyncState('error', 'Errore Invio'); btn.disabled = false; }
     }
 
-    async function salvaTariffe() {
-        const config = {
-            azione: "config_tariffe",
-            base: document.getElementById('t-base').value,
-            s25: document.getElementById('t-25').value,
-            s50: document.getElementById('t-50').value,
-            rientro: document.getElementById('t-rientro').value,
-            pernotto: document.getElementById('t-pernotto').value,
-            estero: document.getElementById('t-estero').value
-        };
-        setSyncState('working', 'Aggiornamento...');
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(config) });
-            setSyncState('success', 'Tariffe OK');
-            fetchData();
-        } catch(e) { setSyncState('error', 'Errore!'); }
+    async function eliminaReport(id) {
+        if(!confirm("Eliminare definitivamente?")) return;
+        setSyncState('working', 'Eliminazione...');
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({azione: "delete", id}) });
+        fetchData();
     }
 
-    function logicModalita() {
-        const val = document.getElementById('modalita').value;
-        if(val) document.getElementById('assenza').value = "";
-        if(val === "In Sede") {
-            document.getElementById('luogo').value = "TECNOSISTEM";
-            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
-            document.getElementById('pausa-mensa').checked = true;
-        }
+    function caricaModifica(id) {
+        const r = dati.find(x => x.id == id);
+        document.getElementById('edit-id').value = r.id;
+        document.getElementById('data').value = r.data.split('T')[0];
+        document.getElementById('modalita').value = r.tipo;
+        document.getElementById('luogo').value = r.luogo;
+        document.getElementById('btn-save').textContent = "AGGIORNA REPORT";
+        document.getElementById('btn-cancel-edit').style.display = "block";
         aggiornaPreview();
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    function logicAssenza() {
-        if(document.getElementById('assenza').value) {
-            document.getElementById('modalita').value = "";
-            document.getElementById('ora-inizio').value = ""; document.getElementById('ora-fine').value = "";
-            document.getElementById('pausa-mensa').checked = false;
-        }
-        aggiornaPreview();
+    function annullaModifica() {
+        document.getElementById('edit-id').value = "";
+        document.getElementById('btn-save').textContent = "REGISTRA REPORT";
+        document.getElementById('btn-save').disabled = false;
+        document.getElementById('btn-cancel-edit').style.display = "none";
+        document.getElementById('luogo').value = "";
     }
 
     function aggiornaPreview() {
         const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value;
-        if(!s || !e) {
-            document.getElementById('prev-tot').textContent = "0.00";
-            document.getElementById('prev-extra').textContent = "0.00";
-            return;
-        }
-        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
-        let ore = ((h2*60+m2)-(h1*60+m1))/60;
-        if(document.getElementById('pausa-mensa').checked && ore > 1) ore -= 1;
+        const [h1, m1] = s.split(':').map(Number), [h2, m2] = e.split(':').map(Number);
+        let ore = (h2 + m2/60) - (h1 + m1/60);
+        if(ore < 0) ore += 24; 
+        
+        if(document.getElementById('pausa-check').checked && ore > 1) ore -= 1;
+        
         document.getElementById('prev-tot').textContent = ore.toFixed(2);
-        const isWE = (new Date(document.getElementById('data').value).getDay() % 6 === 0);
-        document.getElementById('prev-extra').textContent = isWE ? ore.toFixed(2) : Math.max(0, ore - 8).toFixed(2);
+        document.getElementById('prev-extra').textContent = Math.max(0, ore - 8).toFixed(2);
+    }
+
+    function aggiornaSuggerimentiLuoghi() {
+        const uniqueLuoghi = [...new Set(dati.map(d => d.luogo).filter(l => l))];
+        const dl = document.getElementById('lista-luoghi');
+        dl.innerHTML = uniqueLuoghi.map(l => `<option value="${l}">`).join('');
+    }
+
+    function logicModalita() {
+        const v = document.getElementById('modalita').value;
+        if(v === "In Sede") document.getElementById('luogo').value = "TECNOSISTEM";
+        aggiornaPreview();
     }
 
     function toggleSection(id, el) {
         const c = document.getElementById(id);
-        c.style.display = c.style.display === 'none' ? 'block' : 'none';
-        el.classList.toggle('open');
+        const open = c.style.display === 'none';
+        c.style.display = open ? 'block' : 'none';
+        el.classList.toggle('open', open);
     }
 
     function setSyncState(s, t) {
         const i = document.getElementById('sync-indicator');
         i.className = `sync-${s}`;
-        const icon = s === 'working' ? 'fa-sync fa-spin' : 'fa-cloud';
+        const icon = s === 'working' ? 'fa-sync fa-spin' : (s === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle');
         i.innerHTML = `<i class="fas ${icon}"></i> ${t.toUpperCase()}`;
     }
+
+    window.onload = () => {
+        document.getElementById('data').value = new Date().toISOString().split('T')[0];
+        document.getElementById('mese-calcolo').value = new Date().toISOString().slice(0, 7);
+        fetchData();
+    };
 </script>
 </body>
 </html>
