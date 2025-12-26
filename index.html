@@ -25,10 +25,10 @@
         body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 60px; transition: background 0.3s; }
         .container { max-width: 500px; margin: 0 auto; }
         
-        header { text-align: center; margin-bottom: 25px; }
+        header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 32px; font-weight: 900; background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
-        .quote-container { margin-top: 5px; padding: 0 20px; }
-        #daily-quote { font-size: 13px; font-style: italic; color: var(--subtext); line-height: 1.4; font-weight: 500; }
+        .quote-container { margin-top: 5px; padding: 0 20px; min-height: 40px; }
+        #daily-quote { font-size: 13px; font-style: italic; color: var(--subtext); line-height: 1.4; }
         
         #sync-indicator { font-size: 11px; margin-top: 10px; font-weight: 700; }
         .sync-working { color: var(--primary); } .sync-success { color: var(--success); } .sync-error { color: var(--danger); }
@@ -44,138 +44,138 @@
         h2 { font-size: 17px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; cursor: pointer; justify-content: space-between; }
         
         .form-group { margin-bottom: 14px; }
-        label { display: block; font-size: 12px; font-weight: 700; color: var(--subtext); margin-bottom: 6px; text-transform: uppercase; }
+        label { display: block; font-size: 11px; font-weight: 700; color: var(--subtext); margin-bottom: 6px; text-transform: uppercase; }
         
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 18px; height: 52px; color: var(--text); background: var(--input-bg); -webkit-appearance: none; }
-        textarea { height: 90px; padding-top: 12px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 17px; height: 50px; color: var(--text); background: var(--input-bg); -webkit-appearance: none; }
+        textarea { height: 80px; padding-top: 12px; font-size: 15px; }
         
-        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .pausa-row { display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); height: 52px; cursor: pointer; }
-        
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
-        .stat-box { background: var(--bg); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
-        .stat-label { font-size: 11px; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
-        .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
-        .stat-val.extra { color: var(--warning); }
-
-        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 18px; font-weight: 700; width: 100%; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
+        .btn-main { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; width: 100%; margin-top: 10px; }
         .btn-cancel { background: #E5E5EA; color: #1C1C1E; border: none; border-radius: 14px; padding: 12px; width: 100%; margin-top: 8px; display: none; font-weight: 600; }
 
-        /* RIEPILOGO STYLES */
-        .summary-header { margin-bottom: 15px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
-        .summary-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 15px; align-items: center; }
+        /* RIEPILOGO & BUSTA PAGA */
+        .summary-header { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; align-items: center; }
         .sum-label { font-weight: 600; }
+        .sum-days { font-size: 11px; color: var(--subtext); margin-left: 5px; }
         .sum-val-ord { font-weight: 800; color: var(--primary); }
         .sum-val-extra { font-weight: 800; color: var(--warning); }
+        
+        .pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .total-box { background: var(--bg); padding: 15px; border-radius: 12px; text-align: center; margin-top: 10px; border: 1px dashed var(--primary); }
+        .total-label { font-size: 12px; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
+        .total-amount { font-size: 24px; font-weight: 900; color: var(--success); }
 
-        #registro-content, #riepilogo-content { display: none; margin-top: 10px; }
+        #registro-content, #riepilogo-content, #payroll-content { display: none; margin-top: 10px; }
         .chevron { transition: 0.3s; }
         .open .chevron { transform: rotate(180deg); }
 
         table { width: 100%; border-collapse: collapse; }
         tr { border-bottom: 1px solid var(--border); }
-        td { padding: 14px 2px; vertical-align: middle; }
+        td { padding: 12px 2px; vertical-align: middle; }
         .item-data { font-weight: 800; font-size: 13px; display: block; }
         .item-orario { color: var(--subtext); font-size: 11px; display: block; }
         .badge { padding: 4px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; width: 100%; text-align: center; }
-        .bg-sede { background: #E1F5FE; color: #0288D1; } .bg-rientro { background: #FFF3E0; color: #EF6C00; } .bg-pernotto { background: #F3E5F5; color: #7B1FA2; } .bg-estero { background: #E8F5E9; color: #2E7D32; } .bg-assenza { background: #FCE4EC; color: #D81B60; }
+        
+        .bg-sede { background: #E1F5FE; color: #0288D1; } 
+        .bg-rientro { background: #FFF3E0; color: #EF6C00; } 
+        .bg-pernotto { background: #F3E5F5; color: #7B1FA2; } 
+        .bg-estero { background: #E8F5E9; color: #2E7D32; } 
+        .bg-assenza { background: #FCE4EC; color: #D81B60; }
         
         .result-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-        .ore-col-tab { display: flex; flex-direction: column; align-items: flex-end; min-width: 50px; }
-        .ore-val-tab { font-size: 14px; font-weight: 800; color: var(--primary); }
-        .ore-extra-tab { font-size: 10px; font-weight: 700; color: var(--warning); margin-top: -2px; }
-        
-        .actions-row { display: flex; gap: 5px; }
-        .btn-icon { border: none; background: none; font-size: 19px; padding: 4px; cursor: pointer; color: var(--primary); }
-
-        .switch { position: relative; width: 46px; height: 26px; pointer-events: none; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .btn-icon { border: none; background: none; font-size: 18px; padding: 6px; cursor: pointer; }
+        .btn-del { color: var(--danger); } .btn-edit { color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <p id="loading-text" style="margin-top:10px; font-weight:700; color:white;">Operazione...</p>
+    <p id="loading-text" style="color:white; font-weight:700; margin-top:10px;">Cloud Sync...</p>
 </div>
 
 <div class="container">
     <header>
         <div class="logo">TECNOSISTEM</div>
-        <div class="quote-container">
-            <div id="daily-quote">"Caricamento ispirazione..."</div>
-        </div>
-        <div id="sync-indicator" class="sync-none"><i class="fas fa-cloud"></i> Cloud Sync...</div>
+        <div class="quote-container"><div id="daily-quote"></div></div>
+        <div id="sync-indicator"><i class="fas fa-cloud"></i> Sincronizzazione...</div>
     </header>
 
     <div class="card">
-        <h2><span><i class="fas fa-plus-circle"></i> Inserimento</span></h2>
-        <div class="form-group">
-            <label>Data Intervento</label>
-            <input type="date" id="data" onchange="aggiornaPreview()">
+        <h2><span><i class="fas fa-edit"></i> Nuovo Report</span></h2>
+        <div class="form-group"><label>Data</label><input type="date" id="data" onchange="aggiornaPreview()"></div>
+        <div class="pay-row">
+            <div class="form-group">
+                <label>Lavoro</label>
+                <select id="modalita" onchange="logicModalita()">
+                    <option value="">-- Seleziona --</option>
+                    <option value="In Sede">In Sede</option>
+                    <option value="Trasferta Rientro">Trasferta Rientro</option>
+                    <option value="Trasferta Pernotto">Trasferta Pernotto</option>
+                    <option value="Trasferta Estero">Trasferta Estero</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Assenza</label>
+                <select id="assenza" onchange="logicAssenza()">
+                    <option value="">-- No --</option>
+                    <option value="Ferie">Ferie</option>
+                    <option value="Permesso">Permesso</option>
+                    <option value="Malattia">Malattia</option>
+                </select>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Modalità Lavoro</label>
-            <select id="modalita" onchange="logicModalita()">
-                <option value="">-- Seleziona --</option>
-                <option value="In Sede">In Sede</option>
-                <option value="Trasferta Rientro">Trasferta Rientro</option>
-                <option value="Trasferta Pernotto">Trasferta Pernotto</option>
-                <option value="Trasferta Estero">Trasferta Estero</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Assenza</label>
-            <select id="assenza" onchange="logicAssenza()">
-                <option value="">-- Nessuna --</option>
-                <option value="Ferie">Ferie</option>
-                <option value="Permesso">Permesso</option>
-                <option value="Malattia">Malattia</option>
-            </select>
-        </div>
-        <div class="time-row">
+        <div class="pay-row">
             <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
             <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
         </div>
         <div class="form-group">
-            <label>Luogo / Cliente</label>
-            <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Destinazione">
+            <label>Luogo</label>
+            <input type="text" id="luogo" list="luoghi-suggeriti" placeholder="Cliente o Sede">
             <datalist id="luoghi-suggeriti"></datalist>
         </div>
-        <div class="pausa-row" onclick="togglePausa()">
-            <label style="margin:0; font-size: 15px; font-weight:600;">Pausa Mensa (1h)</label>
-            <label class="switch"><input type="checkbox" id="pausa" onchange="aggiornaPreview()"><span class="slider"></span></label>
+        <div class="form-group">
+            <label>Note</label>
+            <textarea id="note" placeholder="Descrizione intervento..."></textarea>
         </div>
-        <div class="stats-grid">
-            <div class="stat-box"><div class="stat-label">Ore Totali</div><div class="stat-val" id="ore-tot">0.00</div></div>
-            <div class="stat-box"><div class="stat-label">Straordinarie</div><div class="stat-val extra" id="ore-extra">0.00</div></div>
-        </div>
-        <div class="form-group"><label>Note</label><textarea id="note"></textarea></div>
-        <button class="btn-main" id="btn-save" onclick="salva()">REGISTRA NEL CLOUD</button>
-        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA MODIFICA</button>
+        <button class="btn-main" id="btn-save" onclick="salva()">SALVA NEL CLOUD</button>
+        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">ANNULLA</button>
     </div>
 
     <div class="card">
         <h2 onclick="toggleSection('riepilogo-content', this)">
-            <span><i class="fas fa-chart-pie"></i> Riepilogo Ore</span>
+            <span><i class="fas fa-calendar-alt"></i> Riepilogo Mese</span>
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="riepilogo-content">
             <div class="summary-header">
-                <label>Seleziona Mese</label>
-                <input type="month" id="filtro-mese" onchange="renderRiepilogo()">
+                <input type="month" id="filtro-mese" onchange="refreshAll()">
             </div>
             <div id="summary-list"></div>
         </div>
     </div>
 
     <div class="card">
+        <h2 onclick="toggleSection('payroll-content', this)">
+            <span><i class="fas fa-calculator"></i> Stima Busta Paga</span>
+            <i class="fas fa-chevron-down chevron"></i>
+        </h2>
+        <div id="payroll-content">
+            <div class="pay-row">
+                <div class="form-group"><label>Paga Oraria (€)</label><input type="number" id="paga-h" value="12.50" oninput="calcolaBusta()"></div>
+                <div class="form-group"><label>Diaria (€)</label><input type="number" id="diaria" value="30.00" oninput="calcolaBusta()"></div>
+            </div>
+            <div id="payroll-details"></div>
+            <div class="total-box">
+                <div class="total-label">Totale Lordo Stimato</div>
+                <div class="total-amount" id="netto-stima">€ 0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
         <h2 onclick="toggleSection('registro-content', this)">
-            <span><i class="fas fa-history"></i> Storico Registro</span>
+            <span><i class="fas fa-list"></i> Storico Registro</span>
             <i class="fas fa-chevron-down chevron"></i>
         </h2>
         <div id="registro-content">
@@ -186,8 +186,7 @@
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-    const quotes = ["L'unico modo per fare un ottimo lavoro è amare quello che fai.", "Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.", "Qualunque cosa tu faccia, falla bene.", "La qualità è fare le cose bene quando nessuno ti guarda.", "Le grandi cose non vengono mai dalle zone di comfort."];
-
+    const quotes = ["La precisione è l'anima del lavoro.", "Ogni grande opera è frutto di costanza.", "La sicurezza sul lavoro è la prima priorità.", "L'eccellenza non è un atto, ma un'abitudine."];
     let dati = [];
     let editIndex = -1;
 
@@ -196,20 +195,15 @@
         const oggi = new Date();
         document.getElementById('data').value = oggi.toISOString().split('T')[0];
         document.getElementById('filtro-mese').value = oggi.toISOString().slice(0, 7);
-        setDailyQuote();
+        document.getElementById('daily-quote').textContent = `"${quotes[oggi.getDate() % quotes.length]}"`;
         fetchData();
     });
-
-    function setDailyQuote() {
-        const index = new Date().getDate() % quotes.length;
-        document.getElementById('daily-quote').textContent = `"${quotes[index]}"`;
-    }
 
     function toggleSection(id, el) {
         const content = document.getElementById(id);
         const isOpen = content.style.display === 'block';
         content.style.display = isOpen ? 'none' : 'block';
-        el.classList.toggle('open', !isOpen);
+        if(el) el.classList.toggle('open', !isOpen);
     }
 
     function popolaOrari() {
@@ -224,146 +218,164 @@
     }
 
     function logicModalita() {
-        const mod = document.getElementById('modalita').value;
-        if (mod) {
-            document.getElementById('assenza').value = "";
-            if (mod === "In Sede") {
-                document.getElementById('luogo').value = "TECNOSISTEM";
-                document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
-                document.getElementById('pausa').checked = true;
-            }
-        }
+        const m = document.getElementById('modalita').value;
+        if(m) { document.getElementById('assenza').value = ""; if(m==="In Sede") document.getElementById('luogo').value="TECNOSISTEM"; }
         aggiornaPreview();
     }
-
     function logicAssenza() {
-        if (document.getElementById('assenza').value) {
-            document.getElementById('modalita').value = ""; document.getElementById('luogo').value = "-";
-            document.getElementById('ora-inizio').value = "08:00"; document.getElementById('ora-fine').value = "17:00";
-            document.getElementById('pausa').checked = false;
-        }
+        if(document.getElementById('assenza').value) { document.getElementById('modalita').value = ""; document.getElementById('luogo').value="-"; }
         aggiornaPreview();
     }
 
-    function togglePausa() { document.getElementById('pausa').checked = !document.getElementById('pausa').checked; aggiornaPreview(); }
-
-    function calcolaDettaglioOre(data, oreTot) {
+    function calcolaDettaglio(data, ore) {
         const d = new Date(data);
-        const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
-        if (isWeekend) return { ordinarie: 0, straordinarie: oreTot, tipoExtra: "Straordinario 50%" };
-        if (oreTot > 8) return { ordinarie: 8, straordinarie: oreTot - 8, tipoExtra: "Straordinario" };
-        return { ordinarie: oreTot, straordinarie: 0, tipoExtra: "" };
-    }
-
-    function aggiornaPreview() {
-        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value, dVal = document.getElementById('data').value;
-        if (!s || !e || !dVal) return;
-        const [h1, m1] = s.split(':').map(Number), [h2, m2] = e.split(':').map(Number);
-        let min = (h2*60+m2) - (h1*60+m1);
-        if (document.getElementById('pausa').checked) min -= 60;
-        const oreTot = Math.max(0, min/60);
-        const dett = calcolaDettaglioOre(dVal, oreTot);
-        document.getElementById('ore-tot').textContent = oreTot.toFixed(2);
-        document.getElementById('ore-extra').textContent = dett.straordinarie.toFixed(2);
+        const isWE = (d.getDay() === 0 || d.getDay() === 6);
+        let ord = 0, extra = 0, extra50 = 0;
+        if(isWE) extra50 = ore;
+        else if(ore > 8) { ord = 8; extra = ore - 8; }
+        else ord = ore;
+        return { ord, extra, extra50, isTrasferta: data && !isWE };
     }
 
     async function fetchData() {
         setSyncState('working', 'Sincronizzazione...');
         try {
-            const response = await fetch(WEB_APP_URL);
-            const res = await response.json();
+            const r = await fetch(WEB_APP_URL);
+            const res = await r.json();
             dati = res.data || [];
-            dati.sort((a, b) => new Date(b.data) - new Date(a.data));
-            renderTabella(); renderRiepilogo(); updateLuoghiSuggeriti();
-            setSyncState('success', 'Sincronizzato');
-        } catch (e) { setSyncState('error', 'Errore!'); }
+            dati.sort((a,b) => new Date(b.data) - new Date(a.data));
+            refreshAll();
+            setSyncState('success', 'Dati Aggiornati');
+        } catch(e) { setSyncState('error', 'Errore Cloud'); }
+    }
+
+    function refreshAll() {
+        renderRiepilogo();
+        calcolaBusta();
+        renderTabella();
+        updateLuoghiSuggeriti();
     }
 
     function renderRiepilogo() {
         const filtro = document.getElementById('filtro-mese').value;
-        const stats = { ord: {}, extra: 0, extra50: 0 };
-        
+        const stats = {};
         dati.filter(d => d.data.startsWith(filtro)).forEach(d => {
-            const dett = calcolaDettaglioOre(d.data, parseFloat(d.ore));
-            stats.ord[d.tipo] = (stats.ord[d.tipo] || 0) + dett.ordinarie;
-            if (dett.tipoExtra === "Straordinario 50%") stats.extra50 += dett.straordinarie;
-            else stats.extra += dett.straordinarie;
+            if(!stats[d.tipo]) stats[d.tipo] = { ore: 0, giorni: 0 };
+            stats[d.tipo].ore += parseFloat(d.ore);
+            stats[d.tipo].giorni += 1;
         });
 
         let html = '';
-        for (let t in stats.ord) {
-            html += `<div class="summary-item"><span class="sum-label">${t}</span><span class="sum-val-ord">${stats.ord[t].toFixed(2)}h</span></div>`;
+        for(let t in stats) {
+            html += `<div class="summary-item">
+                <span class="sum-label">${t} <span class="sum-days">(${stats[t].giorni} gg)</span></span>
+                <span class="sum-val-ord">${stats[t].ore.toFixed(2)}h</span>
+            </div>`;
         }
-        if (stats.extra > 0) html += `<div class="summary-item"><span class="sum-label">Straordinario</span><span class="sum-val-extra">${stats.extra.toFixed(2)}h</span></div>`;
-        if (stats.extra50 > 0) html += `<div class="summary-item"><span class="sum-label">Straordinario 50% (S/D)</span><span class="sum-val-extra" style="color:#FF3B30">${stats.extra50.toFixed(2)}h</span></div>`;
-        
-        document.getElementById('summary-list').innerHTML = html || `<p style="text-align:center; color:var(--subtext)">Nessun dato per questo mese.</p>`;
+        document.getElementById('summary-list').innerHTML = html || "Nessun dato.";
     }
 
-    async function salva() {
-        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
-        if (!tipo) return alert("Scegli un'attività!");
-        const record = {
-            id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
-            tipo: tipo, categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
-            luogo: document.getElementById('luogo').value || "-", data: document.getElementById('data').value,
-            inizio: document.getElementById('ora-inizio').value, fine: document.getElementById('ora-fine').value,
-            pausa: document.getElementById('pausa').checked, note: document.getElementById('note').value, ore: document.getElementById('ore-tot').textContent
-        };
-        showLoading("Salvataggio...");
-        try {
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
-            resetForm(); setTimeout(fetchData, 1200); setTimeout(hideLoading, 1500);
-        } catch (e) { hideLoading(); setSyncState('error', 'Errore!'); }
+    function calcolaBusta() {
+        const filtro = document.getElementById('filtro-mese').value;
+        const pOraria = parseFloat(document.getElementById('paga-h').value) || 0;
+        const diariaVal = parseFloat(document.getElementById('diaria').value) || 0;
+        
+        let tOrd = 0, tExtra = 0, tExtra50 = 0, nTrasferte = 0;
+
+        dati.filter(d => d.data.startsWith(filtro)).forEach(d => {
+            const dett = calcolaDettaglio(d.data, parseFloat(d.ore));
+            tOrd += dett.ord; tExtra += dett.extra; tExtra50 += dett.extra50;
+            if(d.tipo.includes("Trasferta")) nTrasferte++;
+        });
+
+        const lordo = (tOrd * pOraria) + (tExtra * pOraria * 1.25) + (tExtra50 * pOraria * 1.5) + (nTrasferte * diariaVal);
+        document.getElementById('netto-stima').textContent = `€ ${lordo.toFixed(2)}`;
+        
+        document.getElementById('payroll-details').innerHTML = `
+            <div class="summary-item"><span>Ore Ordinarie</span><span>${tOrd.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Straord. 25%</span><span>${tExtra.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Straord. 50%</span><span>${tExtra50.toFixed(2)}h</span></div>
+            <div class="summary-item"><span>Indennità Trasf. (${nTrasferte})</span><span>€ ${(nTrasferte*diariaVal).toFixed(2)}</span></div>
+        `;
     }
 
     function renderTabella() {
-        const body = document.getElementById('registro-body');
-        body.innerHTML = dati.map((d, i) => {
-            const dFmt = new Date(d.data).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'2-digit'});
-            const dett = calcolaDettaglioOre(d.data, parseFloat(d.ore));
+        document.getElementById('registro-body').innerHTML = dati.map((d, i) => {
             const badgeCls = d.tipo === "In Sede" ? "bg-sede" : d.categoria === "lavoro" ? "bg-rientro" : "bg-assenza";
             return `<tr>
-                <td style="width:38%"><span class="item-data">${dFmt}</span><span class="item-orario">${d.inizio}-${d.fine}</span><span style="font-size:10px; color:var(--primary); font-weight:700;">${d.luogo}</span></td>
-                <td style="width:28%"><span class="badge ${badgeCls}">${d.tipo}</span></td>
-                <td style="width:34%"><div class="result-cell"><div class="ore-col-tab"><span class="ore-val-tab">${dett.ordinarie.toFixed(2)}h</span>${dett.straordinarie > 0 ? `<span class="ore-extra-tab">+${dett.straordinarie.toFixed(2)}</span>` : ''}</div>
-                <div class="actions-row"><button class="btn-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button></div></div></td>
+                <td><span class="item-data">${new Date(d.data).toLocaleDateString('it-IT')}</span><span class="item-orario">${d.inizio}-${d.fine}</span></td>
+                <td><span class="badge ${badgeCls}">${d.tipo}</span></td>
+                <td><div class="result-cell"><b>${d.ore}h</b>
+                    <button class="btn-icon btn-edit" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon btn-del" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
+                </div></td>
             </tr>`;
         }).join('');
     }
 
-    function avviaModifica(index) {
-        const d = dati[index]; editIndex = index;
+    async function salva() {
+        const tipo = document.getElementById('modalita').value || document.getElementById('assenza').value;
+        if(!tipo) return alert("Scegli attività");
+        const rec = {
+            id: editIndex > -1 ? dati[editIndex].id.toString() : Date.now().toString(),
+            tipo, categoria: document.getElementById('modalita').value ? 'lavoro' : 'assenza',
+            luogo: document.getElementById('luogo').value || "-", data: document.getElementById('data').value,
+            inizio: document.getElementById('ora-inizio').value, fine: document.getElementById('ora-fine').value,
+            ore: calcolaOre(), note: document.getElementById('note').value
+        };
+        showLoading("Salvataggio...");
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rec) });
+        resetForm(); setTimeout(fetchData, 1000); hideLoading();
+    }
+
+    async function elimina(idx) {
+        if(!confirm("Eliminare definitivamente?")) return;
+        showLoading("Eliminazione...");
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", id: dati[idx].id.toString() })});
+        setTimeout(fetchData, 1000); hideLoading();
+    }
+
+    function calcolaOre() {
+        const s = document.getElementById('ora-inizio').value, e = document.getElementById('ora-fine').value;
+        if(!s || !e) return "0.00";
+        const [h1,m1]=s.split(':').map(Number), [h2,m2]=e.split(':').map(Number);
+        return (( (h2*60+m2)-(h1*60+m1) ) / 60).toFixed(2);
+    }
+
+    function avviaModifica(i) {
+        const d = dati[i]; editIndex = i;
         document.getElementById('data').value = d.data.split('T')[0];
-        if (d.categoria === 'lavoro') { document.getElementById('modalita').value = d.tipo; document.getElementById('assenza').value = ""; }
-        else { document.getElementById('assenza').value = d.tipo; document.getElementById('modalita').value = ""; }
-        document.getElementById('luogo').value = d.luogo; document.getElementById('ora-inizio').value = d.inizio;
-        document.getElementById('ora-fine').value = d.fine; document.getElementById('pausa').checked = (d.pausa === true || d.pausa === "SI");
-        document.getElementById('note').value = d.note || ""; document.getElementById('btn-save').textContent = "AGGIORNA";
-        document.getElementById('btn-cancel-edit').style.display = "block"; aggiornaPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
+        if(d.categoria==='lavoro') document.getElementById('modalita').value = d.tipo;
+        else document.getElementById('assenza').value = d.tipo;
+        document.getElementById('luogo').value = d.luogo;
+        document.getElementById('ora-inizio').value = d.inizio;
+        document.getElementById('ora-fine').value = d.fine;
+        document.getElementById('note').value = d.note || "";
+        document.getElementById('btn-save').textContent = "AGGIORNA";
+        document.getElementById('btn-cancel-edit').style.display="block";
+        window.scrollTo(0,0);
     }
 
     function resetForm() {
-        editIndex = -1; document.getElementById('modalita').value = ""; document.getElementById('assenza').value = "";
-        document.getElementById('luogo').value = ""; document.getElementById('note').value = "";
-        document.getElementById('ora-inizio').value = ""; document.getElementById('ora-fine').value = "";
-        document.getElementById('pausa').checked = false; document.getElementById('btn-save').textContent = "REGISTRA NEL CLOUD";
-        document.getElementById('btn-cancel-edit').style.display = "none"; document.getElementById('ore-tot').textContent = "0.00"; document.getElementById('ore-extra').textContent = "0.00";
+        editIndex = -1; document.getElementById('modalita').value=""; document.getElementById('assenza').value="";
+        document.getElementById('luogo').value=""; document.getElementById('note').value="";
+        document.getElementById('btn-save').textContent="SALVA NEL CLOUD";
+        document.getElementById('btn-cancel-edit').style.display="none";
     }
 
-    function setSyncState(state, text) {
-        const ind = document.getElementById('sync-indicator');
-        ind.className = `sync-${state}`;
-        ind.innerHTML = `<i class="fas ${state==='working'?'fa-sync fa-spin':'fa-cloud'}"></i> ${text}`;
+    function setSyncState(s, t) {
+        const i = document.getElementById('sync-indicator');
+        i.className = `sync-${s}`;
+        i.innerHTML = `<i class="fas ${s==='working'?'fa-sync fa-spin':'fa-cloud'}"></i> ${t}`;
     }
-
-    function showLoading(t) { document.getElementById('loading-text').textContent = t; document.getElementById('loading-overlay').style.display = 'flex'; }
-    function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
+    function showLoading(t) { document.getElementById('loading-text').textContent=t; document.getElementById('loading-overlay').style.display='flex'; }
+    function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
     function updateLuoghiSuggeriti() {
         const list = document.getElementById('luoghi-suggeriti');
         const unique = [...new Set(dati.map(d => d.luogo).filter(l => l && l !== "-"))];
         list.innerHTML = unique.map(l => `<option value="${l}">`).join('');
     }
+    function aggiornaPreview() {} // Placeholder per logica futura
 </script>
 </body>
 </html>
