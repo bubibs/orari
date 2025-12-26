@@ -6,7 +6,6 @@
     <title>Registro Lavoro PRO</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
@@ -16,42 +15,20 @@
             --text: #1C1C1E;
             --text-secondary: #8E8E93;
             --border: #D1D1D6;
-            --success: #34C759; /* Verde iOS */
+            --success: #34C759;
+            --danger: #FF3B30;
+            --warning: #FF9500;
             --radius: 14px;
         }
 
-        * { 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; 
-            font-family: -apple-system, system-ui, sans-serif; 
-        }
-
-        body { 
-            background-color: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding: 20px 15px; 
-        }
-
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px 15px; padding-bottom: 50px; }
         .container { max-width: 500px; margin: 0 auto; }
 
         header { text-align: center; margin-bottom: 25px; }
-        .logo { 
-            font-size: 26px; 
-            font-weight: 800; 
-            background: linear-gradient(135deg, #007AFF, #5856D6); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-        }
+        .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .card { 
-            background: var(--card); 
-            border-radius: var(--radius); 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-        }
-
+        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         h2 { font-size: 17px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
         .form-group { margin-bottom: 15px; }
@@ -59,61 +36,42 @@
 
         input, select { 
             width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; 
-            font-size: 16px; background: #FFF; appearance: none; transition: all 0.2s;
+            font-size: 16px; background: #FFF; appearance: none;
         }
 
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        /* --- STILE SWITCH iOS --- */
+        /* Switch iOS */
         .pausa-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #F9F9F9;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            margin-top: 10px;
-            cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #F9F9F9; padding: 12px 16px; border-radius: 12px;
+            border: 1px solid var(--border); margin-top: 10px; cursor: pointer;
         }
-
         .switch-container { position: relative; width: 50px; height: 28px; }
         .switch-container input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #E5E5EA; transition: .3s; border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute; content: ""; height: 24px; width: 24px;
-            left: 2px; bottom: 2px; background-color: white;
-            transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #E5E5EA; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        /* --- PREVIEW E BOTTONE --- */
-        .preview-box {
-            background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px;
-            text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2);
-        }
-        .preview-box span { font-size: 20px; }
+        .preview-box { background: #F0F7FF; color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; margin-top: 20px; border: 1px solid rgba(0,122,255,0.2); }
+        
+        .btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; margin-top: 15px; }
+        .btn-cancel { background: #E5E5EA; color: var(--text); border: none; border-radius: 14px; padding: 10px; width: 100%; margin-top: 10px; font-weight: 600; display: none; }
 
-        .btn-main {
-            background: var(--primary); color: white; border: none; border-radius: 14px;
-            padding: 18px; font-size: 16px; font-weight: 700; width: 100%;
-            margin-top: 15px; box-shadow: 0 4px 15px rgba(0,122,255,0.3);
-            transition: transform 0.1s;
-        }
-        .btn-main:active { transform: scale(0.98); }
-
-        /* --- REGISTRO --- */
-        .table-container { margin-top: 10px; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        td { padding: 12px 8px; border-bottom: 1px solid #F2F2F7; }
-        .badge { background: #E5E5EA; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        /* Tabella con Azioni */
+        .table-container { margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        tr { border-bottom: 1px solid #F2F2F7; }
+        td { padding: 15px 5px; font-size: 14px; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .badge-sede { background: #E1F5FE; color: #0288D1; }
+        .badge-assenza { background: #FFF3E0; color: #EF6C00; }
+        
+        .actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-icon { border: none; background: none; font-size: 16px; padding: 5px; cursor: pointer; }
+        .edit-icon { color: var(--primary); }
+        .delete-icon { color: var(--danger); }
     </style>
 </head>
 <body>
@@ -122,16 +80,17 @@
     <header><div class="logo">WORK LOG PRO</div></header>
 
     <div class="card">
-        <h2><i class="fas fa-edit"></i> Nuovo Inserimento</h2>
+        <h2 id="form-title"><i class="fas fa-plus-circle"></i> Nuovo Inserimento</h2>
         
         <div class="form-group">
-            <label>Modalità Lavoro</label>
-            <select id="tipo" onchange="handleModalitaChange()">
-                <option value="" disabled selected>Scegli modalità...</option>
+            <label>Tipo Attività / Assenza</label>
+            <select id="tipo" onchange="handleTipoChange()">
+                <option value="" disabled selected>Seleziona...</option>
                 <option value="Sede">Sede (Tecnosistem)</option>
                 <option value="Trasferta">Trasferta</option>
                 <option value="Ferie">Ferie</option>
                 <option value="Permesso">Permesso</option>
+                <option value="Malattia">Malattia</option>
             </select>
         </div>
 
@@ -140,36 +99,36 @@
             <input type="date" id="data">
         </div>
 
-        <div class="time-row">
-            <div class="form-group">
-                <label>Inizio</label>
-                <select id="ora-inizio" onchange="aggiornaPreview()"></select>
+        <div id="orari-container">
+            <div class="time-row">
+                <div class="form-group">
+                    <label>Inizio</label>
+                    <select id="ora-inizio" onchange="aggiornaPreview()"></select>
+                </div>
+                <div class="form-group">
+                    <label>Fine</label>
+                    <select id="ora-fine" onchange="aggiornaPreview()"></select>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Fine</label>
-                <select id="ora-fine" onchange="aggiornaPreview()"></select>
+
+            <div class="pausa-row" id="pausa-row" onclick="document.getElementById('pausa').click()">
+                <label style="margin:0; font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
+                <div class="switch-container">
+                    <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
+                    <span class="slider"></span>
+                </div>
             </div>
         </div>
 
-        <div class="pausa-row" onclick="document.getElementById('pausa').click()">
-            <label style="margin:0; color:var(--text); font-size: 15px; font-weight:600; cursor:pointer;">Pausa Mensa (1h)</label>
-            <div class="switch-container">
-                <input type="checkbox" id="pausa" onchange="aggiornaPreview()">
-                <span class="slider"></span>
-            </div>
-        </div>
+        <div class="preview-box" id="preview-text">Ore Nette: 0.00h</div>
 
-        <div class="preview-box" id="preview-text">
-            Seleziona modalità e orari
-        </div>
-
-        <button class="btn-main" onclick="salva()">
-            <i class="fas fa-check-circle"></i> SALVA ATTIVITÀ
-        </button>
+        <input type="hidden" id="edit-id" value="">
+        <button class="btn-main" id="btn-save" onclick="salva()">SALVA REPORT</button>
+        <button class="btn-cancel" id="btn-cancel-edit" onclick="resetForm()">Annulla Modifica</button>
     </div>
 
     <div class="card">
-        <h2><i class="fas fa-history"></i> Ultime 5 Attività</h2>
+        <h2><i class="fas fa-list"></i> Registro Attività</h2>
         <div class="table-container">
             <table>
                 <tbody id="registro-body"></tbody>
@@ -179,39 +138,42 @@
 </div>
 
 <script>
-    let dati = JSON.parse(localStorage.getItem('registro_lavoro_v3')) || [];
+    let dati = JSON.parse(localStorage.getItem('registro_v4')) || [];
+    let editIndex = -1;
 
     document.addEventListener('DOMContentLoaded', () => {
-        popolaSelectOrari();
+        popolaOrari();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
         renderTabella();
     });
 
-    function popolaSelectOrari() {
-        const start = document.getElementById('ora-inizio');
-        const end = document.getElementById('ora-fine');
-        start.add(new Option("--:--", ""));
-        end.add(new Option("--:--", ""));
-        
-        for (let h = 0; h < 24; h++) {
-            for (let m = 0; m < 60; m += 15) {
-                const t = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                start.add(new Option(t, t));
-                end.add(new Option(t, t));
+    function popolaOrari() {
+        const selects = [document.getElementById('ora-inizio'), document.getElementById('ora-fine')];
+        selects.forEach(s => {
+            s.add(new Option("--:--", ""));
+            for (let h = 0; h < 24; h++) {
+                for (let m = 0; m < 60; m += 15) {
+                    const t = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                    s.add(new Option(t, t));
+                }
             }
-        }
+        });
     }
 
-    function handleModalitaChange() {
-        const modalita = document.getElementById('tipo').value;
-        const start = document.getElementById('ora-inizio');
-        const end = document.getElementById('ora-fine');
+    function handleTipoChange() {
+        const tipo = document.getElementById('tipo').value;
+        const orariSection = document.getElementById('orari-container');
         const pausa = document.getElementById('pausa');
 
-        if (modalita === "Sede") {
-            start.value = "08:00";
-            end.value = "17:00";
+        if (tipo === "Sede") {
+            orariSection.style.opacity = "1";
+            document.getElementById('ora-inizio').value = "08:00";
+            document.getElementById('ora-fine').value = "17:00";
             pausa.checked = true;
+        } else if (["Ferie", "Malattia"].includes(tipo)) {
+            document.getElementById('ora-inizio').value = "08:00";
+            document.getElementById('ora-fine').value = "16:00";
+            pausa.checked = false;
         } else {
             pausa.checked = false;
         }
@@ -222,55 +184,92 @@
         const s = document.getElementById('ora-inizio').value;
         const e = document.getElementById('ora-fine').value;
         const p = document.getElementById('pausa').checked;
-        
-        if (!s || !e) {
-            document.getElementById('preview-text').innerHTML = "In attesa di orari...";
-            return;
-        }
+        if (!s || !e) return;
 
-        const ore = calcolaOreNette(s, e, p);
+        const ore = calcolaOre(s, e, p);
         document.getElementById('preview-text').innerHTML = `Ore Nette: <span>${ore.toFixed(2)}h</span>`;
     }
 
-    function calcolaOreNette(start, end, conPausa) {
+    function calcolaOre(start, end, conPausa) {
         const [h1, m1] = start.split(':').map(Number);
         const [h2, m2] = end.split(':').map(Number);
-        let minuti = (h2 * 60 + m2) - (h1 * 60 + m1);
-        if (conPausa) minuti -= 60; 
-        return Math.max(0, minuti / 60);
+        let min = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (conPausa) min -= 60;
+        return Math.max(0, min / 60);
     }
 
     function salva() {
-        const modalita = document.getElementById('tipo').value;
-        const start = document.getElementById('ora-inizio').value;
-        const end = document.getElementById('ora-fine').value;
+        const tipo = document.getElementById('tipo').value;
+        const data = document.getElementById('data').value;
+        const inizio = document.getElementById('ora-inizio').value;
+        const fine = document.getElementById('ora-fine').value;
+        const pChecked = document.getElementById('pausa').checked;
 
-        if (!modalita || !start || !end) { 
-            alert("Compila tutti i campi!"); 
-            return; 
+        if (!tipo || !inizio || !fine) { alert("Dati incompleti!"); return; }
+
+        const record = { tipo, data, inizio, fine, pausa: pChecked, ore: calcolaOre(inizio, fine, pChecked) };
+
+        if (editIndex > -1) {
+            dati[editIndex] = record;
+            editIndex = -1;
+        } else {
+            dati.unshift(record);
         }
-        
-        const entry = {
-            data: document.getElementById('data').value,
-            tipo: modalita,
-            ore: calcolaOreNette(start, end, document.getElementById('pausa').checked)
-        };
 
-        dati.unshift(entry);
-        localStorage.setItem('registro_lavoro_v3', JSON.stringify(dati));
+        localStorage.setItem('registro_v4', JSON.stringify(dati));
+        resetForm();
         renderTabella();
-        alert("Salvato!");
+        alert("Salvato correttamente!");
     }
 
     function renderTabella() {
         const body = document.getElementById('registro-body');
-        body.innerHTML = dati.slice(0, 5).map((d) => `
+        body.innerHTML = dati.map((d, i) => `
             <tr>
-                <td>${d.data.split('-').reverse().join('/')}</td>
-                <td><span class="badge">${d.tipo}</span></td>
-                <td style="text-align:right"><b>${d.ore.toFixed(2)}h</b></td>
+                <td><b>${d.data.split('-').reverse().slice(0,2).join('/')}</b></td>
+                <td><span class="badge ${d.tipo==='Sede'?'badge-sede':'badge-assenza'}">${d.tipo}</span></td>
+                <td>${d.ore.toFixed(2)}h</td>
+                <td class="actions">
+                    <button class="btn-icon edit-icon" onclick="avviaModifica(${i})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon delete-icon" onclick="elimina(${i})"><i class="fas fa-trash"></i></button>
+                </td>
             </tr>
         `).join('');
+    }
+
+    function avviaModifica(index) {
+        const d = dati[index];
+        editIndex = index;
+        document.getElementById('form-title').innerHTML = `<i class="fas fa-edit"></i> Modifica Report`;
+        document.getElementById('tipo').value = d.tipo;
+        document.getElementById('data').value = d.data;
+        document.getElementById('ora-inizio').value = d.inizio;
+        document.getElementById('ora-fine').value = d.fine;
+        document.getElementById('pausa').checked = d.pausa;
+        document.getElementById('btn-save').textContent = "AGGIORNA REPORT";
+        document.getElementById('btn-cancel-edit').style.display = "block";
+        aggiornaPreview();
+        window.scrollTo(0,0);
+    }
+
+    function elimina(index) {
+        if (confirm("Eliminare definitivamente questo report?")) {
+            dati.splice(index, 1);
+            localStorage.setItem('registro_v4', JSON.stringify(dati));
+            renderTabella();
+        }
+    }
+
+    function resetForm() {
+        editIndex = -1;
+        document.getElementById('form-title').innerHTML = `<i class="fas fa-plus-circle"></i> Nuovo Inserimento`;
+        document.getElementById('tipo').value = "";
+        document.getElementById('ora-inizio').value = "";
+        document.getElementById('ora-fine').value = "";
+        document.getElementById('pausa').checked = false;
+        document.getElementById('btn-save').textContent = "SALVA REPORT";
+        document.getElementById('btn-cancel-edit').style.display = "none";
+        document.getElementById('preview-text').textContent = "Ore Nette: 0.00h";
     }
 </script>
 
