@@ -26,7 +26,7 @@
         </div>
 
         <div class="card">
-            <h3>Riepilogo Attività</h3>
+            <h3>Riepilogo Attività (Giorni)</h3>
             <div class="stats-grid">
                 <div class="stat-item"><span>Sede</span><strong id="ore-sede">0</strong></div>
                 <div class="stat-item"><span>Trasf. Rientro</span><strong id="ore-rientro">0</strong></div>
@@ -40,7 +40,7 @@
             <h3>Analisi Economica</h3>
             <div class="money-row">
                 <div class="money-box">
-                    <label>LORDO STIMATO</label>
+                    <label>LORDO TOTALE</label>
                     <div id="valore-lordo">€ 0.00</div>
                 </div>
                 <div class="money-box accent">
@@ -51,30 +51,41 @@
             <div class="money-details">
                 <p>Extra 25% (Lun-Ven): <span id="val-25">0.0</span> h</p>
                 <p>Extra 50% (Sab-Dom): <span id="val-50">0.0</span> h</p>
+                <p>Totale Indennità: <span id="val-indennita">€ 0.00</span></p>
             </div>
         </div>
 
         <button class="btn-settings" onclick="toggleSettings()">
-            <i class="fas fa-cog"></i> Configura Tariffe Cloud
+            <i class="fas fa-cog"></i> Configura Tariffe & Indennità
         </button>
 
         <div id="settings-panel" class="settings-modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4>Tariffe Cloud</h4>
+                    <h4>Tariffe & Indennità</h4>
                     <button class="btn-close" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="form-group">
                     <label>Paga Base Mensile (€)</label>
                     <input type="number" id="base-mensile" step="0.01">
                 </div>
+                <div class="form-group row">
+                    <div><label>Ora 25% (€)</label><input type="number" id="tariffa-25" step="0.1"></div>
+                    <div><label>Ora 50% (€)</label><input type="number" id="tariffa-50" step="0.1"></div>
+                </div>
+                <hr>
+                <p style="font-size: 11px; font-weight: bold; margin-bottom: 10px;">INDENNITÀ GIORNALIERE (€)</p>
                 <div class="form-group">
-                    <label>Valore Ora 25% (€)</label>
-                    <input type="number" id="tariffa-25" step="0.01">
+                    <label>Trasf. Rientro</label>
+                    <input type="number" id="ind-rientro" step="0.1">
                 </div>
                 <div class="form-group">
-                    <label>Valore Ora 50% (€)</label>
-                    <input type="number" id="tariffa-50" step="0.01">
+                    <label>Trasf. Pernottamento</label>
+                    <input type="number" id="ind-pernott" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Trasferta Estero</label>
+                    <input type="number" id="ind-estero" step="0.1">
                 </div>
                 <div class="form-group">
                     <label>Aliquota Tasse (%)</label>
