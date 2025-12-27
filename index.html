@@ -12,12 +12,21 @@
         <header class="header-main">
             <div class="user-info">
                 <h1>Tecnosistem</h1>
-                <p>Gestione Interventi</p>
+                <div class="sync-tag">
+                    <i id="cloud-icon" class="fas fa-cloud status-success"></i>
+                    <span id="sync-text">Cloud Sincronizzato</span>
+                </div>
             </div>
-            <div class="sync-status">
-                <i id="cloud-icon" class="fas fa-cloud status-success"></i>
+            <div class="date-badge">
+                <span id="date-day">--</span>
+                <small id="date-month">--</small>
             </div>
         </header>
+
+        <div class="motivation-banner">
+            <i class="fas fa-quote-left"></i>
+            <p id="motivation-text">Caricamento obiettivi...</p>
+        </div>
 
         <main class="menu-grid">
             <a href="report.html" class="menu-card primary full-width">
@@ -27,22 +36,18 @@
 
             <a href="storico.html" class="menu-card">
                 <div class="card-icon"><i class="fas fa-history"></i></div>
-                <div class="card-label">Storico</div>
+                <div class="card-label">Storico Ore</div>
             </a>
 
             <a href="rubrica.html" class="menu-card">
                 <div class="card-icon"><i class="fas fa-address-book"></i></div>
                 <div class="card-label">Rubrica</div>
             </a>
-
-            <div class="menu-card full-width info-card">
-                <div class="info-content">
-                    <span id="date-display">Caricamento...</span>
-                    <small>Buon lavoro!</small>
-                </div>
-                <i class="fas fa-calendar-alt"></i>
-            </div>
         </main>
+
+        <footer class="footer-info">
+            <p>© 2025 Tecnosistem - Precisione e Qualità</p>
+        </footer>
     </div>
     <script src="js/index.js"></script>
 </body>
