@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analisi Ore - Tecnosistem</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/storico.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header-back">
+            <a href="index.html"><i class="fas fa-chevron-left"></i> Dashboard</a>
+            <div class="sync-status">
+                <i id="sync-icon" class="fas fa-cloud"></i>
+            </div>
+        </header>
+
+        <div class="card selector-card">
+            <label>Seleziona Periodo</label>
+            <div class="filter-row">
+                <select id="filtro-mese"></select>
+                <select id="filtro-anno"></select>
+                <button onclick="caricaDatiStorico()"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Riepilogo Attività</h3>
+            <div class="stats-grid">
+                <div class="stat-item"><span>Sede</span><strong id="ore-sede">0</strong></div>
+                <div class="stat-item"><span>Trasf. Rientro</span><strong id="ore-rientro">0</strong></div>
+                <div class="stat-item"><span>Trasf. Pernott.</span><strong id="ore-pernott">0</strong></div>
+                <div class="stat-item"><span>Trasf. Estero</span><strong id="ore-estero">0</strong></div>
+                <div class="stat-item danger"><span>Assenze</span><strong id="ore-assenze">0</strong></div>
+            </div>
+        </div>
+
+        <div class="card money-card">
+            <h3>Analisi Economica</h3>
+            <div class="money-row">
+                <div class="money-box">
+                    <label>LORDO STIMATO</label>
+                    <div id="valore-lordo">€ 0.00</div>
+                </div>
+                <div class="money-box accent">
+                    <label>NETTO STIMATO</label>
+                    <div id="valore-netto">€ 0.00</div>
+                </div>
+            </div>
+            <div class="money-details">
+                <p>Straord. 25% (Lun-Ven): <span id="val-25">0.0</span> ore</p>
+                <p>Straord. 50% (Sab-Dom): <span id="val-50">0.0</span> ore</p>
+            </div>
+        </div>
+
+        <button class="btn-settings" onclick="toggleSettings()">
+            <i class="fas fa-cog"></i> Configura Tariffe
+        </button>
+
+        <div id="settings-panel" class="settings-modal">
+            <div class="modal-content">
+                <h4>Tariffe Correnti</h4>
+                <div class="form-group">
+                    <label>Paga Base Mensile (€)</label>
+                    <input type="number" id="base-mensile" value="1600">
+                </div>
+                <div class="form-group">
+                    <label>Valore Ora 25% (€)</label>
+                    <input type="number" id="tariffa-25" value="12.50">
+                </div>
+                <div class="form-group">
+                    <label>Valore Ora 50% (€)</label>
+                    <input type="number" id="tariffa-50" value="15.00">
+                </div>
+                <div class="form-group">
+                    <label>Aliquota Tasse (%)</label>
+                    <input type="number" id="aliquota-tasse" value="23">
+                </div>
+                <button class="btn-main" onclick="salvaTariffe()">SALVA TARIFFE</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/storico.js"></script>
+</body>
+</html>
