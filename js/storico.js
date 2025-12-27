@@ -1,13 +1,13 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 let mioGrafico = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Inizializza filtri con mese/anno corrente
+document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
-    // 2. Carica tariffe attuali per la modale
     caricaTariffeCloud();
-    // 3. AUTO-CARICAMENTO: Avvia ricerca del mese corrente all'apertura
-    await caricaDatiStorico();
+    // AVVIO AUTOMATICO con ritardo per garantire il rendering del grafico
+    setTimeout(() => {
+        caricaDatiStorico();
+    }, 500);
 });
 
 function inizializzaFiltri() {
@@ -34,7 +34,7 @@ async function caricaDatiStorico() {
     const anno = document.getElementById('filtro-anno').value;
     const icon = document.getElementById('sync-icon');
     
-    icon.className = "fas fa-sync fa-spin status-working";
+    if(icon) icon.className = "fas fa-sync fa-spin status-working";
     
     try {
         const response = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
@@ -42,14 +42,13 @@ async function caricaDatiStorico() {
         
         if (result.data && result.data.length > 0) {
             processaDati(result.data);
-            icon.className = "fas fa-cloud status-success";
+            if(icon) icon.className = "fas fa-cloud status-success";
         } else {
             resetCampi();
-            icon.className = "fas fa-cloud status-success";
-            // Non mostriamo l'alert all'avvio automatico se è vuoto
+            if(icon) icon.className = "fas fa-cloud status-success";
         }
     } catch (e) {
-        icon.className = "fas fa-exclamation-triangle status-error";
+        if(icon) icon.className = "fas fa-exclamation-triangle status-error";
     }
 }
 
@@ -58,7 +57,7 @@ function processaDati(dati) {
 
     dati.forEach(r => {
         const oreStr = parseFloat(r.ore_str) || 0;
-        const tipo = (r.tipo_lavoro || "").toLowerCase().trim();
+        const tipo = (r.tipo_lavoro || r.tipo || "").toLowerCase().trim();
         const assenza = (r.assenza || "nessuna").toLowerCase().trim();
         
         const t25 = parseFloat(r.t25) || 0;
@@ -70,7 +69,8 @@ function processaDati(dati) {
         stats.pagaBase = parseFloat(r.paga_base) || 0;
         stats.aliquota = parseFloat(r.tasse) || 0;
 
-        const d = new Date(r.data);
+        const dataPezzi = r.data.split("-");
+        const d = new Date(dataPezzi[0], dataPezzi[1]-1, dataPezzi[2]);
         const giorno = d.getDay(); 
 
         if (assenza !== "nessuna" && assenza !== "") {
@@ -94,11 +94,14 @@ function processaDati(dati) {
         }
     });
 
+    // Aggiornamento Riepilogo Attività
     document.getElementById('ore-sede').innerText = stats.sede;
     document.getElementById('ore-rientro').innerText = stats.rientro;
     document.getElementById('ore-pernott').innerText = stats.pernott;
     document.getElementById('ore-estero').innerText = stats.estero;
     document.getElementById('ore-assenze').innerText = stats.assenze;
+    
+    // Aggiornamento Analisi Economica
     document.getElementById('val-25').innerText = stats.s25.toFixed(1) + " h";
     document.getElementById('val-50').innerText = stats.s50.toFixed(1) + " h";
     document.getElementById('val-indennita').innerText = `€ ${stats.indennitaTot.toFixed(2)}`;
@@ -128,7 +131,7 @@ function disegnaGrafico(stats) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } }
         }
     });
 }
@@ -143,13 +146,13 @@ async function caricaTariffeCloud() {
         const res = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
         const json = await res.json();
         if(json.data) {
-            document.getElementById('base-mensile').value = json.data.base;
-            document.getElementById('tariffa-25').value = json.data.t25;
-            document.getElementById('tariffa-50').value = json.data.t50;
-            document.getElementById('ind-rientro').value = json.data.ind_rientro;
-            document.getElementById('ind-pernott').value = json.data.ind_pernott;
-            document.getElementById('ind-estero').value = json.data.ind_estero;
-            document.getElementById('aliquota-tasse').value = json.data.tasse;
+            document.getElementById('base-mensile').value = json.data.base || 0;
+            document.getElementById('tariffa-25').value = json.data.t25 || 0;
+            document.getElementById('tariffa-50').value = json.data.t50 || 0;
+            document.getElementById('ind-rientro').value = json.data.ind_rientro || 0;
+            document.getElementById('ind-pernott').value = json.data.ind_pernott || 0;
+            document.getElementById('ind-estero').value = json.data.ind_estero || 0;
+            document.getElementById('aliquota-tasse').value = json.data.tasse || 0;
         }
     } catch(e) {}
 }
@@ -176,7 +179,8 @@ async function salvaTariffeCloud() {
 }
 
 function resetCampi() {
-    ["ore-sede","ore-rientro","ore-pernott","ore-estero","ore-assenze"].forEach(id => document.getElementById(id).innerText = "0");
+    const ids = ["ore-sede","ore-rientro","ore-pernott","ore-estero","ore-assenze"];
+    ids.forEach(id => document.getElementById(id).innerText = "0");
     document.getElementById('val-indennita').innerText = "€ 0.00";
     document.getElementById('valore-lordo').innerText = "€ 0.00";
     document.getElementById('valore-netto').innerText = "€ 0.00";
