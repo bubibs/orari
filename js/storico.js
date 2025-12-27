@@ -6,21 +6,16 @@ document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
     caricaTariffeCloud();
     setTimeout(() => {
-        caricaDatiStorico(); // Carica il mese corrente
-        caricaDatiAnnuali();  // Carica l'andamento annuale
+        caricaDatiStorico(); 
+        caricaDatiAnnuali();  
     }, 500);
 });
 
-/**
- * GESTIONE FEEDBACK VISIVO CLOUD
- * Aggiorna l'icona in alto a destra in base allo stato della sincronizzazione
- */
+// GESTIONE FEEDBACK VISIVO CLOUD
 function updateSyncStatus(status) {
     const icon = document.getElementById('sync-icon');
     if (!icon) return;
-
-    icon.className = "fas"; // Reset
-    
+    icon.className = "fas"; 
     switch(status) {
         case 'working':
             icon.classList.add('fa-sync', 'fa-spin-loading', 'status-working');
@@ -58,9 +53,7 @@ function inizializzaFiltri() {
 async function caricaDatiStorico() {
     const mese = document.getElementById('filtro-mese').value;
     const anno = document.getElementById('filtro-anno').value;
-    
     updateSyncStatus('working');
-    
     try {
         const response = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
         const result = await response.json();
@@ -72,7 +65,6 @@ async function caricaDatiStorico() {
             updateSyncStatus('success');
         }
     } catch (e) {
-        console.error("Errore caricamento storico:", e);
         updateSyncStatus('error');
     }
 }
@@ -88,18 +80,12 @@ async function caricaDatiAnnuali() {
     } catch (e) { console.error("Errore dati annuali", e); }
 }
 
-/**
- * LOGICA DI CALCOLO (SISTEMATA)
- * Calcola ore 25%, 50% (weekend) e somma le indennità al lordo
- */
+// LOGICA DI CALCOLO CORE
 function processaDati(dati) {
     let stats = { 
         sede: 0, rientro: 0, pernott: 0, estero: 0, assenze: 0, 
-        s25: 0, s50: 0, 
-        lordoStraordinari: 0, 
-        indennitaTot: 0, 
-        pagaBase: 0, 
-        aliquota: 0 
+        s25: 0, s50: 0, lordoStraordinari: 0, indennitaTot: 0, 
+        pagaBase: 0, aliquota: 0 
     };
 
     dati.forEach(r => {
@@ -115,31 +101,34 @@ function processaDati(dati) {
         stats.pagaBase = parseFloat(r.paga_base) || 0;
         stats.aliquota = parseFloat(r.tasse) || 0;
 
-        // Identificazione giorno della settimana
-        const dataPezzi = r.data.split("-");
-        const d = new Date(dataPezzi[0], dataPezzi[1]-1, dataPezzi[2]);
+        // --- PARSER DATA INTELLIGENTE ---
+        let d;
+        let dataRaw = r.data.toString();
+        if (dataRaw.includes("-")) {
+            let p = dataRaw.split("-");
+            // Se YYYY-MM-DD else DD-MM-YYYY
+            d = p[0].length === 4 ? new Date(p[0], p[1]-1, p[2]) : new Date(p[2], p[1]-1, p[0]);
+        } else if (dataRaw.includes("/")) {
+            let p = dataRaw.split("/");
+            d = new Date(p[2], p[1]-1, p[0]);
+        } else {
+            d = new Date(dataRaw); // Tenta fallback
+        }
+
         const giornoSettimana = d.getDay(); // 0=Dom, 6=Sab
 
         if (assenza !== "nessuna" && assenza !== "") {
             stats.assenze++;
         } else {
-            // 1. Conteggio Giorni e Indennità
-            let valoreIndGiorno = 0;
-            if (tipo.includes("sede")) {
-                stats.sede++;
-            } else if (tipo.includes("rientro")) {
-                stats.rientro++;
-                valoreIndGiorno = iRie;
-            } else if (tipo.includes("pernottamento")) {
-                stats.pernott++;
-                valoreIndGiorno = iPer;
-            } else if (tipo.includes("estero")) {
-                stats.estero++;
-                valoreIndGiorno = iEst;
-            }
-            stats.indennitaTot += valoreIndGiorno;
+            let valInd = 0;
+            if (tipo.includes("sede")) stats.sede++;
+            else if (tipo.includes("rientro")) { stats.rientro++; valInd = iRie; }
+            else if (tipo.includes("pernottamento")) { stats.pernott++; valInd = iPer; }
+            else if (tipo.includes("estero")) { stats.estero++; valInd = iEst; }
+            
+            stats.indennitaTot += valInd;
 
-            // 2. Calcolo Straordinari basato sul Calendario
+            // CALCOLO WEEKEND (SABATO 6, DOMENICA 0)
             if (giornoSettimana === 0 || giornoSettimana === 6) { 
                 stats.s50 += oreStr; 
                 stats.lordoStraordinari += (oreStr * t50); 
@@ -150,7 +139,7 @@ function processaDati(dati) {
         }
     });
 
-    // Aggiornamento Interfaccia
+    // AGGIORNAMENTO UI
     document.getElementById('ore-sede').innerText = stats.sede;
     document.getElementById('ore-rientro').innerText = stats.rientro;
     document.getElementById('ore-pernott').innerText = stats.pernott;
@@ -160,12 +149,11 @@ function processaDati(dati) {
     document.getElementById('val-50').innerText = stats.s50.toFixed(1) + " h";
     document.getElementById('val-indennita').innerText = `€ ${stats.indennitaTot.toFixed(2)}`;
 
-    // FORMULA LORDO: Base + Extra + Indennità
     const lordo = stats.pagaBase + stats.lordoStraordinari + stats.indennitaTot;
     const netto = lordo * (1 - (stats.aliquota / 100));
 
-    document.getElementById('valore-lordo').innerText = `€ ${lordo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-    document.getElementById('valore-netto').innerText = `€ ${netto.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    document.getElementById('valore-lordo').innerText = `€ ${lordo.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
+    document.getElementById('valore-netto').innerText = `€ ${netto.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
 
     disegnaGraficoMensile(stats);
 }
@@ -190,7 +178,6 @@ function disegnaGraficoMensile(stats) {
 function disegnaGraficoAnnuale(dataLorda) {
     const ctx = document.getElementById('annualeChart').getContext('2d');
     if (graficoAnnuale) graficoAnnuale.destroy();
-    
     graficoAnnuale = new Chart(ctx, {
         type: 'line',
         data: {
@@ -208,9 +195,7 @@ function disegnaGraficoAnnuale(dataLorda) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, ticks: { callback: value => '€' + value } }
-            }
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '€' + v } } }
         }
     });
 }
@@ -233,7 +218,7 @@ async function caricaTariffeCloud() {
             document.getElementById('ind-estero').value = json.data.ind_estero || 0;
             document.getElementById('aliquota-tasse').value = json.data.tasse || 0;
         }
-    } catch(e) { console.error("Errore tariffe cloud:", e); }
+    } catch(e) {}
 }
 
 async function salvaTariffeCloud() {
@@ -248,33 +233,22 @@ async function salvaTariffeCloud() {
         ind_estero: document.getElementById('ind-estero').value,
         tasse: document.getElementById('aliquota-tasse').value
     };
-
-    // Feedback visivo e blocco click
-    btn.disabled = true;
-    const originalText = btn.innerText;
+    btn.disabled = true; 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVATAGGIO...';
     updateSyncStatus('working');
-
     try {
-        await fetch(WEB_APP_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(settings) 
-        });
-        
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(settings) });
         updateSyncStatus('success');
         btn.innerHTML = '<i class="fas fa-check"></i> SALVATO';
-        
         setTimeout(() => {
             btn.disabled = false;
-            btn.innerText = originalText;
+            btn.innerText = "SALVA SUL CLOUD";
             toggleSettings();
-        }, 1500);
-
+        }, 1200);
     } catch (e) {
         updateSyncStatus('error');
         btn.disabled = false;
-        btn.innerText = "ERRORE - RIPROVA";
+        btn.innerText = "RIPROVA";
     }
 }
 
