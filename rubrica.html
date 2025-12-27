@@ -11,7 +11,10 @@
     <div class="container">
         <header class="header-back">
             <a href="index.html"><i class="fas fa-chevron-left"></i> Home</a>
-            <div id="sync-indicator" class="sync-idle"><i class="fas fa-cloud"></i></div>
+            <div class="sync-status-wrapper">
+                <span id="sync-text">Connesso</span>
+                <i id="sync-indicator" class="fas fa-cloud"></i>
+            </div>
         </header>
 
         <div class="card card-accent">
@@ -33,7 +36,7 @@
             </div>
 
             <button class="btn-main" id="btn-save" onclick="azioneSalva()">
-                <i class="fas fa-save"></i> SALVA NEL CLOUD
+                SALVA NEL CLOUD
             </button>
         </div>
 
@@ -43,7 +46,7 @@
         </div>
 
         <div id="lista-rubrica">
-            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento rubrica...</p>
+            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento dati...</p>
         </div>
     </div>
     <script src="js/rubrica.js"></script>
