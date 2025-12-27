@@ -50,7 +50,7 @@ function calcolaOre() {
     let straordinari = 0;
     
     const dataObj = new Date(dataVal);
-    const giorno = dataObj.getDay(); // 0 Dom, 6 Sab
+    const giorno = dataObj.getDay(); 
 
     if (giorno === 0 || giorno === 6) {
         straordinari = oreTotali;
@@ -86,6 +86,7 @@ function suggestLuogo() {
 function setLuogo(n, c) {
     document.getElementById('rep-luogo').value = n;
     document.getElementById('suggestions').style.display = 'none';
+    calcolaOre();
 }
 
 async function salvaReport() {
@@ -121,6 +122,6 @@ function updateCloudIcon(s) {
     if (!icon || !text) return;
     icon.className = 'fas fa-cloud';
     if (s === 'working') { icon.classList.add('sync-working', 'status-working'); text.innerText = "Invio..."; text.className = 'status-working'; }
-    else if (s === 'success') { icon.classList.add('status-success'); text.innerText = "Sincronizzato"; text.className = 'status-success'; }
+    else if (s === 'success') { icon.classList.add('status-success'); text.innerText = "Inviato"; text.className = 'status-success'; }
     else if (s === 'error') { icon.classList.add('status-error'); text.innerText = "Errore"; text.className = 'status-error'; }
 }
