@@ -1,50 +1,57 @@
 :root {
     --primary: #007AFF; --bg: #F2F2F7; --card: #FFFFFF;
-    --text: #1C1C1E; --subtext: #8E8E93; --radius: 24px;
+    --text: #1C1C1E; --subtext: #8E8E93; --border: #D1D1D6; --radius: 20px;
 }
 @media (prefers-color-scheme: dark) {
-    :root { --bg: #000; --card: #1C1C1E; --text: #FFF; --subtext: #AEAEB2; }
+    :root { --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; }
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 20px; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; }
 .container { max-width: 500px; margin: 0 auto; }
 
-/* HEADER */
-.header-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.header-main h1 { font-size: 28px; font-weight: 900; margin: 0; letter-spacing: -1px; }
-.header-main p { margin: 0; color: var(--subtext); font-weight: 600; }
-.sync-status i { font-size: 24px; transition: color 0.3s; }
+.header-back { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-back a { text-decoration: none; color: var(--primary); font-weight: 700; font-size: 17px; }
 
-/* BANNER MOTIVAZIONALE */
-.motivation-banner {
-    background: var(--card); padding: 20px; border-radius: var(--radius);
-    margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    border-left: 6px solid var(--primary);
-}
-#motivation-text { margin: 0; font-size: 15px; font-weight: 700; font-style: italic; line-height: 1.4; }
-#motivation-author { display: block; margin-top: 8px; font-size: 11px; color: var(--subtext); text-transform: uppercase; }
+.card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+h3 { margin: 0 0 15px 0; font-size: 13px; text-transform: uppercase; color: var(--subtext); letter-spacing: 0.5px; }
 
-/* MENU GRID */
-.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.menu-card {
-    background: var(--card); border-radius: var(--radius); padding: 22px;
-    text-decoration: none; color: var(--text); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(128,128,128,0.1);
-}
-.menu-card:active { transform: scale(0.96); }
-.menu-card.primary { background: var(--primary); color: white; border: none; }
-.menu-card.full-width { grid-column: span 2; flex-direction: row; justify-content: center; gap: 15px; }
+.filter-row { display: flex; gap: 8px; margin-top: 10px; }
+select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; outline: none; }
+#btn-cerca { width: 50px; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; }
 
-.card-icon { font-size: 28px; }
-.card-label { font-size: 14px; font-weight: 800; text-transform: uppercase; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-item { background: var(--bg); padding: 12px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
+.stat-item span { font-size: 13px; font-weight: 600; color: var(--subtext); }
+.stat-item strong { font-size: 15px; }
+.stat-item.danger strong { color: #FF3B30; }
 
-.info-card { grid-column: span 2; flex-direction: row; justify-content: space-between; padding: 18px 25px; }
-.info-content { display: flex; flex-direction: column; }
-.info-content span { font-size: 16px; font-weight: 800; }
-.info-card i { color: var(--primary); font-size: 22px; }
+.money-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+.money-box { text-align: center; background: var(--bg); padding: 15px; border-radius: 15px; }
+.money-box label { font-size: 9px; font-weight: 800; color: var(--subtext); display: block; margin-bottom: 5px; }
+.money-box div { font-size: 19px; font-weight: 900; }
+.money-box.accent div { color: #34C759; }
 
-/* COLORI NUVOLA */
-.status-success { color: #34C759; }
-.status-error { color: #FF3B30; }
+.money-details { border-top: 1px solid var(--border); padding-top: 10px; }
+.money-details p { margin: 5px 0; font-size: 13px; display: flex; justify-content: space-between; }
+.money-details span { font-weight: 700; }
+
+.btn-settings { width: 100%; padding: 15px; background: var(--card); border: 1px solid var(--border); color: var(--subtext); border-radius: var(--radius); font-weight: 700; margin-top: 5px; cursor: pointer; }
+
+.settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-content { background: var(--card); padding: 25px; border-radius: var(--radius); width: 90%; max-width: 400px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h4 { margin: 0; font-size: 18px; }
+.btn-close { background: var(--bg); border: none; width: 32px; height: 32px; border-radius: 50%; color: var(--text); cursor: pointer; }
+
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 11px; margin-bottom: 4px; color: var(--subtext); font-weight: 600; }
+.form-group input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; }
+.form-group.row { display: flex; gap: 10px; }
+.form-group.row div { flex: 1; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
+
+.btn-main { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 14px; font-weight: 800; font-size: 15px; margin-top: 10px; cursor: pointer; }
+
+.status-success { color: #34C759 !important; }
+.status-error { color: #FF3B30 !important; }
+.status-working { color: #FF9500 !important; }
