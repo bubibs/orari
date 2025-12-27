@@ -1,257 +1,74 @@
-:root {
-    --primary: #007AFF;
-    --bg: #F2F2F7;
-    --card: #FFFFFF;
-    --text: #1C1C1E;
-    --subtext: #8E8E93;
-    --border: #D1D1D6;
-    --radius: 20px;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #000000;
-        --card: #1C1C1E;
-        --text: #FFFFFF;
-        --border: #38383A;
-    }
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 15px;
-    -webkit-font-smoothing: antialiased;
-}
-
-.container {
-    max-width: 500px;
-    margin: 0 auto;
-    padding-bottom: 30px;
-}
-
-/* Header */
-.header-back {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 5px 0;
-}
-
-.header-back a {
-    text-decoration: none;
-    color: var(--primary);
-    font-weight: 700;
-    font-size: 17px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Sync Icon Colors */
-.status-success { color: #34C759 !important; }
-.status-error { color: #FF3B30 !important; }
-.status-working { color: #FF9500 !important; }
-
-/* Cards */
-.card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 15px;
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-h3 {
-    margin: 0 0 15px 0;
-    font-size: 12px;
-    text-transform: uppercase;
-    color: var(--subtext);
-    letter-spacing: 0.5px;
-}
-
-/* Filtri */
-.filter-row {
-    display: flex;
-    gap: 10px;
-}
-
-select {
-    flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 16px;
-    outline: none;
-    -webkit-appearance: none;
-}
-
-#btn-cerca {
-    width: 50px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.stat-item {
-    background: var(--bg);
-    padding: 12px;
-    border-radius: 14px;
+/* Layout Analisi Economica Sistemata */
+.money-details {
+    margin: 15px 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-}
-
-.stat-item span {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--subtext);
-}
-
-.stat-item strong {
-    font-size: 16px;
-}
-
-.stat-item.danger strong {
-    color: #FF3B30;
-}
-
-/* Money Card */
-.money-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.money-box {
-    text-align: center;
-    background: var(--bg);
-    padding: 15px;
-    border-radius: 15px;
-}
-
-.money-box label {
-    font-size: 9px;
-    font-weight: 800;
-    color: var(--subtext);
-    display: block;
-    margin-bottom: 5px;
-}
-
-.money-box div {
-    font-size: 18px;
-    font-weight: 900;
-}
-
-.money-box.accent div {
-    color: #34C759;
+    gap: 12px;
 }
 
 .money-details p {
-    margin: 8px 0;
-    font-size: 13px;
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 4px;
-}
-
-/* Modal Settings iPhone Fix */
-.settings-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-    box-sizing: border-box;
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background: var(--card);
-    width: 100%;
-    max-width: 340px;
-    border-radius: var(--radius);
-    padding: 20px;
-    position: relative;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-header {
+    margin: 0;
+    font-size: 15px;
+    color: #444;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
 }
 
-.modal-header h4 { margin: 0; font-size: 18px; }
+.money-details p span {
+    font-weight: 700;
+    color: var(--primary);
+    background: #f0f7ff;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-family: 'Monaco', monospace;
+}
 
-.btn-close {
-    background: var(--bg);
-    border: none;
-    color: var(--text);
-    width: 32px; height: 32px;
-    border-radius: 50%;
+/* Header Modale per iPhone */
+.settings-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 15px;
 }
 
-.form-group { margin-bottom: 12px; }
-.form-group label { display: block; font-size: 11px; color: var(--subtext); margin-bottom: 4px; font-weight: 600; }
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 16px;
-    box-sizing: border-box;
+.settings-header i {
+    font-size: 24px;
+    color: #888;
+    padding: 5px;
 }
 
-.btn-main {
-    width: 100%;
-    padding: 16px;
+/* Colori Icone Sincronizzazione */
+.status-working { color: #ff9500; }
+.status-success { color: #34c759; }
+.status-error { color: #ff3b30; }
+
+/* Totale Section */
+.total-section {
     background: var(--primary);
     color: white;
-    border: none;
-    border-radius: 14px;
-    font-weight: 800;
+    padding: 15px;
+    border-radius: 12px;
     margin-top: 10px;
-    cursor: pointer;
 }
 
-.btn-settings {
-    width: 100%;
-    padding: 15px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--subtext);
-    border-radius: var(--radius);
-    font-weight: 700;
-    cursor: pointer;
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.total-row.main {
+    font-size: 20px;
+    font-weight: 800;
+    opacity: 1;
+    margin-top: 5px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 10px;
 }
