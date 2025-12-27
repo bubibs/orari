@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rubrica Tecnosistem</title>
+    <title>Rubrica - Tecnosistem</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/rubrica.css">
 </head>
@@ -15,7 +15,7 @@
         </header>
 
         <div class="card card-accent">
-            <h2 id="form-title" style="font-size: 18px; margin-bottom: 15px;">Nuovo Contatto</h2>
+            <h2 id="form-title">Nuovo Contatto</h2>
             
             <div class="form-group">
                 <label>Ragione Sociale / Azienda</label>
@@ -23,13 +23,13 @@
             </div>
 
             <div class="row-2">
-                <div class="form-group"><label>Via e Civico</label><input type="text" id="add-via"></div>
-                <div class="form-group"><label>Città</label><input type="text" id="add-citta"></div>
+                <div class="form-group"><label>Via e Civico</label><input type="text" id="add-via" placeholder="Via..."></div>
+                <div class="form-group"><label>Città</label><input type="text" id="add-citta" placeholder="Città"></div>
             </div>
 
             <div class="row-2">
-                <div class="form-group"><label>Referente</label><input type="text" id="add-ref"></div>
-                <div class="form-group"><label>Telefono</label><input type="tel" id="add-tel"></div>
+                <div class="form-group"><label>Referente</label><input type="text" id="add-ref" placeholder="Sig. Rossi"></div>
+                <div class="form-group"><label>Telefono</label><input type="tel" id="add-tel" placeholder="333 123..."></div>
             </div>
 
             <button class="btn-main" id="btn-save" onclick="azioneSalva()">SALVA NEL CLOUD</button>
@@ -41,10 +41,10 @@
         </div>
 
         <div id="lista-rubrica">
-            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento dati...</p>
+            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento rubrica...</p>
         </div>
     </div>
+
     <script src="js/rubrica.js"></script>
 </body>
 </html>
-
