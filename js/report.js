@@ -1,5 +1,7 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 let rubricaMemoria = [];
+// Memoria locale per le tariffe correnti da "congelare" nel report
+let tariffeAttuali = { base: 0, t25: 0, t50: 0, ind_rie: 0, ind_per: 0, ind_est: 0, tasse: 0 };
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Data odierna
@@ -9,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Vincolo mezz'ore sugli input
     const timeInputs = [document.getElementById('rep-inizio'), document.getElementById('rep-fine')];
     timeInputs.forEach(input => {
+        if(!input) return;
         input.addEventListener('blur', function() {
             if(this.value) {
                 let [h, m] = this.value.split(':').map(Number);
@@ -21,8 +24,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     checkTipoLavoro();
-    caricaRubricaPerSuggest();
+    // Carichiamo rubrica e le tariffe correnti all'avvio
+    caricaDatiIniziali(); 
 });
+
+async function caricaDatiIniziali() {
+    updateCloudIcon('working');
+    try {
+        // Carica Rubrica
+        const resRubrica = await fetch(`${WEB_APP_URL}?azione=rubrica`);
+        const jsonRubrica = await resRubrica.json();
+        rubricaMemoria = jsonRubrica.data || [];
+
+        // Carica Tariffe per congelarle nel report
+        const resTariffe = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
+        const jsonTariffe = await resTariffe.json();
+        if(jsonTariffe.data) {
+            tariffeAttuali = jsonTariffe.data;
+        }
+
+        updateCloudIcon('success');
+    } catch(e) { 
+        console.error("Errore caricamento dati iniziali", e);
+        updateCloudIcon('error'); 
+    }
+}
 
 function checkTipoLavoro() {
     const tipo = document.getElementById('rep-tipo').value;
@@ -59,7 +85,6 @@ function calcolaOre() {
     let straordinari = 0;
     const dataObj = new Date(dataVal);
     
-    // Sabato (6) o Domenica (0)
     if (dataObj.getDay() === 0 || dataObj.getDay() === 6) {
         straordinari = oreTotali;
     } else if (oreTotali > 8) {
@@ -70,17 +95,7 @@ function calcolaOre() {
     document.getElementById('display-straord').innerText = straordinari.toFixed(1);
 }
 
-// GESTIONE RUBRICA
-async function caricaRubricaPerSuggest() {
-    updateCloudIcon('working');
-    try {
-        const res = await fetch(`${WEB_APP_URL}?tipo=rubrica`);
-        const json = await res.json();
-        rubricaMemoria = json.data || [];
-        updateCloudIcon('success');
-    } catch(e) { updateCloudIcon('error'); }
-}
-
+// SUGGESTIONS RUBRICA
 function suggestLuogo() {
     const val = document.getElementById('rep-luogo').value.toLowerCase();
     const box = document.getElementById('suggestions');
@@ -98,7 +113,7 @@ function setLuogo(n) {
     calcolaOre();
 }
 
-// INVIO REPORT
+// INVIO REPORT (CON TARIFFE CONGELATE)
 async function salvaReport() {
     const btn = document.getElementById('btn-save-rep');
     const btnIcon = document.getElementById('btn-icon');
@@ -107,12 +122,12 @@ async function salvaReport() {
 
     if(!luogo) return alert("Inserisci il luogo!");
 
-    // UI Feedback: Animazione
     btn.disabled = true;
     btnText.innerText = "INVIO IN CORSO...";
     btnIcon.className = "fas fa-spinner fa-spin-custom";
     updateCloudIcon('working');
 
+    // Creiamo il payload includendo le tariffe caricate all'inizio
     const payload = {
         azione: "salva_report",
         data: document.getElementById('rep-data').value,
@@ -124,7 +139,16 @@ async function salvaReport() {
         luogo: luogo,
         note: document.getElementById('rep-note').value,
         ore_tot: document.getElementById('display-totali').innerText,
-        ore_str: document.getElementById('display-straord').innerText
+        ore_str: document.getElementById('display-straord').innerText,
+        
+        // DATI ECONOMICI AUTOMATICI (Congelano il valore del mese attuale)
+        paga_base: tariffeAttuali.base || 0,
+        t25: tariffeAttuali.t25 || 0,
+        t50: tariffeAttuali.t50 || 0,
+        ind_rie: tariffeAttuali.ind_rientro || 0,
+        ind_per: tariffeAttuali.ind_pernott || 0,
+        ind_est: tariffeAttuali.ind_estero || 0,
+        tasse: tariffeAttuali.tasse || 0
     };
 
     try {
@@ -134,7 +158,6 @@ async function salvaReport() {
             body: JSON.stringify(payload)
         });
 
-        // Feedback Successo
         updateCloudIcon('success');
         btnIcon.className = "fas fa-check";
         btnText.innerText = "REPORT INVIATO!";
@@ -157,7 +180,16 @@ function updateCloudIcon(s) {
     const text = document.getElementById('sync-text');
     if (!icon || !text) return;
     icon.className = 'fas fa-cloud';
-    if (s === 'working') { icon.classList.add('sync-working', 'status-working'); text.innerText = "In corso..."; text.className = 'status-working'; }
-    else if (s === 'success') { icon.classList.add('status-success'); text.innerText = "Ok"; text.className = 'status-success'; }
-    else if (s === 'error') { icon.classList.add('status-error'); text.innerText = "Errore"; text.className = 'status-error'; }
+    if (s === 'working') { 
+        icon.classList.add('sync-working', 'status-working'); 
+        text.innerText = "Sincronizzazione..."; 
+    }
+    else if (s === 'success') { 
+        icon.classList.add('status-success'); 
+        text.innerText = "Cloud Online"; 
+    }
+    else if (s === 'error') { 
+        icon.classList.add('status-error'); 
+        text.innerText = "Cloud Error"; 
+    }
 }
