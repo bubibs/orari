@@ -2,42 +2,47 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TECNOSISTEM - Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tecnosistem - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-    <div class="container main-home">
-        <header>
-            <div class="logo">TECNOSISTEM</div>
-            <p id="quote" class="quote">"Caricamento..."</p>
+    <div class="container">
+        <header class="header-main">
+            <div class="user-info">
+                <h1>Tecnosistem</h1>
+                <p>Gestione Interventi</p>
+            </div>
+            <div class="sync-status">
+                <i id="cloud-icon" class="fas fa-cloud status-success"></i>
+            </div>
         </header>
 
-        <div class="menu-grid">
-            <a href="nuovo-report.html" class="menu-card">
-                <i class="fas fa-file-signature"></i>
-                <span>Nuovo Report</span>
-                <small>Registra attività giornaliera</small>
+        <main class="menu-grid">
+            <a href="report.html" class="menu-card primary full-width">
+                <div class="card-icon"><i class="fas fa-plus-circle"></i></div>
+                <div class="card-label">Nuovo Report Ore</div>
             </a>
-            
-            <a href="analisi.html" class="menu-card">
-                <i class="fas fa-chart-line"></i>
-                <span>Analisi & Storico</span>
-                <small>Controlla guadagni e ore</small>
+
+            <a href="storico.html" class="menu-card">
+                <div class="card-icon"><i class="fas fa-history"></i></div>
+                <div class="card-label">Storico</div>
             </a>
 
             <a href="rubrica.html" class="menu-card">
-                <i class="fas fa-map-marked-alt"></i>
-                <span>Rubrica Luoghi</span>
-                <small>Gestisci i tuoi indirizzi</small>
+                <div class="card-icon"><i class="fas fa-address-book"></i></div>
+                <div class="card-label">Rubrica</div>
             </a>
-        </div>
 
-        <div id="sync-indicator">
-            <i class="fas fa-cloud" id="cloud-icon"></i> 
-            <span id="sync-text">SISTEMA OK</span>
-        </div>
+            <div class="menu-card full-width info-card">
+                <div class="info-content">
+                    <span id="date-display">Caricamento...</span>
+                    <small>Buon lavoro!</small>
+                </div>
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+        </main>
     </div>
     <script src="js/index.js"></script>
 </body>
