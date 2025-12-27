@@ -1,88 +1,151 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 
-// Avvio
 document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
-    caricaTutto();
+    caricaDatiSito();
 });
 
-// Funzione per aprire/chiudere impostazioni (ora funzionerà!)
-function toggleSettings() {
-    const p = document.getElementById('settings-panel');
-    if (p) {
-        p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
-    }
-}
-
-function inizializzaFiltri() {
-    const mSel = document.getElementById('filtro-mese');
-    const aSel = document.getElementById('filtro-anno');
-    if(!mSel || !aSel) return;
-
-    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-    const ora = new Date();
-    
-    mSel.innerHTML = mesi.map((m, i) => `<option value="${i+1}">${m}</option>`).join('');
-    mSel.value = ora.getMonth() + 1;
-
-    aSel.innerHTML = `<option value="2025">2025</option><option value="2024">2024</option>`;
-    aSel.value = ora.getFullYear();
-}
-
+// 1. GESTIONE CLOUD E ICONE
 function updateSyncStatus(status) {
     const icon = document.getElementById('sync-icon');
     if (!icon) return;
     icon.className = "fas";
     if (status === 'working') {
         icon.classList.add('fa-sync', 'fa-spin');
-        icon.style.color = "orange";
+        icon.style.color = "#FFCC00"; // Giallo
     } else if (status === 'success') {
         icon.classList.add('fa-cloud');
-        icon.style.color = "#2ecc71";
+        icon.style.color = "#34C759"; // Verde
     } else {
-        icon.className = "fas fa-exclamation-triangle";
-        icon.style.color = "#e74c3c";
+        icon.classList.add('fa-exclamation-triangle');
+        icon.style.color = "#FF3B30"; // Rosso
     }
 }
 
-async function caricaTutto() {
+// 2. SALVATAGGIO IMPOSTAZIONI (CON ANIMAZIONE)
+async function salvaTariffeCloud() {
+    const btn = document.getElementById('btn-salva-tariffe');
+    const originale = btn.innerHTML;
+    
+    // Animazione tasto
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVATAGGIO...';
     updateSyncStatus('working');
+
+    const payload = {
+        azione: 'salva_impostazioni',
+        base: document.getElementById('base-mensile').value,
+        t25: document.getElementById('tariffa-25').value,
+        t50: document.getElementById('tariffa-50').value,
+        tasse: document.getElementById('aliquota-tasse').value,
+        ind_rie: document.getElementById('ind-rientro').value,
+        ind_per: document.getElementById('ind-pernott').value,
+        ind_est: document.getElementById('ind-estero').value
+    };
+
     try {
-        await caricaTariffeCloud();
-        await caricaDatiStorico();
-        updateSyncStatus('success');
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        
+        // Feedback Successo
+        setTimeout(() => {
+            updateSyncStatus('success');
+            btn.innerHTML = '<i class="fas fa-check"></i> COPIATO!';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originale;
+                toggleSettings();
+                caricaDatiSito(); // Ricarica tutto con le nuove tariffe
+            }, 1200);
+        }, 1000);
+    } catch (e) {
+        updateSyncStatus('error');
+        btn.disabled = false;
+        btn.innerHTML = 'ERRORE!';
+    }
+}
+
+// 3. CARICAMENTO DATI
+async function caricaDatiSito() {
+    updateSyncStatus('working');
+    const mese = document.getElementById('filtro-mese').value;
+    const anno = document.getElementById('filtro-anno').value;
+
+    try {
+        // Carica Tariffe
+        const r1 = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
+        const j1 = await r1.json();
+        
+        // Carica Storico
+        const r2 = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
+        const j2 = await r2.json();
+
+        if (j1.success && j2.success) {
+            popolaUI(j1.data, j2.data);
+            updateSyncStatus('success');
+        } else {
+            updateSyncStatus('error');
+        }
     } catch (e) {
         console.error(e);
         updateSyncStatus('error');
     }
 }
 
-async function caricaTariffeCloud() {
-    try {
-        const res = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
-        const json = await res.json();
-        if(json.success && json.data) {
-            const d = json.data;
-            if(document.getElementById('base-mensile')) document.getElementById('base-mensile').value = d.base || 0;
-            if(document.getElementById('tariffa-25')) document.getElementById('tariffa-25').value = d.t25 || 0;
-            if(document.getElementById('tariffa-50')) document.getElementById('tariffa-50').value = d.t50 || 0;
-            if(document.getElementById('ind-rientro')) document.getElementById('ind-rientro').value = d.ind_rie || 0;
-            if(document.getElementById('ind-pernott')) document.getElementById('ind-pernott').value = d.ind_per || 0;
-            if(document.getElementById('ind-estero')) document.getElementById('ind-estero').value = d.ind_est || 0;
-            if(document.getElementById('aliquota-tasse')) document.getElementById('aliquota-tasse').value = d.tasse || 0;
+function popolaUI(impo, righe) {
+    // Riempi input impostazioni
+    document.getElementById('base-mensile').value = impo.base;
+    document.getElementById('tariffa-25').value = impo.t25;
+    document.getElementById('tariffa-50').value = impo.t50;
+    document.getElementById('ind-rientro').value = impo.ind_rie;
+    document.getElementById('ind-pernott').value = impo.ind_per;
+    document.getElementById('ind-estero').value = impo.ind_est;
+    document.getElementById('aliquota-tasse').value = impo.tasse;
+
+    // Calcoli
+    let s = { sede:0, rie:0, per:0, est:0, ass:0, h25:0, h50:0, extra:0, ind:0 };
+    righe.forEach(r => {
+        const tipo = r.tipo.toLowerCase();
+        const ass = r.assenza.toLowerCase();
+        if (ass !== "" && ass !== "nessuna") { s.ass++; }
+        else {
+            let v = 0;
+            if (tipo.includes("sede")) s.sede++;
+            else if (tipo.includes("rientro")) { s.rie++; v = impo.ind_rie; }
+            else if (tipo.includes("pernottamento")) { s.per++; v = impo.ind_per; }
+            else if (tipo.includes("estero")) { s.est++; v = impo.ind_est; }
+            s.ind += v;
+            if (r.giorno_sett >= 6) { s.h50 += r.ore_str; s.extra += (r.ore_str * impo.t50); }
+            else { s.h25 += r.ore_str; s.extra += (r.ore_str * impo.t25); }
         }
-    } catch(e) { console.error("Errore tariffe:", e); }
+    });
+
+    // Aggiorna Schermo
+    document.getElementById('ore-sede').innerText = s.sede;
+    document.getElementById('ore-rientro').innerText = s.rie;
+    document.getElementById('ore-pernott').innerText = s.per;
+    document.getElementById('ore-estero').innerText = s.est;
+    document.getElementById('ore-assenze').innerText = s.ass;
+    document.getElementById('val-25').innerText = s.h25.toFixed(1) + " h";
+    document.getElementById('val-50').innerText = s.h50.toFixed(1) + " h";
+    document.getElementById('val-indennita').innerText = "€ " + s.ind.toFixed(2);
+
+    const lordo = impo.base + s.extra + s.ind;
+    const netto = lordo * (1 - (impo.tasse / 100));
+    document.getElementById('valore-lordo').innerText = "€ " + lordo.toLocaleString('it-IT',{minimumFractionDigits:2});
+    document.getElementById('valore-netto').innerText = "€ " + netto.toLocaleString('it-IT',{minimumFractionDigits:2});
 }
 
-async function caricaDatiStorico() {
-    const mese = document.getElementById('filtro-mese').value;
-    const anno = document.getElementById('filtro-anno').value;
-    try {
-        const res = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
-        const json = await res.json();
-        if (json.success && json.data) {
-            // Qui andrebbe la funzione per i calcoli, ma intanto verifichiamo se carica
-            console.log("Dati ricevuti:", json.data.length);
-        }
-    } catch (e) { console.error("Errore dati:", e); }
+function toggleSettings() {
+    const p = document.getElementById('settings-panel');
+    p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function inizializzaFiltri() {
+    const mSel = document.getElementById('filtro-mese');
+    const aSel = document.getElementById('filtro-anno');
+    if(!mSel) return;
+    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+    mSel.innerHTML = mesi.map((m, i) => `<option value="${i+1}">${m}</option>`).join('');
+    mSel.value = new Date().getMonth() + 1;
+    aSel.innerHTML = '<option value="2025">2025</option><option value="2024">2024</option>';
 }
