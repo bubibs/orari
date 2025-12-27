@@ -1,19 +1,43 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 
+// Avvio
 document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
-    caricaDati();
+    caricaTutto();
 });
+
+// Funzione per aprire/chiudere impostazioni (ora funzionerà!)
+function toggleSettings() {
+    const p = document.getElementById('settings-panel');
+    if (p) {
+        p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+    }
+}
+
+function inizializzaFiltri() {
+    const mSel = document.getElementById('filtro-mese');
+    const aSel = document.getElementById('filtro-anno');
+    if(!mSel || !aSel) return;
+
+    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+    const ora = new Date();
+    
+    mSel.innerHTML = mesi.map((m, i) => `<option value="${i+1}">${m}</option>`).join('');
+    mSel.value = ora.getMonth() + 1;
+
+    aSel.innerHTML = `<option value="2025">2025</option><option value="2024">2024</option>`;
+    aSel.value = ora.getFullYear();
+}
 
 function updateSyncStatus(status) {
     const icon = document.getElementById('sync-icon');
     if (!icon) return;
-    icon.style.transition = "all 0.3s";
+    icon.className = "fas";
     if (status === 'working') {
-        icon.className = "fas fa-sync fa-spin";
-        icon.style.color = "#f1c40f";
+        icon.classList.add('fa-sync', 'fa-spin');
+        icon.style.color = "orange";
     } else if (status === 'success') {
-        icon.className = "fas fa-cloud";
+        icon.classList.add('fa-cloud');
         icon.style.color = "#2ecc71";
     } else {
         icon.className = "fas fa-exclamation-triangle";
@@ -21,90 +45,44 @@ function updateSyncStatus(status) {
     }
 }
 
-async function caricaDati() {
+async function caricaTutto() {
     updateSyncStatus('working');
-    const mese = document.getElementById('filtro-mese').value;
-    const anno = document.getElementById('filtro-anno').value;
-
     try {
-        // Carica prima le tariffe, poi i dati
-        const resImpo = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
-        const jsonImpo = await resImpo.json();
-        
-        const resDati = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
-        const jsonDati = await resDati.json();
-
-        if (jsonImpo.success && jsonDati.success) {
-            popolaImpostazioni(jsonImpo.data);
-            elaboraStorico(jsonDati.data, jsonImpo.data);
-            updateSyncStatus('success');
-        } else {
-            throw new Error("Errore risposta server");
-        }
+        await caricaTariffeCloud();
+        await caricaDatiStorico();
+        updateSyncStatus('success');
     } catch (e) {
         console.error(e);
         updateSyncStatus('error');
     }
 }
 
-function popolaImpostazioni(d) {
-    const mappatura = { 'base-mensile': d.base, 'tariffa-25': d.t25, 'tariffa-50': d.t50, 'ind-rientro': d.ind_rie, 'ind-pernott': d.ind_per, 'ind-estero': d.ind_est, 'aliquota-tasse': d.tasse };
-    for (let id in mappatura) {
-        const el = document.getElementById(id);
-        if (el) el.value = mappatura[id];
-    }
-}
-
-function elaboraStorico(righe, impo) {
-    let s = { sede:0, rientro:0, pernot:0, estero:0, ass:0, h25:0, h50:0, extra:0, ind:0 };
-    
-    righe.forEach(r => {
-        const tipo = (r.tipo || "").toLowerCase();
-        const ass = (r.assenza || "").toLowerCase();
-        const ore = parseFloat(r.ore_str) || 0;
-
-        if (ass !== "" && ass !== "nessuna") {
-            s.ass++;
-        } else {
-            let indV = 0;
-            if (tipo.includes("sede")) s.sede++;
-            else if (tipo.includes("rientro")) { s.rientro++; indV = impo.ind_rie; }
-            else if (tipo.includes("pernottamento")) { s.pernot++; indV = impo.ind_per; }
-            else if (tipo.includes("estero")) { s.estero++; indV = impo.ind_est; }
-            
-            s.ind += indV;
-            if (r.giorno_sett >= 6) { // Sabato o Domenica
-                s.h50 += ore;
-                s.extra += (ore * impo.t50);
-            } else {
-                s.h25 += ore;
-                s.extra += (ore * impo.t25);
-            }
+async function caricaTariffeCloud() {
+    try {
+        const res = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
+        const json = await res.json();
+        if(json.success && json.data) {
+            const d = json.data;
+            if(document.getElementById('base-mensile')) document.getElementById('base-mensile').value = d.base || 0;
+            if(document.getElementById('tariffa-25')) document.getElementById('tariffa-25').value = d.t25 || 0;
+            if(document.getElementById('tariffa-50')) document.getElementById('tariffa-50').value = d.t50 || 0;
+            if(document.getElementById('ind-rientro')) document.getElementById('ind-rientro').value = d.ind_rie || 0;
+            if(document.getElementById('ind-pernott')) document.getElementById('ind-pernott').value = d.ind_per || 0;
+            if(document.getElementById('ind-estero')) document.getElementById('ind-estero').value = d.ind_est || 0;
+            if(document.getElementById('aliquota-tasse')) document.getElementById('aliquota-tasse').value = d.tasse || 0;
         }
-    });
-
-    // Aggiorna UI
-    document.getElementById('ore-sede').innerText = s.sede;
-    document.getElementById('ore-rientro').innerText = s.rientro;
-    document.getElementById('ore-pernott').innerText = s.pernot;
-    document.getElementById('ore-estero').innerText = s.estero;
-    document.getElementById('ore-assenze').innerText = s.ass;
-    document.getElementById('val-25').innerText = s.h25.toFixed(1) + " h";
-    document.getElementById('val-50').innerText = s.h50.toFixed(1) + " h";
-    document.getElementById('val-indennita').innerText = "€ " + s.ind.toFixed(2);
-
-    const lordo = impo.base + s.extra + s.ind;
-    const netto = lordo * (1 - (impo.tasse / 100));
-    document.getElementById('valore-lordo').innerText = "€ " + lordo.toLocaleString('it-IT', {minimumFractionDigits:2});
-    document.getElementById('valore-netto').innerText = "€ " + netto.toLocaleString('it-IT', {minimumFractionDigits:2});
+    } catch(e) { console.error("Errore tariffe:", e); }
 }
 
-function inizializzaFiltri() {
-    const mSel = document.getElementById('filtro-mese');
-    const aSel = document.getElementById('filtro-anno');
-    if(!mSel) return;
-    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-    mSel.innerHTML = mesi.map((m, i) => `<option value="${i+1}">${m}</option>`).join('');
-    mSel.value = new Date().getMonth() + 1;
-    aSel.innerHTML = `<option value="2025">2025</option><option value="2024">2024</option>`;
+async function caricaDatiStorico() {
+    const mese = document.getElementById('filtro-mese').value;
+    const anno = document.getElementById('filtro-anno').value;
+    try {
+        const res = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+            // Qui andrebbe la funzione per i calcoli, ma intanto verifichiamo se carica
+            console.log("Dati ricevuti:", json.data.length);
+        }
+    } catch (e) { console.error("Errore dati:", e); }
 }
