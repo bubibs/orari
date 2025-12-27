@@ -1,7 +1,6 @@
 :root {
     --primary: #007AFF; --bg: #F2F2F7; --card: #FFFFFF;
     --text: #1C1C1E; --subtext: #8E8E93; --radius: 24px;
-    --success: #34C759; --error: #FF3B30; --warning: #FF9500;
 }
 @media (prefers-color-scheme: dark) {
     :root { --bg: #000; --card: #1C1C1E; --text: #FFF; --subtext: #AEAEB2; }
@@ -11,53 +10,41 @@
 body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 20px; }
 .container { max-width: 500px; margin: 0 auto; }
 
-/* HEADER & SYNC */
-.header-main { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-.header-main h1 { font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -1.5px; }
+/* HEADER */
+.header-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.header-main h1 { font-size: 28px; font-weight: 900; margin: 0; letter-spacing: -1px; }
+.header-main p { margin: 0; color: var(--subtext); font-weight: 600; }
+.sync-status i { font-size: 24px; transition: color 0.3s; }
 
-.sync-tag { 
-    display: flex; align-items: center; gap: 6px; margin-top: 4px;
-    background: var(--card); padding: 4px 10px; border-radius: 20px;
-    border: 1px solid rgba(128,128,128,0.1); width: fit-content;
-}
-.sync-tag span { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-.sync-tag i { font-size: 14px; }
-
-.date-badge { 
-    background: var(--primary); color: white; padding: 10px 15px; 
-    border-radius: 18px; text-align: center; min-width: 70px;
-    box-shadow: 0 8px 15px rgba(0,122,255,0.2);
-}
-#date-day { display: block; font-size: 22px; font-weight: 900; line-height: 1; }
-#date-month { font-size: 10px; font-weight: 700; text-transform: uppercase; }
-
-/* MOTIVATION BANNER */
+/* BANNER MOTIVAZIONALE */
 .motivation-banner {
     background: var(--card); padding: 20px; border-radius: var(--radius);
-    margin-bottom: 25px; border-left: 5px solid var(--primary);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative;
+    margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-left: 6px solid var(--primary);
 }
-.motivation-banner i { position: absolute; top: 10px; right: 15px; color: var(--bg); font-size: 30px; opacity: 0.5; }
-#motivation-text { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.4; font-style: italic; color: var(--text); position: relative; z-index: 1; }
+#motivation-text { margin: 0; font-size: 15px; font-weight: 700; font-style: italic; line-height: 1.4; }
+#motivation-author { display: block; margin-top: 8px; font-size: 11px; color: var(--subtext); text-transform: uppercase; }
 
 /* MENU GRID */
 .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .menu-card {
-    background: var(--card); border-radius: var(--radius); padding: 25px;
+    background: var(--card); border-radius: var(--radius); padding: 22px;
     text-decoration: none; color: var(--text); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 12px;
+    align-items: center; justify-content: center; gap: 10px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(128,128,128,0.1);
-    transition: transform 0.1s;
 }
 .menu-card:active { transform: scale(0.96); }
-.menu-card.primary { background: var(--primary); color: white; border: none; box-shadow: 0 10px 20px rgba(0,122,255,0.3); }
-.menu-card.full-width { grid-column: span 2; flex-direction: row; gap: 15px; }
-.card-icon { font-size: 30px; }
+.menu-card.primary { background: var(--primary); color: white; border: none; }
+.menu-card.full-width { grid-column: span 2; flex-direction: row; justify-content: center; gap: 15px; }
+
+.card-icon { font-size: 28px; }
 .card-label { font-size: 14px; font-weight: 800; text-transform: uppercase; }
 
-/* COLORS */
-.status-success { color: var(--success) !important; }
-.status-error { color: var(--error) !important; }
-.status-warning { color: var(--warning) !important; }
+.info-card { grid-column: span 2; flex-direction: row; justify-content: space-between; padding: 18px 25px; }
+.info-content { display: flex; flex-direction: column; }
+.info-content span { font-size: 16px; font-weight: 800; }
+.info-card i { color: var(--primary); font-size: 22px; }
 
-.footer-info { text-align: center; margin-top: 30px; color: var(--subtext); font-size: 12px; font-weight: 600; }
+/* COLORI NUVOLA */
+.status-success { color: #34C759; }
+.status-error { color: #FF3B30; }
