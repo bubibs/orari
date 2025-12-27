@@ -1,9 +1,13 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 let mioGrafico = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Inizializza filtri con mese/anno corrente
     inizializzaFiltri();
+    // 2. Carica tariffe attuali per la modale
     caricaTariffeCloud();
+    // 3. AUTO-CARICAMENTO: Avvia ricerca del mese corrente all'apertura
+    await caricaDatiStorico();
 });
 
 function inizializzaFiltri() {
@@ -42,7 +46,7 @@ async function caricaDatiStorico() {
         } else {
             resetCampi();
             icon.className = "fas fa-cloud status-success";
-            alert("Nessun report trovato.");
+            // Non mostriamo l'alert all'avvio automatico se è vuoto
         }
     } catch (e) {
         icon.className = "fas fa-exclamation-triangle status-error";
@@ -56,11 +60,13 @@ function processaDati(dati) {
         const oreStr = parseFloat(r.ore_str) || 0;
         const tipo = (r.tipo_lavoro || "").toLowerCase().trim();
         const assenza = (r.assenza || "nessuna").toLowerCase().trim();
+        
         const t25 = parseFloat(r.t25) || 0;
         const t50 = parseFloat(r.t50) || 0;
         const iRie = parseFloat(r.ind_rie) || 0;
         const iPer = parseFloat(r.ind_per) || 0;
         const iEst = parseFloat(r.ind_est) || 0;
+        
         stats.pagaBase = parseFloat(r.paga_base) || 0;
         stats.aliquota = parseFloat(r.tasse) || 0;
 
@@ -76,8 +82,13 @@ function processaDati(dati) {
             else if (tipo.includes("pernottamento")) { stats.pernott++; ind = iPer; }
             else if (tipo.includes("estero")) { stats.estero++; ind = iEst; }
 
-            if (giorno === 0 || giorno === 6) { stats.s50 += oreStr; stats.lordoExtra += (oreStr * t50); }
-            else { stats.s25 += oreStr; stats.lordoExtra += (oreStr * t25); }
+            if (giorno === 0 || giorno === 6) { 
+                stats.s50 += oreStr; 
+                stats.lordoExtra += (oreStr * t50); 
+            } else { 
+                stats.s25 += oreStr; 
+                stats.lordoExtra += (oreStr * t25); 
+            }
             stats.indennitaTot += ind;
             stats.lordoExtra += ind;
         }
@@ -94,8 +105,8 @@ function processaDati(dati) {
 
     const lordo = stats.lordoExtra + stats.pagaBase;
     const netto = lordo * (1 - (stats.aliquota / 100));
-    document.getElementById('valore-lordo').innerText = `€ ${lordo.toFixed(2)}`;
-    document.getElementById('valore-netto').innerText = `€ ${netto.toFixed(2)}`;
+    document.getElementById('valore-lordo').innerText = `€ ${lordo.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
+    document.getElementById('valore-netto').innerText = `€ ${netto.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
 
     disegnaGrafico(stats);
 }
