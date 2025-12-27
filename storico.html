@@ -21,7 +21,7 @@
             <div class="filter-row">
                 <select id="filtro-mese"></select>
                 <select id="filtro-anno"></select>
-                <button onclick="caricaDatiStorico()"><i class="fas fa-search"></i></button>
+                <button id="btn-cerca" onclick="caricaDatiStorico()"><i class="fas fa-search"></i></button>
             </div>
         </div>
 
@@ -49,35 +49,38 @@
                 </div>
             </div>
             <div class="money-details">
-                <p>Straord. 25% (Lun-Ven): <span id="val-25">0.0</span> ore</p>
-                <p>Straord. 50% (Sab-Dom): <span id="val-50">0.0</span> ore</p>
+                <p>Extra 25% (Lun-Ven): <span id="val-25">0.0</span> h</p>
+                <p>Extra 50% (Sab-Dom): <span id="val-50">0.0</span> h</p>
             </div>
         </div>
 
         <button class="btn-settings" onclick="toggleSettings()">
-            <i class="fas fa-cog"></i> Configura Tariffe
+            <i class="fas fa-cog"></i> Configura Tariffe Cloud
         </button>
 
         <div id="settings-panel" class="settings-modal">
             <div class="modal-content">
-                <h4>Tariffe Correnti</h4>
+                <div class="modal-header">
+                    <h4>Tariffe Cloud</h4>
+                    <button class="btn-close" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
+                </div>
                 <div class="form-group">
                     <label>Paga Base Mensile (€)</label>
-                    <input type="number" id="base-mensile" value="1600">
+                    <input type="number" id="base-mensile" step="0.01">
                 </div>
                 <div class="form-group">
                     <label>Valore Ora 25% (€)</label>
-                    <input type="number" id="tariffa-25" value="12.50">
+                    <input type="number" id="tariffa-25" step="0.01">
                 </div>
                 <div class="form-group">
                     <label>Valore Ora 50% (€)</label>
-                    <input type="number" id="tariffa-50" value="15.00">
+                    <input type="number" id="tariffa-50" step="0.01">
                 </div>
                 <div class="form-group">
                     <label>Aliquota Tasse (%)</label>
-                    <input type="number" id="aliquota-tasse" value="23">
+                    <input type="number" id="aliquota-tasse">
                 </div>
-                <button class="btn-main" onclick="salvaTariffe()">SALVA TARIFFE</button>
+                <button class="btn-main" id="btn-salva-tariffe" onclick="salvaTariffeCloud()">SALVA SUL CLOUD</button>
             </div>
         </div>
     </div>
