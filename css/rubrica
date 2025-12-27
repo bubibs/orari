@@ -1,0 +1,71 @@
+:root {
+    --primary: #007AFF;
+    --bg: #F2F2F7;
+    --card: #FFFFFF;
+    --text: #1C1C1E;
+    --subtext: #8E8E93;
+    --border: #D1D1D6;
+    --input-bg: #F2F2F7;
+    --radius: 18px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000000;
+        --card: #1C1C1E;
+        --text: #FFFFFF;
+        --subtext: #AEAEB2;
+        --border: #38383A;
+        --input-bg: #2C2C2E;
+    }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; }
+.container { max-width: 500px; margin: 0 auto; }
+
+.header-back { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-back a { text-decoration: none; color: var(--primary); font-weight: 700; font-size: 17px; }
+
+/* Cards */
+.card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); }
+.card-accent { border-top: 4px solid var(--primary); }
+
+/* Form */
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-group { margin-bottom: 12px; }
+label { display: block; font-size: 10px; font-weight: 800; color: var(--subtext); margin-bottom: 4px; text-transform: uppercase; }
+input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 16px; outline: none; }
+
+/* Ricerca */
+.search-box { background: var(--card); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
+.search-box input { border: none; flex: 1; background: transparent; padding: 0; margin: 0; }
+
+/* Liste Clienti */
+.addr-card { border-left: 5px solid var(--primary); }
+.addr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.primary-text { color: var(--primary); font-weight: 800; font-size: 17px; }
+
+.info-row { font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.info-row i { color: var(--subtext); width: 16px; text-align: center; }
+.info-row a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+.addr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.btn-nav { text-decoration: none; text-align: center; padding: 12px; border-radius: 12px; color: white; font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+.apple-btn { background: #000; color: #fff; }
+.google-btn { background: #4285F4; color: #fff; }
+
+@media (prefers-color-scheme: dark) {
+    .apple-btn { background: #fff; color: #000; }
+}
+
+.btn-main { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 16px; font-weight: 700; width: 100%; cursor: pointer; }
+.admin-btns button { background: var(--bg); border: none; padding: 8px; border-radius: 8px; color: var(--text); margin-left: 5px; }
+
+/* Sync Animation */
+#sync-indicator { font-size: 18px; }
+.sync-working { color: var(--warning); animation: pulse 1s infinite; }
+.sync-success { color: #34C759; }
+.sync-error { color: #FF3B30; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
