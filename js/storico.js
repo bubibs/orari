@@ -1,12 +1,13 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 let mioGrafico = null;
+let graficoAnnuale = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
     caricaTariffeCloud();
-    // AVVIO AUTOMATICO con ritardo per garantire il rendering del grafico
     setTimeout(() => {
-        caricaDatiStorico();
+        caricaDatiStorico(); // Carica il mese
+        caricaDatiAnnuali();  // Carica l'anno
     }, 500);
 });
 
@@ -29,17 +30,16 @@ function inizializzaFiltri() {
     }
 }
 
+// CARICA DATI MESE SINGOLO
 async function caricaDatiStorico() {
     const mese = document.getElementById('filtro-mese').value;
     const anno = document.getElementById('filtro-anno').value;
     const icon = document.getElementById('sync-icon');
-    
     if(icon) icon.className = "fas fa-sync fa-spin status-working";
     
     try {
         const response = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
         const result = await response.json();
-        
         if (result.data && result.data.length > 0) {
             processaDati(result.data);
             if(icon) icon.className = "fas fa-cloud status-success";
@@ -52,20 +52,30 @@ async function caricaDatiStorico() {
     }
 }
 
+// NUOVA FUNZIONE: CARICA DATI DI TUTTO L'ANNO
+async function caricaDatiAnnuali() {
+    const anno = document.getElementById('filtro-anno').value;
+    try {
+        const response = await fetch(`${WEB_APP_URL}?azione=leggi_annuale&anno=${anno}`);
+        const result = await response.json();
+        if (result.success) {
+            disegnaGraficoAnnuale(result.data);
+        }
+    } catch (e) { console.error("Errore dati annuali", e); }
+}
+
 function processaDati(dati) {
     let stats = { sede: 0, rientro: 0, pernott: 0, estero: 0, assenze: 0, s25: 0, s50: 0, lordoExtra: 0, indennitaTot: 0, pagaBase: 0, aliquota: 0 };
 
     dati.forEach(r => {
         const oreStr = parseFloat(r.ore_str) || 0;
-        const tipo = (r.tipo_lavoro || r.tipo || "").toLowerCase().trim();
+        const tipo = (r.tipo_lavoro || "").toLowerCase().trim();
         const assenza = (r.assenza || "nessuna").toLowerCase().trim();
-        
         const t25 = parseFloat(r.t25) || 0;
         const t50 = parseFloat(r.t50) || 0;
         const iRie = parseFloat(r.ind_rie) || 0;
         const iPer = parseFloat(r.ind_per) || 0;
         const iEst = parseFloat(r.ind_est) || 0;
-        
         stats.pagaBase = parseFloat(r.paga_base) || 0;
         stats.aliquota = parseFloat(r.tasse) || 0;
 
@@ -94,14 +104,11 @@ function processaDati(dati) {
         }
     });
 
-    // Aggiornamento Riepilogo Attività
     document.getElementById('ore-sede').innerText = stats.sede;
     document.getElementById('ore-rientro').innerText = stats.rientro;
     document.getElementById('ore-pernott').innerText = stats.pernott;
     document.getElementById('ore-estero').innerText = stats.estero;
     document.getElementById('ore-assenze').innerText = stats.assenze;
-    
-    // Aggiornamento Analisi Economica
     document.getElementById('val-25').innerText = stats.s25.toFixed(1) + " h";
     document.getElementById('val-50').innerText = stats.s50.toFixed(1) + " h";
     document.getElementById('val-indennita').innerText = `€ ${stats.indennitaTot.toFixed(2)}`;
@@ -111,10 +118,10 @@ function processaDati(dati) {
     document.getElementById('valore-lordo').innerText = `€ ${lordo.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
     document.getElementById('valore-netto').innerText = `€ ${netto.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
 
-    disegnaGrafico(stats);
+    disegnaGraficoMensile(stats);
 }
 
-function disegnaGrafico(stats) {
+function disegnaGraficoMensile(stats) {
     const ctx = document.getElementById('lavoroChart').getContext('2d');
     if (mioGrafico) mioGrafico.destroy();
     mioGrafico = new Chart(ctx, {
@@ -127,11 +134,35 @@ function disegnaGrafico(stats) {
                 borderRadius: 8
             }]
         },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+}
+
+// DISEGNA IL NUOVO GRAFICO ANNUALE
+function disegnaGraficoAnnuale(dataLorda) {
+    const ctx = document.getElementById('annualeChart').getContext('2d');
+    if (graficoAnnuale) graficoAnnuale.destroy();
+    
+    graficoAnnuale = new Chart(ctx, {
+        type: 'line', // Linea è più chiara per l'andamento annuale
+        data: {
+            labels: ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'],
+            datasets: [{
+                label: 'Lordo (€)',
+                data: dataLorda,
+                borderColor: '#007AFF',
+                backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } }
+            scales: {
+                y: { beginAtZero: true, ticks: { callback: value => '€' + value } }
+            }
         }
     });
 }
@@ -179,8 +210,7 @@ async function salvaTariffeCloud() {
 }
 
 function resetCampi() {
-    const ids = ["ore-sede","ore-rientro","ore-pernott","ore-estero","ore-assenze"];
-    ids.forEach(id => document.getElementById(id).innerText = "0");
+    ["ore-sede","ore-rientro","ore-pernott","ore-estero","ore-assenze"].forEach(id => document.getElementById(id).innerText = "0");
     document.getElementById('val-indennita').innerText = "€ 0.00";
     document.getElementById('valore-lordo').innerText = "€ 0.00";
     document.getElementById('valore-netto').innerText = "€ 0.00";
