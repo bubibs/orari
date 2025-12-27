@@ -10,52 +10,44 @@
 body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; }
 .container { max-width: 500px; margin: 0 auto; }
 
-/* HEADER */
 .header-back { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .header-back a { text-decoration: none; color: var(--primary); font-weight: 700; font-size: 18px; }
 .sync-status-wrapper { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
 
-/* CARD */
 .card { 
     background: var(--card); border-radius: var(--radius); padding: 22px; 
     margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
 }
 h2 { font-size: 20px; font-weight: 900; margin-bottom: 20px; text-align: center; }
 
-/* LAYOUT FORM */
-.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.row-time { display: grid; grid-template-columns: 100px 100px; gap: 20px; justify-content: center; margin-bottom: 15px; }
-.flex-center { display: flex; justify-content: center; margin-bottom: 20px; }
-
-.input-wrapper-date { width: 180px; text-align: center; }
+/* LAYOUT UNIFORME */
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
 .form-group { margin-bottom: 15px; }
 label { display: block; font-size: 10px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
 
 input, .modern-select { 
-    width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); 
-    background: var(--bg); color: var(--text); font-size: 16px; outline: none; text-align: center;
+    width: 100%; padding: 14px; border-radius: 14px; border: 1px solid var(--border); 
+    background: var(--bg); color: var(--text); font-size: 16px; outline: none; 
 }
-input[type="text"] { text-align: left; }
 
-/* CHECKBOX */
-.checkbox-row { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 10px 0; }
+/* Specifico per centraggio in date e time */
+input[type="date"], input[type="time"] { text-align: center; font-family: inherit; }
+
+.checkbox-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
 .checkbox-row input { width: 22px; height: 22px; cursor: pointer; }
-.checkbox-row label { text-transform: none; font-size: 14px; color: var(--text); margin: 0; }
+.checkbox-row label { text-transform: none; font-size: 15px; color: var(--text); margin: 0; font-weight: 600; }
 
-/* STATS WIDGET */
 .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
-.stat-box { background: var(--bg); padding: 12px; border-radius: 16px; border: 1px solid var(--border); }
-.stat-box label { font-size: 9px; margin-bottom: 2px; }
+.stat-box { background: var(--bg); padding: 15px; border-radius: 16px; border: 1px solid var(--border); text-align: center; }
+.stat-box label { font-size: 9px; margin-bottom: 2px; text-align: center; }
 .stat-box div { font-size: 28px; font-weight: 900; }
 .stat-box.accent div { color: var(--primary); }
 
 .btn-main { 
     background: var(--primary); color: white; border: none; border-radius: 18px; 
-    padding: 18px; font-weight: 800; width: 100%; font-size: 17px; 
-    box-shadow: 0 5px 15px rgba(0,122,255,0.3); cursor: pointer;
+    padding: 18px; font-weight: 800; width: 100%; font-size: 17px; box-shadow: 0 5px 15px rgba(0,122,255,0.3);
 }
 
-/* SUGGESTIONS */
 .suggest-box {
     position: absolute; width: 100%; background: var(--card); border: 1px solid var(--border);
     border-radius: 14px; z-index: 100; max-height: 200px; overflow-y: auto; display: none;
@@ -63,7 +55,6 @@ input[type="text"] { text-align: left; }
 }
 .suggest-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
 
-/* ANIMAZIONI */
 .status-working { color: #FF9500 !important; }
 .status-success { color: #34C759 !important; }
 .status-error { color: #FF3B30 !important; }
