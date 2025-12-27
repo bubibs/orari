@@ -18,17 +18,17 @@
         </header>
 
         <div class="card card-accent">
-            <h2 id="form-title">Inserimento Ore</h2>
+            <h2>Inserimento Ore</h2>
             
             <div class="form-group">
                 <label>Data Intervento</label>
-                <input type="date" id="rep-data">
+                <input type="date" id="rep-data" onchange="calcolaOre()">
             </div>
 
             <div class="row-2">
                 <div class="form-group">
                     <label>Tipo Lavoro</label>
-                    <select id="rep-tipo" class="modern-select">
+                    <select id="rep-tipo" class="modern-select" onchange="checkTipoLavoro()">
                         <option value="In sede">In sede</option>
                         <option value="Trasferta Rientro">Trasferta Rientro</option>
                         <option value="Trasferta Pernottamento">Trasferta Pernottamento</option>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="form-group">
                     <label>Assenza</label>
-                    <select id="rep-assenza" class="modern-select">
+                    <select id="rep-assenza" class="modern-select" onchange="calcolaOre()">
                         <option value="Nessuna">- Nessuna -</option>
                         <option value="Ferie">Ferie</option>
                         <option value="Permesso">Permesso</option>
@@ -49,17 +49,17 @@
             <div class="row-2">
                 <div class="form-group">
                     <label>Inizio</label>
-                    <input type="time" id="rep-inizio">
+                    <input type="time" id="rep-inizio" onchange="calcolaOre()">
                 </div>
                 <div class="form-group">
                     <label>Fine</label>
-                    <input type="time" id="rep-fine">
+                    <input type="time" id="rep-fine" onchange="calcolaOre()">
                 </div>
             </div>
 
             <div class="form-group checkbox-row">
-                <input type="checkbox" id="rep-mensa">
-                <label for="rep-mensa">Pausa Mensa (30 min)</label>
+                <input type="checkbox" id="rep-mensa" onchange="calcolaOre()">
+                <label for="rep-mensa">Pausa Mensa (1 ora)</label>
             </div>
 
             <div class="form-group" style="position: relative;">
@@ -73,7 +73,18 @@
                 <input type="text" id="rep-note" placeholder="Note intervento...">
             </div>
 
-            <button class="btn-main" id="btn-save-rep" onclick="salvaReport()">
+            <div class="row-2" style="margin-top: 20px;">
+                <div class="stat-box">
+                    <label>Ore Totali</label>
+                    <div id="display-totali">0.0</div>
+                </div>
+                <div class="stat-box accent">
+                    <label>Straordinari</label>
+                    <div id="display-straord">0.0</div>
+                </div>
+            </div>
+
+            <button class="btn-main" id="btn-save-rep" onclick="salvaReport()" style="margin-top: 25px;">
                 INVIA REPORT
             </button>
         </div>
