@@ -3,101 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Storico & Analisi</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Analisi Ore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/storico.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-    <div class="header-app">
-        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
-        <h1>Analisi Mensile</h1>
-        <div class="actions">
-            <i class="fas fa-cloud status-icon" id="sync-icon"></i>
+    <header class="header-app">
+        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i> HOME</a>
+        <div class="header-right">
+            <i class="fas fa-cloud" id="sync-icon"></i>
             <i class="fas fa-cog" onclick="toggleSettings()"></i>
         </div>
-    </div>
+    </header>
 
     <div class="container">
-        <div class="search-box">
-            <select id="filtro-mese"></select>
-            <select id="filtro-anno"></select>
-            <button onclick="caricaDatiStorico()" id="btn-search">
-                <i class="fas fa-search"></i>
-            </button>
+        <div class="card selector-card">
+            <div class="filter-row">
+                <select id="filtro-mese"></select>
+                <select id="filtro-anno"></select>
+                <button onclick="caricaDatiStorico()" id="btn-search">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
         </div>
 
         <div class="card">
-            <h3>Riepilogo Attività</h3>
+            <h3>Riepilogo Attività (Giorni)</h3>
             <div class="stats-grid">
-                <div class="stat-item"><strong>Sede</strong><span id="ore-sede">0</span></div>
-                <div class="stat-item"><strong>Rientro</strong><span id="ore-rientro">0</span></div>
-                <div class="stat-item"><strong>Pernott.</strong><span id="ore-pernott">0</span></div>
-                <div class="stat-item"><strong>Estero</strong><span id="ore-estero">0</span></div>
-                <div class="stat-item full"><strong>Assenze</strong><span id="ore-assenze">0</span></div>
+                <div class="stat-item"><span>Sede</span><strong id="ore-sede">0</strong></div>
+                <div class="stat-item"><span>Rientro</span><strong id="ore-rientro">0</strong></div>
+                <div class="stat-item"><span>Pernott.</span><strong id="ore-pernott">0</strong></div>
+                <div class="stat-item"><span>Estero</span><strong id="ore-estero">0</strong></div>
+                <div class="stat-item danger"><span>Assenze</span><strong id="ore-assenze">0</strong></div>
             </div>
         </div>
 
         <div class="card">
             <h3>Distribuzione Lavoro</h3>
-            <div style="height: 200px; position: relative;">
+            <div style="height: 180px;">
                 <canvas id="lavoroChart"></canvas>
             </div>
         </div>
 
-        <div class="card">
+        <div class="card money-card">
             <h3>Analisi Economica</h3>
             <div class="money-details">
-                <p>Straordinari 25% <span id="val-25">0</span></p>
-                <p>Straordinari 50% <span id="val-50">0</span></p>
+                <p>Extra 25% (Lun-Ven) <span id="val-25">0.0 h</span></p>
+                <p>Extra 50% (Sab-Dom) <span id="val-50">0.0 h</span></p>
                 <p>Totale Indennità <span id="val-indennita">€ 0.00</span></p>
             </div>
-            <div class="total-section">
-                <div class="total-row">
-                    <label>Lordo Stimato</label>
-                    <span id="valore-lordo">€ 0.00</span>
+            
+            <div class="total-display">
+                <div class="total-box">
+                    <label>LORDO TOTALE</label>
+                    <div id="valore-lordo">€ 0.00</div>
                 </div>
-                <div class="total-row main">
-                    <label>Netto in Busta</label>
-                    <span id="valore-netto">€ 0.00</span>
+                <div class="total-box accent">
+                    <label>NETTO STIMATO</label>
+                    <div id="valore-netto">€ 0.00</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="settings-panel" class="settings-overlay">
-        <div class="settings-content">
-            <div class="settings-header">
-                <h2>Configurazione Tariffe</h2>
-                <i class="fas fa-times" onclick="toggleSettings()"></i>
+    <div id="settings-panel" class="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Impostazioni Tariffe</h4>
+                <button class="btn-close" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="settings-body">
-                <label>Paga Base Mensile (€)</label>
-                <input type="number" id="base-mensile" step="0.01">
-                
-                <label>Tariffa Str. 25% (€/ora)</label>
-                <input type="number" id="tariffa-25" step="0.01">
-                
-                <label>Tariffa Str. 50% (€/ora)</label>
-                <input type="number" id="tariffa-50" step="0.01">
-                
-                <label>Diaria Rientro (€)</label>
-                <input type="number" id="ind-rientro" step="0.01">
-                
-                <label>Diaria Pernottamento (€)</label>
-                <input type="number" id="ind-pernott" step="0.01">
-                
-                <label>Diaria Estero (€)</label>
-                <input type="number" id="ind-estero" step="0.01">
-                
-                <label>Aliquota Tasse (%)</label>
-                <input type="number" id="aliquota-tasse" value="23">
-                
-                <button class="btn-save-cloud" id="btn-salva-tariffe" onclick="salvaTariffeCloud()">
-                    SALVA SUL CLOUD
-                </button>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Paga Base Mensile (€)</label>
+                    <input type="number" id="base-mensile" step="0.01" inputmode="decimal">
+                </div>
+                <div class="form-group-row">
+                    <div><label>Ora 25% (€)</label><input type="number" id="tariffa-25" step="0.01"></div>
+                    <div><label>Ora 50% (€)</label><input type="number" id="tariffa-50" step="0.01"></div>
+                </div>
+                <div class="form-group">
+                    <label>Trasf. Rientro (€)</label>
+                    <input type="number" id="ind-rientro" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Trasf. Pernottamento (€)</label>
+                    <input type="number" id="ind-pernott" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Trasferta Estero (€)</label>
+                    <input type="number" id="ind-estero" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Aliquota Tasse (%)</label>
+                    <input type="number" id="aliquota-tasse" value="23">
+                </div>
+                <button class="btn-main" id="btn-salva-tariffe" onclick="salvaTariffeCloud()">SALVA SUL CLOUD</button>
             </div>
         </div>
     </div>
