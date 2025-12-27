@@ -78,7 +78,7 @@ function suggestLuogo() {
     if(val.length < 2) { box.style.display = 'none'; return; }
     const matches = rubricaMemoria.filter(c => c.nome.toLowerCase().includes(val));
     if(matches.length > 0) {
-        box.innerHTML = matches.map(m => `<div class="suggest-item" onclick="setLuogo('${m.nome.replace(/'/g, "\\'")}','${m.citta||""}')"><b>${m.nome.toUpperCase()}</b></div>`).join('');
+        box.innerHTML = matches.map(m => `<div class="suggest-item" onclick="setLuogo('${m.nome.replace(/'/g, "\\'")}','')"><b>${m.nome.toUpperCase()}</b></div>`).join('');
         box.style.display = 'block';
     } else { box.style.display = 'none'; }
 }
