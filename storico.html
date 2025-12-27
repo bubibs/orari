@@ -11,7 +11,11 @@
 <body>
 
     <header class="header-app">
-        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i> HOME</a>
+        <div class="header-left">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-home"></i> HOME
+            </a>
+        </div>
         <div class="header-right">
             <i class="fas fa-cloud" id="sync-icon"></i>
             <i class="fas fa-cog" onclick="toggleSettings()"></i>
@@ -19,7 +23,7 @@
     </header>
 
     <div class="container">
-        <div class="card selector-card">
+        <div class="card">
             <div class="filter-row">
                 <select id="filtro-mese"></select>
                 <select id="filtro-anno"></select>
@@ -36,21 +40,21 @@
                 <div class="stat-item"><span>Rientro</span><strong id="ore-rientro">0</strong></div>
                 <div class="stat-item"><span>Pernott.</span><strong id="ore-pernott">0</strong></div>
                 <div class="stat-item"><span>Estero</span><strong id="ore-estero">0</strong></div>
-                <div class="stat-item danger"><span>Assenze</span><strong id="ore-assenze">0</strong></div>
+                <div class="stat-item full danger"><span>Assenze</span><strong id="ore-assenze">0</strong></div>
             </div>
         </div>
 
         <div class="card">
-            <h3>Distribuzione Lavoro</h3>
-            <div style="height: 180px;">
+            <h3>Distribuzione Lavoro & Assenze</h3>
+            <div style="height: 220px;">
                 <canvas id="lavoroChart"></canvas>
             </div>
         </div>
 
-        <div class="card money-card">
+        <div class="card">
             <h3>Analisi Economica</h3>
             <div class="money-details">
-                <p>Extra 25% (Lun-Ven) <span id="val-25">0.0 h</span></p>
+                <p>Extra 25% (Lun-Fri) <span id="val-25">0.0 h</span></p>
                 <p>Extra 50% (Sab-Dom) <span id="val-50">0.0 h</span></p>
                 <p>Totale Indennità <span id="val-indennita">€ 0.00</span></p>
             </div>
@@ -71,34 +75,22 @@
     <div id="settings-panel" class="settings-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h4>Impostazioni Tariffe</h4>
+                <h4>Configurazione Tariffe</h4>
                 <button class="btn-close" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
                     <label>Paga Base Mensile (€)</label>
-                    <input type="number" id="base-mensile" step="0.01" inputmode="decimal">
+                    <input type="number" id="base-mensile" step="0.01">
                 </div>
                 <div class="form-group-row">
                     <div><label>Ora 25% (€)</label><input type="number" id="tariffa-25" step="0.01"></div>
                     <div><label>Ora 50% (€)</label><input type="number" id="tariffa-50" step="0.01"></div>
                 </div>
-                <div class="form-group">
-                    <label>Trasf. Rientro (€)</label>
-                    <input type="number" id="ind-rientro" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Trasf. Pernottamento (€)</label>
-                    <input type="number" id="ind-pernott" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Trasferta Estero (€)</label>
-                    <input type="number" id="ind-estero" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Aliquota Tasse (%)</label>
-                    <input type="number" id="aliquota-tasse" value="23">
-                </div>
+                <div class="form-group"><label>Trasf. Rientro (€)</label><input type="number" id="ind-rientro" step="0.01"></div>
+                <div class="form-group"><label>Trasf. Pernottamento (€)</label><input type="number" id="ind-pernott" step="0.01"></div>
+                <div class="form-group"><label>Trasferta Estero (€)</label><input type="number" id="ind-estero" step="0.01"></div>
+                <div class="form-group"><label>Aliquota Tasse (%)</label><input type="number" id="aliquota-tasse" value="23"></div>
                 <button class="btn-main" id="btn-salva-tariffe" onclick="salvaTariffeCloud()">SALVA SUL CLOUD</button>
             </div>
         </div>
