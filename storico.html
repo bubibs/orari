@@ -26,7 +26,7 @@
         <div class="card">
             <div class="filter-row">
                 <select id="filtro-mese"></select>
-                <select id="filtro-anno"></select>
+                <select id="filtro-anno" onchange="caricaDatiAnnuali()"></select>
                 <button onclick="caricaDatiStorico()" id="btn-search">
                     <i class="fas fa-search"></i>
                 </button>
@@ -46,13 +46,20 @@
 
         <div class="card">
             <h3>Distribuzione Lavoro & Assenze</h3>
-            <div style="height: 220px;">
+            <div style="height: 200px;">
                 <canvas id="lavoroChart"></canvas>
             </div>
         </div>
 
         <div class="card">
-            <h3>Analisi Economica</h3>
+            <h3>Andamento Lordo Annuale</h3>
+            <div style="height: 250px;">
+                <canvas id="annualeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Analisi Economica Mese</h3>
             <div class="money-details">
                 <p>Extra 25% (Lun-Ven) <span id="val-25">0.0 h</span></p>
                 <p>Extra 50% (Sab-Dom) <span id="val-50">0.0 h</span></p>
