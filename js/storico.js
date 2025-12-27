@@ -1,4 +1,4 @@
-const WEB_APP_URL = "INCOLLA_QUI_IL_TUO_NUOVO_URL_DEPLOY";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 
 document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
