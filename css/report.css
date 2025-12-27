@@ -1,7 +1,66 @@
-/* Copia qui il CSS che abbiamo creato per il report nel messaggio precedente */
-/* Aggiungi solo la regola per i suggerimenti (autocomplete) */
+:root {
+    --primary: #007AFF;
+    --bg: #F2F2F7;
+    --card: #FFFFFF;
+    --text: #1C1C1E;
+    --subtext: #8E8E93;
+    --border: #D1D1D6;
+    --radius: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root { --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; }
+.container { max-width: 500px; margin: 0 auto; }
+
+/* Header & Sync Status */
+.header-back { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.header-back a { text-decoration: none; color: var(--primary); font-weight: 700; font-size: 18px; }
+.sync-status-wrapper { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+
+/* Cards & Form */
+.card { 
+    background: var(--card); border-radius: var(--radius); padding: 22px; 
+    margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+}
+.card-accent { border-top: 6px solid var(--primary); }
+h2 { font-size: 20px; font-weight: 900; margin-bottom: 15px; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { margin-bottom: 15px; }
+label { display: block; font-size: 10px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
+
+input, .modern-select { 
+    width: 100%; padding: 14px; border-radius: 14px; border: 1px solid var(--border); 
+    background: var(--bg); color: var(--text); font-size: 16px; outline: none; 
+}
+
+.checkbox-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; margin-bottom: 10px; }
+.checkbox-row input { width: 22px; height: 22px; border-radius: 6px; }
+.checkbox-row label { margin: 0; text-transform: none; font-size: 14px; color: var(--text); }
+
+.btn-main { 
+    background: var(--primary); color: white; border: none; border-radius: 16px; 
+    padding: 18px; font-weight: 700; width: 100%; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+}
+.btn-main:disabled { background: var(--subtext); opacity: 0.7; }
+
+/* Autocomplete Suggest Box */
 .suggest-box {
     position: absolute; width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; z-index: 100; max-height: 200px; overflow-y: auto; display: none;
+    border-radius: 14px; z-index: 100; max-height: 200px; overflow-y: auto; display: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 5px;
 }
-.suggest-item { padding: 12px; border-bottom: 1px solid var(--border); }
+.suggest-item { padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 14px; cursor: pointer; }
+.suggest-item:last-child { border: none; }
+.suggest-item:active { background: var(--bg); }
+
+/* Sync Colors & Anim */
+.status-working { color: #FF9500 !important; }
+.status-success { color: #34C759 !important; }
+.status-error { color: #FF3B30 !important; }
+.sync-working { animation: pulse 1s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
