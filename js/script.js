@@ -1,99 +1,85 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-let datiLocali = [];
-let editIndex = null;
+const WEB_APP_URL = "INSERISCI_URL_QUI";
+let rubricaMemoria = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    const frasi = ["Precisione nel lavoro!", "Qualità Tecnosistem.", "Servizio impeccabile."];
-    const q = document.getElementById('quote');
-    if (q) q.innerText = `"${frasi[Math.floor(Math.random() * frasi.length)]}"`;
-    if (document.getElementById('lista-rubrica')) caricaRubrica();
+    // Data odierna automatica
+    const dataInput = document.getElementById('rep-data');
+    if(dataInput) dataInput.valueAsDate = new Date();
+
+    // Carica rubrica per suggerimenti se siamo in report
+    if(document.getElementById('rep-luogo')) caricaRubricaPerSuggest();
 });
 
-async function caricaRubrica() {
-    updateCloudIcon('working');
+async function caricaRubricaPerSuggest() {
     try {
         const res = await fetch(`${WEB_APP_URL}?tipo=rubrica`);
         const json = await res.json();
-        datiLocali = json.data || [];
-        renderizzaRubrica(datiLocali);
-        updateCloudIcon('success');
-    } catch (e) { updateCloudIcon('error'); }
+        rubricaMemoria = json.data || [];
+    } catch(e) { console.error("Errore caricamento rubrica", e); }
 }
 
-function renderizzaRubrica(data) {
-    const lista = document.getElementById('lista-rubrica');
-    if (!lista) return;
-    lista.innerHTML = data.map((c, i) => {
-        // LEGGE I DATI ANCHE SE LE COLONNE HANNO NOMI DIVERSI
-        const n = c.nome || "-";
-        const v = c.via || "";
-        const ct = c.citta || "";
-        const r = c.referente || c.ref || "-";
-        const t = c.telefono || c.tel || "-";
-        
-        const ind = `${v}, ${ct}`;
-        return `
-        <div class="card addr-card">
-            <div class="addr-header">
-                <span class="primary-text">${n.toUpperCase()}</span>
-                <div class="admin-btns">
-                    <button onclick="caricaModifica(${i},'${n}','${v}','${ct}','${r}','${t}')"><i class="fas fa-edit"></i></button>
-                    <button onclick="eliminaContatto(${i})" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
-                </div>
+function suggestLuogo() {
+    const val = document.getElementById('rep-luogo').value.toLowerCase();
+    const box = document.getElementById('suggestions');
+    if(val.length < 2) { box.style.display = 'none'; return; }
+
+    const matches = rubricaMemoria.filter(c => c.nome.toLowerCase().includes(val));
+    if(matches.length > 0) {
+        box.innerHTML = matches.map(m => `
+            <div class="suggest-item" onclick="setLuogo('${m.nome}')">
+                <b>${m.nome.toUpperCase()}</b><br><small>${m.citta || ''}</small>
             </div>
-            <div class="info-row"><i class="fas fa-map-marker-alt"></i> ${ind}</div>
-            <div class="info-row"><i class="fas fa-user"></i> <b>Ref:</b> ${r}</div>
-            <div class="info-row"><i class="fas fa-phone"></i> <a href="tel:${t}">${t}</a></div>
-            <div class="addr-actions">
-                <a href="maps://?q=${encodeURIComponent(ind)}" class="btn-nav apple-btn"><i class="fab fa-apple"></i> MAPPE</a>
-                <a href="http://maps.google.com/?q=${encodeURIComponent(ind)}" target="_blank" class="btn-nav google-btn"><i class="fab fa-google"></i> GOOGLE</a>
-            </div>
-        </div>`;
-    }).reverse().join('');
+        `).join('');
+        box.style.display = 'block';
+    } else { box.style.display = 'none'; }
 }
 
-function filtraRubrica() {
-    const val = document.getElementById('search-input').value.toLowerCase();
-    const filtrati = datiLocali.filter(c => (c.nome && c.nome.toLowerCase().includes(val)) || (c.citta && c.citta.toLowerCase().includes(val)));
-    renderizzaRubrica(filtrati);
+function setLuogo(nome) {
+    document.getElementById('rep-luogo').value = nome;
+    document.getElementById('suggestions').style.display = 'none';
 }
 
-async function azioneSalva() {
-    const b = document.getElementById('btn-save');
+async function salvaReport() {
+    const b = document.getElementById('btn-save-rep');
+    const luogo = document.getElementById('rep-luogo').value;
+    
     const payload = {
-        azione: editIndex !== null ? "modifica_rubrica" : "salva_rubrica",
-        index: editIndex,
-        nome: document.getElementById('add-nome').value,
-        via: document.getElementById('add-via').value,
-        citta: document.getElementById('add-citta').value,
-        ref: document.getElementById('add-ref').value,
-        tel: document.getElementById('add-tel').value
+        azione: "salva_report",
+        data: document.getElementById('rep-data').value,
+        tipo: document.getElementById('rep-tipo').value,
+        assenza: document.getElementById('rep-assenza').value,
+        inizio: document.getElementById('rep-inizio').value,
+        fine: document.getElementById('rep-fine').value,
+        mensa: document.getElementById('rep-mensa').checked ? "SI" : "NO",
+        luogo: luogo,
+        note: document.getElementById('rep-note').value
     };
-    if (!payload.nome) return alert("Inserisci almeno il nome!");
-    b.disabled = true; b.innerText = "SALVATAGGIO...";
+
+    if(!payload.data || !payload.luogo) return alert("Data e Luogo obbligatori!");
+
     updateCloudIcon('working');
+    b.disabled = true;
+
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        window.location.reload();
-    } catch (e) { updateCloudIcon('error'); b.disabled = false; }
-}
 
-function caricaModifica(idx, n, v, ct, r, t) {
-    editIndex = idx;
-    document.getElementById('add-nome').value = n;
-    document.getElementById('add-via').value = v;
-    document.getElementById('add-citta').value = ct;
-    document.getElementById('add-ref').value = r;
-    document.getElementById('add-tel').value = t;
-    document.getElementById('form-title').innerText = "Modifica Contatto";
-    window.scrollTo(0,0);
-}
+        // Se il luogo è nuovo, lo aggiungiamo in Rubrica
+        const esiste = rubricaMemoria.some(c => c.nome.toLowerCase() === luogo.toLowerCase());
+        if(!esiste && luogo.length > 2) {
+            await fetch(WEB_APP_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({
+                    azione: "salva_rubrica", 
+                    nome: luogo, via: "-", citta: "-", ref: "Inserito da Report", tel: "-"
+                }) 
+            });
+        }
 
-async function eliminaContatto(idx) {
-    if (!confirm("Eliminare?")) return;
-    updateCloudIcon('working');
-    await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({azione:"elimina_rubrica", index:idx}) });
-    window.location.reload();
+        updateCloudIcon('success');
+        alert("Report Inviato!");
+        window.location.href = "index.html";
+    } catch(e) { updateCloudIcon('error'); b.disabled = false; }
 }
 
 function updateCloudIcon(s) {
