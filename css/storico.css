@@ -17,44 +17,24 @@
     }
 }
 
-body {
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, system-ui, sans-serif;
-    margin: 0;
-    padding: 0;
-    -webkit-font-smoothing: antialiased;
-}
-
+body { background-color: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
 .container { padding: 15px; max-width: 500px; margin: 0 auto; }
 
 /* Header */
 .header-app {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 20px; background: var(--card); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
 }
-
-.header-app h1 { font-size: 18px; margin: 0; font-weight: 700; }
 .back-btn { text-decoration: none; color: var(--primary); font-weight: 600; font-size: 16px; }
 .header-right i { font-size: 20px; margin-left: 15px; color: var(--subtext); cursor: pointer; }
 
 /* Cards */
 .card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 15px;
-    border: 1px solid var(--border);
+    background: var(--card); border-radius: var(--radius); padding: 18px;
+    margin-bottom: 15px; border: 1px solid var(--border);
 }
-
-h3 { margin: 0 0 15px 0; font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+h3 { margin: 0 0 15px 0; font-size: 11px; color: var(--subtext); text-transform: uppercase; }
 
 /* Filtri */
 .filter-row { display: flex; gap: 10px; }
@@ -62,66 +42,41 @@ select {
     flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border);
     background: var(--bg); color: var(--text); font-size: 16px; -webkit-appearance: none;
 }
-#btn-search {
-    width: 50px; background: var(--primary); color: white; border: none; border-radius: 12px;
-}
+#btn-search { width: 50px; background: var(--primary); color: white; border: none; border-radius: 12px; }
 
 /* Stats Grid */
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.stat-item {
-    background: var(--bg); padding: 12px; border-radius: 12px;
-    display: flex; flex-direction: column;
-}
+.stat-item { background: var(--bg); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; }
 .stat-item span { font-size: 11px; color: var(--subtext); font-weight: 600; }
 .stat-item strong { font-size: 18px; margin-top: 4px; }
+.stat-item.full { grid-column: span 2; }
 .stat-item.danger strong { color: #FF3B30; }
 
-/* Analisi Economica */
-.money-details { margin-bottom: 20px; }
-.money-details p {
-    display: flex; justify-content: space-between; align-items: center;
-    margin: 8px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    font-size: 14px;
-}
-.money-details span {
-    font-weight: 700; color: var(--primary); background: var(--bg);
-    padding: 3px 10px; border-radius: 8px;
-}
-
-.total-display { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.total-box {
-    background: var(--bg); padding: 15px; border-radius: 12px; text-align: center;
-}
-.total-box label { font-size: 9px; font-weight: 800; color: var(--subtext); display: block; }
-.total-box div { font-size: 17px; font-weight: 800; margin-top: 5px; }
+/* Money Section */
+.money-details p { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; font-size: 14px; }
+.money-details span { font-weight: 700; color: var(--primary); background: var(--bg); padding: 3px 10px; border-radius: 8px; }
+.total-display { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.total-box { background: var(--bg); padding: 15px; border-radius: 12px; text-align: center; }
+.total-box label { font-size: 9px; font-weight: 800; color: var(--subtext); }
+.total-box div { font-size: 16px; font-weight: 800; margin-top: 5px; }
 .total-box.accent div { color: #34C759; }
 
-/* Modale Settings iPhone */
+/* Modal Settings iPhone */
 .settings-modal {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;
-    padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px); padding: 20px; box-sizing: border-box;
 }
-.modal-content {
-    background: var(--card); width: 100%; max-width: 350px; border-radius: var(--radius);
-    padding: 20px; position: relative; max-height: 90vh; overflow-y: auto;
-}
+.modal-content { background: var(--card); width: 100%; max-width: 360px; border-radius: var(--radius); padding: 20px; overflow-y: auto; max-height: 90vh; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.btn-close { background: var(--bg); border: none; width: 30px; height: 30px; border-radius: 50%; color: var(--text); }
+.btn-close { background: var(--bg); border: none; width: 32px; height: 32px; border-radius: 50%; }
 
 .form-group { margin-bottom: 15px; }
 .form-group label { display: block; font-size: 12px; color: var(--subtext); margin-bottom: 5px; }
-.form-group input {
-    width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
-    background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box;
-}
-.form-group-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.btn-main {
-    width: 100%; padding: 16px; background: var(--primary); color: white;
-    border: none; border-radius: 12px; font-weight: 700; cursor: pointer;
-}
+.form-group input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
+.btn-main { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; margin-top: 10px; }
 
-/* Status Icon Colors */
+/* Status Colors */
 .status-success { color: #34C759 !important; }
 .status-working { color: #FF9500 !important; }
 .status-error { color: #FF3B30 !important; }
