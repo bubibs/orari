@@ -4,11 +4,6 @@ let rubricaMemoria = [];
 document.addEventListener('DOMContentLoaded', () => {
     const dataInput = document.getElementById('rep-data');
     if(dataInput) dataInput.valueAsDate = new Date();
-    
-    // Imposta lo step di 30 minuti per gli orari
-    document.getElementById('rep-inizio').step = "1800";
-    document.getElementById('rep-fine').step = "1800";
-    
     checkTipoLavoro();
     caricaRubricaPerSuggest();
 });
@@ -18,11 +13,13 @@ function checkTipoLavoro() {
     const inizio = document.getElementById('rep-inizio');
     const fine = document.getElementById('rep-fine');
     const mensa = document.getElementById('rep-mensa');
+    const luogo = document.getElementById('rep-luogo');
 
     if (tipo === "In sede") {
         inizio.value = "08:00";
         fine.value = "17:00";
         mensa.checked = true;
+        luogo.value = "Tecnosistem";
     }
     calcolaOre();
 }
@@ -34,27 +31,24 @@ function calcolaOre() {
     const mensa = document.getElementById('rep-mensa').checked;
     const assenza = document.getElementById('rep-assenza').value;
 
-    if (!inizio || !fine || assenza !== "Nessuna") {
-        document.getElementById('display-totali').innerText = (assenza !== "Nessuna") ? "8.0" : "0.0";
+    if (assenza !== "Nessuna") {
+        document.getElementById('display-totali').innerText = "8.0";
         document.getElementById('display-straord').innerText = "0.0";
         return;
     }
+
+    if (!inizio || !fine) return;
 
     const [hIni, mIni] = inizio.split(':').map(Number);
     const [hFin, mFin] = fine.split(':').map(Number);
     
     let minutiTotali = (hFin * 60 + mFin) - (hIni * 60 + mIni);
-    
-    // Sottrai 1 ora di mensa (60 min)
     if (mensa) minutiTotali -= 60;
-    
-    // Arrotondamento ai 30 minuti più vicini (per sicurezza calcolo)
-    minutiTotali = Math.round(minutiTotali / 30) * 30;
     if (minutiTotali < 0) minutiTotali = 0;
 
     const oreTotali = minutiTotali / 60;
-    
     let straordinari = 0;
+    
     const dataObj = new Date(dataVal);
     const giorno = dataObj.getDay(); // 0 Dom, 6 Sab
 
@@ -67,8 +61,6 @@ function calcolaOre() {
     document.getElementById('display-totali').innerText = oreTotali.toFixed(1);
     document.getElementById('display-straord').innerText = straordinari.toFixed(1);
 }
-
-// --- GESTIONE CLOUD ---
 
 async function caricaRubricaPerSuggest() {
     updateCloudIcon('working');
@@ -86,13 +78,13 @@ function suggestLuogo() {
     if(val.length < 2) { box.style.display = 'none'; return; }
     const matches = rubricaMemoria.filter(c => c.nome.toLowerCase().includes(val));
     if(matches.length > 0) {
-        box.innerHTML = matches.map(m => `<div class="suggest-item" onclick="setLuogo('${m.nome.replace(/'/g, "\\'")}','${m.citta ? m.citta.replace(/'/g, "\\'") : ""}')"><b>${m.nome.toUpperCase()}</b><br><small>${m.citta||""}</small></div>`).join('');
+        box.innerHTML = matches.map(m => `<div class="suggest-item" onclick="setLuogo('${m.nome.replace(/'/g, "\\'")}','${m.citta||""}')"><b>${m.nome.toUpperCase()}</b></div>`).join('');
         box.style.display = 'block';
     } else { box.style.display = 'none'; }
 }
 
 function setLuogo(n, c) {
-    document.getElementById('rep-luogo').value = c ? `${n} (${c})` : n;
+    document.getElementById('rep-luogo').value = n;
     document.getElementById('suggestions').style.display = 'none';
 }
 
@@ -112,11 +104,9 @@ async function salvaReport() {
         ore_str: document.getElementById('display-straord').innerText
     };
 
-    if(!payload.luogo) return alert("Manca il luogo!");
-
+    if(!payload.luogo) return alert("Inserisci il luogo!");
     updateCloudIcon('working');
     btn.disabled = true;
-    btn.innerText = "INVIO...";
 
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
