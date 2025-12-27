@@ -1,33 +1,36 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
+const WEB_APP_URL = "INCOLLA_QUI_IL_TUO_NUOVO_URL_DEPLOY";
 
 document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
     caricaDatiSito();
 });
 
-// 1. GESTIONE CLOUD E ICONE
+function toggleSettings() {
+    const p = document.getElementById('settings-panel');
+    if (p) p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+}
+
 function updateSyncStatus(status) {
     const icon = document.getElementById('sync-icon');
     if (!icon) return;
     icon.className = "fas";
     if (status === 'working') {
         icon.classList.add('fa-sync', 'fa-spin');
-        icon.style.color = "#FFCC00"; // Giallo
+        icon.style.color = "#FFCC00"; 
     } else if (status === 'success') {
         icon.classList.add('fa-cloud');
-        icon.style.color = "#34C759"; // Verde
+        icon.style.color = "#34C759"; 
     } else {
         icon.classList.add('fa-exclamation-triangle');
-        icon.style.color = "#FF3B30"; // Rosso
+        icon.style.color = "#FF3B30"; 
     }
 }
 
-// 2. SALVATAGGIO IMPOSTAZIONI (CON ANIMAZIONE)
 async function salvaTariffeCloud() {
     const btn = document.getElementById('btn-salva-tariffe');
-    const originale = btn.innerHTML;
+    if (!btn) return;
     
-    // Animazione tasto
+    const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVATAGGIO...';
     updateSyncStatus('working');
@@ -45,37 +48,31 @@ async function salvaTariffeCloud() {
 
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        
-        // Feedback Successo
         setTimeout(() => {
             updateSyncStatus('success');
-            btn.innerHTML = '<i class="fas fa-check"></i> COPIATO!';
+            btn.innerHTML = '<i class="fas fa-check"></i> OK!';
             setTimeout(() => {
                 btn.disabled = false;
-                btn.innerHTML = originale;
+                btn.innerHTML = originalText;
                 toggleSettings();
-                caricaDatiSito(); // Ricarica tutto con le nuove tariffe
-            }, 1200);
-        }, 1000);
+                caricaDatiSito();
+            }, 1000);
+        }, 800);
     } catch (e) {
         updateSyncStatus('error');
         btn.disabled = false;
-        btn.innerHTML = 'ERRORE!';
+        btn.innerHTML = 'ERRORE';
     }
 }
 
-// 3. CARICAMENTO DATI
 async function caricaDatiSito() {
     updateSyncStatus('working');
     const mese = document.getElementById('filtro-mese').value;
     const anno = document.getElementById('filtro-anno').value;
 
     try {
-        // Carica Tariffe
         const r1 = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
         const j1 = await r1.json();
-        
-        // Carica Storico
         const r2 = await fetch(`${WEB_APP_URL}?azione=leggi_storico&mese=${mese}&anno=${anno}`);
         const j2 = await r2.json();
 
@@ -92,7 +89,6 @@ async function caricaDatiSito() {
 }
 
 function popolaUI(impo, righe) {
-    // Riempi input impostazioni
     document.getElementById('base-mensile').value = impo.base;
     document.getElementById('tariffa-25').value = impo.t25;
     document.getElementById('tariffa-50').value = impo.t50;
@@ -101,11 +97,10 @@ function popolaUI(impo, righe) {
     document.getElementById('ind-estero').value = impo.ind_est;
     document.getElementById('aliquota-tasse').value = impo.tasse;
 
-    // Calcoli
     let s = { sede:0, rie:0, per:0, est:0, ass:0, h25:0, h50:0, extra:0, ind:0 };
     righe.forEach(r => {
-        const tipo = r.tipo.toLowerCase();
-        const ass = r.assenza.toLowerCase();
+        const tipo = (r.tipo || "").toLowerCase();
+        const ass = (r.assenza || "").toLowerCase();
         if (ass !== "" && ass !== "nessuna") { s.ass++; }
         else {
             let v = 0;
@@ -119,7 +114,6 @@ function popolaUI(impo, righe) {
         }
     });
 
-    // Aggiorna Schermo
     document.getElementById('ore-sede').innerText = s.sede;
     document.getElementById('ore-rientro').innerText = s.rie;
     document.getElementById('ore-pernott').innerText = s.per;
@@ -133,11 +127,6 @@ function popolaUI(impo, righe) {
     const netto = lordo * (1 - (impo.tasse / 100));
     document.getElementById('valore-lordo').innerText = "€ " + lordo.toLocaleString('it-IT',{minimumFractionDigits:2});
     document.getElementById('valore-netto').innerText = "€ " + netto.toLocaleString('it-IT',{minimumFractionDigits:2});
-}
-
-function toggleSettings() {
-    const p = document.getElementById('settings-panel');
-    p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
 }
 
 function inizializzaFiltri() {
