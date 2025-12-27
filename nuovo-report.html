@@ -2,8 +2,8 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuovo Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nuovo Report - Tecnosistem</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -11,57 +11,66 @@
     <div class="container">
         <header class="header-back">
             <a href="index.html"><i class="fas fa-chevron-left"></i> Home</a>
-            <div class="logo-small">NUOVO REPORT</div>
+            <div id="sync-indicator" class="sync-idle"><i class="fas fa-cloud"></i></div>
         </header>
 
-        <div class="card">
-            <div class="form-group"><label>Data</label><input type="date" id="data"></div>
+        <div class="card card-accent">
+            <h2>Inserimento Ore</h2>
             
+            <div class="form-group">
+                <label>Data Intervento</label>
+                <input type="date" id="rep-data">
+            </div>
+
             <div class="row-2">
                 <div class="form-group">
                     <label>Tipo Lavoro</label>
-                    <select id="modalita" onchange="aggiornaPreview()">
-                        <option value="Sede">IN SEDE</option>
-                        <option value="Trasferta">TRASFERTA</option>
-                        <option value="Estero">ESTERO</option>
+                    <select id="rep-tipo" class="modern-select">
+                        <option value="In sede">In sede</option>
+                        <option value="Trasferta Rientro">Trasferta Rientro</option>
+                        <option value="Trasferta Pernottamento">Trasferta Pernottamento</option>
+                        <option value="Trasferta Estero">Trasferta Estero</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Assenza</label>
-                    <select id="assenza" onchange="aggiornaPreview()">
-                        <option value="">-- NO --</option>
-                        <option value="Ferie">FERIE</option>
-                        <option value="Permesso">PERMESSO</option>
-                        <option value="Malattia">MALATTIA</option>
+                    <select id="rep-assenza" class="modern-select">
+                        <option value="">Nessuna</option>
+                        <option value="Ferie">Ferie</option>
+                        <option value="Permesso">Permesso</option>
+                        <option value="Malattia">Malattia</option>
                     </select>
                 </div>
             </div>
 
             <div class="row-2">
-                <div class="form-group"><label>Inizio</label><select id="ora-inizio" onchange="aggiornaPreview()"></select></div>
-                <div class="form-group"><label>Fine</label><select id="ora-fine" onchange="aggiornaPreview()"></select></div>
+                <div class="form-group">
+                    <label>Inizio</label>
+                    <input type="time" id="rep-inizio">
+                </div>
+                <div class="form-group">
+                    <label>Fine</label>
+                    <input type="time" id="rep-fine">
+                </div>
             </div>
 
-            <div class="pause-container">
-                <span><i class="fas fa-utensils"></i> PAUSA MENSA (-1H)</span>
-                <label class="switch"><input type="checkbox" id="pausa-mensa" checked onchange="aggiornaPreview()"><span class="slider"></span></label>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="rep-mensa">
+                <label for="rep-mensa">Pausa Mensa (30 min)</label>
+            </div>
+
+            <div class="form-group" style="position: relative;">
+                <label>Luogo / Cliente</label>
+                <input type="text" id="rep-luogo" placeholder="Cerca in rubrica o scrivi nuovo..." oninput="suggestLuogo()">
+                <div id="suggestions" class="suggest-box"></div>
             </div>
 
             <div class="form-group">
-                <label>Luogo / Cliente</label>
-                <input type="text" id="luogo" list="lista-luoghi" placeholder="Cerca o inserisci...">
-                <datalist id="lista-luoghi"></datalist>
+                <label>Note Intervento</label>
+                <input type="text" id="rep-note" placeholder="Descrizione breve...">
             </div>
 
-            <div class="row-2">
-                <div class="box-preview"><label>Ore Totali</label><div id="prev-tot" class="val">0.00</div></div>
-                <div class="box-preview"><label>Straordinario</label><div id="prev-extra" class="val warning">0.00</div></div>
-            </div>
-            
-            <button class="btn-main" id="btn-save" onclick="salvaReport()">
-                <span id="btn-text">SALVA REPORT</span>
-                <i id="btn-spinner" class="fas fa-sync fa-spin" style="display:none"></i>
-            </button>
+            <button class="btn-main" id="btn-save-rep" onclick="salvaReport()">INVIA REPORT</button>
         </div>
     </div>
     <script src="js/script.js"></script>
