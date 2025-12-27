@@ -25,7 +25,7 @@
                 <input type="date" id="rep-data" onchange="calcolaOre()">
             </div>
 
-            <div class="row-2">
+            <div class="row-inputs">
                 <div class="form-group">
                     <label>Tipo Lavoro</label>
                     <select id="rep-tipo" class="modern-select" onchange="checkTipoLavoro()">
@@ -46,7 +46,7 @@
                 </div>
             </div>
 
-            <div class="row-2">
+            <div class="row-inputs">
                 <div class="form-group">
                     <label>Inizio</label>
                     <input type="time" id="rep-inizio" step="1800" onchange="calcolaOre()">
@@ -64,7 +64,7 @@
 
             <div class="form-group" style="position: relative;">
                 <label>Luogo / Cliente</label>
-                <input type="text" id="rep-luogo" placeholder="Cerca o scrivi nuovo..." oninput="suggestLuogo()" autocomplete="off">
+                <input type="text" id="rep-luogo" placeholder="Luogo..." oninput="suggestLuogo()" autocomplete="off">
                 <div id="suggestions" class="suggest-box"></div>
             </div>
 
