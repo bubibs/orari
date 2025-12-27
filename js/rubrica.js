@@ -1,4 +1,5 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec"; // <--- FONDAMENTALE
+const WEB_APP_URL = "INSERISCI_QUI_IL_TUO_URL_DI_GOOGLE"; 
+
 let datiLocali = [];
 let editIndex = null;
 
@@ -9,13 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
 async function caricaRubrica() {
     updateCloudIcon('working');
     try {
+        console.log("Inizio caricamento dati...");
         const res = await fetch(`${WEB_APP_URL}?tipo=rubrica`);
         const json = await res.json();
+        console.log("Dati ricevuti:", json);
         datiLocali = json.data || [];
         renderizzaRubrica(datiLocali);
         updateCloudIcon('success');
     } catch (e) {
-        console.error(e);
+        console.error("Errore critico:", e);
         updateCloudIcon('error');
     }
 }
@@ -25,7 +28,7 @@ function renderizzaRubrica(data) {
     if (!lista) return;
 
     if (data.length === 0) {
-        lista.innerHTML = `<p style="text-align:center; padding:20px; color:var(--subtext)">Nessun contatto in rubrica.</p>`;
+        lista.innerHTML = `<div class="card" style="text-align:center; color:var(--subtext)">Nessun contatto trovato.</div>`;
         return;
     }
 
@@ -41,17 +44,17 @@ function renderizzaRubrica(data) {
         <div class="card addr-card">
             <div style="display:flex; justify-content:space-between; align-items:flex-start">
                 <span class="primary-text">${nome.toUpperCase()}</span>
-                <div style="display:flex; gap:10px">
-                    <i class="fas fa-edit" style="color:var(--subtext)" onclick="caricaDatiPerModifica(${i}, '${nome}', '${via}', '${citta}', '${ref}', '${tel}')"></i>
-                    <i class="fas fa-trash" style="color:#FF3B30" onclick="eliminaContatto(${i})"></i>
+                <div style="display:flex; gap:15px">
+                    <i class="fas fa-edit" style="color:var(--subtext); font-size:18px;" onclick="caricaDatiPerModifica(${i}, '${nome.replace(/'/g, "\\'")}', '${via.replace(/'/g, "\\'")}', '${citta.replace(/'/g, "\\'")}', '${ref.replace(/'/g, "\\'")}', '${tel}')"></i>
+                    <i class="fas fa-trash" style="color:#FF3B30; font-size:18px;" onclick="eliminaContatto(${i})"></i>
                 </div>
             </div>
             <div class="info-row"><i class="fas fa-map-marker-alt"></i> ${ind}</div>
             <div class="info-row"><i class="fas fa-user"></i> <b>Ref:</b> ${ref}</div>
-            <div class="info-row"><i class="fas fa-phone"></i> <a href="tel:${tel}" style="color:var(--primary); text-decoration:none">${tel}</a></div>
+            <div class="info-row"><i class="fas fa-phone"></i> <a href="tel:${tel}" style="color:var(--primary); text-decoration:none; font-weight:700;">${tel}</a></div>
             <div class="addr-actions">
-                <a href="maps://?q=${encodeURIComponent(ind)}" class="btn-nav apple-btn"><i class="fab fa-apple"></i> MAPS</a>
-                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ind)}" target="_blank" class="btn-nav google-btn"><i class="fab fa-google"></i> GOOGLE</a>
+                <a href="maps://?q=${encodeURIComponent(ind)}" class="btn-nav apple-btn"><i class="fab fa-apple"></i> Mappe</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ind)}" target="_blank" class="btn-nav google-btn"><i class="fab fa-google"></i> Google</a>
             </div>
         </div>`;
     }).reverse().join('');
@@ -81,14 +84,16 @@ async function azioneSalva() {
     if (!payload.nome) return alert("Il nome è obbligatorio!");
 
     btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVATAGGIO...';
     updateCloudIcon('working');
 
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        setTimeout(() => window.location.reload(), 500);
+        setTimeout(() => window.location.reload(), 600);
     } catch (e) {
         updateCloudIcon('error');
         btn.disabled = false;
+        btn.innerText = "ERRORE - RIPROVA";
     }
 }
 
@@ -100,11 +105,12 @@ function caricaDatiPerModifica(idx, n, v, c, r, t) {
     document.getElementById('add-ref').value = r;
     document.getElementById('add-tel').value = t;
     document.getElementById('form-title').innerText = "Modifica Contatto";
+    document.getElementById('btn-save').innerText = "AGGIORNA DATI";
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 async function eliminaContatto(idx) {
-    if (!confirm("Eliminare il contatto?")) return;
+    if (!confirm("Eliminare definitivamente?")) return;
     updateCloudIcon('working');
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({azione:"elimina_rubrica", index:idx}) });
@@ -114,5 +120,7 @@ async function eliminaContatto(idx) {
 
 function updateCloudIcon(s) {
     const el = document.getElementById('sync-indicator');
-    if(el) el.className = `sync-${s} fas fa-cloud`;
+    if(el) {
+        el.className = `sync-${s} fas fa-cloud`;
+    }
 }
