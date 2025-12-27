@@ -2,7 +2,7 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf
 
 document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
-    caricaTariffeCloud();
+    caricaTariffeCloud(); // Carica le tariffe attuali negli input
 });
 
 function inizializzaFiltri() {
@@ -41,7 +41,7 @@ async function caricaDatiStorico() {
         } else {
             resetCampi();
             icon.className = "fas fa-cloud status-success";
-            alert("Nessun report trovato per il mese selezionato.");
+            alert("Nessun report trovato per questo periodo.");
         }
     } catch (e) {
         icon.className = "fas fa-exclamation-triangle status-error";
@@ -53,33 +53,61 @@ function processaDati(dati) {
     let stats = { 
         sede: 0, rientro: 0, pernott: 0, estero: 0, assenze: 0, 
         s25: 0, s50: 0,
-        gRientro: 0, gPernott: 0, gEstero: 0
+        lordoMese: 0, nettoMese: 0, indennitaTot: 0,
+        // Usiamo la paga base dell'ultima riga del mese come riferimento per il calcolo
+        pagaBaseRiferimento: 0 
     };
 
     dati.forEach(r => {
-        const oreTot = parseFloat(r.oretot) || parseFloat(r.ore_tot) || 0;
-        const oreStr = parseFloat(r.orestr) || parseFloat(r.ore_str) || 0;
-        const tipo = (r.tipo || r.tipo_lavoro || "").toLowerCase();
+        const oreStr = parseFloat(r.ore_str) || 0;
+        const tipo = (r.tipo_lavoro || "").toLowerCase();
         const assenza = (r.assenza || "nessuna").toLowerCase();
         
-        // Calcolo weekend per straordinari
+        // Recupero tariffe "congelate" dalla riga (se presenti, altrimenti 0)
+        const t25 = parseFloat(r.t25) || 0;
+        const t50 = parseFloat(r.t50) || 0;
+        const iRie = parseFloat(r.ind_rie) || 0;
+        const iPer = parseFloat(r.ind_per) || 0;
+        const iEst = parseFloat(r.ind_est) || 0;
+        const aliquota = parseFloat(r.tasse) || 0;
+        stats.pagaBaseRiferimento = parseFloat(r.paga_base) || 0;
+
         const dataPezzi = r.data.split("-");
         const d = new Date(dataPezzi[0], dataPezzi[1]-1, dataPezzi[2]);
-        const giorno = d.getDay(); // 0=Dom, 6=Sab
+        const giorno = d.getDay(); 
 
         if (assenza !== "nessuna") {
             stats.assenze += 1;
         } else {
+            let indennitaGiorno = 0;
             if (tipo.includes("sede")) stats.sede += 1;
-            else if (tipo.includes("rientro")) { stats.rientro += 1; stats.gRientro += 1; }
-            else if (tipo.includes("pernottamento")) { stats.pernott += 1; stats.gPernott += 1; }
-            else if (tipo.includes("estero")) { stats.estero += 1; stats.gEstero += 1; }
+            else if (tipo.includes("rientro")) { stats.rientro += 1; indennitaGiorno = iRie; }
+            else if (tipo.includes("pernottamento")) { stats.pernott += 1; indennitaGiorno = iPer; }
+            else if (tipo.includes("estero")) { stats.estero += 1; indennitaGiorno = iEst; }
 
-            if (giorno === 0 || giorno === 6) stats.s50 += oreStr;
-            else stats.s25 += oreStr;
+            // Calcolo economico riga per riga
+            let extraGiorno = 0;
+            if (giorno === 0 || giorno === 6) {
+                stats.s50 += oreStr;
+                extraGiorno = oreStr * t50;
+            } else {
+                stats.s25 += oreStr;
+                extraGiorno = oreStr * t25;
+            }
+
+            stats.indennitaTot += indennitaGiorno;
+            stats.lordoMese += (extraGiorno + indennitaGiorno);
         }
     });
 
+    // Aggiungiamo la paga base una sola volta al lordo totale del mese
+    const lordoFinale = stats.lordoMese + stats.pagaBaseRiferimento;
+    
+    // Calcolo netto basato sull'ultima aliquota trovata
+    const ultimaAliquota = parseFloat(dati[dati.length-1].tasse) || 0;
+    const nettoFinale = lordoFinale * (1 - (ultimaAliquota / 100));
+
+    // Aggiornamento UI
     document.getElementById('ore-sede').innerText = stats.sede;
     document.getElementById('ore-rientro').innerText = stats.rientro;
     document.getElementById('ore-pernott').innerText = stats.pernott;
@@ -87,27 +115,10 @@ function processaDati(dati) {
     document.getElementById('ore-assenze').innerText = stats.assenze;
     document.getElementById('val-25').innerText = stats.s25.toFixed(1);
     document.getElementById('val-50').innerText = stats.s50.toFixed(1);
-
-    calcolaSoldi(stats);
-}
-
-function calcolaSoldi(stats) {
-    const base = parseFloat(document.getElementById('base-mensile').value) || 0;
-    const t25 = parseFloat(document.getElementById('tariffa-25').value) || 0;
-    const t50 = parseFloat(document.getElementById('tariffa-50').value) || 0;
-    const iRie = parseFloat(document.getElementById('ind-rientro').value) || 0;
-    const iPer = parseFloat(document.getElementById('ind-pernott').value) || 0;
-    const iEst = parseFloat(document.getElementById('ind-estero').value) || 0;
-    const tasse = parseFloat(document.getElementById('aliquota-tasse').value) || 0;
-
-    const indennitaTot = (stats.gRientro * iRie) + (stats.gPernott * iPer) + (stats.gEstero * iEst);
-    const straordinariTot = (stats.s25 * t25) + (stats.s50 * t50);
-    const lordo = base + indennitaTot + straordinariTot;
-    const netto = lordo * (1 - (tasse / 100));
-
-    document.getElementById('val-indennita').innerText = `€ ${indennitaTot.toFixed(2)}`;
-    document.getElementById('valore-lordo').innerText = `€ ${lordo.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
-    document.getElementById('valore-netto').innerText = `€ ${netto.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
+    
+    document.getElementById('val-indennita').innerText = `€ ${stats.indennitaTot.toFixed(2)}`;
+    document.getElementById('valore-lordo').innerText = `€ ${lordoFinale.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
+    document.getElementById('valore-netto').innerText = `€ ${nettoFinale.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
 }
 
 async function caricaTariffeCloud() {
@@ -117,13 +128,13 @@ async function caricaTariffeCloud() {
         const res = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
         const json = await res.json();
         if(json.data) {
-            document.getElementById('base-mensile').value = json.data.base || 0;
-            document.getElementById('tariffa-25').value = json.data.t25 || 0;
-            document.getElementById('tariffa-50').value = json.data.t50 || 0;
-            document.getElementById('ind-rientro').value = json.data.ind_rientro || 0;
-            document.getElementById('ind-pernott').value = json.data.ind_pernott || 0;
-            document.getElementById('ind-estero').value = json.data.ind_estero || 0;
-            document.getElementById('aliquota-tasse').value = json.data.tasse || 0;
+            document.getElementById('base-mensile').value = json.data.base;
+            document.getElementById('tariffa-25').value = json.data.t25;
+            document.getElementById('tariffa-50').value = json.data.t50;
+            document.getElementById('ind-rientro').value = json.data.ind_rientro;
+            document.getElementById('ind-pernott').value = json.data.ind_pernott;
+            document.getElementById('ind-estero').value = json.data.ind_estero;
+            document.getElementById('aliquota-tasse').value = json.data.tasse;
         }
         icon.className = "fas fa-cloud status-success";
     } catch(e) { icon.className = "fas fa-exclamation-triangle status-error"; }
@@ -141,14 +152,19 @@ async function salvaTariffeCloud() {
         ind_estero: document.getElementById('ind-estero').value,
         tasse: document.getElementById('aliquota-tasse').value
     };
+
     btn.disabled = true;
+    btn.innerText = "SALVATAGGIO...";
+
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(settings) });
-        alert("Impostazioni salvate nel Cloud!");
+        alert("Impostazioni salvate! Saranno applicate ai prossimi report.");
         toggleSettings();
-        caricaDatiStorico();
-    } catch (e) { alert("Errore nel salvataggio."); }
-    finally { btn.disabled = false; }
+    } catch (e) { alert("Errore salvataggio Cloud"); }
+    finally { 
+        btn.disabled = false; 
+        btn.innerText = "SALVA SUL CLOUD"; 
+    }
 }
 
 function toggleSettings() {
