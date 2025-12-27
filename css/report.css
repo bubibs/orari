@@ -15,46 +15,66 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, sa
 .sync-status-wrapper { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
 
 .card { 
-    background: var(--card); border-radius: var(--radius); padding: 22px; 
+    background: var(--card); border-radius: var(--radius); padding: 20px; 
     margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
 }
-h2 { font-size: 20px; font-weight: 900; margin-bottom: 20px; text-align: center; }
+h2 { font-size: 18px; font-weight: 900; margin-bottom: 20px; text-align: center; }
 
-/* LAYOUT UNIFORME */
-.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
-.form-group { margin-bottom: 15px; }
+/* FIX PER IPHONE: Flexbox dinamico */
+.row-inputs { 
+    display: flex; 
+    gap: 10px; 
+    width: 100%; 
+    margin-bottom: 5px;
+}
+.row-inputs .form-group { flex: 1; min-width: 0; } /* min-width 0 impedisce l'overflow */
+
+.form-group { margin-bottom: 15px; width: 100%; }
 label { display: block; font-size: 10px; font-weight: 800; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; }
 
+/* Uniformità totale tra Data, Note e Selezioni */
 input, .modern-select { 
-    width: 100%; padding: 14px; border-radius: 14px; border: 1px solid var(--border); 
-    background: var(--bg); color: var(--text); font-size: 16px; outline: none; 
+    width: 100%; 
+    height: 48px; /* Altezza fissa per tutti per armonia */
+    padding: 0 12px; 
+    border-radius: 12px; 
+    border: 1px solid var(--border); 
+    background: var(--bg); 
+    color: var(--text); 
+    font-size: 15px; 
+    outline: none; 
+    display: flex;
+    align-items: center;
 }
 
-/* Specifico per centraggio in date e time */
-input[type="date"], input[type="time"] { text-align: center; font-family: inherit; }
+/* Fix specifico per l'allineamento dei testi negli input safari/ios */
+input[type="date"], input[type="time"] {
+    -webkit-appearance: none;
+    line-height: 48px;
+}
 
-.checkbox-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
-.checkbox-row input { width: 22px; height: 22px; cursor: pointer; }
-.checkbox-row label { text-transform: none; font-size: 15px; color: var(--text); margin: 0; font-weight: 600; }
+.checkbox-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+.checkbox-row input { width: 22px; height: 22px; }
+.checkbox-row label { text-transform: none; font-size: 14px; font-weight: 600; margin: 0; }
 
-.stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
-.stat-box { background: var(--bg); padding: 15px; border-radius: 16px; border: 1px solid var(--border); text-align: center; }
-.stat-box label { font-size: 9px; margin-bottom: 2px; text-align: center; }
-.stat-box div { font-size: 28px; font-weight: 900; }
+.stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+.stat-box { background: var(--bg); padding: 12px; border-radius: 16px; border: 1px solid var(--border); text-align: center; }
+.stat-box label { font-size: 9px; margin-bottom: 4px; }
+.stat-box div { font-size: 24px; font-weight: 900; }
 .stat-box.accent div { color: var(--primary); }
 
 .btn-main { 
     background: var(--primary); color: white; border: none; border-radius: 18px; 
-    padding: 18px; font-weight: 800; width: 100%; font-size: 17px; box-shadow: 0 5px 15px rgba(0,122,255,0.3);
+    padding: 16px; font-weight: 800; width: 100%; font-size: 16px; 
 }
 
 .suggest-box {
     position: absolute; width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 14px; z-index: 100; max-height: 200px; overflow-y: auto; display: none;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 5px;
+    border-radius: 12px; z-index: 100; max-height: 180px; overflow-y: auto; display: none;
 }
-.suggest-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.suggest-item { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
 
+/* ANIMAZIONE SYNC */
 .status-working { color: #FF9500 !important; }
 .status-success { color: #34C759 !important; }
 .status-error { color: #FF3B30 !important; }
