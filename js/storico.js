@@ -3,10 +3,9 @@ let mioGrafico = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     inizializzaFiltri();
-    caricaTariffeCloud(); // Carica i valori attuali nella modale
+    caricaTariffeCloud();
 });
 
-// 1. Configurazione Menu Filtri
 function inizializzaFiltri() {
     const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
     const mSel = document.getElementById('filtro-mese');
@@ -26,7 +25,6 @@ function inizializzaFiltri() {
     }
 }
 
-// 2. Funzione Cerca
 async function caricaDatiStorico() {
     const mese = document.getElementById('filtro-mese').value;
     const anno = document.getElementById('filtro-anno').value;
@@ -44,28 +42,20 @@ async function caricaDatiStorico() {
         } else {
             resetCampi();
             icon.className = "fas fa-cloud status-success";
-            alert("Nessun report trovato per questo periodo.");
+            alert("Nessun report trovato.");
         }
     } catch (e) {
         icon.className = "fas fa-exclamation-triangle status-error";
-        alert("Errore di connessione.");
     }
 }
 
-// 3. Elaborazione Dati e Calcoli
 function processaDati(dati) {
-    let stats = { 
-        sede: 0, rientro: 0, pernott: 0, estero: 0, assenze: 0, 
-        s25: 0, s50: 0, lordoExtra: 0, indennitaTot: 0,
-        pagaBase: 0, aliquota: 0
-    };
+    let stats = { sede: 0, rientro: 0, pernott: 0, estero: 0, assenze: 0, s25: 0, s50: 0, lordoExtra: 0, indennitaTot: 0, pagaBase: 0, aliquota: 0 };
 
     dati.forEach(r => {
         const oreStr = parseFloat(r.ore_str) || 0;
-        const tipo = (r.tipo_lavoro || r.tipo || "").toLowerCase().trim();
+        const tipo = (r.tipo_lavoro || "").toLowerCase().trim();
         const assenza = (r.assenza || "nessuna").toLowerCase().trim();
-        
-        // Tariffe congelate salvate nel report (Colonne L-R)
         const t25 = parseFloat(r.t25) || 0;
         const t50 = parseFloat(r.t50) || 0;
         const iRie = parseFloat(r.ind_rie) || 0;
@@ -74,41 +64,25 @@ function processaDati(dati) {
         stats.pagaBase = parseFloat(r.paga_base) || 0;
         stats.aliquota = parseFloat(r.tasse) || 0;
 
-        // Gestione Data per capire se è Weekend
         const d = new Date(r.data);
         const giorno = d.getDay(); 
 
         if (assenza !== "nessuna" && assenza !== "") {
             stats.assenze++;
         } else {
-            let indGiorno = 0;
-            if (tipo.includes("sede")) {
-                stats.sede++;
-            } else if (tipo.includes("rientro")) {
-                stats.rientro++;
-                indGiorno = iRie;
-            } else if (tipo.includes("pernottamento")) {
-                stats.pernott++;
-                indGiorno = iPer;
-            } else if (tipo.includes("estero")) {
-                stats.estero++;
-                indGiorno = iEst;
-            }
+            let ind = 0;
+            if (tipo.includes("sede")) stats.sede++;
+            else if (tipo.includes("rientro")) { stats.rientro++; ind = iRie; }
+            else if (tipo.includes("pernottamento")) { stats.pernott++; ind = iPer; }
+            else if (tipo.includes("estero")) { stats.estero++; ind = iEst; }
 
-            let soldiStrGiorno = 0;
-            if (giorno === 0 || giorno === 6) { // Sabato o Domenica
-                stats.s50 += oreStr;
-                soldiStrGiorno = oreStr * t50;
-            } else {
-                stats.s25 += oreStr;
-                soldiStrGiorno = oreStr * t25;
-            }
-            stats.indennitaTot += indGiorno;
-            stats.lordoExtra += (soldiStrGiorno + indGiorno);
+            if (giorno === 0 || giorno === 6) { stats.s50 += oreStr; stats.lordoExtra += (oreStr * t50); }
+            else { stats.s25 += oreStr; stats.lordoExtra += (oreStr * t25); }
+            stats.indennitaTot += ind;
+            stats.lordoExtra += ind;
         }
     });
 
-    // Aggiornamento Interfaccia
     document.getElementById('ore-sede').innerText = stats.sede;
     document.getElementById('ore-rientro').innerText = stats.rientro;
     document.getElementById('ore-pernott').innerText = stats.pernott;
@@ -120,28 +94,22 @@ function processaDati(dati) {
 
     const lordo = stats.lordoExtra + stats.pagaBase;
     const netto = lordo * (1 - (stats.aliquota / 100));
-    
-    document.getElementById('valore-lordo').innerText = `€ ${lordo.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
-    document.getElementById('valore-netto').innerText = `€ ${netto.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
+    document.getElementById('valore-lordo').innerText = `€ ${lordo.toFixed(2)}`;
+    document.getElementById('valore-netto').innerText = `€ ${netto.toFixed(2)}`;
 
     disegnaGrafico(stats);
 }
 
-// 4. Gestione Grafico
 function disegnaGrafico(stats) {
-    const canvas = document.getElementById('lavoroChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
+    const ctx = document.getElementById('lavoroChart').getContext('2d');
     if (mioGrafico) mioGrafico.destroy();
-
     mioGrafico = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Sede', 'Rientro', 'Pernott.', 'Estero'],
+            labels: ['Sede', 'Rientro', 'Pernott.', 'Estero', 'Assenze'],
             datasets: [{
-                data: [stats.sede, stats.rientro, stats.pernott, stats.estero],
-                backgroundColor: ['#007AFF', '#34C759', '#FF9500', '#AF52DE'],
+                data: [stats.sede, stats.rientro, stats.pernott, stats.estero, stats.assenze],
+                backgroundColor: ['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30'],
                 borderRadius: 8
             }]
         },
@@ -149,15 +117,16 @@ function disegnaGrafico(stats) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                x: { grid: { display: false } }
-            }
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
         }
     });
 }
 
-// 5. Impostazioni Cloud
+function toggleSettings() {
+    const p = document.getElementById('settings-panel');
+    p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+}
+
 async function caricaTariffeCloud() {
     try {
         const res = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
@@ -171,7 +140,7 @@ async function caricaTariffeCloud() {
             document.getElementById('ind-estero').value = json.data.ind_estero;
             document.getElementById('aliquota-tasse').value = json.data.tasse;
         }
-    } catch(e) { console.error("Errore tariffe cloud"); }
+    } catch(e) {}
 }
 
 async function salvaTariffeCloud() {
@@ -186,32 +155,17 @@ async function salvaTariffeCloud() {
         ind_estero: document.getElementById('ind-estero').value,
         tasse: document.getElementById('aliquota-tasse').value
     };
-
-    btn.disabled = true;
-    btn.innerText = "SALVATAGGIO...";
-
+    btn.disabled = true; btn.innerText = "SALVATAGGIO...";
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(settings) });
         alert("Impostazioni salvate!");
         toggleSettings();
-    } catch (e) { alert("Errore salvataggio"); }
-    finally { 
-        btn.disabled = false; 
-        btn.innerText = "SALVA SUL CLOUD"; 
-    }
-}
-
-function toggleSettings() {
-    const p = document.getElementById('settings-panel');
-    p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+    } catch (e) { alert("Errore"); }
+    finally { btn.disabled = false; btn.innerText = "SALVA SUL CLOUD"; }
 }
 
 function resetCampi() {
-    ["ore-sede","ore-rientro","ore-pernott","ore-estero","ore-assenze"].forEach(id => {
-        document.getElementById(id).innerText = "0";
-    });
-    document.getElementById('val-25').innerText = "0 h";
-    document.getElementById('val-50').innerText = "0 h";
+    ["ore-sede","ore-rientro","ore-pernott","ore-estero","ore-assenze"].forEach(id => document.getElementById(id).innerText = "0");
     document.getElementById('val-indennita').innerText = "€ 0.00";
     document.getElementById('valore-lordo').innerText = "€ 0.00";
     document.getElementById('valore-netto').innerText = "€ 0.00";
