@@ -1,4 +1,4 @@
-const WEB_APP_URL = "INSERISCI_URL_QUI";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 let datiLocali = [];
 let editIndex = null;
 
