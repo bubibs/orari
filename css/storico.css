@@ -1,109 +1,127 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Analisi Ore</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/storico.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
+:root {
+    --primary: #007AFF;
+    --bg: #F2F2F7;
+    --card: #FFFFFF;
+    --text: #1C1C1E;
+    --subtext: #8E8E93;
+    --border: #D1D1D6;
+    --radius: 16px;
+}
 
-    <header class="header-app">
-        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i> HOME</a>
-        <div class="header-right">
-            <i class="fas fa-cloud" id="sync-icon"></i>
-            <i class="fas fa-cog" onclick="toggleSettings()"></i>
-        </div>
-    </header>
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000000;
+        --card: #1C1C1E;
+        --text: #FFFFFF;
+        --border: #38383A;
+    }
+}
 
-    <div class="container">
-        <div class="card selector-card">
-            <div class="filter-row">
-                <select id="filtro-mese"></select>
-                <select id="filtro-anno"></select>
-                <button onclick="caricaDatiStorico()" id="btn-search">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </div>
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
 
-        <div class="card">
-            <h3>Riepilogo Attività (Giorni)</h3>
-            <div class="stats-grid">
-                <div class="stat-item"><span>Sede</span><strong id="ore-sede">0</strong></div>
-                <div class="stat-item"><span>Rientro</span><strong id="ore-rientro">0</strong></div>
-                <div class="stat-item"><span>Pernott.</span><strong id="ore-pernott">0</strong></div>
-                <div class="stat-item"><span>Estero</span><strong id="ore-estero">0</strong></div>
-                <div class="stat-item danger"><span>Assenze</span><strong id="ore-assenze">0</strong></div>
-            </div>
-        </div>
+.container { padding: 15px; max-width: 500px; margin: 0 auto; }
 
-        <div class="card">
-            <h3>Distribuzione Lavoro</h3>
-            <div style="height: 180px;">
-                <canvas id="lavoroChart"></canvas>
-            </div>
-        </div>
+/* Header */
+.header-app {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
 
-        <div class="card money-card">
-            <h3>Analisi Economica</h3>
-            <div class="money-details">
-                <p>Extra 25% (Lun-Ven) <span id="val-25">0.0 h</span></p>
-                <p>Extra 50% (Sab-Dom) <span id="val-50">0.0 h</span></p>
-                <p>Totale Indennità <span id="val-indennita">€ 0.00</span></p>
-            </div>
-            
-            <div class="total-display">
-                <div class="total-box">
-                    <label>LORDO TOTALE</label>
-                    <div id="valore-lordo">€ 0.00</div>
-                </div>
-                <div class="total-box accent">
-                    <label>NETTO STIMATO</label>
-                    <div id="valore-netto">€ 0.00</div>
-                </div>
-            </div>
-        </div>
-    </div>
+.header-app h1 { font-size: 18px; margin: 0; font-weight: 700; }
+.back-btn { text-decoration: none; color: var(--primary); font-weight: 600; font-size: 16px; }
+.header-right i { font-size: 20px; margin-left: 15px; color: var(--subtext); cursor: pointer; }
 
-    <div id="settings-panel" class="settings-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4>Impostazioni Tariffe</h4>
-                <button class="btn-close" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Paga Base Mensile (€)</label>
-                    <input type="number" id="base-mensile" step="0.01" inputmode="decimal">
-                </div>
-                <div class="form-group-row">
-                    <div><label>Ora 25% (€)</label><input type="number" id="tariffa-25" step="0.01"></div>
-                    <div><label>Ora 50% (€)</label><input type="number" id="tariffa-50" step="0.01"></div>
-                </div>
-                <div class="form-group">
-                    <label>Trasf. Rientro (€)</label>
-                    <input type="number" id="ind-rientro" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Trasf. Pernottamento (€)</label>
-                    <input type="number" id="ind-pernott" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Trasferta Estero (€)</label>
-                    <input type="number" id="ind-estero" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Aliquota Tasse (%)</label>
-                    <input type="number" id="aliquota-tasse" value="23">
-                </div>
-                <button class="btn-main" id="btn-salva-tariffe" onclick="salvaTariffeCloud()">SALVA SUL CLOUD</button>
-            </div>
-        </div>
-    </div>
+/* Cards */
+.card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+}
 
-    <script src="js/storico.js"></script>
-</body>
-</html>
+h3 { margin: 0 0 15px 0; font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Filtri */
+.filter-row { display: flex; gap: 10px; }
+select {
+    flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: 16px; -webkit-appearance: none;
+}
+#btn-search {
+    width: 50px; background: var(--primary); color: white; border: none; border-radius: 12px;
+}
+
+/* Stats Grid */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat-item {
+    background: var(--bg); padding: 12px; border-radius: 12px;
+    display: flex; flex-direction: column;
+}
+.stat-item span { font-size: 11px; color: var(--subtext); font-weight: 600; }
+.stat-item strong { font-size: 18px; margin-top: 4px; }
+.stat-item.danger strong { color: #FF3B30; }
+
+/* Analisi Economica */
+.money-details { margin-bottom: 20px; }
+.money-details p {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 8px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+.money-details span {
+    font-weight: 700; color: var(--primary); background: var(--bg);
+    padding: 3px 10px; border-radius: 8px;
+}
+
+.total-display { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.total-box {
+    background: var(--bg); padding: 15px; border-radius: 12px; text-align: center;
+}
+.total-box label { font-size: 9px; font-weight: 800; color: var(--subtext); display: block; }
+.total-box div { font-size: 17px; font-weight: 800; margin-top: 5px; }
+.total-box.accent div { color: #34C759; }
+
+/* Modale Settings iPhone */
+.settings-modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;
+    padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px);
+}
+.modal-content {
+    background: var(--card); width: 100%; max-width: 350px; border-radius: var(--radius);
+    padding: 20px; position: relative; max-height: 90vh; overflow-y: auto;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.btn-close { background: var(--bg); border: none; width: 30px; height: 30px; border-radius: 50%; color: var(--text); }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 12px; color: var(--subtext); margin-bottom: 5px; }
+.form-group input {
+    width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box;
+}
+.form-group-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.btn-main {
+    width: 100%; padding: 16px; background: var(--primary); color: white;
+    border: none; border-radius: 12px; font-weight: 700; cursor: pointer;
+}
+
+/* Status Icon Colors */
+.status-success { color: #34C759 !important; }
+.status-working { color: #FF9500 !important; }
+.status-error { color: #FF3B30 !important; }
