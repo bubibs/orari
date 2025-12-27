@@ -20,9 +20,11 @@
         <div class="card card-accent">
             <h2>Inserimento Ore</h2>
             
-            <div class="form-group">
-                <label>Data Intervento</label>
-                <input type="date" id="rep-data" onchange="calcolaOre()">
+            <div class="form-group flex-center">
+                <div class="input-wrapper-date">
+                    <label>Data Intervento</label>
+                    <input type="date" id="rep-data" onchange="calcolaOre()">
+                </div>
             </div>
 
             <div class="row-2">
@@ -46,7 +48,7 @@
                 </div>
             </div>
 
-            <div class="row-2">
+            <div class="row-time">
                 <div class="form-group">
                     <label>Inizio</label>
                     <input type="time" id="rep-inizio" step="1800" onchange="calcolaOre()">
@@ -73,7 +75,7 @@
                 <input type="text" id="rep-note" placeholder="Note intervento...">
             </div>
 
-            <div class="row-2" style="margin-top: 20px;">
+            <div class="stats-container">
                 <div class="stat-box">
                     <label>Ore Totali</label>
                     <div id="display-totali">0.0</div>
@@ -84,8 +86,8 @@
                 </div>
             </div>
 
-            <button class="btn-main" id="btn-save-rep" onclick="salvaReport()" style="margin-top: 25px;">
-                INVIA REPORT
+            <button class="btn-main" id="btn-save-rep" onclick="salvaReport()">
+                <i class="fas fa-paper-plane"></i> INVIA REPORT
             </button>
         </div>
     </div>
