@@ -1,74 +1,109 @@
-/* Layout Analisi Economica Sistemata */
-.money-details {
-    margin: 15px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analisi Ore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/storico.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
 
-.money-details p {
-    margin: 0;
-    font-size: 15px;
-    color: #444;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-}
+    <header class="header-app">
+        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i> HOME</a>
+        <div class="header-right">
+            <i class="fas fa-cloud" id="sync-icon"></i>
+            <i class="fas fa-cog" onclick="toggleSettings()"></i>
+        </div>
+    </header>
 
-.money-details p span {
-    font-weight: 700;
-    color: var(--primary);
-    background: #f0f7ff;
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-family: 'Monaco', monospace;
-}
+    <div class="container">
+        <div class="card selector-card">
+            <div class="filter-row">
+                <select id="filtro-mese"></select>
+                <select id="filtro-anno"></select>
+                <button onclick="caricaDatiStorico()" id="btn-search">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
 
-/* Header Modale per iPhone */
-.settings-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 15px;
-}
+        <div class="card">
+            <h3>Riepilogo Attività (Giorni)</h3>
+            <div class="stats-grid">
+                <div class="stat-item"><span>Sede</span><strong id="ore-sede">0</strong></div>
+                <div class="stat-item"><span>Rientro</span><strong id="ore-rientro">0</strong></div>
+                <div class="stat-item"><span>Pernott.</span><strong id="ore-pernott">0</strong></div>
+                <div class="stat-item"><span>Estero</span><strong id="ore-estero">0</strong></div>
+                <div class="stat-item danger"><span>Assenze</span><strong id="ore-assenze">0</strong></div>
+            </div>
+        </div>
 
-.settings-header i {
-    font-size: 24px;
-    color: #888;
-    padding: 5px;
-}
+        <div class="card">
+            <h3>Distribuzione Lavoro</h3>
+            <div style="height: 180px;">
+                <canvas id="lavoroChart"></canvas>
+            </div>
+        </div>
 
-/* Colori Icone Sincronizzazione */
-.status-working { color: #ff9500; }
-.status-success { color: #34c759; }
-.status-error { color: #ff3b30; }
+        <div class="card money-card">
+            <h3>Analisi Economica</h3>
+            <div class="money-details">
+                <p>Extra 25% (Lun-Ven) <span id="val-25">0.0 h</span></p>
+                <p>Extra 50% (Sab-Dom) <span id="val-50">0.0 h</span></p>
+                <p>Totale Indennità <span id="val-indennita">€ 0.00</span></p>
+            </div>
+            
+            <div class="total-display">
+                <div class="total-box">
+                    <label>LORDO TOTALE</label>
+                    <div id="valore-lordo">€ 0.00</div>
+                </div>
+                <div class="total-box accent">
+                    <label>NETTO STIMATO</label>
+                    <div id="valore-netto">€ 0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-/* Totale Section */
-.total-section {
-    background: var(--primary);
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin-top: 10px;
-}
+    <div id="settings-panel" class="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Impostazioni Tariffe</h4>
+                <button class="btn-close" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Paga Base Mensile (€)</label>
+                    <input type="number" id="base-mensile" step="0.01" inputmode="decimal">
+                </div>
+                <div class="form-group-row">
+                    <div><label>Ora 25% (€)</label><input type="number" id="tariffa-25" step="0.01"></div>
+                    <div><label>Ora 50% (€)</label><input type="number" id="tariffa-50" step="0.01"></div>
+                </div>
+                <div class="form-group">
+                    <label>Trasf. Rientro (€)</label>
+                    <input type="number" id="ind-rientro" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Trasf. Pernottamento (€)</label>
+                    <input type="number" id="ind-pernott" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Trasferta Estero (€)</label>
+                    <input type="number" id="ind-estero" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Aliquota Tasse (%)</label>
+                    <input type="number" id="aliquota-tasse" value="23">
+                </div>
+                <button class="btn-main" id="btn-salva-tariffe" onclick="salvaTariffeCloud()">SALVA SUL CLOUD</button>
+            </div>
+        </div>
+    </div>
 
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 14px;
-    opacity: 0.9;
-}
-
-.total-row.main {
-    font-size: 20px;
-    font-weight: 800;
-    opacity: 1;
-    margin-top: 5px;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    padding-top: 10px;
-}
+    <script src="js/storico.js"></script>
+</body>
+</html>
