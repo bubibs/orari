@@ -107,12 +107,24 @@ body {
   background: var(--card);
   padding: 25px;
   border-radius: 18px;
-  font-style: italic;
-  font-size: 1.1rem;
   box-shadow: 0 10px 20px rgba(0,0,0,0.08);
 }
 
-/* DASHBOARD BUTTONS */
+#daily-quote {
+  font-style: italic;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+#quote-author {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* DASHBOARD */
 .dashboard {
   display: grid;
   grid-template-columns: 1fr;
