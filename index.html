@@ -1,55 +1,34 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tecnosistem - Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/index.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TECNOSISTEM</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header-main">
-            <div class="user-info">
-                <h1>Tecnosistem</h1>
-                <p>Gestione Interventi</p>
-            </div>
-            <div class="sync-status">
-                <i id="cloud-icon" class="fas fa-cloud status-success"></i>
-            </div>
-        </header>
 
-        <div class="motivation-banner">
-            <p id="motivation-text">"La qualità è fare le cose bene quando nessuno ti guarda."</p>
-            <small id="motivation-author">- Henry Ford</small>
-        </div>
-
-        <main class="menu-grid">
-            <a href="report.html" class="menu-card primary full-width">
-                <div class="card-icon"><i class="fas fa-plus-circle"></i></div>
-                <div class="card-label">Nuovo Report Ore</div>
-            </a>
-
-            <a href="storico.html" class="menu-card">
-                <div class="card-icon"><i class="fas fa-chart-pie"></i></div>
-                <div class="card-label">Analisi Ore</div>
-            </a>
-
-            <a href="rubrica.html" class="menu-card">
-                <div class="card-icon"><i class="fas fa-address-book"></i></div>
-                <div class="card-label">Rubrica</div>
-            </a>
-
-            <div class="menu-card full-width info-card">
-                <div class="info-content">
-                    <span id="date-display">Caricamento...</span>
-                    <small>Buon lavoro!</small>
-                </div>
-                <i class="fas fa-calendar-alt"></i>
-            </div>
-        </main>
+  <header>
+    <h1>TECNOSISTEM</h1>
+    <div id="cloud-status" class="sync checking">
+      ⏳ Sincronizzazione in corso
     </div>
+  </header>
 
-    <script src="js/index.js"></script>
+  <main>
+    <section class="quote-box">
+      <p id="daily-quote">Caricamento frase motivazionale...</p>
+    </section>
+
+    <section class="menu">
+      <button onclick="goTo('report.html')">➕ Nuovo Report</button>
+      <button onclick="goTo('andamento.html')">📊 Andamento Economico</button>
+      <button onclick="goTo('clienti.html')">👥 Clienti</button>
+      <button onclick="goTo('impostazioni.html')">⚙️ Impostazioni</button>
+    </section>
+  </main>
+
+  <script src="js/quotes.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
