@@ -1,76 +1,102 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TECNOSISTEM - The Italian Job</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TECNOSISTEM - The Italian Job</title>
+<style>
+  /* Tema automatico light/dark */
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  @media (prefers-color-scheme: dark) {
     body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      background-color: #111;
       color: white;
-      text-align: center;
     }
+  }
 
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
-      letter-spacing: 2px;
-      text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+  @media (prefers-color-scheme: light) {
+    body {
+      background-color: #f5f5f5;
+      color: black;
     }
+  }
 
-    h2 {
-      font-size: 1.5rem;
-      font-weight: normal;
-      margin-bottom: 2rem;
-      font-style: italic;
-    }
+  .left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 40px;
+  }
 
-    .cloud-icon {
-      font-size: 2rem;
-      margin-bottom: 2rem;
-      transition: color 0.3s;
-    }
+  .right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-right: 40px;
+  }
 
-    .cloud-icon.pending { color: white; }
-    .cloud-icon.ok { color: #00ff00; }      /* verde */
-    .cloud-icon.error { color: red; }      /* rosso */
+  h1 {
+    font-size: 3rem;
+    margin: 0;
+  }
 
-    button {
-      padding: 1rem 2rem;
-      margin: 0.5rem;
-      font-size: 1.2rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+  h2 {
+    font-size: 1.5rem;
+    margin: 10px 0 30px 0;
+    font-style: italic;
+  }
 
-    button:hover {
-      transform: scale(1.05);
-    }
+  #cloud-status {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+  .cloud-icon.pending { color: gray; }
+  .cloud-icon.ok { color: green; }
+  .cloud-icon.error { color: red; }
 
-    .btn-report { background-color: #ff9800; color: white; }
-    .btn-economy { background-color: #03a9f4; color: white; }
-    .btn-settings { background-color: #4caf50; color: white; }
-    .btn-clients { background-color: #9c27b0; color: white; }
-  </style>
+  button {
+    width: 200px;
+    padding: 15px;
+    margin: 10px 0;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+  }
+
+  .btn-report { background-color: #ff9800; color: white; }
+  .btn-economy { background-color: #03a9f4; color: white; }
+  .btn-settings { background-color: #4caf50; color: white; }
+  .btn-clients { background-color: #9c27b0; color: white; }
+</style>
 </head>
 <body>
 
-  <h1>TECNOSISTEM</h1>
-  <h2 id="frase-motivazionale">Caricamento frase...</h2>
+  <div class="left-panel">
+    <h1>TECNOSISTEM</h1>
+    <h2 id="frase-motivazionale">Caricamento frase...</h2>
+  </div>
 
-  <div id="cloud-status" class="cloud-icon pending">☁️</div>
-
-  <div>
+  <div class="right-panel">
+    <div id="cloud-status" class="cloud-icon pending">☁️</div>
     <button class="btn-report" onclick="goTo('nuovo_report.html')">Nuovo Report</button>
     <button class="btn-economy" onclick="goTo('andamento.html')">Andamento Economico</button>
     <button class="btn-settings" onclick="goTo('impostazioni.html')">Impostazioni</button>
