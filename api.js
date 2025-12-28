@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec';
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyVkRST4INthgvTCzHbnOLuIXIdYaH2LWH1AhcMeu8DJVCoinoqji5EMyVhLnX612iZvw/exec';
 
 // API Functions
 const API = {
