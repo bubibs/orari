@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TECNOSISTEM - The Italian Job</title>
 <style>
-  /* Tema automatico light/dark */
   body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -71,10 +70,11 @@
 
   button:hover { transform: scale(1.03); }
 
-  button img {
+  .btn svg {
     width: 24px;
     height: 24px;
     margin-right: 10px;
+    fill: white;
   }
 
   .btn-report { background-color: #ff9800; color: white; }
@@ -91,17 +91,25 @@
   <div id="cloud-status" class="cloud-icon pending">☁️</div>
 
   <div class="btn-container">
-    <button class="btn-report" onclick="goTo('nuovo_report.html')">
-      <img src="icons/report.png" alt="Report"> Nuovo Report
+    <button class="btn btn-report" onclick="goTo('nuovo_report.html')">
+      <!-- Icona Report -->
+      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0-8h14V7H7v2z"/></svg>
+      Nuovo Report
     </button>
-    <button class="btn-economy" onclick="goTo('andamento.html')">
-      <img src="icons/economy.png" alt="Economy"> Andamento Economico
+    <button class="btn btn-economy" onclick="goTo('andamento.html')">
+      <!-- Icona Economia -->
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      Andamento Economico
     </button>
-    <button class="btn-settings" onclick="goTo('impostazioni.html')">
-      <img src="icons/settings.png" alt="Settings"> Impostazioni
+    <button class="btn btn-settings" onclick="goTo('impostazioni.html')">
+      <!-- Icona Impostazioni -->
+      <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.63l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a6.994 6.994 0 0 0-1.7-.98l-.38-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.43l-.38 2.65c-.63.25-1.22.58-1.7.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.63l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.63l2 3.46c.14.24.43.33.61.22l2.49-1c.48.4 1.07.73 1.7.98l.38 2.65c.05.27.27.43.5.43h4c.23 0 .45-.16.5-.43l.38-2.65c.63-.25 1.22-.58 1.7-.98l2.49 1c.18.11.47.02.61-.22l2-3.46a.5.5 0 0 0-.12-.63l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 8.5 12 8.5s3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+      Impostazioni
     </button>
-    <button class="btn-clients" onclick="goTo('clienti.html')">
-      <img src="icons/clients.png" alt="Clients"> Clienti
+    <button class="btn btn-clients" onclick="goTo('clienti.html')">
+      <!-- Icona Clienti -->
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5s-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      Clienti
     </button>
   </div>
 
