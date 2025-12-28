@@ -4,13 +4,20 @@ function goTo(page) {
 
 const cloudIcon = document.getElementById("cloud-status");
 
-// STATO INIZIALE: cloud NON ancora collegato
+/*
+  Stati possibili:
+  pending = grigio
+  ok = verde
+  error = rosso
+*/
+
+// STATO INIZIALE
 cloudIcon.className = "cloud-icon pending";
 cloudIcon.title = "Cloud non configurato";
 
-// In futuro (quando collegheremo Google Sheets):
+// Quando collegheremo Google Sheets:
 // cloudIcon.className = "cloud-icon ok";
-// cloudIcon.title = "Sincronizzato con il cloud";
+// cloudIcon.title = "Cloud sincronizzato";
 
 // In caso di errore:
 // cloudIcon.className = "cloud-icon error";
