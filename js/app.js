@@ -4,46 +4,32 @@ function goTo(page) {
 
 const cloudIcon = document.getElementById("cloud-status");
 
-// ============================
-// CONFIGURAZIONE FOGLIO
-// ============================
-const SPREADSHEET_ID = "1-IR2NTqTg57R3JovdQacis1v7MWG0XysT5f1kmTmAzI";
-const SHEET_NAME = "Impostazioni"; // nome foglio interno esatto
-
-// ============================
-// STATO CLOUD
-// ============================
 function setCloudStatus(status) {
   cloudIcon.className = `cloud-icon ${status}`;
 }
 
-// ============================
-// TEST CONNESSIONE CLOUD
-// ============================
-function checkCloud() {
+// URL del tuo Google Apps Script pubblicato
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec";
+
+async function testCloudConnection() {
   setCloudStatus("pending"); // grigia
 
-  // URL GViz JSONP
-  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json&callback=cloudCallback`;
+  try {
+    const res = await fetch(SHEET_JSON_URL);
+    const data = await res.json();
 
-  // crea uno script dinamico
-  const script = document.createElement("script");
-  script.src = url;
-  script.onerror = () => setCloudStatus("error"); // rossa se fallisce
-  document.body.appendChild(script);
-
-  // callback JSONP
-  window.cloudCallback = function(data) {
-    if (data.table && data.table.rows.length > 0) {
-      setCloudStatus("ok"); // verde se ci sono dati
+    if (data.length > 0) {
+      setCloudStatus("ok"); // verde
       console.log("✔ Cloud access OK");
     } else {
-      setCloudStatus("error"); // rossa se vuoto
-      console.error("✖ Foglio vuoto o non accessibile");
+      setCloudStatus("error"); // rossa
+      console.error("✖ Foglio vuoto");
     }
-    document.body.removeChild(script);
-  };
+  } catch (err) {
+    setCloudStatus("error"); // rossa
+    console.error("✖ Errore cloud:", err);
+  }
 }
 
-// Avvia test al caricamento della pagina
-checkCloud();
+// Avvia il test al caricamento della pagina
+testCloudConnection();
