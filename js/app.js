@@ -4,21 +4,31 @@ function goTo(page) {
 
 const cloudIcon = document.getElementById("cloud-status");
 
-/*
-  Stati possibili:
-  pending = grigio
-  ok = verde
-  error = rosso
-*/
+// Inserisci qui l’URL diretto al tuo Google Sheet pubblicato
+const SHEET_PUB_CSV = "https://docs.google.com/spreadsheets/d/1-IR2NTqTg57R3JovdQacis1v7MWG0XysT5f1kmTmAzI/pub?output=csv";
 
-// STATO INIZIALE
-cloudIcon.className = "cloud-icon pending";
-cloudIcon.title = "Cloud non configurato";
+function setCloudStatus(status) {
+  cloudIcon.className = `cloud-icon ${status}`;
+}
 
-// Quando collegheremo Google Sheets:
-// cloudIcon.className = "cloud-icon ok";
-// cloudIcon.title = "Cloud sincronizzato";
+async function testCloudConnection() {
+  setCloudStatus("pending");
+  try {
+    const response = await fetch(SHEET_PUB_CSV);
+    if (!response.ok) throw new Error("Network response not OK");
+    
+    // prova a leggere una riga
+    const text = await response.text();
+    if (text.length > 0) {
+      setCloudStatus("ok");
+      console.log("✔ Cloud access OK");
+    } else {
+      throw new Error("Foglio vuoto o non accessibile");
+    }
+  } catch (err) {
+    console.error("✖ Cloud access error:", err);
+    setCloudStatus("error");
+  }
+}
 
-// In caso di errore:
-// cloudIcon.className = "cloud-icon error";
-// cloudIcon.title = "Errore di sincronizzazione";
+testCloudConnection();
