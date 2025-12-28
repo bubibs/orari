@@ -74,24 +74,31 @@ async function calculateSalary(data, settings) {
         oreStraordinarie
     } = data;
     
-    // Base salary
-    const pagaBase = parseFloat(settings.pagaBase) || 2000;
-    const pagaOraria = parseFloat(settings.pagaOraria) || 12.5;
+    // Get reports to count travel days accurately and get settings from reports
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearSelect').value);
+    const reportsResult = await API.getReports({ month: month, year: year });
+    const reports = reportsResult.data || [];
+    
+    // Use settings from first report if available, otherwise use current settings
+    let effectiveSettings = settings;
+    if (reports.length > 0 && reports[0].settingsSnapshot) {
+        effectiveSettings = reports[0].settingsSnapshot;
+    }
+    
+    // Get paga base for this month/year
+    const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
+    const pagaBase = pagaBaseMensile || parseFloat(effectiveSettings.pagaBase) || 2000;
+    const pagaOraria = parseFloat(effectiveSettings.pagaOraria) || 12.5;
     
     // Overtime calculation (25% increase)
     const pagaOrariaMaggiorata = pagaOraria * 1.25;
     const valoreStraordinarie = oreStraordinarie * pagaOrariaMaggiorata;
     
     // Travel allowances
-    const indennitaRientro = parseFloat(settings.indennitaRientro) || 15;
-    const indennitaPernottamento = parseFloat(settings.indennitaPernottamento) || 50;
-    const indennitaEstero = parseFloat(settings.indennitaEstero) || 100;
-    
-    // Get reports to count travel days accurately
-    const month = parseInt(document.getElementById('monthSelect').value);
-    const year = parseInt(document.getElementById('yearSelect').value);
-    const reportsResult = await API.getReports({ month: month, year: year });
-    const reports = reportsResult.data || [];
+    const indennitaRientro = parseFloat(effectiveSettings.indennitaRientro) || 15;
+    const indennitaPernottamento = parseFloat(effectiveSettings.indennitaPernottamento) || 50;
+    const indennitaEstero = parseFloat(effectiveSettings.indennitaEstero) || 100;
     
     let giorniRientro = 0;
     let giorniPernottamento = 0;

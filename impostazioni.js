@@ -12,6 +12,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         await saveSettings();
     });
     
+    // Paga base mensile form submission
+    document.getElementById('pagaBaseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await savePagaBaseMensile();
+    });
+    
+    // Set current year as default
+    const currentYear = new Date().getFullYear();
+    document.getElementById('pagaBaseYear').value = currentYear;
+    const currentMonth = new Date().getMonth() + 1;
+    document.getElementById('pagaBaseMonth').value = currentMonth;
+    
     // Check sync every 30 seconds
     setInterval(checkCloudStatus, 30000);
 });
@@ -91,6 +103,32 @@ async function checkCloudStatus() {
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
         statusIcon.style.filter = 'none';
+    }
+}
+
+async function savePagaBaseMensile() {
+    const form = document.getElementById('pagaBaseForm');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const month = parseInt(document.getElementById('pagaBaseMonth').value);
+    const year = parseInt(document.getElementById('pagaBaseYear').value);
+    const pagaBase = parseFloat(document.getElementById('pagaBaseValue').value);
+    
+    try {
+        const result = await API.savePagaBaseMensile(month, year, pagaBase);
+        if (result.success) {
+            showNotification(`Paga base salvata per ${month}/${year}!`, 'success');
+            document.getElementById('pagaBaseValue').value = '';
+        } else {
+            showNotification('Errore nel salvataggio: ' + (result.error || 'Errore sconosciuto'), 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showNotification('Errore nel salvataggio', 'error');
     }
 }
 

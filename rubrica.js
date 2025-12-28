@@ -119,6 +119,10 @@ async function saveContact() {
             result = await API.saveContact(contactData);
         }
         
+        if (!result || !result.success) {
+            throw new Error(result?.error || 'Errore nel salvataggio');
+        }
+        
         showNotification('Contatto salvato con successo!', 'success');
         
         // Reset form
@@ -130,7 +134,8 @@ async function saveContact() {
         await loadContacts();
         
     } catch (error) {
-        showNotification('Errore nel salvataggio. Riprova.', 'error');
+        console.error('Save error:', error);
+        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');

@@ -29,9 +29,13 @@ const API = {
                     data: reportData
                 })
             });
+            if (!response.ok) {
+                throw new Error('Network error: ' + response.status);
+            }
             const result = await response.json();
             return result;
         } catch (error) {
+            console.error('Save report error:', error);
             return { success: false, error: error.toString() };
         }
     },
@@ -116,9 +120,13 @@ const API = {
                     data: contactData
                 })
             });
+            if (!response.ok) {
+                throw new Error('Network error: ' + response.status);
+            }
             const result = await response.json();
             return result;
         } catch (error) {
+            console.error('Save contact error:', error);
             return { success: false, error: error.toString() };
         }
     },
@@ -171,9 +179,13 @@ const API = {
                     id: id
                 })
             });
+            if (!response.ok) {
+                throw new Error('Network error');
+            }
             const result = await response.json();
             return result;
         } catch (error) {
+            console.error('Delete contact error:', error);
             return { success: false, error: error.toString() };
         }
     },
@@ -251,6 +263,49 @@ const API = {
                 indennitaEstero: 100,
                 aliquota: 25
             };
+        }
+    },
+
+    // Get paga base mensile
+    async getPagaBaseMensile(month, year) {
+        try {
+            const params = new URLSearchParams({ 
+                action: 'getPagaBaseMensile',
+                month: month,
+                year: year
+            });
+            const response = await fetch(`${API_BASE_URL}?${params}`, {
+                method: 'GET'
+            });
+            const result = await response.json();
+            if (result.success && result.data) {
+                return result.data;
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    },
+
+    // Save paga base mensile
+    async savePagaBaseMensile(month, year, pagaBase) {
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'savePagaBaseMensile',
+                    month: month,
+                    year: year,
+                    pagaBase: pagaBase
+                })
+            });
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            return { success: false, error: error.toString() };
         }
     },
 

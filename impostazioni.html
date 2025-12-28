@@ -57,6 +57,42 @@
 
                 <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
             </form>
+            
+            <div class="settings-section" style="margin-top: 30px;">
+                <h2>Paga Base Mensile</h2>
+                <p style="color: #666; margin-bottom: 15px;">Imposta la paga base per un mese/anno specifico. Questo valore avrà priorità sulle impostazioni generali per quel periodo.</p>
+                <form id="pagaBaseForm">
+                    <div class="form-group">
+                        <label for="pagaBaseMonth">Mese</label>
+                        <select id="pagaBaseMonth" name="pagaBaseMonth" required>
+                            <option value="1">Gennaio</option>
+                            <option value="2">Febbraio</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Aprile</option>
+                            <option value="5">Maggio</option>
+                            <option value="6">Giugno</option>
+                            <option value="7">Luglio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Settembre</option>
+                            <option value="10">Ottobre</option>
+                            <option value="11">Novembre</option>
+                            <option value="12">Dicembre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pagaBaseYear">Anno</label>
+                        <input type="number" id="pagaBaseYear" name="pagaBaseYear" min="2020" max="2100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pagaBaseValue">Paga Base (€)</label>
+                        <input type="number" id="pagaBaseValue" name="pagaBaseValue" step="0.01" min="0" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Salva Paga Base Mensile</button>
+                </form>
+            </div>
         </div>
     </div>
 

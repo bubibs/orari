@@ -230,12 +230,38 @@ async function saveReport() {
     }
     
     try {
+        // Get current settings to save with report
+        const settings = await API.getSettings();
+        const reportDate = new Date(reportData.data);
+        const month = reportDate.getMonth() + 1;
+        const year = reportDate.getFullYear();
+        
+        // Get paga base for this month/year
+        const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
+        
+        // Add settings values to report data
+        reportData.settingsSnapshot = {
+            pagaBase: pagaBaseMensile || settings.pagaBase,
+            pagaOraria: settings.pagaOraria,
+            indennitaRientro: settings.indennitaRientro,
+            indennitaPernottamento: settings.indennitaPernottamento,
+            indennitaEstero: settings.indennitaEstero,
+            aliquota: settings.aliquota,
+            month: month,
+            year: year
+        };
+        
         // Try cloud save first
         let result;
         if (editingReportId) {
             result = await API.updateReport(editingReportId, reportData);
         } else {
             result = await API.saveReport(reportData);
+        }
+        
+        // Check if save was successful
+        if (!result || !result.success) {
+            throw new Error(result?.error || 'Errore nel salvataggio');
         }
         
         // Save contact if new location
@@ -251,7 +277,8 @@ async function saveReport() {
         }, 1500);
         
     } catch (error) {
-        showNotification('Errore nel salvataggio. Riprova.', 'error');
+        console.error('Save error:', error);
+        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');
