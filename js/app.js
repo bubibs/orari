@@ -5,16 +5,16 @@ function goTo(page) {
 const cloudIcon = document.getElementById("cloud-status");
 const fraseElem = document.getElementById("frase-motivazionale");
 
-// URL Google Apps Script
+// URL del tuo Apps Script pubblicato
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec";
 
-// Funzione cloud
+// Controllo nuvola
 async function testCloudConnection() {
   cloudIcon.className = "cloud-icon pending";
   try {
     const res = await fetch(SHEET_JSON_URL);
     const data = await res.json();
-    if (data.length > 0) cloudIcon.className = "cloud-icon ok";
+    if (data && data.length > 0) cloudIcon.className = "cloud-icon ok";
     else cloudIcon.className = "cloud-icon error";
   } catch (err) {
     cloudIcon.className = "cloud-icon error";
@@ -22,7 +22,7 @@ async function testCloudConnection() {
   }
 }
 
-// Frase motivazionale dal web
+// Frase motivazionale solo dal web
 async function mostraFraseWeb() {
   try {
     const response = await fetch("https://type.fit/api/quotes");
