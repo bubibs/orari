@@ -31,11 +31,7 @@ async function mostraFraseWeb() {
     fraseElem.innerText = `"${frase.text}" - ${frase.author || "Anonimo"}`;
   } catch (err) {
     console.error("Errore fetch frase:", err);
-    const fallback = [
-      "Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.",
-      "Non aspettare l'opportunità, creala."
-    ];
-    fraseElem.innerText = fallback[Math.floor(Math.random() * fallback.length)];
+    fraseElem.innerText = "Caricamento frase non disponibile";
   }
 }
 
