@@ -4,87 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TECNOSISTEM - The Italian Job</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  transition: background 0.3s, color 0.3s;
-}
-
-@media (prefers-color-scheme: dark) {
-  body { background-color: #111; color: white; }
-}
-@media (prefers-color-scheme: light) {
-  body { background-color: #f5f5f5; color: black; }
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 400px;
-  margin-bottom: 10px;
-}
-
-.title-container {
-  display: flex;
-  flex-direction: column;
-}
-
-h1 { font-size: 2rem; margin: 0; }
-h2 { font-size: 1rem; font-style: italic; margin: 0; }
-
-#cloud-status {
-  font-size: 2rem;
-  transition: color 0.3s;
-}
-.cloud-icon.pending { color: gray; }
-.cloud-icon.ok { color: green; }
-.cloud-icon.error { color: red; }
-
-#frase-motivazionale {
-  text-align: center;
-  margin: 15px 0 20px 0;
-}
-
-.btn-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 350px;
-  margin-top: 20px;
-}
-
-button {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  padding: 15px;
-  margin: 10px 0;
-  font-size: 1.2rem;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-button:hover { transform: scale(1.03); }
-
-button svg { width: 24px; height: 24px; margin-right: 10px; fill: white; }
-
-.btn-report { background-color: #ff9800; color: white; }
-.btn-economy { background-color: #03a9f4; color: white; }
-.btn-settings { background-color: #4caf50; color: white; }
-.btn-clients { background-color: #9c27b0; color: white; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -117,49 +37,6 @@ button svg { width: 24px; height: 24px; margin-right: 10px; fill: white; }
   </button>
 </div>
 
-<script>
-function goTo(page) {
-  window.location.href = page;
-}
-
-const cloudIcon = document.getElementById("cloud-status");
-const fraseElem = document.getElementById("frase-motivazionale");
-
-// URL CSV pubblicato
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSk18AbYypWlNTxK9KzWVRSImHV847cAvhIpUn9aZu1Wgi9OKl27-4S6AK2NfXSO2yI0bdvqjVHKgQa/pub?output=csv";
-
-// Nuvola cloud semplice
-async function testCloudConnection() {
-  cloudIcon.className = "cloud-icon pending";
-  try {
-    const res = await fetch(SHEET_CSV_URL);
-    const text = await res.text();
-    if (text && text.length > 0) {
-      cloudIcon.className = "cloud-icon ok"; // verde
-    } else {
-      cloudIcon.className = "cloud-icon error"; // rosso
-    }
-  } catch (err) {
-    cloudIcon.className = "cloud-icon error"; // rosso
-    console.error("Errore cloud:", err);
-  }
-}
-
-// Frase motivazionale dal web
-async function mostraFraseWeb() {
-  try {
-    const response = await fetch("https://type.fit/api/quotes");
-    const quotes = await response.json();
-    const frase = quotes[Math.floor(Math.random() * quotes.length)];
-    fraseElem.innerText = `"${frase.text}" - ${frase.author || "Anonimo"}`;
-  } catch (err) {
-    console.error("Errore fetch frase:", err);
-    fraseElem.innerText = "Caricamento frase non disponibile";
-  }
-}
-
-testCloudConnection();
-mostraFraseWeb();
-</script>
+<script src="js/app.js"></script>
 </body>
 </html>
