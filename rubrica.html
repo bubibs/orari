@@ -1,54 +1,58 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rubrica - Tecnosistem</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/rubrica.css">
-</head>
-<body>
-    <div class="container">
-        <header class="header-back">
-            <a href="index.html"><i class="fas fa-chevron-left"></i> Home</a>
-            <div class="sync-status-wrapper">
-                <span id="sync-text">Connesso</span>
-                <i id="sync-indicator" class="fas fa-cloud"></i>
-            </div>
-        </header>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 
-        <div class="card card-accent">
-            <h2 id="form-title">Gestione Contatto</h2>
-            
-            <div class="form-group">
-                <label>Ragione Sociale / Nome</label>
-                <input type="text" id="add-nome" placeholder="es. Officina Meccanica">
-            </div>
+document.addEventListener('DOMContentLoaded', caricaRubrica);
 
-            <div class="row-2">
-                <div class="form-group"><label>Via e Civico</label><input type="text" id="add-via"></div>
-                <div class="form-group"><label>Città</label><input type="text" id="add-citta"></div>
-            </div>
+function updateSyncStatus(status) {
+    const icon = document.getElementById('sync-icon');
+    if (!icon) return;
+    icon.className = "fas";
+    if (status === 'working') {
+        icon.classList.add('fa-sync', 'fa-spin');
+        icon.style.color = "#FFCC00"; // GIALLO
+    } else if (status === 'success') {
+        icon.classList.add('fa-cloud');
+        icon.style.color = "#34C759"; // VERDE
+    } else {
+        icon.classList.add('fa-exclamation-triangle');
+        icon.style.color = "#FF3B30"; // ROSSO
+    }
+}
 
-            <div class="row-2">
-                <div class="form-group"><label>Referente</label><input type="text" id="add-ref"></div>
-                <div class="form-group"><label>Telefono</label><input type="tel" id="add-tel"></div>
-            </div>
+async function caricaRubrica() {
+    updateSyncStatus('working');
+    try {
+        const r = await fetch(`${WEB_APP_URL}?azione=leggi_rubrica`);
+        const res = await r.json();
+        if (res.success) {
+            const cont = document.getElementById('lista-contatti');
+            cont.innerHTML = res.dati.map(c => `
+                <div class="card-contatto">
+                    <strong>${c.nome}</strong> - ${c.ruolo}
+                    <a href="tel:${c.tel}"><i class="fas fa-phone"></i></a>
+                </div>`).join('');
+            updateSyncStatus('success');
+        }
+    } catch (e) { updateSyncStatus('error'); }
+}
 
-            <button class="btn-main" id="btn-save" onclick="azioneSalva()">
-                SALVA NEL CLOUD
-            </button>
-        </div>
+async function aggiungiContatto() {
+    const btn = document.getElementById('btn-salva');
+    btn.disabled = true; // Previene doppio click
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVO...';
+    
+    const dati = {
+        azione: 'salva_contatto',
+        nome: document.getElementById('nome').value,
+        tel: document.getElementById('tel').value,
+        ruolo: document.getElementById('ruolo').value
+    };
 
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="search-input" placeholder="Cerca cliente o città..." onkeyup="filtraRubrica()">
-        </div>
-
-        <div id="lista-rubrica">
-            <p style="text-align:center; padding:20px; color:var(--subtext)">Caricamento dati...</p>
-        </div>
-    </div>
-    <script src="js/rubrica.js"></script>
-</body>
-</html>
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dati) });
+        updateSyncStatus('success');
+        setTimeout(() => { location.reload(); }, 1000);
+    } catch (e) {
+        updateSyncStatus('error');
+        btn.disabled = false;
+    }
+}
