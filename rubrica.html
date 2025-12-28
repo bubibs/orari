@@ -3,65 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rubrica iPhone</title>
+    <title>Rubrica Aziendale</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <style>
-        :root {
-            --ios-blue: #007AFF;
-            --ios-bg: #F2F2F7;
-            --ios-card: #FFFFFF;
-        }
-
+        :root { --ios-blue: #007AFF; --ios-bg: #F2F2F7; --ios-card: #FFFFFF; }
+        
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+            font-family: -apple-system, system-ui, sans-serif; 
             background: var(--ios-bg); 
             margin: 0; 
-            padding: 15px;
-            -webkit-tap-highlight-color: transparent;
+            padding: 15px; 
+            color: #1C1C1E;
         }
 
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 5px; }
-        
-        /* SISTEMAZIONE SCRITTA CLOUD */
+        /* Cloud Status Header */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .sync-box { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            background: var(--ios-card); 
-            padding: 8px 15px; 
-            border-radius: 20px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            display: flex; align-items: center; gap: 8px; 
+            background: var(--ios-card); padding: 8px 15px; 
+            border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
         }
-        #sync-text { color: #1C1C1E; font-size: 0.8rem; font-weight: 600; }
+        #sync-text { font-size: 0.8rem; font-weight: 600; color: #3A3A3C; }
 
+        /* Search Bar */
+        .search-container { margin-bottom: 15px; }
+        #search-input { 
+            width: 100%; padding: 12px; border-radius: 10px; 
+            border: 1px solid #D1D1D6; font-size: 16px; 
+            box-sizing: border-box; background: #FFF;
+        }
+
+        /* Contact Cards */
         .contatto-card { 
-            background: var(--ios-card); 
-            padding: 16px; 
-            border-radius: 12px; 
-            margin-bottom: 10px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
+            background: var(--ios-card); padding: 16px; 
+            border-radius: 14px; margin-bottom: 12px; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
         }
 
-        .contatto-info strong { display: block; font-size: 1.1rem; color: #000; }
-        .contatto-info span { color: #8E8E93; font-size: 0.9rem; }
+        .main-row { display: flex; justify-content: space-between; align-items: center; }
+        .info strong { display: block; font-size: 1.1rem; color: #000; }
+        .info span { color: #8E8E93; font-size: 0.9rem; font-weight: 500; }
+
+        /* Extra Details (Indirizzo/Referente) */
+        .details { 
+            margin-top: 12px; padding-top: 10px; 
+            border-top: 1px solid #F2F2F7; 
+            font-size: 0.85rem; color: #3A3A3C;
+        }
+        .details p { margin: 4px 0; display: flex; align-items: center; gap: 8px; }
+        .details i { color: var(--ios-blue); width: 14px; }
 
         .btn-call { 
-            background: #34C759; 
-            color: white; 
-            width: 44px; /* Dimensione perfetta per il pollice */
-            height: 44px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            text-decoration: none; 
-            font-size: 1.2rem;
+            background: #34C759; color: white; 
+            width: 44px; height: 44px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            text-decoration: none; font-size: 1.2rem;
         }
 
-        /* Animazione caricamento */
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .fa-spin { animation: spin 1s linear infinite; }
     </style>
@@ -71,10 +70,14 @@
     <header>
         <h1 style="margin:0; font-size: 1.6rem;">Rubrica</h1>
         <div class="sync-box">
-            <i id="sync-icon" class="fas fa-cloud" style="color: #34C759;"></i>
-            <span id="sync-text">Sincronizzato</span>
+            <i id="sync-icon" class="fas fa-cloud"></i>
+            <span id="sync-text">Sincronizzazione...</span>
         </div>
     </header>
+
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Cerca nome o ruolo..." onkeyup="filtraContatti()">
+    </div>
 
     <div id="lista-contatti">
         </div>
