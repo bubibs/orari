@@ -3,44 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TECNOSISTEM</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>TECNOSISTEM - The Italian Job</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: normal;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    .cloud-icon {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      transition: color 0.3s;
+    }
+
+    .cloud-icon.pending { color: white; }
+    .cloud-icon.ok { color: #00ff00; }      /* verde */
+    .cloud-icon.error { color: red; }      /* rosso */
+
+    button {
+      padding: 1rem 2rem;
+      margin: 0.5rem;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .btn-report { background-color: #ff9800; color: white; }
+    .btn-economy { background-color: #03a9f4; color: white; }
+    .btn-settings { background-color: #4caf50; color: white; }
+    .btn-clients { background-color: #9c27b0; color: white; }
+  </style>
 </head>
 <body>
 
-  <div class="app">
+  <h1>TECNOSISTEM</h1>
+  <h2>The Italian Job</h2>
 
-    <header class="topbar">
-      <div class="title">
-        <h1 class="brand">TECNOSISTEM</h1>
-        <span class="subtitle">The Italian Job</span>
-      </div>
+  <div id="cloud-status" class="cloud-icon pending">☁️</div>
 
-      <!-- NUVOLETTA CLOUD -->
-      <div id="cloud-status" class="cloud-icon pending" title="Connessione al cloud">
-        ☁️
-      </div>
-    </header>
-
-    <main class="content">
-
-      <div class="quote-card">
-        <p id="daily-quote">Caricamento frase motivazionale...</p>
-        <span id="quote-author"></span>
-      </div>
-
-      <div class="dashboard">
-        <button onclick="goTo('report.html')">➕ Nuovo Report</button>
-        <button onclick="goTo('andamento.html')">📊 Andamento Economico</button>
-        <button onclick="goTo('clienti.html')">👥 Clienti</button>
-        <button onclick="goTo('impostazioni.html')">⚙️ Impostazioni</button>
-      </div>
-
-    </main>
-
+  <div>
+    <button class="btn-report" onclick="goTo('nuovo_report.html')">Nuovo Report</button>
+    <button class="btn-economy" onclick="goTo('andamento.html')">Andamento Economico</button>
+    <button class="btn-settings" onclick="goTo('impostazioni.html')">Impostazioni</button>
+    <button class="btn-clients" onclick="goTo('clienti.html')">Clienti</button>
   </div>
 
-  <script src="js/quotes.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
