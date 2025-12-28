@@ -4,34 +4,48 @@ function goTo(page) {
 
 const cloudIcon = document.getElementById("cloud-status");
 
-// LINK CSV pubblico del tuo Google Sheet
-const SHEET_PUB_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSk18AbYypWlNTxK9KzWVRSImHV847cAvhIpUn9aZu1Wgi9OKl27-4S6AK2NfXSO2yI0bdvqjVHKgQa/pub?output=csv";
+// ============================
+// CONFIGURAZIONE FOGLIO
+// ============================
 
+// Usa l'ID classico del tuo documento Google Sheet
+const SPREADSHEET_ID = "1-IR2NTqTg57R3JovdQacis1v7MWG0XysT5f1kmTmAzI";
+const SHEET_NAME = "Reports"; // nome esatto del foglio
+
+// ============================
+// STATO CLOUD
+// ============================
 function setCloudStatus(status) {
   cloudIcon.className = `cloud-icon ${status}`;
 }
 
-// Test connessione al cloud
-async function testCloudConnection() {
+// ============================
+// TEST CONNESSIONE CLOUD
+// ============================
+function checkCloud() {
   setCloudStatus("pending"); // grigia
 
-  try {
-    const response = await fetch(SHEET_PUB_CSV);
-    if (!response.ok) throw new Error("Network response not OK");
+  // URL GViz JSONP
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json&callback=cloudCallback`;
 
-    const text = await response.text();
+  // crea uno script dinamico
+  const script = document.createElement("script");
+  script.src = url;
+  script.onerror = () => setCloudStatus("error"); // rossa se fallisce
+  document.body.appendChild(script);
 
-    if (text.length > 0) {
-      setCloudStatus("ok"); // verde
+  // callback JSONP
+  window.cloudCallback = function(data) {
+    if (data.table && data.table.rows.length > 0) {
+      setCloudStatus("ok"); // verde se ci sono dati
       console.log("✔ Cloud access OK");
     } else {
-      throw new Error("Foglio vuoto o non accessibile");
+      setCloudStatus("error"); // rossa se vuoto
+      console.error("✖ Foglio vuoto o non accessibile");
     }
-  } catch (err) {
-    console.error("✖ Cloud access error:", err);
-    setCloudStatus("error"); // rossa
-  }
+    document.body.removeChild(script);
+  };
 }
 
-// Avvia il test al caricamento della pagina
-testCloudConnection();
+// Avvia test al caricamento della pagina
+checkCloud();
