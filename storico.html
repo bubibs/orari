@@ -2,73 +2,97 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storico e Calcoli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Storico iPhone</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <style>
-        /* Stile rapido per il Cloud e il Modale */
-        .sync-box { display: flex; align-items: center; gap: 10px; background: white; padding: 10px 20px; border-radius: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: fit-content; }
-        .card { background: white; border-radius: 15px; padding: 20px; margin: 15px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        #settings-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 30px; color: white; overflow-y: auto; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { cursor: pointer; border-radius: 8px; font-weight: bold; }
-        .btn-main { background: #007AFF; color: white; border: none; padding: 15px; width: 100%; }
-        .btn-main:disabled { background: #8E8E93; }
+        :root { --ios-blue: #007AFF; --ios-bg: #F2F2F7; --card: #FFFFFF; }
+        body { font-family: -apple-system, sans-serif; background: var(--ios-bg); margin: 0; padding: 15px; color: #1C1C1E; }
+        
+        /* Header & Cloud Status */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .sync-box { display: flex; align-items: center; gap: 8px; background: var(--card); padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        #sync-text { color: #3A3A3C; font-size: 0.8rem; font-weight: 600; }
+        
+        /* Cards */
+        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        h4 { margin: 0 0 12px 0; color: #8E8E93; text-transform: uppercase; font-size: 0.75rem; }
+
+        /* iPhone Inputs */
+        input, select { 
+            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #D1D1D6; 
+            border-radius: 10px; font-size: 16px !important; /* Evita zoom iOS */
+            background: #FFF; -webkit-appearance: none; 
+        }
+
+        .btn-ios { 
+            width: 100%; padding: 15px; background: var(--ios-blue); color: white; 
+            border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+            transition: opacity 0.2s; touch-action: manipulation;
+        }
+        .btn-ios:active { opacity: 0.6; }
+        .btn-ios:disabled { background: #AEAEB2; }
+
+        /* Modal Settings */
+        #settings-panel { 
+            display: none; position: fixed; inset: 0; background: var(--ios-bg); 
+            z-index: 2000; padding: 20px; overflow-y: auto;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .fa-spin { animation: spin 1s linear infinite; }
     </style>
 </head>
-<body style="background: #F2F2F7; font-family: sans-serif; padding: 15px;">
+<body>
 
-    <header style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Storico Lavoro</h2>
+    <div class="header">
+        <h1 style="font-size: 1.5rem; margin:0;">Registro</h1>
         <div class="sync-box">
             <i id="sync-icon" class="fas fa-cloud" style="color: #34C759;"></i>
-            <span style="font-size: 0.8rem;">Cloud Sync</span>
+            <span id="sync-text">Connesso</span>
         </div>
-    </header>
+    </div>
 
     <div class="card">
-        <h4>Aggiungi Giorno</h4>
+        <h4>Nuovo Ingresso</h4>
         <input type="date" id="input-data">
-        <input type="text" id="input-posizione" list="elenco-localita" placeholder="Città o Cantiere...">
+        <input type="text" id="input-posizione" list="elenco-localita" placeholder="Città o Cantiere">
         <datalist id="elenco-localita"></datalist>
-        
         <select id="input-tipo">
             <option value="Sede">Sede</option>
             <option value="Rientro">Rientro</option>
             <option value="Pernottamento">Pernottamento</option>
-            <option value="Estero">Estero</option>
         </select>
-        <input type="number" id="input-ore" placeholder="Ore Straord.">
-        <button class="btn-main" style="margin-top:10px;">AGGIUNGI</button>
+        <input type="number" id="input-ore" placeholder="Ore Straordinarie">
+        <button class="btn-ios" onclick="aggiungiLavoro()">Aggiungi Lavoro</button>
     </div>
 
-    <div class="card">
-        <div style="display: flex; gap: 10px;">
+    <div class="card" style="text-align: center;">
+        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
             <select id="filtro-mese" onchange="caricaDatiSito()"></select>
             <select id="filtro-anno" onchange="caricaDatiSito()"></select>
         </div>
-        <div style="text-align: center; padding: 20px;">
-            <small>Netto Stimato</small>
-            <h1 id="valore-netto" style="color: #007AFF; margin: 5px 0;">€ 0,00</h1>
-        </div>
-        <button onclick="toggleSettings()" style="width: 100%; padding: 10px; background: none; border: 1px solid #007AFF; color: #007AFF;">⚙️ Configura Tariffe</button>
+        <small style="color: #8E8E93;">Netto Stimato</small>
+        <div id="valore-netto" style="font-size: 2rem; font-weight: 800; color: var(--ios-blue);">€ 0,00</div>
+        <button onclick="toggleSettings()" style="margin-top:15px; background:none; border:none; color:var(--ios-blue); font-size:0.9rem;">⚙️ Tariffe Cloud</button>
     </div>
 
     <div id="settings-panel">
-        <h3>Impostazioni Cloud</h3>
-        <p>Modifica le tariffe che verranno usate per i calcoli.</p>
-        <label>Base Stipendio (€)</label> <input type="number" id="base-mensile">
-        <label>Ora 25% (€)</label> <input type="number" id="t-25">
-        <label>Ora 50% (€)</label> <input type="number" id="t-50">
-        <label>Tasse (%)</label> <input type="number" id="tasse">
-        <label>Ind. Rientro (€)</label> <input type="number" id="i-rie">
-        <label>Ind. Pernott. (€)</label> <input type="number" id="i-per">
-        <label>Ind. Estero (€)</label> <input type="number" id="i-est">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Tariffe Cloud</h2>
+            <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.5rem;">✕</button>
+        </div>
+        <label>Base Mensile</label><input type="number" id="base-mensile">
+        <label>Straord. 25%</label><input type="number" id="t-25">
+        <label>Straord. 50%</label><input type="number" id="t-50">
+        <label>Tasse %</label><input type="number" id="tasse">
+        <label>Ind. Rientro</label><input type="number" id="i-rie">
+        <label>Ind. Pernott.</label><input type="number" id="i-per">
+        <label>Ind. Estero</label><input type="number" id="i-est">
         
-        <button id="btn-salva-cloud" class="btn-main" onclick="salvaTariffeCloud()" style="background: #34C759; margin-top: 20px;">
-            SALVA NEL CLOUD
+        <button id="btn-salva-cloud" class="btn-ios" onclick="salvaTariffeCloud()" style="background:#34C759; margin-top:20px;">
+            <i class="fas fa-save"></i> SALVA NEL CLOUD
         </button>
-        <button onclick="toggleSettings()" style="width: 100%; margin-top: 15px; background: none; border: none; color: white;">Annulla</button>
     </div>
 
     <script src="js/config.js"></script>
