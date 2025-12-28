@@ -41,10 +41,21 @@
             <select id="yearSelect"></select>
         </div>
 
-        <button class="btn btn-secondary" onclick="window.location.href='impostazioni.html'">Impostazioni</button>
+        <div class="button-group" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn btn-secondary" onclick="window.location.href='impostazioni.html'">Impostazioni</button>
+            <button class="btn btn-primary" id="viewAnnualBtn" onclick="toggleAnnualView()">Vista Annuale</button>
+        </div>
 
         <div class="salary-summary" id="salarySummary">
             <p>Seleziona mese e anno per visualizzare i dati</p>
+        </div>
+        
+        <div class="annual-view" id="annualView" style="display: none;">
+            <h2>Stipendi Annuali - <span id="selectedYear"></span></h2>
+            <div id="annualChart" style="margin: 20px 0; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <canvas id="salaryChart"></canvas>
+            </div>
+            <div id="annualSummary"></div>
         </div>
     </div>
 

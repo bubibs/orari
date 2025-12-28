@@ -15,12 +15,246 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSalaryData();
     
     // Event listeners
-    document.getElementById('monthSelect').addEventListener('change', loadSalaryData);
-    document.getElementById('yearSelect').addEventListener('change', loadSalaryData);
+    document.getElementById('monthSelect').addEventListener('change', () => {
+        if (!annualViewVisible) {
+            loadSalaryData();
+        }
+    });
+    document.getElementById('yearSelect').addEventListener('change', () => {
+        if (annualViewVisible) {
+            loadAnnualData();
+        } else {
+            loadSalaryData();
+        }
+    });
     
     // Check sync every 30 seconds
     setInterval(checkCloudStatus, 30000);
 });
+
+let annualViewVisible = false;
+let chartInstance = null;
+
+function toggleAnnualView() {
+    annualViewVisible = !annualViewVisible;
+    const annualView = document.getElementById('annualView');
+    const salarySummary = document.getElementById('salarySummary');
+    const viewBtn = document.getElementById('viewAnnualBtn');
+    
+    if (annualViewVisible) {
+        annualView.style.display = 'block';
+        salarySummary.style.display = 'none';
+        viewBtn.textContent = 'Vista Mensile';
+        loadAnnualData();
+    } else {
+        annualView.style.display = 'none';
+        salarySummary.style.display = 'block';
+        viewBtn.textContent = 'Vista Annuale';
+        if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+        }
+    }
+}
+
+async function loadAnnualData() {
+    const year = parseInt(document.getElementById('yearSelect').value);
+    const annualSummary = document.getElementById('annualSummary');
+    const selectedYear = document.getElementById('selectedYear');
+    
+    selectedYear.textContent = year;
+    annualSummary.innerHTML = '<p>Caricamento dati annuali...</p>';
+    
+    // Set canvas size
+    const canvas = document.getElementById('salaryChart');
+    canvas.width = Math.min(window.innerWidth - 60, 600);
+    canvas.height = 300;
+    
+    try {
+        const settings = await API.getSettings();
+        const months = [];
+        const lordoData = [];
+        const nettoData = [];
+        let totalLordo = 0;
+        let totalNetto = 0;
+        
+        for (let month = 1; month <= 12; month++) {
+            const result = await API.getSalaryData(month, year);
+            if (result.success && result.data) {
+                const data = result.data;
+                const reportsResult = await API.getReports({ month: month, year: year });
+                const reports = reportsResult.data || [];
+                
+                // Get effective settings
+                let effectiveSettings = settings;
+                if (reports.length > 0 && reports[0].settingsSnapshot) {
+                    effectiveSettings = reports[0].settingsSnapshot;
+                }
+                
+                // Get paga base for this month
+                const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
+                const pagaBase = pagaBaseMensile || parseFloat(effectiveSettings.pagaBase) || 2000;
+                const pagaOraria = parseFloat(effectiveSettings.pagaOraria) || 12.5;
+                const pagaOrariaMaggiorata = pagaOraria * 1.25;
+                const valoreStraordinarie = data.oreStraordinarie * pagaOrariaMaggiorata;
+                
+                const indennitaRientro = parseFloat(effectiveSettings.indennitaRientro) || 15;
+                const indennitaPernottamento = parseFloat(effectiveSettings.indennitaPernottamento) || 50;
+                const indennitaEstero = parseFloat(effectiveSettings.indennitaEstero) || 100;
+                
+                let giorniRientro = 0;
+                let giorniPernottamento = 0;
+                let giorniEstero = 0;
+                
+                reports.forEach(report => {
+                    if (!report.assenza) {
+                        if (report.tipoLavoro === 'trasferta con rientro') {
+                            giorniRientro++;
+                        } else if (report.tipoLavoro === 'trasferta con pernottamento') {
+                            giorniPernottamento++;
+                        } else if (report.tipoLavoro === 'trasferta estero') {
+                            giorniEstero++;
+                        }
+                    }
+                });
+                
+                const valoreIndennitaRientro = giorniRientro * indennitaRientro;
+                const valoreIndennitaPernottamento = giorniPernottamento * indennitaPernottamento;
+                const valoreIndennitaEstero = giorniEstero * indennitaEstero;
+                
+                const lordo = pagaBase + valoreStraordinarie + valoreIndennitaRientro + 
+                              valoreIndennitaPernottamento + valoreIndennitaEstero;
+                
+                const aliquota = parseFloat(effectiveSettings.aliquota) || 25;
+                const tasse = lordo * (aliquota / 100);
+                const netto = lordo - tasse;
+                
+                const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                months.push(monthNames[month - 1]);
+                lordoData.push(Math.round(lordo * 100) / 100);
+                nettoData.push(Math.round(netto * 100) / 100);
+                totalLordo += lordo;
+                totalNetto += netto;
+            } else {
+                const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                months.push(monthNames[month - 1]);
+                lordoData.push(0);
+                nettoData.push(0);
+            }
+        }
+        
+        // Draw chart
+        drawChart(months, lordoData, nettoData);
+        
+        // Display summary
+        annualSummary.innerHTML = `
+            <div class="salary-total" style="margin-top: 20px;">
+                <div class="salary-row">
+                    <span class="salary-label">Totale Lordo Annuale</span>
+                    <span class="salary-value" style="color: var(--accent-color);">€${Math.round(totalLordo * 100) / 100}</span>
+                </div>
+                <div class="salary-row">
+                    <span class="salary-label">Totale Netto Annuale</span>
+                    <span class="salary-value" style="color: var(--success-color);">€${Math.round(totalNetto * 100) / 100}</span>
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading annual data:', error);
+        annualSummary.innerHTML = '<p style="color: var(--error-color);">Errore nel caricamento dei dati annuali</p>';
+    }
+}
+
+function drawChart(months, lordoData, nettoData) {
+    const canvas = document.getElementById('salaryChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 50;
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2;
+    
+    // Find max value
+    const maxValue = Math.max(...lordoData, ...nettoData, 1);
+    const step = maxValue / 5;
+    
+    // Draw grid and labels
+    ctx.strokeStyle = '#ddd';
+    ctx.fillStyle = '#666';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    
+    for (let i = 0; i <= 5; i++) {
+        const y = padding + chartHeight - (i * chartHeight / 5);
+        const value = Math.round(i * step);
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+        ctx.fillText('€' + value.toLocaleString('it-IT'), padding - 10, y);
+    }
+    
+    // Draw bars
+    const barWidth = Math.min(chartWidth / months.length / 2.5, 20);
+    const spacing = barWidth / 2;
+    const totalBarWidth = barWidth * 2 + spacing;
+    const startX = padding + (chartWidth - (totalBarWidth * months.length)) / 2;
+    
+    months.forEach((month, index) => {
+        const x = startX + index * totalBarWidth + spacing;
+        
+        // Lordo bar
+        const lordoHeight = lordoData[index] > 0 ? (lordoData[index] / maxValue) * chartHeight : 0;
+        ctx.fillStyle = '#0f3460';
+        ctx.fillRect(x, padding + chartHeight - lordoHeight, barWidth, lordoHeight);
+        
+        // Netto bar
+        const nettoHeight = nettoData[index] > 0 ? (nettoData[index] / maxValue) * chartHeight : 0;
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(x + barWidth, padding + chartHeight - nettoHeight, barWidth, nettoHeight);
+        
+        // Month label
+        ctx.fillStyle = '#333';
+        ctx.textAlign = 'center';
+        ctx.font = '11px Arial';
+        ctx.fillText(month, x + barWidth, height - 20);
+        
+        // Values on bars
+        if (lordoData[index] > 0) {
+            ctx.fillStyle = '#fff';
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('€' + Math.round(lordoData[index]).toLocaleString('it-IT'), x + barWidth/2, padding + chartHeight - lordoHeight - 8);
+        }
+        if (nettoData[index] > 0) {
+            ctx.fillStyle = '#fff';
+            ctx.font = '9px Arial';
+            ctx.fillText('€' + Math.round(nettoData[index]).toLocaleString('it-IT'), x + barWidth + barWidth/2, padding + chartHeight - nettoHeight - 8);
+        }
+    });
+    
+    // Legend
+    const legendX = width - 130;
+    ctx.fillStyle = '#0f3460';
+    ctx.fillRect(legendX, 15, 15, 15);
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'left';
+    ctx.font = '12px Arial';
+    ctx.fillText('Lordo', legendX + 20, 22);
+    
+    ctx.fillStyle = '#4caf50';
+    ctx.fillRect(legendX, 35, 15, 15);
+    ctx.fillStyle = '#333';
+    ctx.fillText('Netto', legendX + 20, 42);
+}
 
 function setupYearSelector() {
     const yearSelect = document.getElementById('yearSelect');

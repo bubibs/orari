@@ -90,6 +90,9 @@ const API = {
     // Delete report
     async deleteReport(id) {
         try {
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
+            }
             const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: {
@@ -97,12 +100,25 @@ const API = {
                 },
                 body: JSON.stringify({
                     action: 'deleteReport',
-                    id: id
+                    id: String(id)
                 })
             });
-            const result = await response.json();
+            if (!response.ok) {
+                throw new Error('Network error: ' + response.status);
+            }
+            const text = await response.text();
+            if (!text) {
+                throw new Error('Risposta vuota dal server');
+            }
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                throw new Error('Risposta non valida: ' + text.substring(0, 100));
+            }
             return result;
         } catch (error) {
+            console.error('Delete report error:', error);
             return { success: false, error: error.toString() };
         }
     },
@@ -169,6 +185,9 @@ const API = {
     // Delete contact
     async deleteContact(id) {
         try {
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
+            }
             const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: {
@@ -176,13 +195,16 @@ const API = {
                 },
                 body: JSON.stringify({
                     action: 'deleteContact',
-                    id: id
+                    id: String(id)
                 })
             });
             if (!response.ok) {
-                throw new Error('Network error');
+                throw new Error('Network error: ' + response.status);
             }
             const result = await response.json();
+            if (!result) {
+                throw new Error('Risposta vuota dal server');
+            }
             return result;
         } catch (error) {
             console.error('Delete contact error:', error);

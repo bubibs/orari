@@ -242,18 +242,35 @@ function updateReport(id, reportData) {
 
 function deleteReport(id) {
   try {
+    if (!id) {
+      return { success: false, error: 'ID mancante' };
+    }
+    
     var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_REPORTS);
+    if (!sheet) {
+      return { success: false, error: 'Foglio Reports non trovato' };
+    }
+    
     var data = sheet.getDataRange().getValues();
     var i;
+    var found = false;
+    
+    // Convert id to string for comparison
+    var idStr = String(id);
     
     for (i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
+      if (String(data[i][0]) === idStr) {
         sheet.deleteRow(i + 1);
-        return { success: true };
+        found = true;
+        break;
       }
     }
     
-    return { success: false, error: 'Report not found' };
+    if (found) {
+      return { success: true };
+    } else {
+      return { success: false, error: 'Report non trovato con ID: ' + idStr };
+    }
   } catch (error) {
     return { success: false, error: error.toString() };
   }
@@ -350,18 +367,35 @@ function updateContact(id, contactData) {
 
 function deleteContact(id) {
   try {
+    if (!id) {
+      return { success: false, error: 'ID mancante' };
+    }
+    
     var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_CONTACTS);
+    if (!sheet) {
+      return { success: false, error: 'Foglio Contacts non trovato' };
+    }
+    
     var data = sheet.getDataRange().getValues();
     var i;
+    var found = false;
+    
+    // Convert id to string for comparison
+    var idStr = String(id);
     
     for (i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
+      if (String(data[i][0]) === idStr) {
         sheet.deleteRow(i + 1);
-        return { success: true };
+        found = true;
+        break;
       }
     }
     
-    return { success: false, error: 'Contact not found' };
+    if (found) {
+      return { success: true };
+    } else {
+      return { success: false, error: 'Contatto non trovato con ID: ' + idStr };
+    }
   } catch (error) {
     return { success: false, error: error.toString() };
   }
