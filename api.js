@@ -19,6 +19,12 @@ const API = {
     // Save report
     async saveReport(reportData) {
         try {
+            if (!reportData) {
+                return { success: false, error: 'No data provided' };
+            }
+            
+            console.log('Saving report:', reportData);
+            
             const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: {
@@ -30,11 +36,17 @@ const API = {
                 })
             });
             
+            console.log('Response status:', response.status, response.statusText);
+            
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             const text = await response.text();
+            console.log('Response text:', text.substring(0, 200));
+            
             if (!text || text.trim() === '') {
                 throw new Error('Risposta vuota dal server');
             }
@@ -44,9 +56,10 @@ const API = {
                 result = JSON.parse(text);
             } catch (parseError) {
                 console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
-                throw new Error('Risposta non valida dal server');
+                throw new Error('Risposta non valida dal server: ' + text.substring(0, 100));
             }
             
+            console.log('Save result:', result);
             return result;
         } catch (error) {
             console.error('Save report error:', error);
@@ -277,7 +290,12 @@ const API = {
     // Save settings
     async saveSettings(settings) {
         try {
-            localStorage.setItem('salarySettings', JSON.stringify(settings));
+            if (!settings) {
+                return { success: false, error: 'No settings provided' };
+            }
+            
+            console.log('Saving settings:', settings);
+            
             const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: {
@@ -288,10 +306,39 @@ const API = {
                     data: settings
                 })
             });
-            const result = await response.json();
+            
+            console.log('Response status:', response.status, response.statusText);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const text = await response.text();
+            console.log('Response text:', text.substring(0, 200));
+            
+            if (!text || text.trim() === '') {
+                throw new Error('Risposta vuota dal server');
+            }
+            
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (parseError) {
+                console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
+                throw new Error('Risposta non valida dal server: ' + text.substring(0, 100));
+            }
+            
+            if (result.success) {
+                localStorage.setItem('salarySettings', JSON.stringify(settings));
+            }
+            
+            console.log('Save result:', result);
             return result;
         } catch (error) {
-            return { success: true }; // Saved locally
+            console.error('Save settings error:', error);
+            return { success: false, error: error.message || error.toString() };
         }
     },
 
