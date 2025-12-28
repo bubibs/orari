@@ -46,6 +46,13 @@ async function loadSettings() {
 async function saveSettings() {
     const saveButton = document.querySelector('.btn-primary');
     const form = document.getElementById('settingsForm');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    
+    // Prevent double click
+    if (saveButton.disabled) {
+        return;
+    }
     
     if (!form.checkValidity()) {
         form.reportValidity();
@@ -55,6 +62,16 @@ async function saveSettings() {
     saveButton.disabled = true;
     saveButton.classList.add('loading');
     saveButton.textContent = 'Salvataggio...';
+    
+    // Update cloud icon to show syncing
+    if (statusIcon) {
+        statusIcon.textContent = '☁️';
+        statusIcon.style.filter = 'grayscale(0%) brightness(0.9)';
+        statusIcon.style.animation = 'cloudPulse 1s ease-in-out infinite';
+    }
+    if (statusText) {
+        statusText.textContent = 'Sincronizzazione...';
+    }
     
     const settings = {
         pagaBase: parseFloat(document.getElementById('pagaBase').value),
@@ -66,14 +83,50 @@ async function saveSettings() {
     };
     
     try {
-        await API.saveSettings(settings);
+        const result = await API.saveSettings(settings);
+        
+        if (!result || !result.success) {
+            throw new Error(result?.error || 'Errore nel salvataggio');
+        }
+        
+        // Success: Green checkmark
+        if (statusIcon) {
+            statusIcon.textContent = '✅';
+            statusIcon.style.filter = 'none';
+            statusIcon.style.animation = 'checkPulse 2s ease-in-out infinite';
+        }
+        if (statusText) {
+            statusText.textContent = 'Sincronizzato';
+        }
+        
         showNotification('Impostazioni salvate con successo!', 'success');
         
         setTimeout(() => {
             window.location.href = 'stipendio.html';
         }, 1500);
     } catch (error) {
-        showNotification('Errore nel salvataggio', 'error');
+        console.error('Save error:', error);
+        
+        // Error: Red X
+        if (statusIcon) {
+            statusIcon.textContent = '❌';
+            statusIcon.style.filter = 'none';
+            statusIcon.style.animation = 'none';
+        }
+        if (statusText) {
+            statusText.textContent = 'Errore sincronizzazione';
+        }
+        
+        let errorMessage = 'Errore nel salvataggio';
+        if (error.message) {
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica la tua connessione internet.';
+            } else {
+                errorMessage = 'Errore: ' + error.message;
+            }
+        }
+        
+        showNotification(errorMessage, 'error');
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');

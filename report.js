@@ -200,6 +200,13 @@ async function loadReport(id) {
 async function saveReport() {
     const saveButton = document.getElementById('saveButton');
     const form = document.getElementById('reportForm');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    
+    // Prevent double click
+    if (saveButton.disabled) {
+        return;
+    }
     
     // Validate form
     if (!form.checkValidity()) {
@@ -211,6 +218,16 @@ async function saveReport() {
     saveButton.disabled = true;
     saveButton.classList.add('loading');
     saveButton.textContent = 'Salvataggio...';
+    
+    // Update cloud icon to show syncing
+    if (statusIcon) {
+        statusIcon.textContent = '☁️';
+        statusIcon.style.filter = 'grayscale(0%) brightness(0.9)';
+        statusIcon.style.animation = 'cloudPulse 1s ease-in-out infinite';
+    }
+    if (statusText) {
+        statusText.textContent = 'Sincronizzazione...';
+    }
     
     const reportData = {
         data: document.getElementById('data').value,
@@ -264,6 +281,16 @@ async function saveReport() {
             throw new Error(result?.error || 'Errore nel salvataggio');
         }
         
+        // Success: Green checkmark
+        if (statusIcon) {
+            statusIcon.textContent = '✅';
+            statusIcon.style.filter = 'none';
+            statusIcon.style.animation = 'checkPulse 2s ease-in-out infinite';
+        }
+        if (statusText) {
+            statusText.textContent = 'Sincronizzato';
+        }
+        
         // Save contact if new location
         if (reportData.luogoIntervento && reportData.luogoIntervento !== 'Tecnosistem') {
             await saveContactIfNew(reportData.luogoIntervento);
@@ -278,7 +305,30 @@ async function saveReport() {
         
     } catch (error) {
         console.error('Save error:', error);
-        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
+        
+        // Error: Red X
+        if (statusIcon) {
+            statusIcon.textContent = '❌';
+            statusIcon.style.filter = 'none';
+            statusIcon.style.animation = 'none';
+        }
+        if (statusText) {
+            statusText.textContent = 'Errore sincronizzazione';
+        }
+        
+        let errorMessage = 'Errore nel salvataggio';
+        if (error.message) {
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica la tua connessione internet e che il server sia raggiungibile.';
+            } else if (error.message.includes('CORS')) {
+                errorMessage = 'Errore CORS. Verifica che il Google Apps Script sia pubblicato correttamente con accesso "Tutti".';
+            } else {
+                errorMessage = 'Errore: ' + error.message;
+            }
+        }
+        
+        showNotification(errorMessage, 'error');
+        
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');

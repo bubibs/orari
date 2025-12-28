@@ -23,47 +23,73 @@ const API = {
                 return { success: false, error: 'No data provided' };
             }
             
+            if (!API_BASE_URL || API_BASE_URL.trim() === '') {
+                throw new Error('API_BASE_URL non configurato. Verifica il file api.js');
+            }
+            
             console.log('Saving report:', reportData);
+            console.log('API URL:', API_BASE_URL);
             
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'saveReport',
-                    data: reportData
-                })
-            });
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
             
-            console.log('Response status:', response.status, response.statusText);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const text = await response.text();
-            console.log('Response text:', text.substring(0, 200));
-            
-            if (!text || text.trim() === '') {
-                throw new Error('Risposta vuota dal server');
-            }
-            
-            let result;
             try {
-                result = JSON.parse(text);
-            } catch (parseError) {
-                console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
-                throw new Error('Risposta non valida dal server: ' + text.substring(0, 100));
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'saveReport',
+                        data: reportData
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('Response status:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                console.log('Response text:', text.substring(0, 200));
+                
+                if (!text || text.trim() === '') {
+                    throw new Error('Risposta vuota dal server');
+                }
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
+                    throw new Error('Risposta non valida dal server: ' + text.substring(0, 100));
+                }
+                
+                console.log('Save result:', result);
+                return result;
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Timeout: La richiesta ha impiegato troppo tempo. Verifica la connessione.');
+                }
+                throw fetchError;
             }
-            
-            console.log('Save result:', result);
-            return result;
         } catch (error) {
             console.error('Save report error:', error);
-            return { success: false, error: error.message || error.toString() };
+            let errorMessage = error.message || error.toString();
+            if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica:\n1. La connessione internet\n2. Che l\'URL dell\'API sia corretto\n3. Che il Google Apps Script sia pubblicato';
+            } else if (errorMessage.includes('CORS')) {
+                errorMessage = 'Errore CORS. Verifica che il Google Apps Script sia pubblicato con accesso "Tutti"';
+            }
+            return { success: false, error: errorMessage };
         }
     },
 
@@ -96,39 +122,63 @@ const API = {
     // Update report
     async updateReport(id, reportData) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'updateReport',
-                    id: id,
-                    data: reportData
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            if (!API_BASE_URL || API_BASE_URL.trim() === '') {
+                throw new Error('API_BASE_URL non configurato. Verifica il file api.js');
             }
             
-            const text = await response.text();
-            if (!text || text.trim() === '') {
-                throw new Error('Risposta vuota dal server');
-            }
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
             
-            let result;
             try {
-                result = JSON.parse(text);
-            } catch (parseError) {
-                console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
-                throw new Error('Risposta non valida dal server');
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'updateReport',
+                        id: id,
+                        data: reportData
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                if (!text || text.trim() === '') {
+                    throw new Error('Risposta vuota dal server');
+                }
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
+                    throw new Error('Risposta non valida dal server');
+                }
+                
+                return result;
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Timeout: La richiesta ha impiegato troppo tempo.');
+                }
+                throw fetchError;
             }
-            
-            return result;
         } catch (error) {
             console.error('Update report error:', error);
-            return { success: false, error: error.message || error.toString() };
+            let errorMessage = error.message || error.toString();
+            if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica la connessione internet.';
+            }
+            return { success: false, error: errorMessage };
         }
     },
 
@@ -209,21 +259,63 @@ const API = {
     // Update contact
     async updateContact(id, contactData) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'updateContact',
-                    id: id,
-                    data: contactData
-                })
-            });
-            const result = await response.json();
-            return result;
+            if (!API_BASE_URL || API_BASE_URL.trim() === '') {
+                throw new Error('API_BASE_URL non configurato. Verifica il file api.js');
+            }
+            
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'updateContact',
+                        id: id,
+                        data: contactData
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                if (!text || text.trim() === '') {
+                    throw new Error('Risposta vuota dal server');
+                }
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
+                    throw new Error('Risposta non valida dal server');
+                }
+                
+                return result;
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Timeout: La richiesta ha impiegato troppo tempo.');
+                }
+                throw fetchError;
+            }
         } catch (error) {
-            return { success: false, error: error.toString() };
+            console.error('Update contact error:', error);
+            let errorMessage = error.message || error.toString();
+            if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica la connessione internet.';
+            }
+            return { success: false, error: errorMessage };
         }
     },
 
@@ -234,38 +326,62 @@ const API = {
                 return { success: false, error: 'ID mancante' };
             }
             
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'deleteContact',
-                    id: String(id)
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            if (!API_BASE_URL || API_BASE_URL.trim() === '') {
+                throw new Error('API_BASE_URL non configurato. Verifica il file api.js');
             }
             
-            const text = await response.text();
-            if (!text || text.trim() === '') {
-                throw new Error('Risposta vuota dal server');
-            }
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
             
-            let result;
             try {
-                result = JSON.parse(text);
-            } catch (parseError) {
-                console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
-                throw new Error('Risposta non valida dal server');
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'deleteContact',
+                        id: String(id)
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                if (!text || text.trim() === '') {
+                    throw new Error('Risposta vuota dal server');
+                }
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
+                    throw new Error('Risposta non valida dal server');
+                }
+                
+                return result;
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Timeout: La richiesta ha impiegato troppo tempo.');
+                }
+                throw fetchError;
             }
-            
-            return result;
         } catch (error) {
             console.error('Delete contact error:', error);
-            return { success: false, error: error.message || error.toString() };
+            let errorMessage = error.message || error.toString();
+            if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica la connessione internet.';
+            }
+            return { success: false, error: errorMessage };
         }
     },
 
@@ -403,22 +519,63 @@ const API = {
     // Save paga base mensile
     async savePagaBaseMensile(month, year, pagaBase) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'savePagaBaseMensile',
-                    month: month,
-                    year: year,
-                    pagaBase: pagaBase
-                })
-            });
-            const result = await response.json();
-            return result;
+            if (!API_BASE_URL || API_BASE_URL.trim() === '') {
+                throw new Error('API_BASE_URL non configurato. Verifica il file api.js');
+            }
+            
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'savePagaBaseMensile',
+                        month: month,
+                        year: year,
+                        pagaBase: pagaBase
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const text = await response.text();
+                if (!text || text.trim() === '') {
+                    throw new Error('Risposta vuota dal server');
+                }
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    throw new Error('Risposta non valida dal server');
+                }
+                
+                return result;
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Timeout: La richiesta ha impiegato troppo tempo.');
+                }
+                throw fetchError;
+            }
         } catch (error) {
-            return { success: false, error: error.toString() };
+            console.error('Save paga base mensile error:', error);
+            let errorMessage = error.message || error.toString();
+            if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica la connessione internet.';
+            }
+            return { success: false, error: errorMessage };
         }
     },
 

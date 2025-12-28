@@ -89,15 +89,33 @@ async function loadContact(id) {
 async function saveContact() {
     const saveButton = document.getElementById('saveContactButton');
     const form = document.getElementById('contactForm');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    
+    // Prevent double click
+    if (saveButton.disabled) {
+        return;
+    }
     
     if (!form.checkValidity()) {
         form.reportValidity();
         return;
     }
     
+    // Disable button and show loading state
     saveButton.disabled = true;
     saveButton.classList.add('loading');
     saveButton.textContent = 'Salvataggio...';
+    
+    // Update cloud icon to show syncing
+    if (statusIcon) {
+        statusIcon.textContent = '☁️';
+        statusIcon.style.filter = 'grayscale(0%) brightness(0.9)';
+        statusIcon.style.animation = 'cloudPulse 1s ease-in-out infinite';
+    }
+    if (statusText) {
+        statusText.textContent = 'Sincronizzazione...';
+    }
     
     const contactData = {
         azienda: document.getElementById('azienda').value,
@@ -123,6 +141,16 @@ async function saveContact() {
             throw new Error(result?.error || 'Errore nel salvataggio');
         }
         
+        // Success: Green checkmark
+        if (statusIcon) {
+            statusIcon.textContent = '✅';
+            statusIcon.style.filter = 'none';
+            statusIcon.style.animation = 'checkPulse 2s ease-in-out infinite';
+        }
+        if (statusText) {
+            statusText.textContent = 'Sincronizzato';
+        }
+        
         showNotification('Contatto salvato con successo!', 'success');
         
         // Reset form
@@ -133,9 +161,42 @@ async function saveContact() {
         // Reload contacts
         await loadContacts();
         
+        // Reset icon after 3 seconds
+        setTimeout(() => {
+            checkCloudStatus();
+        }, 3000);
+        
     } catch (error) {
         console.error('Save error:', error);
-        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
+        
+        // Error: Red X
+        if (statusIcon) {
+            statusIcon.textContent = '❌';
+            statusIcon.style.filter = 'none';
+            statusIcon.style.animation = 'none';
+        }
+        if (statusText) {
+            statusText.textContent = 'Errore sincronizzazione';
+        }
+        
+        let errorMessage = 'Errore nel salvataggio';
+        if (error.message) {
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                errorMessage = 'Errore di connessione. Verifica la tua connessione internet e che il server sia raggiungibile.';
+            } else if (error.message.includes('CORS')) {
+                errorMessage = 'Errore CORS. Verifica che il Google Apps Script sia pubblicato correttamente con accesso "Tutti".';
+            } else {
+                errorMessage = 'Errore: ' + error.message;
+            }
+        }
+        
+        showNotification(errorMessage, 'error');
+        
+        // Reset icon after 5 seconds
+        setTimeout(() => {
+            checkCloudStatus();
+        }, 5000);
+        
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');
