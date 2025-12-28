@@ -90,13 +90,10 @@ async function deleteReport(id) {
     
     try {
         await API.deleteReport(id);
-        API.deleteLocalReport(id);
         showNotification('Report eliminato', 'success');
         await loadReports();
     } catch (error) {
-        API.deleteLocalReport(id);
-        showNotification('Report eliminato localmente', 'success');
-        await loadReports();
+        showNotification('Errore nell\'eliminazione. Riprova.', 'error');
     }
 }
 
@@ -107,16 +104,16 @@ async function checkCloudStatus() {
     try {
         const result = await API.checkSync();
         if (result.synced) {
-            statusIcon.textContent = '✅';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
         } else {
-            statusIcon.textContent = '⚠️';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
             statusText.textContent = 'Non sincronizzato';
         }
     } catch (error) {
-        statusIcon.textContent = '❌';
+        statusIcon.textContent = '☁️';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
     }

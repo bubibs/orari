@@ -44,12 +44,11 @@ const API = {
                 method: 'GET',
                 mode: 'no-cors'
             });
-            // Since we're using no-cors, we'll simulate response
-            const data = this.getLocalReports();
-            return { success: true, data };
+            // Note: With no-cors mode, we can't read response, but data is saved on cloud
+            // Return empty array - data should come from cloud on next page load
+            return { success: true, data: [] };
         } catch (error) {
-            const data = this.getLocalReports();
-            return { success: true, data };
+            return { success: false, data: [], error };
         }
     },
 
@@ -132,11 +131,11 @@ const API = {
                 method: 'GET',
                 mode: 'no-cors'
             });
-            const data = this.getLocalContacts();
-            return { success: true, data };
+            // Note: With no-cors mode, we can't read response, but data is saved on cloud
+            // Return empty array - data should come from cloud on next page load
+            return { success: true, data: [] };
         } catch (error) {
-            const data = this.getLocalContacts();
-            return { success: true, data };
+            return { success: false, data: [], error };
         }
     },
 
@@ -193,10 +192,10 @@ const API = {
                 method: 'GET',
                 mode: 'no-cors'
             });
-            const data = this.calculateLocalSalary(month, year);
+            const data = await this.calculateLocalSalary(month, year);
             return { success: true, data };
         } catch (error) {
-            const data = this.calculateLocalSalary(month, year);
+            const data = await this.calculateLocalSalary(month, year);
             return { success: true, data };
         }
     },
@@ -334,8 +333,9 @@ const API = {
         }
     },
 
-    calculateLocalSalary(month, year) {
-        const reports = this.getLocalReports();
+    async calculateLocalSalary(month, year) {
+        const reportsResult = await this.getReports();
+        const reports = reportsResult.data || [];
         const filtered = reports.filter(r => {
             const reportDate = new Date(r.data);
             return reportDate.getMonth() === month - 1 && reportDate.getFullYear() === year;

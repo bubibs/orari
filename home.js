@@ -17,16 +17,16 @@ async function checkCloudStatus() {
     try {
         const result = await API.checkSync();
         if (result.synced) {
-            statusIcon.textContent = '✅';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
         } else {
-            statusIcon.textContent = '⚠️';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
             statusText.textContent = 'Non sincronizzato';
         }
     } catch (error) {
-        statusIcon.textContent = '❌';
+        statusIcon.textContent = '☁️';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
     }

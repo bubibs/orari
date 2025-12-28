@@ -39,22 +39,27 @@ async function loadContacts() {
             return;
         }
         
-        contactsList.innerHTML = contacts.map(contact => `
+        contactsList.innerHTML = contacts.map(contact => {
+            const indirizzoCompleto = [contact.citta, contact.via].filter(Boolean).join(', ');
+            const indirizzoMaps = [contact.citta, contact.via].filter(Boolean).join(' ');
+            
+            return `
             <div class="contact-item">
                 <div class="contact-name">${contact.azienda || 'Senza nome'}</div>
                 <div class="contact-details">
-                    ${contact.referente ? `<strong>Referente:</strong> ${contact.referente}<br>` : ''}
-                    ${contact.indirizzo ? `<strong>Indirizzo:</strong> ${contact.indirizzo}<br>` : ''}
-                    ${contact.telefono ? `<strong>Telefono:</strong> <a href="tel:${contact.telefono}">${contact.telefono}</a>` : ''}
+                    ${contact.referente ? `<strong>Ref.:</strong> ${contact.referente}<br>` : ''}
+                    ${indirizzoCompleto ? `<strong>Indirizzo:</strong> ${indirizzoCompleto}<br>` : ''}
+                    ${contact.telefono ? `<strong>Tel.:</strong> <a href="tel:${contact.telefono}">${contact.telefono}</a>` : ''}
                 </div>
                 <div class="contact-actions">
-                    ${contact.telefono ? `<a href="tel:${contact.telefono}" class="btn btn-success btn-small">📞 Chiama</a>` : ''}
-                    ${contact.indirizzo ? `<a href="https://maps.apple.com/?q=${encodeURIComponent(contact.indirizzo)}" class="btn btn-primary btn-small" target="_blank">🗺️ Mappa</a>` : ''}
-                    <button onclick="editContact('${contact.id}')" class="btn btn-secondary btn-small">✏️ Modifica</button>
-                    <button onclick="deleteContact('${contact.id}')" class="btn btn-danger btn-small">🗑️ Elimina</button>
+                    ${contact.telefono ? `<a href="tel:${contact.telefono}" class="btn btn-success btn-small">📞</a>` : ''}
+                    ${indirizzoMaps ? `<a href="https://maps.apple.com/?q=${encodeURIComponent(indirizzoMaps)}" class="btn btn-primary btn-small" target="_blank">🗺️</a>` : ''}
+                    <button onclick="editContact('${contact.id}')" class="btn btn-secondary btn-small">✏️</button>
+                    <button onclick="deleteContact('${contact.id}')" class="btn btn-danger btn-small">🗑️</button>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
         
     } catch (error) {
         contactsList.innerHTML = '<p style="color: var(--error-color);">Errore nel caricamento dei contatti</p>';
@@ -68,7 +73,8 @@ async function loadContact(id) {
         
         if (contact) {
             document.getElementById('azienda').value = contact.azienda || '';
-            document.getElementById('indirizzo').value = contact.indirizzo || '';
+            document.getElementById('citta').value = contact.citta || '';
+            document.getElementById('via').value = contact.via || '';
             document.getElementById('referente').value = contact.referente || '';
             document.getElementById('telefono').value = contact.telefono || '';
             
@@ -95,7 +101,8 @@ async function saveContact() {
     
     const contactData = {
         azienda: document.getElementById('azienda').value,
-        indirizzo: document.getElementById('indirizzo').value,
+        citta: document.getElementById('citta').value,
+        via: document.getElementById('via').value,
         referente: document.getElementById('referente').value,
         telefono: document.getElementById('telefono').value
     };
@@ -112,9 +119,6 @@ async function saveContact() {
             result = await API.saveContact(contactData);
         }
         
-        // Always save locally
-        API.saveLocalContact(contactData);
-        
         showNotification('Contatto salvato con successo!', 'success');
         
         // Reset form
@@ -126,13 +130,7 @@ async function saveContact() {
         await loadContacts();
         
     } catch (error) {
-        // Save locally as fallback
-        API.saveLocalContact(contactData);
-        showNotification('Contatto salvato localmente', 'success');
-        form.reset();
-        editingContactId = null;
-        saveButton.textContent = 'Salva Contatto';
-        await loadContacts();
+        showNotification('Errore nel salvataggio. Riprova.', 'error');
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');
@@ -152,13 +150,10 @@ async function deleteContact(id) {
     
     try {
         await API.deleteContact(id);
-        API.deleteLocalContact(id);
         showNotification('Contatto eliminato', 'success');
         await loadContacts();
     } catch (error) {
-        API.deleteLocalContact(id);
-        showNotification('Contatto eliminato localmente', 'success');
-        await loadContacts();
+        showNotification('Errore nell\'eliminazione. Riprova.', 'error');
     }
 }
 
@@ -169,16 +164,16 @@ async function checkCloudStatus() {
     try {
         const result = await API.checkSync();
         if (result.synced) {
-            statusIcon.textContent = '✅';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
         } else {
-            statusIcon.textContent = '⚠️';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
             statusText.textContent = 'Non sincronizzato';
         }
     } catch (error) {
-        statusIcon.textContent = '❌';
+        statusIcon.textContent = '☁️';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
     }

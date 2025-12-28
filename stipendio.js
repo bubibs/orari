@@ -84,7 +84,8 @@ function calculateSalary(data, settings) {
     const indennitaEstero = parseFloat(settings.indennitaEstero) || 100;
     
     // Count days for each travel type
-    const reports = API.getLocalReports();
+    const reportsResult = await API.getReports();
+    const reports = reportsResult.data || [];
     const month = parseInt(document.getElementById('monthSelect').value);
     const year = parseInt(document.getElementById('yearSelect').value);
     
@@ -162,15 +163,15 @@ function displaySalarySummary(data, calcolo) {
             <span class="salary-value">${data.oreSede.toFixed(1)}</span>
         </div>
         <div class="salary-row">
-            <span class="salary-label">Ore trasferta con rientro</span>
+            <span class="salary-label">Ore trasf. rientro</span>
             <span class="salary-value">${data.oreTrasfertaRientro.toFixed(1)}</span>
         </div>
         <div class="salary-row">
-            <span class="salary-label">Ore trasferta con pernottamento</span>
+            <span class="salary-label">Ore trasf. pernott.</span>
             <span class="salary-value">${data.oreTrasfertaPernottamento.toFixed(1)}</span>
         </div>
         <div class="salary-row">
-            <span class="salary-label">Ore trasferta estero</span>
+            <span class="salary-label">Ore trasf. estero</span>
             <span class="salary-value">${data.oreTrasfertaEstero.toFixed(1)}</span>
         </div>
         <div class="salary-row">
@@ -180,25 +181,25 @@ function displaySalarySummary(data, calcolo) {
         
         <h3 style="margin-top: 20px; margin-bottom: 10px;">Calcolo Stipendio</h3>
         <div class="salary-row">
-            <span class="salary-label">Paga base mensile</span>
+            <span class="salary-label">Paga base</span>
             <span class="salary-value">€ ${calcolo.pagaBase.toFixed(2)}</span>
         </div>
         ${data.oreStraordinarie > 0 ? `
         <div class="salary-row">
-            <span class="salary-label">Ore straordinarie (${data.oreStraordinarie.toFixed(1)}h × €${(calcolo.valoreStraordinarie / data.oreStraordinarie || 0).toFixed(2)})</span>
+            <span class="salary-label">Ore str. (${data.oreStraordinarie.toFixed(1)}h)</span>
             <span class="salary-value">€ ${calcolo.valoreStraordinarie.toFixed(2)}</span>
         </div>
         ` : ''}
         <div class="salary-row">
-            <span class="salary-label">Indennità trasferta rientro (${calcolo.giorniRientro} giorni)</span>
+            <span class="salary-label">Ind. rientro (${calcolo.giorniRientro}g)</span>
             <span class="salary-value">€ ${calcolo.valoreIndennitaRientro.toFixed(2)}</span>
         </div>
         <div class="salary-row">
-            <span class="salary-label">Indennità trasferta pernottamento (${calcolo.giorniPernottamento} giorni)</span>
+            <span class="salary-label">Ind. pernott. (${calcolo.giorniPernottamento}g)</span>
             <span class="salary-value">€ ${calcolo.valoreIndennitaPernottamento.toFixed(2)}</span>
         </div>
         <div class="salary-row">
-            <span class="salary-label">Indennità trasferta estero (${calcolo.giorniEstero} giorni)</span>
+            <span class="salary-label">Ind. estero (${calcolo.giorniEstero}g)</span>
             <span class="salary-value">€ ${calcolo.valoreIndennitaEstero.toFixed(2)}</span>
         </div>
         
@@ -226,16 +227,16 @@ async function checkCloudStatus() {
     try {
         const result = await API.checkSync();
         if (result.synced) {
-            statusIcon.textContent = '✅';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
         } else {
-            statusIcon.textContent = '⚠️';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
             statusText.textContent = 'Non sincronizzato';
         }
     } catch (error) {
-        statusIcon.textContent = '❌';
+        statusIcon.textContent = '☁️';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
     }

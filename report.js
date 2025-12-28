@@ -16,6 +16,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('data').value = today;
     
+    // Set time inputs to 30-minute steps
+    document.getElementById('oraInizio').step = '1800';
+    document.getElementById('oraFine').step = '1800';
+    
+    // Auto-fill "in sede" if not editing
+    if (!editingReportId) {
+        document.getElementById('tipoLavoro').value = 'in sede';
+        document.getElementById('oraInizio').value = '08:00';
+        document.getElementById('oraFine').value = '17:00';
+        document.getElementById('pausaMensa').checked = true;
+        document.getElementById('luogoIntervento').value = 'Tecnosistem';
+        calculateHours();
+    }
+    
     // Setup event listeners
     setupEventListeners();
     
@@ -207,12 +221,6 @@ async function saveReport() {
             result = await API.saveReport(reportData);
         }
         
-        // Always save locally as backup
-        if (editingReportId) {
-            reportData.id = editingReportId;
-        }
-        API.saveLocalReport(reportData);
-        
         // Save contact if new location
         if (reportData.luogoIntervento && reportData.luogoIntervento !== 'Tecnosistem') {
             await saveContactIfNew(reportData.luogoIntervento);
@@ -226,16 +234,7 @@ async function saveReport() {
         }, 1500);
         
     } catch (error) {
-        // Save locally as fallback
-        if (editingReportId) {
-            reportData.id = editingReportId;
-        }
-        API.saveLocalReport(reportData);
-        showNotification('Report salvato localmente', 'success');
-        
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1500);
+        showNotification('Errore nel salvataggio. Riprova.', 'error');
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');
@@ -251,13 +250,8 @@ async function saveContactIfNew(azienda) {
         if (!exists) {
             await API.saveContact({
                 azienda: azienda,
-                indirizzo: '',
-                referente: '',
-                telefono: ''
-            });
-            API.saveLocalContact({
-                azienda: azienda,
-                indirizzo: '',
+                citta: '',
+                via: '',
                 referente: '',
                 telefono: ''
             });
@@ -274,16 +268,16 @@ async function checkCloudStatus() {
     try {
         const result = await API.checkSync();
         if (result.synced) {
-            statusIcon.textContent = '✅';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
         } else {
-            statusIcon.textContent = '⚠️';
+            statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
             statusText.textContent = 'Non sincronizzato';
         }
     } catch (error) {
-        statusIcon.textContent = '❌';
+        statusIcon.textContent = '☁️';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
     }
