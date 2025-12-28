@@ -45,15 +45,14 @@ function toggleAnnualView() {
         annualView.style.display = 'block';
         salarySummary.style.display = 'none';
         viewBtn.textContent = 'Vista Mensile';
-        loadAnnualData();
+        // Wait a bit for the view to be visible before loading data
+        setTimeout(() => {
+            loadAnnualData();
+        }, 100);
     } else {
         annualView.style.display = 'none';
         salarySummary.style.display = 'block';
         viewBtn.textContent = 'Vista Annuale';
-        if (chartInstance) {
-            chartInstance.destroy();
-            chartInstance = null;
-        }
     }
 }
 
@@ -61,14 +60,28 @@ async function loadAnnualData() {
     const year = parseInt(document.getElementById('yearSelect').value);
     const annualSummary = document.getElementById('annualSummary');
     const selectedYear = document.getElementById('selectedYear');
+    const canvas = document.getElementById('salaryChart');
+    
+    if (!canvas) {
+        console.error('Canvas element not found');
+        return;
+    }
     
     selectedYear.textContent = year;
     annualSummary.innerHTML = '<p>Caricamento dati annuali...</p>';
     
-    // Set canvas size
-    const canvas = document.getElementById('salaryChart');
-    canvas.width = Math.min(window.innerWidth - 60, 600);
-    canvas.height = 300;
+    // Set canvas size immediately
+    const container = canvas.parentElement;
+    if (container && container.clientWidth > 0) {
+        const containerWidth = container.clientWidth;
+        canvas.width = containerWidth - 40;
+        canvas.height = 300;
+    } else {
+        canvas.width = Math.min(window.innerWidth - 60, 600);
+        canvas.height = 300;
+    }
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
     
     try {
         const settings = await API.getSettings();
@@ -143,8 +156,10 @@ async function loadAnnualData() {
             }
         }
         
-        // Draw chart
-        drawChart(months, lordoData, nettoData);
+        // Draw chart - wait a bit for canvas to be ready
+        setTimeout(() => {
+            drawChart(months, lordoData, nettoData);
+        }, 200);
         
         // Display summary
         annualSummary.innerHTML = `
@@ -168,9 +183,29 @@ async function loadAnnualData() {
 
 function drawChart(months, lordoData, nettoData) {
     const canvas = document.getElementById('salaryChart');
-    if (!canvas) return;
+    if (!canvas) {
+        console.error('Canvas element not found');
+        return;
+    }
+    
+    // Ensure canvas has dimensions
+    if (canvas.width === 0 || canvas.height === 0) {
+        const container = canvas.parentElement;
+        if (container) {
+            const containerWidth = container.clientWidth || Math.min(window.innerWidth - 60, 600);
+            canvas.width = containerWidth - 40;
+            canvas.height = 300;
+        } else {
+            canvas.width = Math.min(window.innerWidth - 60, 600);
+            canvas.height = 300;
+        }
+    }
     
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error('Could not get 2d context');
+        return;
+    }
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -182,7 +217,8 @@ function drawChart(months, lordoData, nettoData) {
     const chartHeight = height - padding * 2;
     
     // Find max value
-    const maxValue = Math.max(...lordoData, ...nettoData, 1);
+    const allValues = [...lordoData, ...nettoData].filter(v => v > 0);
+    const maxValue = allValues.length > 0 ? Math.max(...allValues) : 1;
     const step = maxValue / 5;
     
     // Draw grid and labels
@@ -213,32 +249,35 @@ function drawChart(months, lordoData, nettoData) {
         
         // Lordo bar
         const lordoHeight = lordoData[index] > 0 ? (lordoData[index] / maxValue) * chartHeight : 0;
-        ctx.fillStyle = '#0f3460';
-        ctx.fillRect(x, padding + chartHeight - lordoHeight, barWidth, lordoHeight);
+        if (lordoHeight > 0) {
+            ctx.fillStyle = '#0f3460';
+            ctx.fillRect(x, padding + chartHeight - lordoHeight, barWidth, lordoHeight);
+            
+            // Value on bar
+            ctx.fillStyle = '#fff';
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('€' + Math.round(lordoData[index]).toLocaleString('it-IT'), x + barWidth/2, padding + chartHeight - lordoHeight - 8);
+        }
         
         // Netto bar
         const nettoHeight = nettoData[index] > 0 ? (nettoData[index] / maxValue) * chartHeight : 0;
-        ctx.fillStyle = '#4caf50';
-        ctx.fillRect(x + barWidth, padding + chartHeight - nettoHeight, barWidth, nettoHeight);
+        if (nettoHeight > 0) {
+            ctx.fillStyle = '#4caf50';
+            ctx.fillRect(x + barWidth, padding + chartHeight - nettoHeight, barWidth, nettoHeight);
+            
+            // Value on bar
+            ctx.fillStyle = '#fff';
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('€' + Math.round(nettoData[index]).toLocaleString('it-IT'), x + barWidth + barWidth/2, padding + chartHeight - nettoHeight - 8);
+        }
         
         // Month label
         ctx.fillStyle = '#333';
         ctx.textAlign = 'center';
         ctx.font = '11px Arial';
         ctx.fillText(month, x + barWidth, height - 20);
-        
-        // Values on bars
-        if (lordoData[index] > 0) {
-            ctx.fillStyle = '#fff';
-            ctx.font = '9px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('€' + Math.round(lordoData[index]).toLocaleString('it-IT'), x + barWidth/2, padding + chartHeight - lordoHeight - 8);
-        }
-        if (nettoData[index] > 0) {
-            ctx.fillStyle = '#fff';
-            ctx.font = '9px Arial';
-            ctx.fillText('€' + Math.round(nettoData[index]).toLocaleString('it-IT'), x + barWidth + barWidth/2, padding + chartHeight - nettoHeight - 8);
-        }
     });
     
     // Legend

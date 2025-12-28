@@ -220,6 +220,7 @@ const API = {
             if (!id) {
                 return { success: false, error: 'ID mancante' };
             }
+            
             const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: {
@@ -230,17 +231,28 @@ const API = {
                     id: String(id)
                 })
             });
+            
             if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            const result = await response.json();
-            if (!result) {
+            
+            const text = await response.text();
+            if (!text || text.trim() === '') {
                 throw new Error('Risposta vuota dal server');
             }
+            
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (parseError) {
+                console.error('Parse error:', parseError, 'Response:', text.substring(0, 200));
+                throw new Error('Risposta non valida dal server');
+            }
+            
             return result;
         } catch (error) {
             console.error('Delete contact error:', error);
-            return { success: false, error: error.toString() };
+            return { success: false, error: error.message || error.toString() };
         }
     },
 
