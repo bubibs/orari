@@ -5,8 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
     <title>TECNOSISTEM - Home</title>
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Fullscreen support
+        function requestFullscreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            }
+        }
+        
+        // Auto fullscreen on load (if supported)
+        window.addEventListener('load', function() {
+            // Try to enter fullscreen after a short delay
+            setTimeout(function() {
+                if (screen.availHeight > window.innerHeight) {
+                    requestFullscreen();
+                }
+            }, 500);
+        });
+    </script>
 </head>
 <body>
     <div class="container">

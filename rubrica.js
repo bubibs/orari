@@ -52,10 +52,10 @@ async function loadContacts() {
                     ${contact.telefono ? `<strong>Tel.:</strong> <a href="tel:${contact.telefono}">${contact.telefono}</a>` : ''}
                 </div>
                 <div class="contact-actions">
-                    ${contact.telefono ? `<a href="tel:${contact.telefono}" class="btn btn-success btn-small">📞</a>` : ''}
-                    ${indirizzoMaps ? `<a href="https://maps.apple.com/?q=${encodeURIComponent(indirizzoMaps)}" class="btn btn-primary btn-small" target="_blank">🗺️</a>` : ''}
-                    <button onclick="editContact('${contact.id}')" class="btn btn-secondary btn-small">✏️</button>
-                    <button onclick="deleteContact('${contact.id}')" class="btn btn-danger btn-small">🗑️</button>
+                    ${contact.telefono ? `<a href="tel:${contact.telefono}" class="btn-icon btn-call" title="Chiama">📞</a>` : ''}
+                    ${indirizzoMaps ? `<a href="https://maps.apple.com/?q=${encodeURIComponent(indirizzoMaps)}" class="btn-icon btn-map" title="Mappa" target="_blank">🗺️</a>` : ''}
+                    <button onclick="editContact('${contact.id}')" class="btn-icon btn-edit" title="Modifica">✏️</button>
+                    <button onclick="deleteContact('${contact.id}')" class="btn-icon btn-delete" title="Elimina">🗑️</button>
                 </div>
             </div>
         `;
@@ -149,10 +149,15 @@ async function deleteContact(id) {
     }
     
     try {
-        await API.deleteContact(id);
-        showNotification('Contatto eliminato', 'success');
-        await loadContacts();
+        const result = await API.deleteContact(id);
+        if (result.success) {
+            showNotification('Contatto eliminato', 'success');
+            await loadContacts();
+        } else {
+            showNotification('Errore nell\'eliminazione: ' + (result.error || 'Errore sconosciuto'), 'error');
+        }
     } catch (error) {
+        console.error('Delete error:', error);
         showNotification('Errore nell\'eliminazione. Riprova.', 'error');
     }
 }

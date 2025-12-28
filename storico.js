@@ -55,8 +55,8 @@ async function loadReports() {
                     <div class="list-item-header">
                         <div class="list-item-title">${formattedDate}</div>
                         <div class="list-item-actions">
-                            <button onclick="editReport('${report.id}')" class="btn btn-secondary btn-small">✏️ Modifica</button>
-                            <button onclick="deleteReport('${report.id}')" class="btn btn-danger btn-small">🗑️ Elimina</button>
+                            <button onclick="editReport('${report.id}')" class="btn-icon btn-edit" title="Modifica">✏️</button>
+                            <button onclick="deleteReport('${report.id}')" class="btn-icon btn-delete" title="Elimina">🗑️</button>
                         </div>
                     </div>
                     <div class="list-item-details">
@@ -89,10 +89,15 @@ async function deleteReport(id) {
     }
     
     try {
-        await API.deleteReport(id);
-        showNotification('Report eliminato', 'success');
-        await loadReports();
+        const result = await API.deleteReport(id);
+        if (result.success) {
+            showNotification('Report eliminato', 'success');
+            await loadReports();
+        } else {
+            showNotification('Errore nell\'eliminazione: ' + (result.error || 'Errore sconosciuto'), 'error');
+        }
     } catch (error) {
+        console.error('Delete error:', error);
         showNotification('Errore nell\'eliminazione. Riprova.', 'error');
     }
 }
