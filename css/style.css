@@ -4,11 +4,9 @@
   --card: #ffffff;
   --primary: #2563eb;
   --muted: #64748b;
-  --success: #16a34a;
-  --warning: #ca8a04;
-  --error: #dc2626;
 }
 
+/* DARK MODE AUTOMATICO */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #020617;
@@ -40,6 +38,7 @@ body {
   flex-direction: column;
 }
 
+/* HEADER */
 .topbar {
   padding: 20px;
   display: flex;
@@ -47,26 +46,54 @@ body {
   align-items: center;
 }
 
-.title h1 {
+/* BRAND */
+.brand {
   margin: 0;
-  font-size: 1.8rem;
+  font-size: 2.3rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .brand {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .subtitle {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--muted);
+  letter-spacing: 1px;
 }
 
-.cloud {
-  font-size: 0.9rem;
-  padding: 6px 12px;
-  border-radius: 20px;
+/* CLOUD ICON */
+.cloud-icon {
+  font-size: 1.7rem;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.cloud.pending { background: #e5e7eb; color: #374151; }
-.cloud.ok { background: #dcfce7; color: var(--success); }
-.cloud.error { background: #fee2e2; color: var(--error); }
+.cloud-icon.pending {
+  color: #94a3b8;
+}
 
+.cloud-icon.ok {
+  color: #22c55e;
+}
+
+.cloud-icon.error {
+  color: #ef4444;
+}
+
+.cloud-icon:hover {
+  transform: scale(1.15);
+}
+
+/* MAIN CONTENT */
 .content {
   flex: 1;
   padding: 20px;
@@ -75,28 +102,33 @@ body {
   gap: 30px;
 }
 
+/* QUOTE */
 .quote-card {
   background: var(--card);
   padding: 25px;
-  border-radius: 16px;
+  border-radius: 18px;
   font-style: italic;
   font-size: 1.1rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
 }
 
+/* DASHBOARD BUTTONS */
 .dashboard {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 15px;
+  gap: 16px;
 }
 
 .dashboard button {
-  padding: 18px;
-  border-radius: 16px;
+  padding: 20px;
+  border-radius: 18px;
   border: none;
   background: var(--primary);
   color: white;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
 }
 
 .dashboard button:hover {
