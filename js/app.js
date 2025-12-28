@@ -4,31 +4,43 @@ function goTo(page) {
 
 const cloudIcon = document.getElementById("cloud-status");
 
-// Inserisci qui l’URL diretto al tuo Google Sheet pubblicato
-const SHEET_PUB_CSV = "https://docs.google.com/spreadsheets/d/1-IR2NTqTg57R3JovdQacis1v7MWG0XysT5f1kmTmAzI/pub?output=csv";
+// ============================
+// CONFIGURAZIONE FOGLIO
+// ============================
+const SPREADSHEET_ID = "2PACX-1vSk18AbYypWlNTxK9KzWVRSImHV847cAvhIpUn9aZu1Wgi9OKl27-4S6AK2S6AK2NfXSO2yI0bdvqjVHKgQa";
+const SHEET_NAME = "Foglio1"; // inserisci qui il nome esatto del foglio
 
+// ============================
+// STATO CLOUD
+// ============================
 function setCloudStatus(status) {
   cloudIcon.className = `cloud-icon ${status}`;
 }
 
-async function testCloudConnection() {
+// ============================
+// TEST CONNESSIONE CLOUD
+// ============================
+function checkCloudGviz() {
   setCloudStatus("pending");
-  try {
-    const response = await fetch(SHEET_PUB_CSV);
-    if (!response.ok) throw new Error("Network response not OK");
-    
-    // prova a leggere una riga
-    const text = await response.text();
-    if (text.length > 0) {
-      setCloudStatus("ok");
+
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json&callback=googleSheetCallback`;
+
+  const script = document.createElement("script");
+  script.src = url;
+  script.onerror = () => setCloudStatus("error");
+  document.body.appendChild(script);
+
+  window.googleSheetCallback = function (data) {
+    if (data.table && data.table.rows.length > 0) {
+      setCloudStatus("ok"); // verde
       console.log("✔ Cloud access OK");
     } else {
-      throw new Error("Foglio vuoto o non accessibile");
+      setCloudStatus("error"); // rossa
+      console.error("✖ Foglio vuoto o non accessibile");
     }
-  } catch (err) {
-    console.error("✖ Cloud access error:", err);
-    setCloudStatus("error");
-  }
+    document.body.removeChild(script);
+  };
 }
 
-testCloudConnection();
+// Avvia test al caricamento
+checkCloudGviz();
