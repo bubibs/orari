@@ -1,148 +1,80 @@
-:root {
-  --bg: #f1f5f9;
-  --text: #0f172a;
-  --card: #ffffff;
-  --primary: #2563eb;
-  --muted: #64748b;
-}
-
-/* DARK MODE AUTOMATICO */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #020617;
-    --text: #e5e7eb;
-    --card: #0f172a;
-    --primary: #3b82f6;
-    --muted: #94a3b8;
-  }
-}
-
-* {
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-}
-
-html, body {
-  height: 100%;
-  margin: 0;
-}
-
 body {
-  background: var(--bg);
-  color: var(--text);
-}
-
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* HEADER */
-.topbar {
+  font-family: Arial, sans-serif;
+  margin: 0;
   padding: 20px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-}
-
-/* BRAND */
-.brand {
-  margin: 0;
-  font-size: 2.3rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  background: linear-gradient(90deg, #2563eb, #38bdf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
 }
 
 @media (prefers-color-scheme: dark) {
-  .brand {
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+  body { background-color: #111; color: white; }
+}
+@media (prefers-color-scheme: light) {
+  body { background-color: #f5f5f5; color: black; }
 }
 
-.subtitle {
-  font-size: 0.85rem;
-  color: var(--muted);
-  letter-spacing: 1px;
+.header {
+  display: flex;
+  align-items: center; /* centra verticalmente */
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 10px;
 }
 
-/* CLOUD ICON */
-.cloud-icon {
-  font-size: 1.7rem;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.cloud-icon.pending {
-  color: #94a3b8;
-}
-
-.cloud-icon.ok {
-  color: #22c55e;
-}
-
-.cloud-icon.error {
-  color: #ef4444;
-}
-
-.cloud-icon:hover {
-  transform: scale(1.15);
-}
-
-/* MAIN CONTENT */
-.content {
-  flex: 1;
-  padding: 20px;
+.title-container {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  justify-content: center; /* centra verticalmente rispetto alla nuvola */
 }
 
-/* QUOTE */
-.quote-card {
-  background: var(--card);
-  padding: 25px;
-  border-radius: 18px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+h1 { font-size: 2rem; margin: 0; }
+h2 { font-size: 1rem; font-style: italic; margin: 0; }
+
+#cloud-status {
+  font-size: 2rem;
+  transition: color 0.3s;
+}
+.cloud-icon.pending { color: gray; }
+.cloud-icon.ok { color: green; }
+.cloud-icon.error { color: red; }
+
+#frase-motivazionale {
+  text-align: center;
+  margin: 15px 0 20px 0;
 }
 
-#daily-quote {
-  font-style: italic;
-  font-size: 1.1rem;
-  margin: 0;
+.btn-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 350px;
+  margin-top: 20px;
 }
 
-#quote-author {
-  display: block;
-  margin-top: 10px;
-  font-size: 0.9rem;
-  color: var(--muted);
-  text-align: right;
-}
-
-/* DASHBOARD */
-.dashboard {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-.dashboard button {
-  padding: 20px;
-  border-radius: 18px;
+button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  font-size: 1.2rem;
   border: none;
-  background: var(--primary);
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  transition: transform 0.2s;
 }
 
-.dashboard button:hover {
-  opacity: 0.9;
-}
+button:hover { transform: scale(1.03); }
+
+button svg { width: 24px; height: 24px; margin-right: 10px; fill: white; }
+
+.btn-report { background-color: #ff9800; color: white; }
+.btn-economy { background-color: #03a9f4; color: white; }
+.btn-settings { background-color: #4caf50; color: white; }
+.btn-clients { background-color: #9c27b0; color: white; }
