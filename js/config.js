@@ -1,21 +1,20 @@
-// js/config.js
-const STORAGE_KEY = 'registro_lavoro_data';
-const SETTINGS_KEY = 'registro_lavoro_settings';
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 
-// Valori di default se il LocalStorage è vuoto
-const DEFAULT_SETTINGS = {
-    baseLorda: 2300,
-    tariffaOver25: 14.50,
-    tariffaOver50: 18.00,
-    diariaRientro: 15.00,
-    diariaPernotto: 46.48,
-    diariaEstero: 75.00,
-    aliquotaFiscale: 23,
-    cloudUrl: "" // Incolla qui il tuo URL di Google Apps Script
-};
-
-// Funzione per recuperare i settaggi salvati
-function getSettings() {
-    const saved = localStorage.getItem(SETTINGS_KEY);
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+// Gestione universale dell'icona Cloud (Colori e Animazioni)
+function updateSyncStatus(status) {
+    const icon = document.getElementById('sync-icon');
+    if (!icon) return;
+    
+    icon.className = "fas"; // Reset classi
+    
+    if (status === 'working') {
+        icon.classList.add('fa-sync', 'fa-spin');
+        icon.style.color = "#FFCC00"; // GIALLO
+    } else if (status === 'success') {
+        icon.classList.add('fa-cloud');
+        icon.style.color = "#34C759"; // VERDE
+    } else {
+        icon.classList.add('fa-exclamation-triangle');
+        icon.style.color = "#FF3B30"; // ROSSO
+    }
 }
