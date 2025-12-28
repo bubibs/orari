@@ -20,16 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('oraInizio').step = '1800';
     document.getElementById('oraFine').step = '1800';
     
-    // Auto-fill "in sede" if not editing
-    if (!editingReportId) {
-        document.getElementById('tipoLavoro').value = 'in sede';
-        document.getElementById('oraInizio').value = '08:00';
-        document.getElementById('oraFine').value = '17:00';
-        document.getElementById('pausaMensa').checked = true;
-        document.getElementById('luogoIntervento').value = 'Tecnosistem';
-        calculateHours();
-    }
-    
     // Setup event listeners
     setupEventListeners();
     
