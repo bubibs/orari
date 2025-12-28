@@ -5,34 +5,24 @@ function goTo(page) {
 const cloudIcon = document.getElementById("cloud-status");
 const fraseElem = document.getElementById("frase-motivazionale");
 
-// ============================
-// CLOUD APPS SCRIPT
-// ============================
+// URL Google Apps Script
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec";
 
+// Funzione cloud
 async function testCloudConnection() {
-  setCloudStatus("pending"); // grigia
-
+  cloudIcon.className = "cloud-icon pending";
   try {
     const res = await fetch(SHEET_JSON_URL);
     const data = await res.json();
-
-    if (data.length > 0) {
-      setCloudStatus("ok"); // verde
-      console.log("✔ Cloud access OK");
-    } else {
-      setCloudStatus("error"); // rossa
-      console.error("✖ Foglio vuoto");
-    }
+    if (data.length > 0) cloudIcon.className = "cloud-icon ok";
+    else cloudIcon.className = "cloud-icon error";
   } catch (err) {
-    setCloudStatus("error"); // rossa
-    console.error("✖ Errore cloud:", err);
+    cloudIcon.className = "cloud-icon error";
+    console.error("Errore cloud:", err);
   }
 }
 
-// ============================
-// FRASE MOTIVAZIONALE DAL WEB
-// ============================
+// Frase motivazionale dal web
 async function mostraFraseWeb() {
   try {
     const response = await fetch("https://type.fit/api/quotes");
@@ -41,26 +31,14 @@ async function mostraFraseWeb() {
     fraseElem.innerText = `"${frase.text}" - ${frase.author || "Anonimo"}`;
   } catch (err) {
     console.error("Errore fetch frase:", err);
-    // fallback locale
     const fallback = [
       "Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.",
-      "Non aspettare l'opportunità, creala.",
-      "Il lavoro di squadra divide i compiti e moltiplica il successo."
+      "Non aspettare l'opportunità, creala."
     ];
-    const frase = fallback[Math.floor(Math.random() * fallback.length)];
-    fraseElem.innerText = frase;
+    fraseElem.innerText = fallback[Math.floor(Math.random() * fallback.length)];
   }
 }
 
-// ============================
-// UTILI
-// ============================
-function setCloudStatus(status) {
-  cloudIcon.className = `cloud-icon ${status}`;
-}
-
-// ============================
-// AVVIO ALLA PARTENZA
-// ============================
+// Avvio
 testCloudConnection();
 mostraFraseWeb();
