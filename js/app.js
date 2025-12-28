@@ -8,7 +8,7 @@ const cloudIcon = document.getElementById("cloud-status");
 // CONFIGURAZIONE FOGLIO
 // ============================
 const SPREADSHEET_ID = "1-IR2NTqTg57R3JovdQacis1v7MWG0XysT5f1kmTmAzI";
-const SHEET_NAME = "Impostazioni"; // foglio interno esatto
+const SHEET_NAME = "Impostazioni"; // nome foglio interno esatto
 
 // ============================
 // STATO CLOUD
