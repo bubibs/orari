@@ -1,40 +1,24 @@
-function goTo(page) {
-  window.location.href = page;
-}
-
 const cloudIcon = document.getElementById("cloud-status");
-const fraseElem = document.getElementById("frase-motivazionale");
 
-// URL del tuo Apps Script pubblicato
-const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec";
+// URL CSV pubblicato
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSk18AbYypWlNTxK9KzWVRSImHV847cAvhIpUn9aZu1Wgi9OKl27-4S6AK2yI0bdvqjVHKgQa/pub?output=csv";
 
-// Controllo nuvola
 async function testCloudConnection() {
   cloudIcon.className = "cloud-icon pending";
   try {
-    const res = await fetch(SHEET_JSON_URL);
-    const data = await res.json();
-    if (data && data.length > 0) cloudIcon.className = "cloud-icon ok";
-    else cloudIcon.className = "cloud-icon error";
+    const res = await fetch(SHEET_CSV_URL);
+    const text = await res.text();
+    if (text && text.length > 0) {
+      cloudIcon.className = "cloud-icon ok"; // verde
+      console.log("Cloud access OK");
+    } else {
+      cloudIcon.className = "cloud-icon error"; // rosso
+      console.error("Foglio vuoto");
+    }
   } catch (err) {
-    cloudIcon.className = "cloud-icon error";
+    cloudIcon.className = "cloud-icon error"; // rosso
     console.error("Errore cloud:", err);
   }
 }
 
-// Frase motivazionale solo dal web
-async function mostraFraseWeb() {
-  try {
-    const response = await fetch("https://type.fit/api/quotes");
-    const quotes = await response.json();
-    const frase = quotes[Math.floor(Math.random() * quotes.length)];
-    fraseElem.innerText = `"${frase.text}" - ${frase.author || "Anonimo"}`;
-  } catch (err) {
-    console.error("Errore fetch frase:", err);
-    fraseElem.innerText = "Caricamento frase non disponibile";
-  }
-}
-
-// Avvio
 testCloudConnection();
-mostraFraseWeb();
