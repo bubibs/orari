@@ -3,12 +3,11 @@ function goTo(page) {
 }
 
 const cloudIcon = document.getElementById("cloud-status");
+const fraseElem = document.getElementById("frase-motivazionale");
 
-function setCloudStatus(status) {
-  cloudIcon.className = `cloud-icon ${status}`;
-}
-
-// URL del tuo Google Apps Script pubblicato
+// ============================
+// CLOUD APPS SCRIPT
+// ============================
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec";
 
 async function testCloudConnection() {
@@ -31,5 +30,37 @@ async function testCloudConnection() {
   }
 }
 
-// Avvia il test al caricamento della pagina
+// ============================
+// FRASE MOTIVAZIONALE DAL WEB
+// ============================
+async function mostraFraseWeb() {
+  try {
+    const response = await fetch("https://type.fit/api/quotes");
+    const quotes = await response.json();
+    const frase = quotes[Math.floor(Math.random() * quotes.length)];
+    fraseElem.innerText = `"${frase.text}" - ${frase.author || "Anonimo"}`;
+  } catch (err) {
+    console.error("Errore fetch frase:", err);
+    // fallback locale
+    const fallback = [
+      "Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.",
+      "Non aspettare l'opportunità, creala.",
+      "Il lavoro di squadra divide i compiti e moltiplica il successo."
+    ];
+    const frase = fallback[Math.floor(Math.random() * fallback.length)];
+    fraseElem.innerText = frase;
+  }
+}
+
+// ============================
+// UTILI
+// ============================
+function setCloudStatus(status) {
+  cloudIcon.className = `cloud-icon ${status}`;
+}
+
+// ============================
+// AVVIO ALLA PARTENZA
+// ============================
 testCloudConnection();
+mostraFraseWeb();
