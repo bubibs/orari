@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>TECNOSISTEM - Stipendio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Stipendio</h1>
+                <div class="cloud-status" id="cloudStatus">
+                    <span class="status-icon" id="statusIcon">🔄</span>
+                    <span class="status-text" id="statusText">Sincronizzazione...</span>
+                </div>
+            </div>
+            <a href="index.html" class="back-button">← Torna alla Home</a>
+        </header>
+
+        <div class="date-selector">
+            <select id="monthSelect">
+                <option value="1">Gennaio</option>
+                <option value="2">Febbraio</option>
+                <option value="3">Marzo</option>
+                <option value="4">Aprile</option>
+                <option value="5">Maggio</option>
+                <option value="6">Giugno</option>
+                <option value="7">Luglio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Settembre</option>
+                <option value="10">Ottobre</option>
+                <option value="11">Novembre</option>
+                <option value="12">Dicembre</option>
+            </select>
+            <select id="yearSelect"></select>
+        </div>
+
+        <button class="btn btn-secondary" onclick="window.location.href='impostazioni.html'">Impostazioni</button>
+
+        <div class="salary-summary" id="salarySummary">
+            <p>Seleziona mese e anno per visualizzare i dati</p>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="stipendio.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>TECNOSISTEM - Impostazioni</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Impostazioni</h1>
+                <div class="cloud-status" id="cloudStatus">
+                    <span class="status-icon" id="statusIcon">🔄</span>
+                    <span class="status-text" id="statusText">Sincronizzazione...</span>
+                </div>
+            </div>
+            <a href="stipendio.html" class="back-button">← Torna a Stipendio</a>
+        </header>
+
+        <div class="settings-section">
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="pagaBase">Paga Base Mensile (€)</label>
+                    <input type="number" id="pagaBase" name="pagaBase" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pagaOraria">Paga Oraria (€)</label>
+                    <input type="number" id="pagaOraria" name="pagaOraria" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="indennitaRientro">Indennità Trasferta con Rientro (€)</label>
+                    <input type="number" id="indennitaRientro" name="indennitaRientro" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="indennitaPernottamento">Indennità Trasferta con Pernottamento (€)</label>
+                    <input type="number" id="indennitaPernottamento" name="indennitaPernottamento" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="indennitaEstero">Indennità Trasferta Estero (€)</label>
+                    <input type="number" id="indennitaEstero" name="indennitaEstero" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="aliquota">Aliquota Tasse (%)</label>
+                    <input type="number" id="aliquota" name="aliquota" step="0.1" min="0" max="100" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="impostazioni.js"></script>
+</body>
+</html>
+

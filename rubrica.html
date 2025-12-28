@@ -3,86 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rubrica Aziendale</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
-    <style>
-        :root { --ios-blue: #007AFF; --ios-bg: #F2F2F7; --ios-card: #FFFFFF; }
-        
-        body { 
-            font-family: -apple-system, system-ui, sans-serif; 
-            background: var(--ios-bg); 
-            margin: 0; 
-            padding: 15px; 
-            color: #1C1C1E;
-        }
-
-        /* Cloud Status Header */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .sync-box { 
-            display: flex; align-items: center; gap: 8px; 
-            background: var(--ios-card); padding: 8px 15px; 
-            border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-        }
-        #sync-text { font-size: 0.8rem; font-weight: 600; color: #3A3A3C; }
-
-        /* Search Bar */
-        .search-container { margin-bottom: 15px; }
-        #search-input { 
-            width: 100%; padding: 12px; border-radius: 10px; 
-            border: 1px solid #D1D1D6; font-size: 16px; 
-            box-sizing: border-box; background: #FFF;
-        }
-
-        /* Contact Cards */
-        .contatto-card { 
-            background: var(--ios-card); padding: 16px; 
-            border-radius: 14px; margin-bottom: 12px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column;
-        }
-
-        .main-row { display: flex; justify-content: space-between; align-items: center; }
-        .info strong { display: block; font-size: 1.1rem; color: #000; }
-        .info span { color: #8E8E93; font-size: 0.9rem; font-weight: 500; }
-
-        /* Extra Details (Indirizzo/Referente) */
-        .details { 
-            margin-top: 12px; padding-top: 10px; 
-            border-top: 1px solid #F2F2F7; 
-            font-size: 0.85rem; color: #3A3A3C;
-        }
-        .details p { margin: 4px 0; display: flex; align-items: center; gap: 8px; }
-        .details i { color: var(--ios-blue); width: 14px; }
-
-        .btn-call { 
-            background: #34C759; color: white; 
-            width: 44px; height: 44px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            text-decoration: none; font-size: 1.2rem;
-        }
-
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .fa-spin { animation: spin 1s linear infinite; }
-    </style>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>TECNOSISTEM - Rubrica</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Rubrica</h1>
+                <div class="cloud-status" id="cloudStatus">
+                    <span class="status-icon" id="statusIcon">🔄</span>
+                    <span class="status-text" id="statusText">Sincronizzazione...</span>
+                </div>
+            </div>
+            <a href="index.html" class="back-button">← Torna alla Home</a>
+        </header>
 
-    <header>
-        <h1 style="margin:0; font-size: 1.6rem;">Rubrica</h1>
-        <div class="sync-box">
-            <i id="sync-icon" class="fas fa-cloud"></i>
-            <span id="sync-text">Sincronizzazione...</span>
+        <div class="form-container">
+            <h2 style="margin-bottom: 20px; color: var(--text-dark);">Nuovo Contatto</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="azienda">Azienda *</label>
+                    <input type="text" id="azienda" name="azienda" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="indirizzo">Indirizzo (Città, Via, Numero)</label>
+                    <input type="text" id="indirizzo" name="indirizzo" placeholder="Es: Milano, Via Roma 10">
+                </div>
+
+                <div class="form-group">
+                    <label for="referente">Referente</label>
+                    <input type="text" id="referente" name="referente">
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">Numero di Telefono</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="+39 123 456 7890">
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="saveContactButton">Salva Contatto</button>
+            </form>
         </div>
-    </header>
 
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="Cerca nome o ruolo..." onkeyup="filtraContatti()">
+        <div class="list-container">
+            <h2 style="margin-bottom: 20px; color: var(--text-dark);">Contatti Salvati</h2>
+            <div id="contactsList">
+                <p>Caricamento contatti...</p>
+            </div>
+        </div>
     </div>
 
-    <div id="lista-contatti">
-        </div>
-
-    <script src="js/config.js"></script>
-    <script src="js/rubrica.js"></script>
+    <script src="api.js"></script>
+    <script src="rubrica.js"></script>
 </body>
 </html>
+

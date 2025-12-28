@@ -3,93 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Report Ore - Tecnosistem</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/report.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>TECNOSISTEM - Inserisci Report</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <header class="header-back">
-            <a href="index.html"><i class="fas fa-chevron-left"></i> Home</a>
-            <div class="sync-status-wrapper">
-                <span id="sync-text">Connesso</span>
-                <i id="sync-indicator" class="fas fa-cloud"></i>
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Inserisci Report</h1>
+                <div class="cloud-status" id="cloudStatus">
+                    <span class="status-icon" id="statusIcon">🔄</span>
+                    <span class="status-text" id="statusText">Sincronizzazione...</span>
+                </div>
             </div>
+            <a href="index.html" class="back-button">← Torna alla Home</a>
         </header>
 
-        <div class="card card-accent">
-            <h2>Inserimento Ore</h2>
-            
-            <div class="form-group">
-                <label>Data Intervento</label>
-                <input type="date" id="rep-data" onchange="calcolaOre()">
-            </div>
-
-            <div class="row-inputs">
+        <div class="form-container">
+            <form id="reportForm">
                 <div class="form-group">
-                    <label>Tipo Lavoro</label>
-                    <select id="rep-tipo" class="modern-select" onchange="checkTipoLavoro()">
-                        <option value="In sede">In sede</option>
-                        <option value="Trasferta Rientro">Trasferta Rientro</option>
-                        <option value="Trasferta Pernottamento">Trasferta Pernottamento</option>
-                        <option value="Trasferta Estero">Trasferta Estero</option>
+                    <label for="data">Data *</label>
+                    <input type="date" id="data" name="data" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipoLavoro">Tipo di Lavoro *</label>
+                    <select id="tipoLavoro" name="tipoLavoro" required>
+                        <option value="">Seleziona...</option>
+                        <option value="in sede">In sede</option>
+                        <option value="trasferta con rientro">Trasferta con rientro</option>
+                        <option value="trasferta con pernottamento">Trasferta con pernottamento</option>
+                        <option value="trasferta estero">Trasferta estero</option>
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label>Assenza</label>
-                    <select id="rep-assenza" class="modern-select" onchange="calcolaOre()">
-                        <option value="Nessuna">- Nessuna -</option>
-                        <option value="Ferie">Ferie</option>
-                        <option value="Permesso">Permesso</option>
-                        <option value="Malattia">Malattia</option>
+                    <label for="assenza">Assenza</label>
+                    <select id="assenza" name="assenza">
+                        <option value="">Nessuna</option>
+                        <option value="ferie">Ferie</option>
+                        <option value="malattia">Malattia</option>
+                        <option value="permesso">Permesso</option>
                     </select>
                 </div>
-            </div>
 
-            <div class="row-inputs">
                 <div class="form-group">
-                    <label>Inizio</label>
-                    <input type="time" id="rep-inizio" step="1800" onchange="calcolaOre()">
+                    <label for="oraInizio">Ora Inizio *</label>
+                    <input type="time" id="oraInizio" name="oraInizio" step="1800" required>
                 </div>
+
                 <div class="form-group">
-                    <label>Fine</label>
-                    <input type="time" id="rep-fine" step="1800" onchange="calcolaOre()">
+                    <label for="oraFine">Ora Fine *</label>
+                    <input type="time" id="oraFine" name="oraFine" step="1800" required>
                 </div>
-            </div>
 
-            <div class="form-group checkbox-row">
-                <input type="checkbox" id="rep-mensa" onchange="calcolaOre()">
-                <label for="rep-mensa">Pausa Mensa (1 ora)</label>
-            </div>
-
-            <div class="form-group" style="position: relative;">
-                <label>Luogo / Cliente</label>
-                <input type="text" id="rep-luogo" placeholder="Luogo..." oninput="suggestLuogo()" autocomplete="off">
-                <div id="suggestions" class="suggest-box"></div>
-            </div>
-
-            <div class="form-group">
-                <label>Note</label>
-                <input type="text" id="rep-note" placeholder="Note intervento...">
-            </div>
-
-            <div class="stats-container">
-                <div class="stat-box">
-                    <label>Ore Totali</label>
-                    <div id="display-totali">0.0</div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="pausaMensa" name="pausaMensa">
+                    <label for="pausaMensa">Pausa mensa (1 ora)</label>
                 </div>
-                <div class="stat-box accent">
-                    <label>Straordinari</label>
-                    <div id="display-straord">0.0</div>
-                </div>
-            </div>
 
-            <button class="btn-main" id="btn-save-rep" onclick="salvaReport()">
-                <i id="btn-icon" class="fas fa-paper-plane"></i> 
-                <span id="btn-text">INVIA REPORT</span>
-            </button>
+                <div class="form-group">
+                    <label for="luogoIntervento">Luogo Intervento</label>
+                    <input type="text" id="luogoIntervento" name="luogoIntervento" list="luoghiList">
+                    <datalist id="luoghiList"></datalist>
+                </div>
+
+                <div class="form-group">
+                    <label for="note">Note</label>
+                    <textarea id="note" name="note" placeholder="Appunti vari..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="oreTotali">Ore Totali</label>
+                    <input type="number" id="oreTotali" name="oreTotali" step="0.5" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="oreStraordinarie">Ore Straordinarie</label>
+                    <input type="number" id="oreStraordinarie" name="oreStraordinarie" step="0.5" readonly>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="saveButton">Salva Report</button>
+            </form>
         </div>
     </div>
-    <script src="js/report.js"></script>
+
+    <script src="api.js"></script>
+    <script src="report.js"></script>
 </body>
 </html>
+
