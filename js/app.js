@@ -1,7 +1,14 @@
+function goTo(page) {
+  window.location.href = page;
+}
+
 const cloudIcon = document.getElementById("cloud-status");
+const fraseElem = document.getElementById("frase-motivazionale");
+
+// URL Apps Script pubblicato
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec";
 
-// Controllo semplice cloud
+// Nuvola cloud
 async function testCloudConnection() {
   cloudIcon.className = "cloud-icon pending"; // grigia
   try {
@@ -9,10 +16,8 @@ async function testCloudConnection() {
     const data = await res.json();
     if (data && data.rows && data.rows.length > 0) {
       cloudIcon.className = "cloud-icon ok"; // verde
-      console.log("Cloud access OK");
     } else {
       cloudIcon.className = "cloud-icon error"; // rosso
-      console.error("Foglio vuoto");
     }
   } catch (err) {
     cloudIcon.className = "cloud-icon error"; // rosso
@@ -20,4 +25,18 @@ async function testCloudConnection() {
   }
 }
 
+// Frase motivazionale dal web
+async function mostraFraseWeb() {
+  try {
+    const response = await fetch("https://type.fit/api/quotes");
+    const quotes = await response.json();
+    const frase = quotes[Math.floor(Math.random() * quotes.length)];
+    fraseElem.innerText = `"${frase.text}" - ${frase.author || "Anonimo"}`;
+  } catch (err) {
+    console.error("Errore fetch frase:", err);
+    fraseElem.innerText = "Caricamento frase non disponibile";
+  }
+}
+
 testCloudConnection();
+mostraFraseWeb();
