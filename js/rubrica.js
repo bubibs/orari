@@ -1,58 +1,32 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-
 document.addEventListener('DOMContentLoaded', caricaRubrica);
-
-function updateSyncStatus(status) {
-    const icon = document.getElementById('sync-icon');
-    if (!icon) return;
-    icon.className = "fas";
-    if (status === 'working') {
-        icon.classList.add('fa-sync', 'fa-spin');
-        icon.style.color = "#FFCC00"; // GIALLO
-    } else if (status === 'success') {
-        icon.classList.add('fa-cloud');
-        icon.style.color = "#34C759"; // VERDE
-    } else {
-        icon.classList.add('fa-exclamation-triangle');
-        icon.style.color = "#FF3B30"; // ROSSO
-    }
-}
 
 async function caricaRubrica() {
     updateSyncStatus('working');
     try {
         const r = await fetch(`${WEB_APP_URL}?azione=leggi_rubrica`);
         const res = await r.json();
+        
         if (res.success) {
-            const cont = document.getElementById('lista-contatti');
-            cont.innerHTML = res.dati.map(c => `
-                <div class="card-contatto">
-                    <strong>${c.nome}</strong> - ${c.ruolo}
-                    <a href="tel:${c.tel}"><i class="fas fa-phone"></i></a>
-                </div>`).join('');
+            const container = document.getElementById('lista-contatti');
+            if (res.dati.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px;">Nessun contatto in rubrica.</p>';
+            } else {
+                container.innerHTML = res.dati.map(c => `
+                    <div class="contatto-card">
+                        <div class="contatto-info">
+                            <strong>${c.nome}</strong>
+                            <span>${c.ruolo || 'Dipendente'}</span>
+                        </div>
+                        <a href="tel:${c.tel}" class="btn-call">
+                            <i class="fas fa-phone"></i>
+                        </a>
+                    </div>
+                `).join('');
+            }
             updateSyncStatus('success');
-        }
-    } catch (e) { updateSyncStatus('error'); }
-}
-
-async function aggiungiContatto() {
-    const btn = document.getElementById('btn-salva');
-    btn.disabled = true; // Previene doppio click
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVO...';
-    
-    const dati = {
-        azione: 'salva_contatto',
-        nome: document.getElementById('nome').value,
-        tel: document.getElementById('tel').value,
-        ruolo: document.getElementById('ruolo').value
-    };
-
-    try {
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dati) });
-        updateSyncStatus('success');
-        setTimeout(() => { location.reload(); }, 1000);
+        } else { throw new Error(); }
     } catch (e) {
         updateSyncStatus('error');
-        btn.disabled = false;
+        console.error("Errore rubrica:", e);
     }
 }
