@@ -164,10 +164,10 @@ async function checkCloudStatus() {
     try {
         const result = await API.checkSync();
         if (result.synced) {
-            statusIcon.textContent = '☁️';
+            statusIcon.textContent = '✅';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
-            statusIcon.style.filter = 'grayscale(0%) brightness(1.2) hue-rotate(120deg) saturate(2.5) contrast(1.2)';
+            statusIcon.style.filter = 'none';
         } else {
             statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
@@ -175,10 +175,10 @@ async function checkCloudStatus() {
             statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
         }
     } catch (error) {
-        statusIcon.textContent = '☁️';
+        statusIcon.textContent = '❌';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
-        statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
+        statusIcon.style.filter = 'none';
     }
 }
 

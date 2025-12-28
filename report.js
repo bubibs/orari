@@ -16,9 +16,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('data').value = today;
     
-    // Set time inputs to 30-minute steps
-    document.getElementById('oraInizio').step = '1800';
-    document.getElementById('oraFine').step = '1800';
+    // Set time inputs to 30-minute steps (already set in HTML, but ensure it's correct)
+    const oraInizioInput = document.getElementById('oraInizio');
+    const oraFineInput = document.getElementById('oraFine');
+    oraInizioInput.setAttribute('step', '1800');
+    oraFineInput.setAttribute('step', '1800');
+    
+    // Round to nearest 30 minutes when user selects a time
+    oraInizioInput.addEventListener('change', function() {
+        const time = this.value;
+        if (time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const roundedMinutes = Math.round(minutes / 30) * 30;
+            const finalMinutes = roundedMinutes === 60 ? 0 : roundedMinutes;
+            const finalHours = roundedMinutes === 60 ? (hours + 1) % 24 : hours;
+            this.value = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
+            calculateHours();
+        }
+    });
+    
+    oraFineInput.addEventListener('change', function() {
+        const time = this.value;
+        if (time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const roundedMinutes = Math.round(minutes / 30) * 30;
+            const finalMinutes = roundedMinutes === 60 ? 0 : roundedMinutes;
+            const finalHours = roundedMinutes === 60 ? (hours + 1) % 24 : hours;
+            this.value = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
+            calculateHours();
+        }
+    });
     
     // Setup event listeners
     setupEventListeners();
@@ -258,10 +285,10 @@ async function checkCloudStatus() {
     try {
         const result = await API.checkSync();
         if (result.synced) {
-            statusIcon.textContent = '☁️';
+            statusIcon.textContent = '✅';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
-            statusIcon.style.filter = 'grayscale(0%) brightness(1.2) hue-rotate(120deg) saturate(2.5) contrast(1.2)';
+            statusIcon.style.filter = 'none';
         } else {
             statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
@@ -269,10 +296,10 @@ async function checkCloudStatus() {
             statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
         }
     } catch (error) {
-        statusIcon.textContent = '☁️';
+        statusIcon.textContent = '❌';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
-        statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
+        statusIcon.style.filter = 'none';
     }
 }
 
