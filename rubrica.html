@@ -3,103 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubrica Aziendale - Cloud Sync</title>
+    <title>Rubrica</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <style>
-        :root {
-            --primary: #007AFF;
-            --success: #34C759;
-            --warning: #FFCC00;
-            --danger: #FF3B30;
-            --bg: #F2F2F7;
-            --card: #FFFFFF;
-        }
-
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-
-        /* HEADER & STATUS */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .sync-status { background: var(--card); padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 0.9rem; }
-        
-        /* SEARCH BAR */
-        .search-container { margin-bottom: 20px; }
-        #search-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; font-size: 1rem; box-sizing: border-box; }
-
-        /* LISTA CONTATTI */
-        #lista-contatti { display: grid; gap: 12px; }
-        .contatto-card { background: var(--card); padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .contatto-info strong { display: block; font-size: 1.1rem; }
-        .contatto-info span { color: #8E8E93; font-size: 0.9rem; }
-        
-        .btn-call { background: var(--success); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-
-        /* FLOATING ACTION BUTTON */
-        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,122,255,0.4); border: none; cursor: pointer; }
-
-        /* MODALE */
-        #modal-contatto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; }
-        .modal-content h3 { margin-top: 0; }
-        .modal-content input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #D1D1D6; border-radius: 10px; box-sizing: border-box; }
-        
-        .btn-save { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        .btn-save:disabled { background: #A2A2A7; }
-
-        /* ANIMAZIONE */
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .fa-spin { animation: spin 1s linear infinite; }
+        .contatto-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-call { background: #34C759; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
     </style>
 </head>
-<body>
+<body style="background: #F2F2F7; font-family: sans-serif; padding: 15px;">
 
-    <header>
-        <h1>Rubrica</h1>
-        <div class="sync-status">
-            <i id="sync-icon" class="fas fa-cloud" style="color: var(--success);"></i>
-            <span>Cloud</span>
-        </div>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Rubrica</h2>
+        <i id="sync-icon" class="fas fa-cloud" style="color: #34C759; font-size: 1.5rem;"></i>
     </header>
 
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="Cerca nome o ruolo..." onkeyup="filtraContatti()">
-    </div>
-
     <div id="lista-contatti">
-        <div style="text-align: center; color: #8E8E93; padding: 20px;">Caricamento in corso...</div>
-    </div>
-
-    <button class="fab" onclick="apriModale()">
-        <i class="fas fa-plus"></i>
-    </button>
-
-    <div id="modal-contatto">
-        <div class="modal-content">
-            <h3>Nuovo Contatto</h3>
-            <input type="text" id="reg-nome" placeholder="Nome e Cognome">
-            <input type="tel" id="reg-tel" placeholder="Numero di Telefono">
-            <input type="text" id="reg-ruolo" placeholder="Ruolo (es. Capocantiere)">
-            
-            <button id="btn-salva-contatto" class="btn-save" onclick="aggiungiContattoCloud()">
-                SALVA CONTATTO
-            </button>
-            <button class="btn-save" style="background: transparent; color: #8E8E93; border: none;" onclick="chiudiModale()">Annulla</button>
         </div>
-    </div>
 
+    <script src="js/config.js"></script>
     <script src="js/rubrica.js"></script>
-    <script>
-        function apriModale() { document.getElementById('modal-contatto').style.display = 'flex'; }
-        function chiudiModale() { document.getElementById('modal-contatto').style.display = 'none'; }
-
-        // Funzione per filtrare i contatti localmente
-        function filtraContatti() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const cards = document.querySelectorAll('.contatto-card');
-            cards.forEach(card => {
-                const text = card.innerText.toLowerCase();
-                card.style.display = text.includes(query) ? 'flex' : 'none';
-            });
-        }
-    </script>
 </body>
 </html>
