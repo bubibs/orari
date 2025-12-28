@@ -9,53 +9,33 @@
   body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     display: flex;
-    flex-direction: row;
-    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
     transition: background 0.3s, color 0.3s;
   }
 
   @media (prefers-color-scheme: dark) {
-    body {
-      background-color: #111;
-      color: white;
-    }
+    body { background-color: #111; color: white; }
   }
-
   @media (prefers-color-scheme: light) {
-    body {
-      background-color: #f5f5f5;
-      color: black;
-    }
-  }
-
-  .left-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-left: 40px;
-  }
-
-  .right-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding-right: 40px;
+    body { background-color: #f5f5f5; color: black; }
   }
 
   h1 {
-    font-size: 3rem;
-    margin: 0;
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+    text-align: center;
   }
 
   h2 {
-    font-size: 1.5rem;
-    margin: 10px 0 30px 0;
+    font-size: 1.2rem;
     font-style: italic;
+    text-align: center;
+    margin-bottom: 20px;
   }
 
   #cloud-status {
@@ -67,40 +47,62 @@
   .cloud-icon.ok { color: green; }
   .cloud-icon.error { color: red; }
 
+  .btn-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 350px;
+  }
+
   button {
-    width: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
     padding: 15px;
     margin: 10px 0;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: transform 0.2s;
   }
 
-  button:hover {
-    transform: scale(1.05);
+  button:hover { transform: scale(1.03); }
+
+  button img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
   }
 
   .btn-report { background-color: #ff9800; color: white; }
   .btn-economy { background-color: #03a9f4; color: white; }
   .btn-settings { background-color: #4caf50; color: white; }
   .btn-clients { background-color: #9c27b0; color: white; }
+
 </style>
 </head>
 <body>
 
-  <div class="left-panel">
-    <h1>TECNOSISTEM</h1>
-    <h2 id="frase-motivazionale">Caricamento frase...</h2>
-  </div>
+  <h1>TECNOSISTEM</h1>
+  <h2 id="frase-motivazionale">Caricamento frase...</h2>
+  <div id="cloud-status" class="cloud-icon pending">☁️</div>
 
-  <div class="right-panel">
-    <div id="cloud-status" class="cloud-icon pending">☁️</div>
-    <button class="btn-report" onclick="goTo('nuovo_report.html')">Nuovo Report</button>
-    <button class="btn-economy" onclick="goTo('andamento.html')">Andamento Economico</button>
-    <button class="btn-settings" onclick="goTo('impostazioni.html')">Impostazioni</button>
-    <button class="btn-clients" onclick="goTo('clienti.html')">Clienti</button>
+  <div class="btn-container">
+    <button class="btn-report" onclick="goTo('nuovo_report.html')">
+      <img src="icons/report.png" alt="Report"> Nuovo Report
+    </button>
+    <button class="btn-economy" onclick="goTo('andamento.html')">
+      <img src="icons/economy.png" alt="Economy"> Andamento Economico
+    </button>
+    <button class="btn-settings" onclick="goTo('impostazioni.html')">
+      <img src="icons/settings.png" alt="Settings"> Impostazioni
+    </button>
+    <button class="btn-clients" onclick="goTo('clienti.html')">
+      <img src="icons/clients.png" alt="Clients"> Clienti
+    </button>
   </div>
 
   <script src="js/app.js"></script>
