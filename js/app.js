@@ -1,14 +1,13 @@
 const cloudIcon = document.getElementById("cloud-status");
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec";
 
-// URL CSV pubblicato
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSk18AbYypWlNTxK9KzWVRSImHV847cAvhIpUn9aZu1Wgi9OKl27-4S6AK2yI0bdvqjVHKgQa/pub?output=csv";
-
+// Controllo semplice cloud
 async function testCloudConnection() {
-  cloudIcon.className = "cloud-icon pending";
+  cloudIcon.className = "cloud-icon pending"; // grigia
   try {
-    const res = await fetch(SHEET_CSV_URL);
-    const text = await res.text();
-    if (text && text.length > 0) {
+    const res = await fetch(SHEET_JSON_URL);
+    const data = await res.json();
+    if (data && data.rows && data.rows.length > 0) {
       cloudIcon.className = "cloud-icon ok"; // verde
       console.log("Cloud access OK");
     } else {
