@@ -3,95 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Storico iPhone</title>
+    <title>Storico Lavoro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <style>
         :root { --ios-blue: #007AFF; --ios-bg: #F2F2F7; --card: #FFFFFF; }
         body { font-family: -apple-system, sans-serif; background: var(--ios-bg); margin: 0; padding: 15px; color: #1C1C1E; }
-        
-        /* Header & Cloud Status */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .sync-box { display: flex; align-items: center; gap: 8px; background: var(--card); padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         #sync-text { color: #3A3A3C; font-size: 0.8rem; font-weight: 600; }
-        
-        /* Cards */
         .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        h4 { margin: 0 0 12px 0; color: #8E8E93; text-transform: uppercase; font-size: 0.75rem; }
-
-        /* iPhone Inputs */
-        input, select { 
-            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #D1D1D6; 
-            border-radius: 10px; font-size: 16px !important; /* Evita zoom iOS */
-            background: #FFF; -webkit-appearance: none; 
-        }
-
-        .btn-ios { 
-            width: 100%; padding: 15px; background: var(--ios-blue); color: white; 
-            border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
-            transition: opacity 0.2s; touch-action: manipulation;
-        }
-        .btn-ios:active { opacity: 0.6; }
-        .btn-ios:disabled { background: #AEAEB2; }
-
-        /* Modal Settings */
-        #settings-panel { 
-            display: none; position: fixed; inset: 0; background: var(--ios-bg); 
-            z-index: 2000; padding: 20px; overflow-y: auto;
-        }
-
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .fa-spin { animation: spin 1s linear infinite; }
+        input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #D1D1D6; border-radius: 10px; font-size: 16px; background: #FFF; box-sizing: border-box; -webkit-appearance: none; }
+        .btn-ios { width: 100%; padding: 16px; background: var(--ios-blue); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 1rem; touch-action: manipulation; }
+        .btn-ios:active { opacity: 0.7; }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <header class="header">
         <h1 style="font-size: 1.5rem; margin:0;">Registro</h1>
         <div class="sync-box">
-            <i id="sync-icon" class="fas fa-cloud" style="color: #34C759;"></i>
+            <i id="sync-icon" class="fas fa-cloud"></i>
             <span id="sync-text">Connesso</span>
         </div>
-    </div>
+    </header>
 
     <div class="card">
-        <h4>Nuovo Ingresso</h4>
         <input type="date" id="input-data">
-        <input type="text" id="input-posizione" list="elenco-localita" placeholder="Città o Cantiere">
-        <datalist id="elenco-localita"></datalist>
         <select id="input-tipo">
-            <option value="Sede">Sede</option>
-            <option value="Rientro">Rientro</option>
-            <option value="Pernottamento">Pernottamento</option>
+            <optgroup label="Lavoro">
+                <option value="Sede">Sede</option>
+                <option value="Rientro">Rientro</option>
+                <option value="Pernottamento">Pernottamento</option>
+                <option value="Estero">Estero</option>
+            </optgroup>
+            <optgroup label="Assenze">
+                <option value="Ferie">Ferie</option>
+                <option value="Malattia">Malattia</option>
+                <option value="Permesso">Permesso</option>
+            </optgroup>
         </select>
-        <input type="number" id="input-ore" placeholder="Ore Straordinarie">
-        <button class="btn-ios" onclick="aggiungiLavoro()">Aggiungi Lavoro</button>
-    </div>
-
-    <div class="card" style="text-align: center;">
-        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-            <select id="filtro-mese" onchange="caricaDatiSito()"></select>
-            <select id="filtro-anno" onchange="caricaDatiSito()"></select>
-        </div>
-        <small style="color: #8E8E93;">Netto Stimato</small>
-        <div id="valore-netto" style="font-size: 2rem; font-weight: 800; color: var(--ios-blue);">€ 0,00</div>
-        <button onclick="toggleSettings()" style="margin-top:15px; background:none; border:none; color:var(--ios-blue); font-size:0.9rem;">⚙️ Tariffe Cloud</button>
-    </div>
-
-    <div id="settings-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>Tariffe Cloud</h2>
-            <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.5rem;">✕</button>
-        </div>
-        <label>Base Mensile</label><input type="number" id="base-mensile">
-        <label>Straord. 25%</label><input type="number" id="t-25">
-        <label>Straord. 50%</label><input type="number" id="t-50">
-        <label>Tasse %</label><input type="number" id="tasse">
-        <label>Ind. Rientro</label><input type="number" id="i-rie">
-        <label>Ind. Pernott.</label><input type="number" id="i-per">
-        <label>Ind. Estero</label><input type="number" id="i-est">
         
-        <button id="btn-salva-cloud" class="btn-ios" onclick="salvaTariffeCloud()" style="background:#34C759; margin-top:20px;">
-            <i class="fas fa-save"></i> SALVA NEL CLOUD
+        <input type="text" id="input-posizione" list="elenco-localita" placeholder="Città / Cantiere">
+        <datalist id="elenco-localita"></datalist>
+
+        <div style="display: flex; gap: 10px;">
+            <input type="time" id="input-inizio" placeholder="Inizio">
+            <input type="time" id="input-fine" placeholder="Fine">
+        </div>
+
+        <select id="input-mensa">
+            <option value="NO">Pausa Mensa: NO</option>
+            <option value="SI">Pausa Mensa: SI</option>
+        </select>
+
+        <textarea id="input-note" placeholder="Note, referenti, materiali..."></textarea>
+        <input type="number" id="input-ore" placeholder="Ore Straordinarie">
+        
+        <button id="btn-salva" class="btn-ios" onclick="salvaLavoro()">
+            <i class="fas fa-plus"></i> AGGIUNGI AL CLOUD
         </button>
     </div>
 
