@@ -2,39 +2,184 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Analisi Mensile</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/storico.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Lavoro Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <style>
+        :root {
+            --primary: #007AFF;
+            --success: #34C759;
+            --warning: #FFCC00;
+            --danger: #FF3B30;
+            --bg: #F2F2F7;
+            --card: #FFFFFF;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1C1C1E; }
+        
+        /* HEADER & CLOUD ICON */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .sync-box { display: flex; align-items: center; background: var(--card); padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        #sync-icon { font-size: 1.2rem; margin-right: 8px; transition: color 0.3s; }
+
+        /* CARDS */
+        .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; font-size: 1.1rem; color: #8E8E93; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* FORM */
+        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #D1D1D6; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
+
+        /* DASHBOARD STATS */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-item { background: #F8F8F8; padding: 15px; border-radius: 12px; text-align: center; }
+        .stat-val { display: block; font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+        .stat-label { font-size: 0.8rem; color: #8E8E93; }
+
+        /* BUTTONS */
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:disabled { background: #A2A2A7; cursor: not-allowed; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-top: 10px; }
+
+        /* SETTINGS PANEL (Hidden by default) */
+        #settings-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .settings-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; max-height: 80vh; overflow-y: auto; }
+
+        /* ANIMAZIONE ROTAZIONE */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .fa-spin { animation: spin 1s linear infinite; }
+    </style>
 </head>
 <body>
 
-    <header class="header-app">
-        <div class="header-left">
-            <a href="index.html" class="back-btn">
-                <i class="fas fa-home"></i> HOME
-            </a>
-        </div>
-        <div class="header-right">
-            <i class="fas fa-cloud" id="sync-icon"></i>
-            <i class="fas fa-cog" onclick="toggleSettings()"></i>
+    <header>
+        <h1>Mio Registro</h1>
+        <div class="sync-box">
+            <i id="sync-icon" class="fas fa-cloud"></i>
+            <span id="sync-text" style="font-size: 0.8rem; font-weight: bold;">Cloud</span>
         </div>
     </header>
 
-    <div class="container">
-        <div class="card">
-            <div class="filter-row">
-                <select id="filtro-mese"></select>
-                <select id="filtro-anno" onchange="caricaDatiAnnuali()"></select>
-                <button onclick="caricaDatiStorico()" id="btn-search">
-                    <i class="fas fa-search"></i>
-                </button>
+    <section class="card">
+        <h2>Nuovo Inserimento</h2>
+        <div class="grid-form">
+            <div class="full-width">
+                <label>Data</label>
+                <input type="date" id="input-data">
+            </div>
+            <div class="full-width">
+                <label>Località / Cantiere</label>
+                <input type="text" id="input-posizione" list="elenco-localita" placeholder="Cerca località...">
+                <datalist id="elenco-localita"></datalist>
+            </div>
+            <div>
+                <label>Tipo</label>
+                <select id="input-tipo">
+                    <option value="Sede">Sede</option>
+                    <option value="Rientro">Rientro</option>
+                    <option value="Pernottamento">Pernottamento</option>
+                    <option value="Estero">Estero</option>
+                </select>
+            </div>
+            <div>
+                <label>Ore Straord.</label>
+                <input type="number" id="input-ore" step="0.5" placeholder="0.0">
+            </div>
+            <button class="btn-primary full-width" onclick="salvaLavoroLocale()">
+                <i class="fas fa-plus"></i> AGGIUNGI ORA
+            </button>
+        </div>
+    </section>
+
+    <section class="card">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <select id="filtro-mese" onchange="caricaDatiSito()"></select>
+            <select id="filtro-anno" onchange="caricaDatiSito()"></select>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-item" style="grid-column: span 2; background: #E5F1FF;">
+                <span class="stat-label">Netto Stimato</span>
+                <span id="valore-netto" class="stat-val">€ 0,00</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Ore 25%</span>
+                <span id="val-25" class="stat-val">0h</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Ore 50%</span>
+                <span id="val-50" class="stat-val">0h</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Indennità</span>
+                <span id="val-indennita" class="stat-val">€ 0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Lordo</span>
+                <span id="valore-lordo" class="stat-val">€ 0</span>
             </div>
         </div>
 
-        <div class="card">
-            <h3>Riepilogo Attività (Giorni)</h3>
+        <button class="btn-outline" onclick="toggleSettings()">
+            <i class="fas fa-cog"></i> CONFIGURA TARIFFE
+        </button>
+    </section>
+
+    <div id="settings-panel">
+        <div class="settings-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin:0;">Tariffe Cloud</h2>
+                <i class="fas fa-times" onclick="toggleSettings()" style="cursor:pointer;"></i>
+            </div>
+            
+            <label>Base Mensile (€)</label>
+            <input type="number" id="base-mensile" value="0">
+            <br><br>
+            <div class="grid-form">
+                <div>
+                    <label>Straord. 25%</label>
+                    <input type="number" id="tariffa-25" value="0">
+                </div>
+                <div>
+                    <label>Straord. 50%</label>
+                    <input type="number" id="tariffa-50" value="0">
+                </div>
+                <div>
+                    <label>Ind. Rientro</label>
+                    <input type="number" id="ind-rientro" value="0">
+                </div>
+                <div>
+                    <label>Ind. Pernott.</label>
+                    <input type="number" id="ind-pernott" value="0">
+                </div>
+                <div>
+                    <label>Ind. Estero</label>
+                    <input type="number" id="ind-estero" value="0">
+                </div>
+                <div>
+                    <label>Tasse (%)</label>
+                    <input type="number" id="aliquota-tasse" value="30">
+                </div>
+            </div>
+            <br>
+            <button id="btn-salva-tariffe" class="btn-primary" onclick="salvaTariffeCloud()">
+                SALVA NEL CLOUD
+            </button>
+        </div>
+    </div>
+
+    <script src="js/storico.js"></script>
+    <script>
+        function toggleSettings() {
+            const p = document.getElementById('settings-panel');
+            p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+        }
+    </script>
+</body>
+</html>            <h3>Riepilogo Attività (Giorni)</h3>
             <div class="stats-grid">
                 <div class="stat-item"><span>Sede</span><strong id="ore-sede">0</strong></div>
                 <div class="stat-item"><span>Rientro</span><strong id="ore-rientro">0</strong></div>
