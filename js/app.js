@@ -7,10 +7,8 @@ const cloudIcon = document.getElementById("cloud-status");
 // ============================
 // CONFIGURAZIONE FOGLIO
 // ============================
-
-// Usa l'ID classico del tuo documento Google Sheet
 const SPREADSHEET_ID = "1-IR2NTqTg57R3JovdQacis1v7MWG0XysT5f1kmTmAzI";
-const SHEET_NAME = "Reports"; // nome esatto del foglio
+const SHEET_NAME = "Impostazioni"; // foglio interno esatto
 
 // ============================
 // STATO CLOUD
