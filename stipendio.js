@@ -44,21 +44,25 @@ async function loadSalaryData() {
     
     try {
         const result = await API.getSalaryData(month, year);
+        if (!result.success) {
+            throw new Error(result.error || 'Errore nel caricamento');
+        }
         const data = result.data;
         const settings = await API.getSettings();
         
         // Calculate salary
-        const calcolo = calculateSalary(data, settings);
+        const calcolo = await calculateSalary(data, settings);
         
         // Display summary
         displaySalarySummary(data, calcolo);
         
     } catch (error) {
-        summaryDiv.innerHTML = '<p style="color: var(--error-color);">Errore nel caricamento dei dati</p>';
+        console.error('Error loading salary data:', error);
+        summaryDiv.innerHTML = '<p style="color: var(--error-color);">Errore nel caricamento dei dati: ' + error.message + '</p>';
     }
 }
 
-function calculateSalary(data, settings) {
+async function calculateSalary(data, settings) {
     const {
         giorniLavorati,
         giorniTrasferta,
@@ -83,30 +87,25 @@ function calculateSalary(data, settings) {
     const indennitaPernottamento = parseFloat(settings.indennitaPernottamento) || 50;
     const indennitaEstero = parseFloat(settings.indennitaEstero) || 100;
     
-    // Count days for each travel type
-    const reportsResult = await API.getReports();
-    const reports = reportsResult.data || [];
+    // Get reports to count travel days accurately
     const month = parseInt(document.getElementById('monthSelect').value);
     const year = parseInt(document.getElementById('yearSelect').value);
-    
-    const filtered = reports.filter(r => {
-        const reportDate = new Date(r.data);
-        return reportDate.getMonth() === month - 1 && 
-               reportDate.getFullYear() === year &&
-               !r.assenza;
-    });
+    const reportsResult = await API.getReports({ month: month, year: year });
+    const reports = reportsResult.data || [];
     
     let giorniRientro = 0;
     let giorniPernottamento = 0;
     let giorniEstero = 0;
     
-    filtered.forEach(report => {
-        if (report.tipoLavoro === 'trasferta con rientro') {
-            giorniRientro++;
-        } else if (report.tipoLavoro === 'trasferta con pernottamento') {
-            giorniPernottamento++;
-        } else if (report.tipoLavoro === 'trasferta estero') {
-            giorniEstero++;
+    reports.forEach(report => {
+        if (!report.assenza) {
+            if (report.tipoLavoro === 'trasferta con rientro') {
+                giorniRientro++;
+            } else if (report.tipoLavoro === 'trasferta con pernottamento') {
+                giorniPernottamento++;
+            } else if (report.tipoLavoro === 'trasferta estero') {
+                giorniEstero++;
+            }
         }
     });
     
@@ -230,15 +229,18 @@ async function checkCloudStatus() {
             statusIcon.textContent = '☁️';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
+            statusIcon.style.filter = 'grayscale(0%) brightness(1.2) hue-rotate(120deg) saturate(2.5) contrast(1.2)';
         } else {
             statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
             statusText.textContent = 'Non sincronizzato';
+            statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
         }
     } catch (error) {
         statusIcon.textContent = '☁️';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
+        statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
     }
 }
 

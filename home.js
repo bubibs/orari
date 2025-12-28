@@ -20,15 +20,19 @@ async function checkCloudStatus() {
             statusIcon.textContent = '☁️';
             statusIcon.classList.add('synced');
             statusText.textContent = 'Sincronizzato';
+            // Force green color
+            statusIcon.style.filter = 'grayscale(0%) brightness(1.2) hue-rotate(120deg) saturate(2.5) contrast(1.2)';
         } else {
             statusIcon.textContent = '☁️';
             statusIcon.classList.remove('synced');
             statusText.textContent = 'Non sincronizzato';
+            statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
         }
     } catch (error) {
         statusIcon.textContent = '☁️';
         statusIcon.classList.remove('synced');
         statusText.textContent = 'Errore connessione';
+        statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
     }
 }
 

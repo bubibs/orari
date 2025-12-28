@@ -7,10 +7,10 @@ const API = {
     async checkSync() {
         try {
             const response = await fetch(`${API_BASE_URL}?action=ping`, {
-                method: 'GET',
-                mode: 'no-cors'
+                method: 'GET'
             });
-            return { success: true, synced: true };
+            const data = await response.json();
+            return { success: data.success, synced: data.success };
         } catch (error) {
             return { success: false, synced: false, error };
         }
@@ -27,28 +27,28 @@ const API = {
                 body: JSON.stringify({
                     action: 'saveReport',
                     data: reportData
-                }),
-                mode: 'no-cors'
+                })
             });
-            return { success: true };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, error };
+            return { success: false, error: error.toString() };
         }
     },
 
     // Get reports
     async getReports(filters = {}) {
         try {
-            const params = new URLSearchParams({ action: 'getReports', ...filters });
+            const params = new URLSearchParams({ action: 'getReports' });
+            if (filters.month) params.append('month', filters.month);
+            if (filters.year) params.append('year', filters.year);
             const response = await fetch(`${API_BASE_URL}?${params}`, {
-                method: 'GET',
-                mode: 'no-cors'
+                method: 'GET'
             });
-            // Note: With no-cors mode, we can't read response, but data is saved on cloud
-            // Return empty array - data should come from cloud on next page load
-            return { success: true, data: [] };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, data: [], error };
+            return { success: false, data: [], error: error.toString() };
         }
     },
 
@@ -74,12 +74,12 @@ const API = {
                     action: 'updateReport',
                     id: id,
                     data: reportData
-                }),
-                mode: 'no-cors'
+                })
             });
-            return { success: true };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, error };
+            return { success: false, error: error.toString() };
         }
     },
 
@@ -94,12 +94,12 @@ const API = {
                 body: JSON.stringify({
                     action: 'deleteReport',
                     id: id
-                }),
-                mode: 'no-cors'
+                })
             });
-            return { success: true };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, error };
+            return { success: false, error: error.toString() };
         }
     },
 
@@ -114,12 +114,12 @@ const API = {
                 body: JSON.stringify({
                     action: 'saveContact',
                     data: contactData
-                }),
-                mode: 'no-cors'
+                })
             });
-            return { success: true };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, error };
+            return { success: false, error: error.toString() };
         }
     },
 
@@ -128,14 +128,12 @@ const API = {
         try {
             const params = new URLSearchParams({ action: 'getContacts' });
             const response = await fetch(`${API_BASE_URL}?${params}`, {
-                method: 'GET',
-                mode: 'no-cors'
+                method: 'GET'
             });
-            // Note: With no-cors mode, we can't read response, but data is saved on cloud
-            // Return empty array - data should come from cloud on next page load
-            return { success: true, data: [] };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, data: [], error };
+            return { success: false, data: [], error: error.toString() };
         }
     },
 
@@ -151,12 +149,12 @@ const API = {
                     action: 'updateContact',
                     id: id,
                     data: contactData
-                }),
-                mode: 'no-cors'
+                })
             });
-            return { success: true };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, error };
+            return { success: false, error: error.toString() };
         }
     },
 
@@ -171,12 +169,12 @@ const API = {
                 body: JSON.stringify({
                     action: 'deleteContact',
                     id: id
-                }),
-                mode: 'no-cors'
+                })
             });
-            return { success: true };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            return { success: false, error };
+            return { success: false, error: error.toString() };
         }
     },
 
@@ -189,14 +187,12 @@ const API = {
                 year: year
             });
             const response = await fetch(`${API_BASE_URL}?${params}`, {
-                method: 'GET',
-                mode: 'no-cors'
+                method: 'GET'
             });
-            const data = await this.calculateLocalSalary(month, year);
-            return { success: true, data };
+            const result = await response.json();
+            return result;
         } catch (error) {
-            const data = await this.calculateLocalSalary(month, year);
-            return { success: true, data };
+            return { success: false, error: error.toString() };
         }
     },
 
@@ -212,10 +208,10 @@ const API = {
                 body: JSON.stringify({
                     action: 'saveSettings',
                     data: settings
-                }),
-                mode: 'no-cors'
+                })
             });
-            return { success: true };
+            const result = await response.json();
+            return result;
         } catch (error) {
             return { success: true }; // Saved locally
         }
@@ -224,20 +220,29 @@ const API = {
     // Get settings
     async getSettings() {
         try {
-            const settings = localStorage.getItem('salarySettings');
-            if (settings) {
-                return JSON.parse(settings);
+            // Try to get from cloud first
+            const params = new URLSearchParams({ action: 'getSettings' });
+            const response = await fetch(`${API_BASE_URL}?${params}`, {
+                method: 'GET'
+            });
+            const result = await response.json();
+            if (result.success && result.data) {
+                // Save to localStorage as backup
+                localStorage.setItem('salarySettings', JSON.stringify(result.data));
+                return result.data;
+            }
+            throw new Error('No data from cloud');
+        } catch (error) {
+            // Fallback to localStorage
+            try {
+                const settings = localStorage.getItem('salarySettings');
+                if (settings) {
+                    return JSON.parse(settings);
+                }
+            } catch (e) {
+                // Ignore
             }
             // Default settings
-            return {
-                pagaBase: 2000,
-                pagaOraria: 12.5,
-                indennitaRientro: 15,
-                indennitaPernottamento: 50,
-                indennitaEstero: 100,
-                aliquota: 25
-            };
-        } catch (error) {
             return {
                 pagaBase: 2000,
                 pagaOraria: 12.5,
@@ -386,5 +391,4 @@ const API = {
         };
     }
 };
-
 
