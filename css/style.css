@@ -18,7 +18,7 @@ body {
 
 .header {
   display: flex;
-  align-items: center; /* centra verticalmente */
+  align-items: center;
   justify-content: space-between;
   width: 100%;
   max-width: 400px;
@@ -28,7 +28,7 @@ body {
 .title-container {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centra verticalmente rispetto alla nuvola */
+  justify-content: center;
 }
 
 h1 { font-size: 2rem; margin: 0; }
@@ -57,9 +57,7 @@ h2 { font-size: 1rem; font-style: italic; margin: 0; }
 }
 
 button {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  display: block;
   width: 100%;
   padding: 15px;
   margin: 10px 0;
@@ -71,8 +69,6 @@ button {
 }
 
 button:hover { transform: scale(1.03); }
-
-button svg { width: 24px; height: 24px; margin-right: 10px; fill: white; }
 
 .btn-report { background-color: #ff9800; color: white; }
 .btn-economy { background-color: #03a9f4; color: white; }
