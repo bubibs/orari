@@ -8,7 +8,7 @@ const cloudIcon = document.getElementById("cloud-status");
 // CONFIGURAZIONE FOGLIO
 // ============================
 const SPREADSHEET_ID = "2PACX-1vSk18AbYypWlNTxK9KzWVRSImHV847cAvhIpUn9aZu1Wgi9OKl27-4S6AK2S6AK2NfXSO2yI0bdvqjVHKgQa";
-const SHEET_NAME = "Report"; // inserisci qui il nome esatto del foglio
+const SHEET_NAME = "Reports"; // inserisci qui il nome esatto del foglio
 
 // ============================
 // STATO CLOUD
@@ -44,4 +44,5 @@ function checkCloudGviz() {
 
 // Avvia test al caricamento
 checkCloudGviz();
+
 
