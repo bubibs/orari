@@ -167,8 +167,7 @@ const API = {
                     pagaOraria: 12.5,
                     indennitaRientro: 15,
                     indennitaPernottamento: 50,
-                    indennitaEstero: 100,
-                    aliquota: 25
+                    indennitaEstero: 100
                 }
             };
         }

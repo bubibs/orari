@@ -272,7 +272,6 @@ async function saveReport() {
             indennitaRientro: settings.indennitaRientro,
             indennitaPernottamento: settings.indennitaPernottamento,
             indennitaEstero: settings.indennitaEstero,
-            aliquota: settings.aliquota,
             month: month,
             year: year
         };

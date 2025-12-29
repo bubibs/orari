@@ -92,7 +92,8 @@ async function loadAnnualData() {
     canvas.style.height = canvas.height + 'px';
     
     try {
-        const settings = await API.getSettings();
+        const settingsResult = await API.getSettings();
+        const settings = settingsResult.data || settingsResult;
         const months = [];
         const lordoData = [];
         const nettoData = [];
@@ -106,22 +107,17 @@ async function loadAnnualData() {
                 const reportsResult = await API.getReports({ month: month, year: year });
                 const reports = reportsResult.data || [];
                 
-                // Get effective settings
-                let effectiveSettings = settings;
-                if (reports.length > 0 && reports[0].settingsSnapshot) {
-                    effectiveSettings = reports[0].settingsSnapshot;
-                }
-                
-                // Get paga base for this month
+                // Always use current settings (not historical ones)
+                // Get paga base for this month (this can be month-specific)
                 const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
-                const pagaBase = pagaBaseMensile || parseFloat(effectiveSettings.pagaBase) || 2000;
-                const pagaOraria = parseFloat(effectiveSettings.pagaOraria) || 12.5;
+                const pagaBase = pagaBaseMensile || parseFloat(settings.pagaBase) || 2000;
+                const pagaOraria = parseFloat(settings.pagaOraria) || 12.5;
                 const pagaOrariaMaggiorata = pagaOraria * 1.25;
                 const valoreStraordinarie = data.oreStraordinarie * pagaOrariaMaggiorata;
                 
-                const indennitaRientro = parseFloat(effectiveSettings.indennitaRientro) || 15;
-                const indennitaPernottamento = parseFloat(effectiveSettings.indennitaPernottamento) || 50;
-                const indennitaEstero = parseFloat(effectiveSettings.indennitaEstero) || 100;
+                const indennitaRientro = parseFloat(settings.indennitaRientro) || 15;
+                const indennitaPernottamento = parseFloat(settings.indennitaPernottamento) || 50;
+                const indennitaEstero = parseFloat(settings.indennitaEstero) || 100;
                 
                 let giorniRientro = 0;
                 let giorniPernottamento = 0;
@@ -146,9 +142,9 @@ async function loadAnnualData() {
                 const lordo = pagaBase + valoreStraordinarie + valoreIndennitaRientro + 
                               valoreIndennitaPernottamento + valoreIndennitaEstero;
                 
-                const aliquota = parseFloat(effectiveSettings.aliquota) || 25;
-                const tasse = lordo * (aliquota / 100);
-                const netto = lordo - tasse;
+                // Net calculation according to CCNL Metalmeccanici
+                const nettoCalcolo = calculateNettoCCNL(lordo);
+                const netto = nettoCalcolo.netto;
                 
                 const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
                 months.push(monthNames[month - 1]);
@@ -273,46 +269,50 @@ function drawChart(months, lordoData, nettoData) {
             ctx.fillText('€' + value.toLocaleString('it-IT'), padding - 10, y);
         }
         
-        // Draw bars
-        const barWidth = Math.min(chartWidth / months.length / 2.5, 20);
-        const spacing = barWidth / 2;
-        const totalBarWidth = barWidth * 2 + spacing;
-        const startX = padding + (chartWidth - (totalBarWidth * months.length)) / 2;
+    // Draw bars - make them wider
+    const barWidth = Math.min(chartWidth / months.length / 2.2, 25);
+    const spacing = barWidth / 2;
+    const totalBarWidth = barWidth * 2 + spacing;
+    const startX = padding + (chartWidth - (totalBarWidth * months.length)) / 2;
         
         for (i = 0; i < months.length; i++) {
             const x = startX + i * totalBarWidth + spacing;
             
-            // Lordo bar
-            const lordoHeight = lordoData[i] > 0 ? (lordoData[i] / maxValue) * chartHeight : 0;
-            if (lordoHeight > 0) {
-                ctx.fillStyle = '#0f3460';
-                ctx.fillRect(x, padding + chartHeight - lordoHeight, barWidth, lordoHeight);
-                
-                // Value on bar
-                ctx.fillStyle = '#fff';
-                ctx.font = '9px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('€' + Math.round(lordoData[i]).toLocaleString('it-IT'), x + barWidth/2, padding + chartHeight - lordoHeight - 8);
-            }
+        // Lordo bar - wider
+        const lordoHeight = lordoData[i] > 0 ? (lordoData[i] / maxValue) * chartHeight : 0;
+        if (lordoHeight > 0) {
+            ctx.fillStyle = '#0f3460';
+            ctx.fillRect(x, padding + chartHeight - lordoHeight, barWidth, lordoHeight);
             
-            // Netto bar
-            const nettoHeight = nettoData[i] > 0 ? (nettoData[i] / maxValue) * chartHeight : 0;
-            if (nettoHeight > 0) {
-                ctx.fillStyle = '#4caf50';
-                ctx.fillRect(x + barWidth, padding + chartHeight - nettoHeight, barWidth, nettoHeight);
-                
-                // Value on bar
+            // Value on bar - only if there's space
+            if (lordoHeight > 20) {
                 ctx.fillStyle = '#fff';
-                ctx.font = '9px Arial';
+                ctx.font = '10px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('€' + Math.round(nettoData[i]).toLocaleString('it-IT'), x + barWidth + barWidth/2, padding + chartHeight - nettoHeight - 8);
+                ctx.fillText('€' + Math.round(lordoData[i]).toLocaleString('it-IT'), x + barWidth/2, padding + chartHeight - lordoHeight - 10);
             }
+        }
+        
+        // Netto bar - wider
+        const nettoHeight = nettoData[i] > 0 ? (nettoData[i] / maxValue) * chartHeight : 0;
+        if (nettoHeight > 0) {
+            ctx.fillStyle = '#4caf50';
+            ctx.fillRect(x + barWidth, padding + chartHeight - nettoHeight, barWidth, nettoHeight);
             
-            // Month label
-            ctx.fillStyle = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#fff' : '#333';
-            ctx.textAlign = 'center';
-            ctx.font = '11px Arial';
-            ctx.fillText(months[i], x + barWidth, height - 20);
+            // Value on bar - only if there's space
+            if (nettoHeight > 20) {
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('€' + Math.round(nettoData[i]).toLocaleString('it-IT'), x + barWidth + barWidth/2, padding + chartHeight - nettoHeight - 10);
+            }
+        }
+            
+        // Month label - more readable
+        ctx.fillStyle = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#fff' : '#333';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(months[i], x + barWidth, height - 15);
         }
         
         // Legend
@@ -380,7 +380,8 @@ async function loadSalaryData() {
             throw new Error(result.error || 'Errore nel caricamento');
         }
         const data = result.data;
-        const settings = await API.getSettings();
+        const settingsResult = await API.getSettings();
+        const settings = settingsResult.data || settingsResult;
         
         // Calculate salary
         const calcolo = await calculateSalary(data, settings);
@@ -392,6 +393,65 @@ async function loadSalaryData() {
         console.error('Error loading salary data:', error);
         summaryDiv.innerHTML = '<p style="color: var(--error-color);">Errore nel caricamento dei dati: ' + error.message + '</p>';
     }
+}
+
+// Calcola il netto secondo CCNL Metalmeccanici Industria
+// IRPEF scaglioni 2024:
+// - Fino a 15.000€: 23%
+// - Da 15.001€ a 28.000€: 25%
+// - Da 28.001€ a 50.000€: 35%
+// - Oltre 50.000€: 43%
+// INPS: 9.19% (dipendente)
+// Addizionali regionali/comunali: ~1.5% (media)
+function calculateNettoCCNL(lordoMensile) {
+    // Calcolo INPS (9.19%)
+    const inps = lordoMensile * 0.0919;
+    
+    // Imponibile IRPEF (dopo detrazione INPS)
+    const imponibileIRPEF = lordoMensile - inps;
+    const imponibileIRPEFAnnuo = imponibileIRPEF * 12;
+    
+    // Calcolo IRPEF progressivo per scaglioni
+    let irpefAnnua = 0;
+    let imponibileRimanente = imponibileIRPEFAnnuo;
+    
+    if (imponibileRimanente > 50000) {
+        // Scaglione 4: oltre 50.000€ (43%)
+        irpefAnnua += (imponibileRimanente - 50000) * 0.43;
+        imponibileRimanente = 50000;
+    }
+    if (imponibileRimanente > 28000) {
+        // Scaglione 3: da 28.001€ a 50.000€ (35%)
+        irpefAnnua += (imponibileRimanente - 28000) * 0.35;
+        imponibileRimanente = 28000;
+    }
+    if (imponibileRimanente > 15000) {
+        // Scaglione 2: da 15.001€ a 28.000€ (25%)
+        irpefAnnua += (imponibileRimanente - 15000) * 0.25;
+        imponibileRimanente = 15000;
+    }
+    // Scaglione 1: fino a 15.000€ (23%)
+    irpefAnnua += imponibileRimanente * 0.23;
+    
+    // IRPEF mensile
+    const irpefMensile = irpefAnnua / 12;
+    
+    // Addizionali regionali e comunali (~1.5% media)
+    const addizionali = imponibileIRPEF * 0.015;
+    
+    // Totale trattenute
+    const trattenute = inps + irpefMensile + addizionali;
+    
+    // Netto
+    const netto = lordoMensile - trattenute;
+    
+    return {
+        netto: Math.max(0, netto),
+        inps: inps,
+        irpef: irpefMensile,
+        addizionali: addizionali,
+        trattenute: trattenute
+    };
 }
 
 async function calculateSalary(data, settings) {
@@ -406,31 +466,26 @@ async function calculateSalary(data, settings) {
         oreStraordinarie
     } = data;
     
-    // Get reports to count travel days accurately and get settings from reports
+    // Get reports to count travel days accurately
     const month = parseInt(document.getElementById('monthSelect').value);
     const year = parseInt(document.getElementById('yearSelect').value);
     const reportsResult = await API.getReports({ month: month, year: year });
     const reports = reportsResult.data || [];
     
-    // Use settings from first report if available, otherwise use current settings
-    let effectiveSettings = settings;
-    if (reports.length > 0 && reports[0].settingsSnapshot) {
-        effectiveSettings = reports[0].settingsSnapshot;
-    }
-    
-    // Get paga base for this month/year
+    // Always use current settings (not historical ones)
+    // Get paga base for this month/year (this can be month-specific)
     const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
-    const pagaBase = pagaBaseMensile || parseFloat(effectiveSettings.pagaBase) || 2000;
-    const pagaOraria = parseFloat(effectiveSettings.pagaOraria) || 12.5;
+    const pagaBase = pagaBaseMensile || parseFloat(settings.pagaBase) || 2000;
+    const pagaOraria = parseFloat(settings.pagaOraria) || 12.5;
     
     // Overtime calculation (25% increase)
     const pagaOrariaMaggiorata = pagaOraria * 1.25;
     const valoreStraordinarie = oreStraordinarie * pagaOrariaMaggiorata;
     
-    // Travel allowances
-    const indennitaRientro = parseFloat(effectiveSettings.indennitaRientro) || 15;
-    const indennitaPernottamento = parseFloat(effectiveSettings.indennitaPernottamento) || 50;
-    const indennitaEstero = parseFloat(effectiveSettings.indennitaEstero) || 100;
+    // Travel allowances - always use current settings
+    const indennitaRientro = parseFloat(settings.indennitaRientro) || 15;
+    const indennitaPernottamento = parseFloat(settings.indennitaPernottamento) || 50;
+    const indennitaEstero = parseFloat(settings.indennitaEstero) || 100;
     
     let giorniRientro = 0;
     let giorniPernottamento = 0;
@@ -456,10 +511,8 @@ async function calculateSalary(data, settings) {
     const lordo = pagaBase + valoreStraordinarie + valoreIndennitaRientro + 
                   valoreIndennitaPernottamento + valoreIndennitaEstero;
     
-    // Net calculation
-    const aliquota = parseFloat(settings.aliquota) || 25;
-    const tasse = lordo * (aliquota / 100);
-    const netto = lordo - tasse;
+    // Net calculation according to CCNL Metalmeccanici
+    const nettoCalcolo = calculateNettoCCNL(lordo);
     
     return {
         pagaBase,
@@ -468,8 +521,11 @@ async function calculateSalary(data, settings) {
         valoreIndennitaPernottamento,
         valoreIndennitaEstero,
         lordo,
-        tasse,
-        netto,
+        netto: nettoCalcolo.netto,
+        inps: nettoCalcolo.inps,
+        irpef: nettoCalcolo.irpef,
+        addizionali: nettoCalcolo.addizionali,
+        trattenute: nettoCalcolo.trattenute,
         giorniRientro,
         giorniPernottamento,
         giorniEstero
@@ -546,8 +602,20 @@ function displaySalarySummary(data, calcolo) {
             <span class="salary-value">€ ${calcolo.lordo.toFixed(2)}</span>
         </div>
         <div class="salary-row">
-            <span class="salary-label">Tasse (${((calcolo.tasse / calcolo.lordo) * 100).toFixed(1)}%)</span>
-            <span class="salary-value">€ ${calcolo.tasse.toFixed(2)}</span>
+            <span class="salary-label">INPS (9.19%)</span>
+            <span class="salary-value">€ ${calcolo.inps.toFixed(2)}</span>
+        </div>
+        <div class="salary-row">
+            <span class="salary-label">IRPEF</span>
+            <span class="salary-value">€ ${calcolo.irpef.toFixed(2)}</span>
+        </div>
+        <div class="salary-row">
+            <span class="salary-label">Addizionali</span>
+            <span class="salary-value">€ ${calcolo.addizionali.toFixed(2)}</span>
+        </div>
+        <div class="salary-row">
+            <span class="salary-label">Totale trattenute</span>
+            <span class="salary-value">€ ${calcolo.trattenute.toFixed(2)}</span>
         </div>
         <div class="salary-row salary-total">
             <span class="salary-label">Netto mensile</span>

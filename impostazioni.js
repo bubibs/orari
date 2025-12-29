@@ -37,7 +37,6 @@ async function loadSettings() {
         document.getElementById('indennitaRientro').value = settings.indennitaRientro || 15;
         document.getElementById('indennitaPernottamento').value = settings.indennitaPernottamento || 50;
         document.getElementById('indennitaEstero').value = settings.indennitaEstero || 100;
-        document.getElementById('aliquota').value = settings.aliquota || 25;
     } catch (error) {
         showNotification('Errore nel caricamento delle impostazioni', 'error');
     }
@@ -77,8 +76,7 @@ async function saveSettings() {
         pagaOraria: parseFloat(document.getElementById('pagaOraria').value),
         indennitaRientro: parseFloat(document.getElementById('indennitaRientro').value),
         indennitaPernottamento: parseFloat(document.getElementById('indennitaPernottamento').value),
-        indennitaEstero: parseFloat(document.getElementById('indennitaEstero').value),
-        aliquota: parseFloat(document.getElementById('aliquota').value)
+        indennitaEstero: parseFloat(document.getElementById('indennitaEstero').value)
     };
     
     try {
