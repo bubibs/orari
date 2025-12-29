@@ -208,7 +208,8 @@ const Storage = {
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `tecnosistem_backup_${new Date().toISOString().split('T')[0]}.json`;
+            // Usa sempre lo stesso nome file per sovrascrivere invece di creare infiniti file
+            a.download = 'tecnosistem_backup.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

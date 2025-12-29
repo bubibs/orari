@@ -1,13 +1,7 @@
 // Storico page functionality
 document.addEventListener('DOMContentLoaded', async () => {
-    // Check cloud status
-    await checkCloudStatus();
-    
     // Load reports
     await loadReports();
-    
-    // Check sync every 30 seconds
-    setInterval(checkCloudStatus, 30000);
 });
 
 async function loadReports() {

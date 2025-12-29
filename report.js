@@ -153,14 +153,25 @@ async function loadContacts() {
     try {
         const result = await API.getContacts();
         const datalist = document.getElementById('luoghiList');
+        
+        if (!datalist) {
+            console.error('datalist element not found');
+            return;
+        }
+        
         datalist.innerHTML = '';
         
-        if (result.data && result.data.length > 0) {
+        if (result && result.success && result.data && result.data.length > 0) {
             result.data.forEach(contact => {
-                const option = document.createElement('option');
-                option.value = contact.azienda;
-                datalist.appendChild(option);
+                if (contact.azienda) {
+                    const option = document.createElement('option');
+                    option.value = contact.azienda;
+                    datalist.appendChild(option);
+                }
             });
+            console.log(`Loaded ${result.data.length} contacts for autocomplete`);
+        } else {
+            console.log('No contacts found for autocomplete');
         }
     } catch (error) {
         console.error('Error loading contacts:', error);
@@ -214,14 +225,13 @@ async function saveReport() {
     saveButton.classList.add('loading');
     saveButton.textContent = 'Salvataggio...';
     
-    // Update cloud icon to show syncing
+    // Update status icon
     if (statusIcon) {
-        statusIcon.textContent = '☁️';
-        statusIcon.style.filter = 'grayscale(0%) brightness(0.9)';
+        statusIcon.textContent = '💾';
         statusIcon.style.animation = 'cloudPulse 1s ease-in-out infinite';
     }
     if (statusText) {
-        statusText.textContent = 'Sincronizzazione...';
+        statusText.textContent = 'Salvataggio...';
     }
     
     const reportData = {
@@ -263,7 +273,7 @@ async function saveReport() {
             year: year
         };
         
-        // Try cloud save first
+        // Save report
         let result;
         if (editingReportId) {
             result = await API.updateReport(editingReportId, reportData);
