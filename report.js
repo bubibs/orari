@@ -180,8 +180,9 @@ async function loadContacts() {
 
 async function loadReport(id) {
     try {
-        const report = await API.getReportById(id);
-        if (report) {
+        const result = await API.getReportById(id);
+        if (result && result.success && result.data) {
+            const report = result.data;
             document.getElementById('data').value = report.data || '';
             document.getElementById('tipoLavoro').value = report.tipoLavoro || '';
             document.getElementById('assenza').value = report.assenza || '';
@@ -197,8 +198,11 @@ async function loadReport(id) {
             if (report.tipoLavoro) {
                 document.getElementById('tipoLavoro').dispatchEvent(new Event('change'));
             }
+        } else {
+            showNotification('Report non trovato', 'error');
         }
     } catch (error) {
+        console.error('Error loading report:', error);
         showNotification('Errore nel caricamento del report', 'error');
     }
 }
@@ -351,25 +355,11 @@ async function checkCloudStatus() {
     const statusIcon = document.getElementById('statusIcon');
     const statusText = document.getElementById('statusText');
     
-    try {
-        const result = await API.checkSync();
-        if (result.synced) {
-            statusIcon.textContent = '✅';
-            statusIcon.classList.add('synced');
-            statusText.textContent = 'Sincronizzato';
-            statusIcon.style.filter = 'none';
-        } else {
-            statusIcon.textContent = '☁️';
-            statusIcon.classList.remove('synced');
-            statusText.textContent = 'Non sincronizzato';
-            statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
-        }
-    } catch (error) {
-        statusIcon.textContent = '❌';
-        statusIcon.classList.remove('synced');
-        statusText.textContent = 'Errore connessione';
-        statusIcon.style.filter = 'none';
-    }
+    // Always synced for local storage
+    statusIcon.textContent = '💾';
+    statusIcon.classList.add('synced');
+    statusText.textContent = 'Salvataggio Locale';
+    statusIcon.style.filter = 'none';
 }
 
 function showNotification(message, type = 'success') {

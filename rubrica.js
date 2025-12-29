@@ -69,7 +69,12 @@ async function loadContacts() {
 async function loadContact(id) {
     try {
         const result = await API.getContacts();
-        const contact = result.data.find(c => c.id === id);
+        if (!result || !result.success || !result.data) {
+            showNotification('Errore nel caricamento dei contatti', 'error');
+            return;
+        }
+        
+        const contact = result.data.find(c => String(c.id) === String(id));
         
         if (contact) {
             document.getElementById('azienda').value = contact.azienda || '';
@@ -80,8 +85,11 @@ async function loadContact(id) {
             
             // Change button text
             document.getElementById('saveContactButton').textContent = 'Aggiorna Contatto';
+        } else {
+            showNotification('Contatto non trovato', 'error');
         }
     } catch (error) {
+        console.error('Error loading contact:', error);
         showNotification('Errore nel caricamento del contatto', 'error');
     }
 }
@@ -218,25 +226,11 @@ async function checkCloudStatus() {
     const statusIcon = document.getElementById('statusIcon');
     const statusText = document.getElementById('statusText');
     
-    try {
-        const result = await API.checkSync();
-        if (result.synced) {
-            statusIcon.textContent = '✅';
-            statusIcon.classList.add('synced');
-            statusText.textContent = 'Sincronizzato';
-            statusIcon.style.filter = 'none';
-        } else {
-            statusIcon.textContent = '☁️';
-            statusIcon.classList.remove('synced');
-            statusText.textContent = 'Non sincronizzato';
-            statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
-        }
-    } catch (error) {
-        statusIcon.textContent = '❌';
-        statusIcon.classList.remove('synced');
-        statusText.textContent = 'Errore connessione';
-        statusIcon.style.filter = 'none';
-    }
+    // Always synced for local storage
+    statusIcon.textContent = '💾';
+    statusIcon.classList.add('synced');
+    statusText.textContent = 'Salvataggio Locale';
+    statusIcon.style.filter = 'none';
 }
 
 function showNotification(message, type = 'success') {

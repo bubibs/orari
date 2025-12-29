@@ -1,38 +1,28 @@
-// Google Apps Script API
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSJAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec';
+// Local Storage API
+// All data is stored locally using the Storage module
 
 const API = {
-    // Check sync status
+    // Check sync status (always synced for local storage)
     async checkSync() {
-        try {
-            const response = await fetch(`${API_BASE_URL}?action=ping`);
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            return { synced: result.success === true };
-        } catch (error) {
-            console.error('Check sync error:', error);
-            return { synced: false };
-        }
+        return { synced: true };
     },
 
     // Reports
     async getReports(filters = {}) {
         try {
-            let url = `${API_BASE_URL}?action=getReports`;
-            if (filters.month) url += `&month=${filters.month}`;
-            if (filters.year) url += `&year=${filters.year}`;
+            let reports = Storage.getReports();
             
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
+            // Apply filters
+            if (filters.month && filters.year) {
+                reports = reports.filter(r => {
+                    if (!r.data) return false;
+                    const reportDate = new Date(r.data);
+                    return reportDate.getMonth() + 1 === parseInt(filters.month) &&
+                           reportDate.getFullYear() === parseInt(filters.year);
+                });
             }
-            const result = await response.json();
-            if (!result || !result.success) {
-                return { success: false, data: [], error: result?.error || 'Errore nel caricamento' };
-            }
-            return { success: true, data: result.data || [] };
+            
+            return { success: true, data: reports };
         } catch (error) {
             console.error('Get reports error:', error);
             return { success: false, data: [], error: error.toString() };
@@ -41,23 +31,15 @@ const API = {
 
     async saveReport(reportData) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'saveReport',
-                    data: reportData
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
+            // Ensure reportData has all required fields
+            if (!reportData.data) {
+                return { success: false, error: 'Data mancante' };
             }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            
+            // Add updatedAt timestamp
+            reportData.updatedAt = new Date().toISOString();
+            
+            const result = Storage.saveReport(reportData);
             return result;
         } catch (error) {
             console.error('Save report error:', error);
@@ -67,24 +49,14 @@ const API = {
 
     async updateReport(id, reportData) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'updateReport',
-                    id: String(id),
-                    data: reportData
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
             }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            
+            reportData.id = id;
+            reportData.updatedAt = new Date().toISOString();
+            
+            const result = Storage.saveReport(reportData);
             return result;
         } catch (error) {
             console.error('Update report error:', error);
@@ -97,23 +69,8 @@ const API = {
             if (!id) {
                 return { success: false, error: 'ID mancante' };
             }
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'deleteReport',
-                    id: String(id)
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            
+            const result = Storage.deleteReport(id);
             return result;
         } catch (error) {
             console.error('Delete report error:', error);
@@ -123,11 +80,7 @@ const API = {
 
     async getReportById(id) {
         try {
-            const result = await this.getReports();
-            if (!result.success) {
-                return { success: false, error: result.error || 'Errore nel caricamento' };
-            }
-            const report = result.data.find(r => String(r.id) === String(id));
+            const report = Storage.getReportById(id);
             return report ? { success: true, data: report } : { success: false, error: 'Report non trovato' };
         } catch (error) {
             console.error('Get report by ID error:', error);
@@ -138,15 +91,8 @@ const API = {
     // Contacts
     async getContacts() {
         try {
-            const response = await fetch(`${API_BASE_URL}?action=getContacts`);
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (!result || !result.success) {
-                return { success: false, data: [], error: result?.error || 'Errore nel caricamento' };
-            }
-            return { success: true, data: result.data || [] };
+            const contacts = Storage.getContacts();
+            return { success: true, data: contacts };
         } catch (error) {
             console.error('Get contacts error:', error);
             return { success: false, data: [], error: error.toString() };
@@ -155,23 +101,11 @@ const API = {
 
     async saveContact(contactData) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'saveContact',
-                    data: contactData
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
+            if (!contactData.azienda) {
+                return { success: false, error: 'Azienda mancante' };
             }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            
+            const result = Storage.saveContact(contactData);
             return result;
         } catch (error) {
             console.error('Save contact error:', error);
@@ -181,24 +115,12 @@ const API = {
 
     async updateContact(id, contactData) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'updateContact',
-                    id: String(id),
-                    data: contactData
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
             }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            
+            contactData.id = id;
+            const result = Storage.saveContact(contactData);
             return result;
         } catch (error) {
             console.error('Update contact error:', error);
@@ -211,23 +133,8 @@ const API = {
             if (!id) {
                 return { success: false, error: 'ID mancante' };
             }
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'deleteContact',
-                    id: String(id)
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            
+            const result = Storage.deleteContact(id);
             return result;
         } catch (error) {
             console.error('Delete contact error:', error);
@@ -237,11 +144,7 @@ const API = {
 
     async getContactById(id) {
         try {
-            const result = await this.getContacts();
-            if (!result.success) {
-                return { success: false, error: result.error || 'Errore nel caricamento' };
-            }
-            const contact = result.data.find(c => String(c.id) === String(id));
+            const contact = Storage.getContactById(id);
             return contact ? { success: true, data: contact } : { success: false, error: 'Contatto non trovato' };
         } catch (error) {
             console.error('Get contact by ID error:', error);
@@ -252,26 +155,8 @@ const API = {
     // Settings
     async getSettings() {
         try {
-            const response = await fetch(`${API_BASE_URL}?action=getSettings`);
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (!result || !result.success) {
-                // Return default settings if not found
-                return { 
-                    success: true, 
-                    data: {
-                        pagaBase: 2000,
-                        pagaOraria: 12.5,
-                        indennitaRientro: 15,
-                        indennitaPernottamento: 50,
-                        indennitaEstero: 100,
-                        aliquota: 25
-                    }
-                };
-            }
-            return { success: true, data: result.data || {} };
+            const settings = Storage.getSettings();
+            return { success: true, data: settings };
         } catch (error) {
             console.error('Get settings error:', error);
             // Return default settings on error
@@ -291,23 +176,7 @@ const API = {
 
     async saveSettings(settings) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'saveSettings',
-                    data: settings
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            const result = Storage.saveSettings(settings);
             return result;
         } catch (error) {
             console.error('Save settings error:', error);
@@ -318,45 +187,23 @@ const API = {
     // Paga Base Mensile
     async getPagaBaseMensile(month, year) {
         try {
-            const response = await fetch(`${API_BASE_URL}?action=getPagaBaseMensile&month=${month}&year=${year}`);
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (result && result.success && result.data) {
-                return parseFloat(result.data) || null;
+            const pagaBase = Storage.getPagaBaseMensile(month, year);
+            if (pagaBase !== null) {
+                return pagaBase;
             }
             // Fallback to default from settings
-            const settings = await this.getSettings();
-            return settings.data?.pagaBase || 2000;
+            const settings = Storage.getSettings();
+            return settings.pagaBase || 2000;
         } catch (error) {
             console.error('Get paga base mensile error:', error);
-            const settings = await this.getSettings();
-            return settings.data?.pagaBase || 2000;
+            const settings = Storage.getSettings();
+            return settings.pagaBase || 2000;
         }
     },
 
     async savePagaBaseMensile(month, year, pagaBase) {
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'savePagaBaseMensile',
-                    month: parseInt(month),
-                    year: parseInt(year),
-                    pagaBase: parseFloat(pagaBase)
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (!result) {
-                throw new Error('Risposta vuota dal server');
-            }
+            const result = Storage.savePagaBaseMensile(month, year, pagaBase);
             return result;
         } catch (error) {
             console.error('Save paga base mensile error:', error);
@@ -367,28 +214,54 @@ const API = {
     // Salary data (calculated from reports)
     async getSalaryData(month, year) {
         try {
-            const response = await fetch(`${API_BASE_URL}?action=getSalaryData&month=${month}&year=${year}`);
-            if (!response.ok) {
-                throw new Error('Network error: ' + response.status);
-            }
-            const result = await response.json();
-            if (!result || !result.success) {
-                return { 
-                    success: false, 
-                    error: result?.error || 'Errore nel caricamento',
-                    data: {
-                        giorniLavorati: 0,
-                        giorniTrasferta: 0,
-                        giorniAssenza: 0,
-                        oreSede: 0,
-                        oreTrasfertaRientro: 0,
-                        oreTrasfertaPernottamento: 0,
-                        oreTrasfertaEstero: 0,
-                        oreStraordinarie: 0
-                    }
-                };
-            }
-            return { success: true, data: result.data || {} };
+            const reportsResult = await this.getReports({ month, year });
+            const reports = reportsResult.data || [];
+            
+            let giorniLavorati = 0;
+            let giorniTrasferta = 0;
+            let giorniAssenza = 0;
+            let oreSede = 0;
+            let oreTrasfertaRientro = 0;
+            let oreTrasfertaPernottamento = 0;
+            let oreTrasfertaEstero = 0;
+            let oreStraordinarie = 0;
+            
+            reports.forEach(report => {
+                if (report.assenza) {
+                    giorniAssenza++;
+                } else if (report.tipoLavoro === 'in sede') {
+                    giorniLavorati++;
+                    oreSede += parseFloat(report.oreTotali) || 0;
+                } else if (report.tipoLavoro === 'trasferta con rientro') {
+                    giorniLavorati++;
+                    giorniTrasferta++;
+                    oreTrasfertaRientro += parseFloat(report.oreTotali) || 0;
+                } else if (report.tipoLavoro === 'trasferta con pernottamento') {
+                    giorniLavorati++;
+                    giorniTrasferta++;
+                    oreTrasfertaPernottamento += parseFloat(report.oreTotali) || 0;
+                } else if (report.tipoLavoro === 'trasferta estero') {
+                    giorniLavorati++;
+                    giorniTrasferta++;
+                    oreTrasfertaEstero += parseFloat(report.oreTotali) || 0;
+                }
+                
+                oreStraordinarie += parseFloat(report.oreStraordinarie) || 0;
+            });
+            
+            return {
+                success: true,
+                data: {
+                    giorniLavorati,
+                    giorniTrasferta,
+                    giorniAssenza,
+                    oreSede,
+                    oreTrasfertaRientro,
+                    oreTrasfertaPernottamento,
+                    oreTrasfertaEstero,
+                    oreStraordinarie
+                }
+            };
         } catch (error) {
             console.error('Get salary data error:', error);
             return { 

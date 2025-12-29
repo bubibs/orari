@@ -149,6 +149,20 @@ async function savePagaBaseMensile() {
     }
 }
 
+async function checkCloudStatus() {
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    
+    // Always synced for local storage
+    if (statusIcon) {
+        statusIcon.textContent = '💾';
+        statusIcon.classList.add('synced');
+    }
+    if (statusText) {
+        statusText.textContent = 'Salvataggio Locale';
+    }
+}
+
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
