@@ -154,35 +154,47 @@ const Storage = {
         }
     },
 
-    // Paga Base Mensile
-    getPagaBaseMensile(month, year) {
+    // Impostazioni Mensili (tutte le impostazioni per mese/anno)
+    getSettingsMensili(month, year) {
         try {
             const data = localStorage.getItem(this.KEYS.PAGA_BASE_MENSILE);
             if (!data) return null;
             
-            const pagaBase = JSON.parse(data);
+            const settingsMensili = JSON.parse(data);
             const key = `${year}-${month}`;
-            return pagaBase[key] || null;
+            return settingsMensili[key] || null;
         } catch (error) {
-            console.error('Error loading paga base mensile:', error);
+            console.error('Error loading settings mensili:', error);
             return null;
         }
     },
 
-    savePagaBaseMensile(month, year, pagaBase) {
+    saveSettingsMensili(month, year, settings) {
         try {
             const data = localStorage.getItem(this.KEYS.PAGA_BASE_MENSILE);
-            const pagaBaseData = data ? JSON.parse(data) : {};
+            const settingsMensili = data ? JSON.parse(data) : {};
             const key = `${year}-${month}`;
-            pagaBaseData[key] = pagaBase;
+            settingsMensili[key] = settings;
             
-            localStorage.setItem(this.KEYS.PAGA_BASE_MENSILE, JSON.stringify(pagaBaseData));
+            localStorage.setItem(this.KEYS.PAGA_BASE_MENSILE, JSON.stringify(settingsMensili));
             this.triggerBackup();
             return { success: true };
         } catch (error) {
-            console.error('Error saving paga base mensile:', error);
+            console.error('Error saving settings mensili:', error);
             return { success: false, error: error.toString() };
         }
+    },
+
+    // Paga Base Mensile (mantenuto per retrocompatibilità)
+    getPagaBaseMensile(month, year) {
+        const settings = this.getSettingsMensili(month, year);
+        return settings ? settings.pagaBase : null;
+    },
+
+    savePagaBaseMensile(month, year, pagaBase) {
+        const settings = this.getSettingsMensili(month, year) || this.getSettings();
+        settings.pagaBase = pagaBase;
+        return this.saveSettingsMensili(month, year, settings);
     },
 
     // Backup functions

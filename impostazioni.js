@@ -3,7 +3,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check cloud status
     await checkCloudStatus();
     
-    // Load current settings
+    // Set current year/month as default
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    document.getElementById('settingsYear').value = currentYear;
+    document.getElementById('settingsMonth').value = currentMonth;
+    
+    // Load settings for current month/year
     await loadSettings();
     
     // Form submission
@@ -12,17 +18,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         await saveSettings();
     });
     
-    // Paga base mensile form submission
-    document.getElementById('pagaBaseForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await savePagaBaseMensile();
+    // Reload settings when month/year changes
+    document.getElementById('settingsMonth').addEventListener('change', async () => {
+        await loadSettings();
     });
-    
-    // Set current year as default
-    const currentYear = new Date().getFullYear();
-    document.getElementById('pagaBaseYear').value = currentYear;
-    const currentMonth = new Date().getMonth() + 1;
-    document.getElementById('pagaBaseMonth').value = currentMonth;
+    document.getElementById('settingsYear').addEventListener('change', async () => {
+        await loadSettings();
+    });
     
     // Check sync every 30 seconds
     setInterval(checkCloudStatus, 30000);
@@ -30,14 +32,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadSettings() {
     try {
-        const settings = await API.getSettings();
+        const month = parseInt(document.getElementById('settingsMonth').value);
+        const year = parseInt(document.getElementById('settingsYear').value);
         
+        // Get settings for this month/year
+        const settingsResult = await API.getSettingsMensili(month, year);
+        const settings = settingsResult.data || {};
+        
+        // Fill form with settings
         document.getElementById('pagaBase').value = settings.pagaBase || 2000;
         document.getElementById('pagaOraria').value = settings.pagaOraria || 12.5;
         document.getElementById('indennitaRientro').value = settings.indennitaRientro || 15;
         document.getElementById('indennitaPernottamento').value = settings.indennitaPernottamento || 50;
         document.getElementById('indennitaEstero').value = settings.indennitaEstero || 100;
     } catch (error) {
+        console.error('Error loading settings:', error);
         showNotification('Errore nel caricamento delle impostazioni', 'error');
     }
 }
@@ -57,6 +66,9 @@ async function saveSettings() {
         form.reportValidity();
         return;
     }
+    
+    const month = parseInt(document.getElementById('settingsMonth').value);
+    const year = parseInt(document.getElementById('settingsYear').value);
     
     saveButton.disabled = true;
     saveButton.classList.add('loading');
@@ -80,7 +92,7 @@ async function saveSettings() {
     };
     
     try {
-        const result = await API.saveSettings(settings);
+        const result = await API.saveSettingsMensili(month, year, settings);
         
         if (!result || !result.success) {
             throw new Error(result?.error || 'Errore nel salvataggio');
@@ -95,7 +107,9 @@ async function saveSettings() {
             statusText.textContent = 'Salvato';
         }
         
-        showNotification('Impostazioni salvate con successo!', 'success');
+        const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
+                           'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+        showNotification(`Impostazioni salvate per ${monthNames[month - 1]} ${year}!`, 'success');
         
         setTimeout(() => {
             window.location.href = 'stipendio.html';
@@ -116,34 +130,7 @@ async function saveSettings() {
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');
-        saveButton.textContent = 'Salva Impostazioni';
-    }
-}
-
-
-async function savePagaBaseMensile() {
-    const form = document.getElementById('pagaBaseForm');
-    
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-    
-    const month = parseInt(document.getElementById('pagaBaseMonth').value);
-    const year = parseInt(document.getElementById('pagaBaseYear').value);
-    const pagaBase = parseFloat(document.getElementById('pagaBaseValue').value);
-    
-    try {
-        const result = await API.savePagaBaseMensile(month, year, pagaBase);
-        if (result.success) {
-            showNotification(`Paga base salvata per ${month}/${year}!`, 'success');
-            document.getElementById('pagaBaseValue').value = '';
-        } else {
-            showNotification('Errore nel salvataggio: ' + (result.error || 'Errore sconosciuto'), 'error');
-        }
-    } catch (error) {
-        console.error('Save error:', error);
-        showNotification('Errore nel salvataggio', 'error');
+        saveButton.textContent = 'Salva Impostazioni Mensili';
     }
 }
 

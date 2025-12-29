@@ -256,22 +256,22 @@ async function saveReport() {
     }
     
     try {
-        // Get current settings to save with report
-        const settings = await API.getSettings();
+        // Get settings for the month/year of the report
         const reportDate = new Date(reportData.data);
         const month = reportDate.getMonth() + 1;
         const year = reportDate.getFullYear();
         
-        // Get paga base for this month/year
-        const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
+        // Get settings for this month/year
+        const settingsResult = await API.getSettingsMensili(month, year);
+        const settings = settingsResult.data || {};
         
-        // Add settings values to report data
+        // Add settings values to report data (these are the settings used for this report)
         reportData.settingsSnapshot = {
-            pagaBase: pagaBaseMensile || settings.pagaBase,
-            pagaOraria: settings.pagaOraria,
-            indennitaRientro: settings.indennitaRientro,
-            indennitaPernottamento: settings.indennitaPernottamento,
-            indennitaEstero: settings.indennitaEstero,
+            pagaBase: settings.pagaBase || 2000,
+            pagaOraria: settings.pagaOraria || 12.5,
+            indennitaRientro: settings.indennitaRientro || 15,
+            indennitaPernottamento: settings.indennitaPernottamento || 50,
+            indennitaEstero: settings.indennitaEstero || 100,
             month: month,
             year: year
         };

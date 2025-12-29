@@ -92,8 +92,6 @@ async function loadAnnualData() {
     canvas.style.height = canvas.height + 'px';
     
     try {
-        const settingsResult = await API.getSettings();
-        const settings = settingsResult.data || settingsResult;
         const months = [];
         const lordoData = [];
         const nettoData = [];
@@ -107,17 +105,25 @@ async function loadAnnualData() {
                 const reportsResult = await API.getReports({ month: month, year: year });
                 const reports = reportsResult.data || [];
                 
-                // Always use current settings (not historical ones)
-                // Get paga base for this month (this can be month-specific)
-                const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
-                const pagaBase = pagaBaseMensile || parseFloat(settings.pagaBase) || 2000;
-                const pagaOraria = parseFloat(settings.pagaOraria) || 12.5;
+                // Get settings for this month/year (use settings from reports if available)
+                let effectiveSettings = {};
+                if (reports.length > 0 && reports[0].settingsSnapshot) {
+                    // Use settings from the first report (they represent the settings used when the report was saved)
+                    effectiveSettings = reports[0].settingsSnapshot;
+                } else {
+                    // Get current settings for this month/year
+                    const settingsResult = await API.getSettingsMensili(month, year);
+                    effectiveSettings = settingsResult.data || {};
+                }
+                
+                const pagaBase = parseFloat(effectiveSettings.pagaBase) || 2000;
+                const pagaOraria = parseFloat(effectiveSettings.pagaOraria) || 12.5;
                 const pagaOrariaMaggiorata = pagaOraria * 1.25;
                 const valoreStraordinarie = data.oreStraordinarie * pagaOrariaMaggiorata;
                 
-                const indennitaRientro = parseFloat(settings.indennitaRientro) || 15;
-                const indennitaPernottamento = parseFloat(settings.indennitaPernottamento) || 50;
-                const indennitaEstero = parseFloat(settings.indennitaEstero) || 100;
+                const indennitaRientro = parseFloat(effectiveSettings.indennitaRientro) || 15;
+                const indennitaPernottamento = parseFloat(effectiveSettings.indennitaPernottamento) || 50;
+                const indennitaEstero = parseFloat(effectiveSettings.indennitaEstero) || 100;
                 
                 let giorniRientro = 0;
                 let giorniPernottamento = 0;
@@ -380,8 +386,12 @@ async function loadSalaryData() {
             throw new Error(result.error || 'Errore nel caricamento');
         }
         const data = result.data;
-        const settingsResult = await API.getSettings();
-        const settings = settingsResult.data || settingsResult;
+        
+        // Get settings for this month/year
+        const month = parseInt(document.getElementById('monthSelect').value);
+        const year = parseInt(document.getElementById('yearSelect').value);
+        const settingsResult = await API.getSettingsMensili(month, year);
+        const settings = settingsResult.data || {};
         
         // Calculate salary
         const calcolo = await calculateSalary(data, settings);
@@ -472,20 +482,29 @@ async function calculateSalary(data, settings) {
     const reportsResult = await API.getReports({ month: month, year: year });
     const reports = reportsResult.data || [];
     
-    // Always use current settings (not historical ones)
-    // Get paga base for this month/year (this can be month-specific)
-    const pagaBaseMensile = await API.getPagaBaseMensile(month, year);
-    const pagaBase = pagaBaseMensile || parseFloat(settings.pagaBase) || 2000;
-    const pagaOraria = parseFloat(settings.pagaOraria) || 12.5;
+    // Get settings for this month/year (use settings from reports if available, otherwise current month settings)
+    let effectiveSettings = settings;
+    if (reports.length > 0 && reports[0].settingsSnapshot) {
+        // Use settings from the first report (they represent the settings used when the report was saved)
+        effectiveSettings = reports[0].settingsSnapshot;
+    } else {
+        // Get current settings for this month/year
+        const settingsResult = await API.getSettingsMensili(month, year);
+        effectiveSettings = settingsResult.data || settings;
+    }
+    
+    // Use effective settings
+    const pagaBase = parseFloat(effectiveSettings.pagaBase) || 2000;
+    const pagaOraria = parseFloat(effectiveSettings.pagaOraria) || 12.5;
     
     // Overtime calculation (25% increase)
     const pagaOrariaMaggiorata = pagaOraria * 1.25;
     const valoreStraordinarie = oreStraordinarie * pagaOrariaMaggiorata;
     
-    // Travel allowances - always use current settings
-    const indennitaRientro = parseFloat(settings.indennitaRientro) || 15;
-    const indennitaPernottamento = parseFloat(settings.indennitaPernottamento) || 50;
-    const indennitaEstero = parseFloat(settings.indennitaEstero) || 100;
+    // Travel allowances
+    const indennitaRientro = parseFloat(effectiveSettings.indennitaRientro) || 15;
+    const indennitaPernottamento = parseFloat(effectiveSettings.indennitaPernottamento) || 50;
+    const indennitaEstero = parseFloat(effectiveSettings.indennitaEstero) || 100;
     
     let giorniRientro = 0;
     let giorniPernottamento = 0;

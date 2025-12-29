@@ -183,27 +183,50 @@ const API = {
         }
     },
 
-    // Paga Base Mensile
+    // Impostazioni Mensili (tutte le impostazioni per mese/anno)
+    async getSettingsMensili(month, year) {
+        try {
+            const settings = Storage.getSettingsMensili(month, year);
+            if (settings) {
+                return { success: true, data: settings };
+            }
+            // Fallback to default settings
+            const defaultSettings = Storage.getSettings();
+            return { success: true, data: defaultSettings };
+        } catch (error) {
+            console.error('Get settings mensili error:', error);
+            const defaultSettings = Storage.getSettings();
+            return { success: true, data: defaultSettings };
+        }
+    },
+
+    async saveSettingsMensili(month, year, settings) {
+        try {
+            const result = Storage.saveSettingsMensili(month, year, settings);
+            return result;
+        } catch (error) {
+            console.error('Save settings mensili error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    // Paga Base Mensile (mantenuto per retrocompatibilità)
     async getPagaBaseMensile(month, year) {
         try {
-            const pagaBase = Storage.getPagaBaseMensile(month, year);
-            if (pagaBase !== null) {
-                return pagaBase;
-            }
-            // Fallback to default from settings
-            const settings = Storage.getSettings();
-            return settings.pagaBase || 2000;
+            const settingsResult = await this.getSettingsMensili(month, year);
+            return settingsResult.data?.pagaBase || 2000;
         } catch (error) {
             console.error('Get paga base mensile error:', error);
-            const settings = Storage.getSettings();
-            return settings.pagaBase || 2000;
+            return 2000;
         }
     },
 
     async savePagaBaseMensile(month, year, pagaBase) {
         try {
-            const result = Storage.savePagaBaseMensile(month, year, pagaBase);
-            return result;
+            const settingsResult = await this.getSettingsMensili(month, year);
+            const settings = settingsResult.data || Storage.getSettings();
+            settings.pagaBase = pagaBase;
+            return await this.saveSettingsMensili(month, year, settings);
         } catch (error) {
             console.error('Save paga base mensile error:', error);
             return { success: false, error: error.toString() };
