@@ -1,38 +1,92 @@
 // Home page functionality
 document.addEventListener('DOMContentLoaded', async () => {
-    // Check cloud sync status
-    await checkCloudStatus();
+    // Update backup status
+    updateBackupStatus();
     
     // Load motivational quote
     loadMotivationalQuote();
     
-    // Check sync every 30 seconds
-    setInterval(checkCloudStatus, 30000);
+    // Setup backup buttons
+    setupBackupButtons();
+    
+    // Update backup status every minute
+    setInterval(updateBackupStatus, 60000);
 });
 
-async function checkCloudStatus() {
+function updateBackupStatus() {
     const statusIcon = document.getElementById('statusIcon');
     const statusText = document.getElementById('statusText');
+    const lastBackupInfo = document.getElementById('lastBackupInfo');
     
-    try {
-        const result = await API.checkSync();
-        if (result.synced) {
-            statusIcon.textContent = '✅';
-            statusIcon.classList.add('synced');
-            statusText.textContent = 'Sincronizzato';
-            statusIcon.style.filter = 'none';
+    statusIcon.textContent = '💾';
+    statusIcon.style.filter = 'none';
+    statusText.textContent = 'Salvataggio Locale';
+    
+    const lastBackup = Storage.getLastBackupDate();
+    if (lastBackup) {
+        const now = new Date();
+        const hoursAgo = Math.floor((now - lastBackup) / (1000 * 60 * 60));
+        if (hoursAgo < 24) {
+            lastBackupInfo.textContent = `Ultimo backup: ${hoursAgo} ore fa`;
         } else {
-            statusIcon.textContent = '☁️';
-            statusIcon.classList.remove('synced');
-            statusText.textContent = 'Non sincronizzato';
-            statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
+            const daysAgo = Math.floor(hoursAgo / 24);
+            lastBackupInfo.textContent = `Ultimo backup: ${daysAgo} giorno${daysAgo > 1 ? 'i' : ''} fa`;
         }
-    } catch (error) {
-        statusIcon.textContent = '❌';
-        statusIcon.classList.remove('synced');
-        statusText.textContent = 'Errore connessione';
-        statusIcon.style.filter = 'none';
+    } else {
+        lastBackupInfo.textContent = 'Nessun backup ancora creato';
     }
+}
+
+function setupBackupButtons() {
+    // Export backup
+    document.getElementById('exportBackupBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('exportBackupBtn');
+        btn.disabled = true;
+        btn.textContent = 'Esportazione...';
+        
+        try {
+            const result = await Storage.exportBackup();
+            if (result.success) {
+                showNotification('Backup esportato con successo!', 'success');
+                updateBackupStatus();
+            } else {
+                showNotification('Errore nell\'esportazione: ' + (result.error || 'Errore sconosciuto'), 'error');
+            }
+        } catch (error) {
+            showNotification('Errore nell\'esportazione: ' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '📥 Esporta Backup';
+        }
+    });
+    
+    // Import backup
+    document.getElementById('importBackupInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const label = document.querySelector('label[for="importBackupInput"]');
+        label.textContent = 'Caricamento...';
+        label.style.pointerEvents = 'none';
+        
+        try {
+            const result = await Storage.importBackup(file);
+            if (result.success) {
+                showNotification('Backup caricato con successo! Ricarica la pagina per vedere i nuovi dati.', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showNotification('Errore nel caricamento: ' + (result.error || 'Errore sconosciuto'), 'error');
+            }
+        } catch (error) {
+            showNotification('Errore nel caricamento: ' + error.message, 'error');
+        } finally {
+            label.textContent = '📤 Carica Backup';
+            label.style.pointerEvents = 'auto';
+            e.target.value = ''; // Reset input
+        }
+    });
 }
 
 async function loadMotivationalQuote() {

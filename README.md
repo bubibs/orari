@@ -123,3 +123,4 @@ Lo stato di sincronizzazione viene mostrato in ogni pagina:
 
 I dati vengono sempre salvati localmente come backup, anche se la sincronizzazione cloud fallisce.
 
+

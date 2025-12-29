@@ -499,28 +499,4 @@ function displaySalarySummary(data, calcolo) {
     summaryDiv.innerHTML = html;
 }
 
-async function checkCloudStatus() {
-    const statusIcon = document.getElementById('statusIcon');
-    const statusText = document.getElementById('statusText');
-    
-    try {
-        const result = await API.checkSync();
-        if (result.synced) {
-            statusIcon.textContent = '✅';
-            statusIcon.classList.add('synced');
-            statusText.textContent = 'Sincronizzato';
-            statusIcon.style.filter = 'none';
-        } else {
-            statusIcon.textContent = '☁️';
-            statusIcon.classList.remove('synced');
-            statusText.textContent = 'Non sincronizzato';
-            statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
-        }
-    } catch (error) {
-        statusIcon.textContent = '❌';
-        statusIcon.classList.remove('synced');
-        statusText.textContent = 'Errore connessione';
-        statusIcon.style.filter = 'none';
-    }
-}
 

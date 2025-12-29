@@ -6,9 +6,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     editingReportId = urlParams.get('id');
     
-    // Check cloud status
-    await checkCloudStatus();
-    
     // Load contacts for autocomplete
     await loadContacts();
     
@@ -55,8 +52,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadReport(editingReportId);
     }
     
-    // Check sync every 30 seconds
-    setInterval(checkCloudStatus, 30000);
 });
 
 function setupEventListeners() {
@@ -281,14 +276,13 @@ async function saveReport() {
             throw new Error(result?.error || 'Errore nel salvataggio');
         }
         
-        // Success: Green checkmark
+        // Success
         if (statusIcon) {
-            statusIcon.textContent = '✅';
-            statusIcon.style.filter = 'none';
-            statusIcon.style.animation = 'checkPulse 2s ease-in-out infinite';
+            statusIcon.textContent = '💾';
+            statusIcon.style.animation = 'none';
         }
         if (statusText) {
-            statusText.textContent = 'Sincronizzato';
+            statusText.textContent = 'Salvato';
         }
         
         // Save contact if new location
@@ -306,28 +300,16 @@ async function saveReport() {
     } catch (error) {
         console.error('Save error:', error);
         
-        // Error: Red X
+        // Error
         if (statusIcon) {
-            statusIcon.textContent = '❌';
-            statusIcon.style.filter = 'none';
+            statusIcon.textContent = '💾';
             statusIcon.style.animation = 'none';
         }
         if (statusText) {
-            statusText.textContent = 'Errore sincronizzazione';
+            statusText.textContent = 'Locale';
         }
         
-        let errorMessage = 'Errore nel salvataggio';
-        if (error.message) {
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                errorMessage = 'Errore di connessione. Verifica la tua connessione internet e che il server sia raggiungibile.';
-            } else if (error.message.includes('CORS')) {
-                errorMessage = 'Errore CORS. Verifica che il Google Apps Script sia pubblicato correttamente con accesso "Tutti".';
-            } else {
-                errorMessage = 'Errore: ' + error.message;
-            }
-        }
-        
-        showNotification(errorMessage, 'error');
+        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
         
     } finally {
         saveButton.disabled = false;

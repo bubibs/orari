@@ -107,14 +107,13 @@ async function saveContact() {
     saveButton.classList.add('loading');
     saveButton.textContent = 'Salvataggio...';
     
-    // Update cloud icon to show syncing
+    // Update status icon
     if (statusIcon) {
-        statusIcon.textContent = '☁️';
-        statusIcon.style.filter = 'grayscale(0%) brightness(0.9)';
+        statusIcon.textContent = '💾';
         statusIcon.style.animation = 'cloudPulse 1s ease-in-out infinite';
     }
     if (statusText) {
-        statusText.textContent = 'Sincronizzazione...';
+        statusText.textContent = 'Salvataggio...';
     }
     
     const contactData = {
@@ -141,14 +140,13 @@ async function saveContact() {
             throw new Error(result?.error || 'Errore nel salvataggio');
         }
         
-        // Success: Green checkmark
+        // Success
         if (statusIcon) {
-            statusIcon.textContent = '✅';
-            statusIcon.style.filter = 'none';
-            statusIcon.style.animation = 'checkPulse 2s ease-in-out infinite';
+            statusIcon.textContent = '💾';
+            statusIcon.style.animation = 'none';
         }
         if (statusText) {
-            statusText.textContent = 'Sincronizzato';
+            statusText.textContent = 'Salvato';
         }
         
         showNotification('Contatto salvato con successo!', 'success');
@@ -161,41 +159,29 @@ async function saveContact() {
         // Reload contacts
         await loadContacts();
         
-        // Reset icon after 3 seconds
+        // Reset icon after 2 seconds
         setTimeout(() => {
-            checkCloudStatus();
-        }, 3000);
+            if (statusIcon) {
+                statusIcon.textContent = '💾';
+            }
+            if (statusText) {
+                statusText.textContent = 'Locale';
+            }
+        }, 2000);
         
     } catch (error) {
         console.error('Save error:', error);
         
-        // Error: Red X
+        // Error
         if (statusIcon) {
-            statusIcon.textContent = '❌';
-            statusIcon.style.filter = 'none';
+            statusIcon.textContent = '💾';
             statusIcon.style.animation = 'none';
         }
         if (statusText) {
-            statusText.textContent = 'Errore sincronizzazione';
+            statusText.textContent = 'Locale';
         }
         
-        let errorMessage = 'Errore nel salvataggio';
-        if (error.message) {
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                errorMessage = 'Errore di connessione. Verifica la tua connessione internet e che il server sia raggiungibile.';
-            } else if (error.message.includes('CORS')) {
-                errorMessage = 'Errore CORS. Verifica che il Google Apps Script sia pubblicato correttamente con accesso "Tutti".';
-            } else {
-                errorMessage = 'Errore: ' + error.message;
-            }
-        }
-        
-        showNotification(errorMessage, 'error');
-        
-        // Reset icon after 5 seconds
-        setTimeout(() => {
-            checkCloudStatus();
-        }, 5000);
+        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
         
     } finally {
         saveButton.disabled = false;

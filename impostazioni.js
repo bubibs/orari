@@ -63,14 +63,13 @@ async function saveSettings() {
     saveButton.classList.add('loading');
     saveButton.textContent = 'Salvataggio...';
     
-    // Update cloud icon to show syncing
+    // Update status icon
     if (statusIcon) {
-        statusIcon.textContent = '☁️';
-        statusIcon.style.filter = 'grayscale(0%) brightness(0.9)';
+        statusIcon.textContent = '💾';
         statusIcon.style.animation = 'cloudPulse 1s ease-in-out infinite';
     }
     if (statusText) {
-        statusText.textContent = 'Sincronizzazione...';
+        statusText.textContent = 'Salvataggio...';
     }
     
     const settings = {
@@ -89,14 +88,13 @@ async function saveSettings() {
             throw new Error(result?.error || 'Errore nel salvataggio');
         }
         
-        // Success: Green checkmark
+        // Success
         if (statusIcon) {
-            statusIcon.textContent = '✅';
-            statusIcon.style.filter = 'none';
-            statusIcon.style.animation = 'checkPulse 2s ease-in-out infinite';
+            statusIcon.textContent = '💾';
+            statusIcon.style.animation = 'none';
         }
         if (statusText) {
-            statusText.textContent = 'Sincronizzato';
+            statusText.textContent = 'Salvato';
         }
         
         showNotification('Impostazioni salvate con successo!', 'success');
@@ -107,26 +105,16 @@ async function saveSettings() {
     } catch (error) {
         console.error('Save error:', error);
         
-        // Error: Red X
+        // Error
         if (statusIcon) {
-            statusIcon.textContent = '❌';
-            statusIcon.style.filter = 'none';
+            statusIcon.textContent = '💾';
             statusIcon.style.animation = 'none';
         }
         if (statusText) {
-            statusText.textContent = 'Errore sincronizzazione';
+            statusText.textContent = 'Locale';
         }
         
-        let errorMessage = 'Errore nel salvataggio';
-        if (error.message) {
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                errorMessage = 'Errore di connessione. Verifica la tua connessione internet.';
-            } else {
-                errorMessage = 'Errore: ' + error.message;
-            }
-        }
-        
-        showNotification(errorMessage, 'error');
+        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
     } finally {
         saveButton.disabled = false;
         saveButton.classList.remove('loading');
@@ -134,30 +122,6 @@ async function saveSettings() {
     }
 }
 
-async function checkCloudStatus() {
-    const statusIcon = document.getElementById('statusIcon');
-    const statusText = document.getElementById('statusText');
-    
-    try {
-        const result = await API.checkSync();
-        if (result.synced) {
-            statusIcon.textContent = '✅';
-            statusIcon.classList.add('synced');
-            statusText.textContent = 'Sincronizzato';
-            statusIcon.style.filter = 'none';
-        } else {
-            statusIcon.textContent = '☁️';
-            statusIcon.classList.remove('synced');
-            statusText.textContent = 'Non sincronizzato';
-            statusIcon.style.filter = 'grayscale(100%) brightness(0.8)';
-        }
-    } catch (error) {
-        statusIcon.textContent = '❌';
-        statusIcon.classList.remove('synced');
-        statusText.textContent = 'Errore connessione';
-        statusIcon.style.filter = 'none';
-    }
-}
 
 async function savePagaBaseMensile() {
     const form = document.getElementById('pagaBaseForm');

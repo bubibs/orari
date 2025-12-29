@@ -33,3 +33,4 @@ Se vedi `✅ URL funziona: {success: true, message: "Connected"}` allora l'URL �
 
 Se vedi un errore, l'URL potrebbe essere sbagliato o il Google Apps Script non è pubblicato correttamente.
 
+

@@ -41,9 +41,9 @@
                 <h1 class="main-title">TECNOSISTEM</h1>
             </div>
             <p class="subtitle">the Italian Job</p>
-            <div class="cloud-status" id="cloudStatus">
-                <span class="status-icon" id="statusIcon">☁️</span>
-                <span class="status-text" id="statusText">Sincronizzazione...</span>
+            <div class="backup-status" id="backupStatus">
+                <span class="status-icon" id="statusIcon">💾</span>
+                <span class="status-text" id="statusText">Locale</span>
             </div>
         </header>
 
@@ -69,8 +69,23 @@
                 <span class="nav-text">Storico</span>
             </a>
         </nav>
+        
+        <div class="backup-section" style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; backdrop-filter: blur(10px);">
+            <h3 style="color: var(--text-dark); margin-bottom: 15px; font-size: 1.2rem; text-align: center;">Backup Dati</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="exportBackupBtn" class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 1rem;">
+                    📥 Esporta Backup
+                </button>
+                <label for="importBackupInput" class="btn btn-secondary" style="width: 100%; text-align: center; cursor: pointer; display: block; padding: 12px; font-size: 1rem;">
+                    📤 Carica Backup
+                </label>
+                <input type="file" id="importBackupInput" accept=".json" style="display: none;">
+                <div id="lastBackupInfo" style="color: var(--text-light); font-size: 0.85rem; text-align: center; margin-top: 10px; opacity: 0.8;"></div>
+            </div>
+        </div>
     </div>
 
+    <script src="storage.js"></script>
     <script src="api.js"></script>
     <script src="home.js"></script>
 </body>

@@ -10,58 +10,117 @@ var SHEET_PAGA_BASE_MENSILE = 'PagaBaseMensile';
 // Funzione principale che gestisce tutte le richieste POST
 function doPost(e) {
   try {
-    if (!e || !e.postData || !e.postData.contents) {
-      return ContentService.createTextOutput(JSON.stringify({
+    // Set CORS headers
+    var output = ContentService.createTextOutput();
+    
+    // Parse request data
+    var postData = '';
+    if (e.postData && e.postData.contents) {
+      postData = e.postData.contents;
+    } else if (e.parameter && e.parameter.data) {
+      postData = e.parameter.data;
+    } else {
+      return output.setContent(JSON.stringify({
         success: false,
-        error: 'Invalid request'
+        error: 'No data provided in request'
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    var data = JSON.parse(e.postData.contents);
+    var data;
+    try {
+      data = JSON.parse(postData);
+    } catch (parseError) {
+      return output.setContent(JSON.stringify({
+        success: false,
+        error: 'Invalid JSON: ' + parseError.toString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
     var action = data.action;
+    if (!action) {
+      return output.setContent(JSON.stringify({
+        success: false,
+        error: 'No action specified'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
     var result = {};
     
     if (action === 'ping') {
       result = { success: true, message: 'Connected' };
     } else if (action === 'saveReport') {
-      result = saveReport(data.data);
+      if (!data.data) {
+        result = { success: false, error: 'No report data provided' };
+      } else {
+        result = saveReport(data.data);
+      }
     } else if (action === 'getReports') {
       result = getReports(data.filters || {});
     } else if (action === 'updateReport') {
-      result = updateReport(data.id, data.data);
+      if (!data.id || !data.data) {
+        result = { success: false, error: 'Missing id or data for update' };
+      } else {
+        result = updateReport(data.id, data.data);
+      }
     } else if (action === 'deleteReport') {
-      result = deleteReport(data.id);
+      if (!data.id) {
+        result = { success: false, error: 'No ID provided for deletion' };
+      } else {
+        result = deleteReport(data.id);
+      }
     } else if (action === 'saveContact') {
-      result = saveContact(data.data);
+      if (!data.data) {
+        result = { success: false, error: 'No contact data provided' };
+      } else {
+        result = saveContact(data.data);
+      }
     } else if (action === 'getContacts') {
       result = getContacts();
     } else if (action === 'updateContact') {
-      result = updateContact(data.id, data.data);
+      if (!data.id || !data.data) {
+        result = { success: false, error: 'Missing id or data for update' };
+      } else {
+        result = updateContact(data.id, data.data);
+      }
     } else if (action === 'deleteContact') {
-      result = deleteContact(data.id);
+      if (!data.id) {
+        result = { success: false, error: 'No ID provided for deletion' };
+      } else {
+        result = deleteContact(data.id);
+      }
     } else if (action === 'getSalaryData') {
       result = getSalaryData(data.month, data.year);
     } else if (action === 'saveSettings') {
-      result = saveSettings(data.data);
+      if (!data.data) {
+        result = { success: false, error: 'No settings data provided' };
+      } else {
+        result = saveSettings(data.data);
+      }
     } else if (action === 'getSettings') {
       result = getSettings();
     } else if (action === 'savePagaBaseMensile') {
-      result = savePagaBaseMensile(
-        parseInt(data.month),
-        parseInt(data.year),
-        parseFloat(data.pagaBase)
-      );
+      if (!data.month || !data.year || data.pagaBase === undefined) {
+        result = { success: false, error: 'Missing month, year or pagaBase' };
+      } else {
+        result = savePagaBaseMensile(
+          parseInt(data.month),
+          parseInt(data.year),
+          parseFloat(data.pagaBase)
+        );
+      }
     } else {
-      result = { success: false, error: 'Unknown action' };
+      result = { success: false, error: 'Unknown action: ' + action };
     }
     
-    return ContentService.createTextOutput(JSON.stringify(result))
+    return output.setContent(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
+    var errorOutput = ContentService.createTextOutput();
+    return errorOutput.setContent(JSON.stringify({
       success: false,
-      error: error.toString()
+      error: error.toString(),
+      stack: error.stack
     })).setMimeType(ContentService.MimeType.JSON);
   }
 }
@@ -246,7 +305,12 @@ function deleteReport(id) {
       return { success: false, error: 'ID mancante' };
     }
     
-    var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_REPORTS);
+    var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    if (!spreadsheet) {
+      return { success: false, error: 'Cannot open spreadsheet' };
+    }
+    
+    var sheet = spreadsheet.getSheetByName(SHEET_REPORTS);
     if (!sheet) {
       return { success: false, error: 'Foglio Reports non trovato' };
     }
@@ -267,22 +331,37 @@ function deleteReport(id) {
     }
     
     if (found) {
+      SpreadsheetApp.flush();
       return { success: true };
     } else {
       return { success: false, error: 'Report non trovato con ID: ' + idStr };
     }
   } catch (error) {
-    return { success: false, error: error.toString() };
+    return { success: false, error: error.toString(), stack: error.stack };
   }
 }
 
 // Funzioni per gestire i Contacts
 function saveContact(contactData) {
   try {
-    var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_CONTACTS);
-    
     if (!contactData) {
       return { success: false, error: 'No data provided' };
+    }
+    
+    var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    if (!spreadsheet) {
+      return { success: false, error: 'Cannot open spreadsheet' };
+    }
+    
+    var sheet = spreadsheet.getSheetByName(SHEET_CONTACTS);
+    if (!sheet) {
+      return { success: false, error: 'Sheet ' + SHEET_CONTACTS + ' not found' };
+    }
+    
+    // Ensure header row exists
+    if (sheet.getLastRow() === 0) {
+      var headers = ['id', 'azienda', 'citta', 'via', 'referente', 'telefono'];
+      sheet.appendRow(headers);
     }
     
     if (!contactData.id) {
@@ -302,7 +381,7 @@ function saveContact(contactData) {
     var i;
     
     for (i = 1; i < data.length; i++) {
-      if (data[i][0] === contactData.id) {
+      if (String(data[i][0]) === String(contactData.id)) {
         sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
         found = true;
         break;
@@ -313,9 +392,11 @@ function saveContact(contactData) {
       sheet.appendRow(row);
     }
     
+    SpreadsheetApp.flush();
+    
     return { success: true, id: contactData.id };
   } catch (error) {
-    return { success: false, error: error.toString() };
+    return { success: false, error: error.toString(), stack: error.stack };
   }
 }
 
@@ -467,7 +548,25 @@ function getSalaryData(month, year) {
 // Funzioni per gestire le Settings
 function saveSettings(settings) {
   try {
-    var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_SETTINGS);
+    if (!settings) {
+      return { success: false, error: 'No settings data provided' };
+    }
+    
+    var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    if (!spreadsheet) {
+      return { success: false, error: 'Cannot open spreadsheet' };
+    }
+    
+    var sheet = spreadsheet.getSheetByName(SHEET_SETTINGS);
+    if (!sheet) {
+      return { success: false, error: 'Sheet ' + SHEET_SETTINGS + ' not found' };
+    }
+    
+    // Ensure header row exists
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['chiave', 'valore']);
+    }
+    
     var data = sheet.getDataRange().getValues();
     
     var settingsMap = {};
@@ -480,17 +579,28 @@ function saveSettings(settings) {
     
     var i;
     var key;
+    var keysToUpdate = [];
     
     for (i = 1; i < data.length; i++) {
       key = data[i][0];
       if (settingsMap.hasOwnProperty(key)) {
         sheet.getRange(i + 1, 2).setValue(settingsMap[key]);
+        keysToUpdate.push(key);
       }
     }
     
+    // Add missing keys
+    for (key in settingsMap) {
+      if (keysToUpdate.indexOf(key) === -1) {
+        sheet.appendRow([key, settingsMap[key]]);
+      }
+    }
+    
+    SpreadsheetApp.flush();
+    
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.toString() };
+    return { success: false, error: error.toString(), stack: error.stack };
   }
 }
 
@@ -552,7 +662,15 @@ function getPagaBaseMensile(month, year) {
 
 function savePagaBaseMensile(month, year, pagaBase) {
   try {
+    if (!month || !year || pagaBase === undefined || pagaBase === null) {
+      return { success: false, error: 'Missing month, year or pagaBase' };
+    }
+    
     var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    if (!spreadsheet) {
+      return { success: false, error: 'Cannot open spreadsheet' };
+    }
+    
     var sheet = spreadsheet.getSheetByName(SHEET_PAGA_BASE_MENSILE);
     
     // Create sheet if it doesn't exist
@@ -561,24 +679,31 @@ function savePagaBaseMensile(month, year, pagaBase) {
       sheet.getRange(1, 1, 1, 3).setValues([['anno', 'mese', 'pagaBase']]);
     }
     
+    // Ensure header row exists
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['anno', 'mese', 'pagaBase']);
+    }
+    
     var data = sheet.getDataRange().getValues();
     var found = false;
     var i;
     
     for (i = 1; i < data.length; i++) {
-      if (parseInt(data[i][0]) === year && parseInt(data[i][1]) === month) {
-        sheet.getRange(i + 1, 3).setValue(pagaBase);
+      if (parseInt(data[i][0]) === parseInt(year) && parseInt(data[i][1]) === parseInt(month)) {
+        sheet.getRange(i + 1, 3).setValue(parseFloat(pagaBase));
         found = true;
         break;
       }
     }
     
     if (!found) {
-      sheet.appendRow([year, month, pagaBase]);
+      sheet.appendRow([parseInt(year), parseInt(month), parseFloat(pagaBase)]);
     }
+    
+    SpreadsheetApp.flush();
     
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.toString() };
+    return { success: false, error: error.toString(), stack: error.stack };
   }
 }
