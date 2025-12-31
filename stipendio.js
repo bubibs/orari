@@ -388,8 +388,6 @@ async function loadSalaryData() {
         const data = result.data;
         
         // Get settings for this month/year
-        const month = parseInt(document.getElementById('monthSelect').value);
-        const year = parseInt(document.getElementById('yearSelect').value);
         const settingsResult = await API.getSettingsMensili(month, year);
         const settings = settingsResult.data || {};
         
