@@ -96,9 +96,18 @@
         color: var(--text-light) !important;
     }
     
+    .date-selector-item label {
+        color: var(--text-light) !important;
+    }
+    
     .date-selector select {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        color: var(--text-light) !important;
+    }
+    
+    .date-selector select option {
         background: #2a2a3e !important;
-        border-color: #555 !important;
         color: var(--text-light) !important;
     }
     
@@ -792,25 +801,64 @@ body {
 .date-selector {
     display: flex;
     gap: 15px;
-    margin-bottom: 20px;
+    margin: 20px 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.date-selector-item {
+    flex: 1;
+}
+
+.date-selector-item label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .date-selector select {
-    flex: 1;
-    padding: 14px;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
     font-size: 1rem;
-    background: white;
     -webkit-appearance: none;
     appearance: none;
     transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 .date-selector select:focus {
     outline: none;
     border-color: var(--highlight-color);
     box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+}
+
+.date-selector select option {
+    background: var(--primary-color);
+    color: var(--text-light);
+}
+
+/* Light mode (giorno) - testo scuro per leggibilità */
+@media (prefers-color-scheme: light) {
+    .date-selector-item label {
+        color: #ffffff !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .date-selector select {
+        color: #ffffff !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .date-selector select option {
+        background: var(--primary-color) !important;
+        color: #ffffff !important;
+    }
 }
 
 /* Contact List */

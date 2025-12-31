@@ -23,10 +23,10 @@
             <a href="index.html" class="back-button">← Torna alla Home</a>
         </header>
 
-        <div class="date-selector" style="display: flex; gap: 15px; margin: 20px 0; justify-content: center; align-items: center;">
-            <div style="flex: 1;">
-                <label for="monthSelect" style="display: block; margin-bottom: 5px; color: var(--text-dark); font-size: 0.9rem;">Mese</label>
-                <select id="monthSelect" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: var(--text-dark); font-size: 1rem;">
+        <div class="date-selector">
+            <div class="date-selector-item">
+                <label for="monthSelect">Mese</label>
+                <select id="monthSelect">
                     <option value="1">Gennaio</option>
                     <option value="2">Febbraio</option>
                     <option value="3">Marzo</option>
@@ -41,9 +41,9 @@
                     <option value="12">Dicembre</option>
                 </select>
             </div>
-            <div style="flex: 1;">
-                <label for="yearSelect" style="display: block; margin-bottom: 5px; color: var(--text-dark); font-size: 0.9rem;">Anno</label>
-                <select id="yearSelect" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: var(--text-dark); font-size: 1rem;"></select>
+            <div class="date-selector-item">
+                <label for="yearSelect">Anno</label>
+                <select id="yearSelect"></select>
             </div>
         </div>
 
