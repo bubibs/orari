@@ -597,7 +597,7 @@ class App {
             }
 
             // Determine Status/Badge (Case Insensitive & Smart Detection)
-            const typeNorm = (r.type || '').toUpperCase();
+            const typeNorm = (r.type || '').trim().toUpperCase();
             const noteLower = (r.notes || '').toLowerCase();
 
             // Treat as Absence if: 
@@ -612,8 +612,8 @@ class App {
             const getBadgeClass = (t, isAbs) => {
                 if (isAbs) return 'badge-assenza';
                 if (t === 'SEDE') return 'badge-sede';
-                if (t === 'TRASFERTA') return 'badge-trasferta';
-                if (t === 'SMART WORKING' || t === 'SMART') return 'badge-smart';
+                if (t.includes('TRASFERTA')) return 'badge-trasferta';
+                if (t.includes('SMART')) return 'badge-smart';
                 return 'badge';
             };
 
@@ -625,7 +625,7 @@ class App {
             let borderColor = '#eab308'; // Default Yellow
             if (isAbsence) borderColor = '#ef4444'; // Red
             else if (typeNorm === 'SEDE') borderColor = '#3b82f6'; // Blue
-            else if (typeNorm === 'TRASFERTA') borderColor = '#eab308'; // Yellow
+            else if (typeNorm.includes('TRASFERTA')) borderColor = '#eab308'; // Yellow
             else if (typeNorm.includes('SMART')) borderColor = '#10b981'; // Green
 
             // Main Title Logic: If Absence, show the Note (Reason). If Work, show Location.
