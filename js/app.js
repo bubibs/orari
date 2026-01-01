@@ -596,13 +596,30 @@ class App {
                 }
             }
 
-            // Determine Status/Badge
-            const isAbsence = r.absence === true || r.absence === 'true' || r.type === 'Assenza';
-            const badgeClass = getBadgeClass(r.type, isAbsence);
-            const badgeLabel = isAbsence ? 'ASSENZA' : r.type;
+            // Determine Status/Badge (Case Insensitive)
+            const typeNorm = (r.type || '').toUpperCase(); // Normalize to uppercase
+            const isAbsence = r.absence === true || String(r.absence) === 'true' || typeNorm === 'ASSENZA';
+
+            const getBadgeClass = (t, isAbs) => {
+                if (isAbs) return 'badge-assenza';
+                if (t === 'SEDE') return 'badge-sede';
+                if (t === 'TRASFERTA') return 'badge-trasferta';
+                if (t === 'SMART WORKING' || t === 'SMART') return 'badge-smart';
+                return 'badge';
+            };
+
+            const badgeClass = getBadgeClass(typeNorm, isAbsence);
+            const badgeLabel = isAbsence ? 'ASSENZA' : r.type.toUpperCase();
+
+            // Border Color Logic
+            let borderColor = '#eab308'; // Default Yellow (Other)
+            if (isAbsence) borderColor = '#ef4444'; // Red
+            else if (typeNorm === 'SEDE') borderColor = '#3b82f6'; // Blue
+            else if (typeNorm === 'TRASFERTA') borderColor = '#eab308'; // Yellow
+            else if (typeNorm.includes('SMART')) borderColor = '#10b981'; // Green
 
             return `
-            <div class="card" style="border-left: 4px solid ${isAbsence ? '#ef4444' : (r.type === 'Sede' ? '#3b82f6' : '#eab308')};">
+            <div class="card" style="border-left: 4px solid ${borderColor};">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <strong class="text-gold" style="font-size:1.1rem;">${dateDisplay}</strong>
