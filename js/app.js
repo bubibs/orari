@@ -177,19 +177,29 @@ const Views = {
         </div>
     `,
 
-    history: () => `
+    history: () => {
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        return `
         <div class="fade-in">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                <button class="btn btn-icon-only" onclick="app.navigate('home')">
-                    <i class="ph ph-arrow-left"></i> Indietro
-                </button>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn btn-icon-only" onclick="app.exportHistory('month')" title="Export Mese CSV">
-                        <i class="ph ph-file-csv"></i> Mese
+             <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <button class="btn btn-icon-only" onclick="app.navigate('home')">
+                        <i class="ph ph-arrow-left"></i> Indietro
                     </button>
-                    <button class="btn btn-icon-only" onclick="app.exportHistory('year')" title="Export Anno CSV">
-                        <i class="ph ph-file-csv"></i> Anno
+                    <!-- Export Controls -->
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="month" id="export-month" value="${currentMonth}" style="padding:5px; border-radius:8px; border:1px solid #444; background:#222; color:white;">
+                    </div>
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:5px;">
+                     <button class="btn btn-sm" onclick="app.exportPDF('month')" title="PDF Mese Selezionato" style="font-size:0.8rem;">
+                        <i class="ph ph-file-pdf"></i> PDF Mese
                     </button>
+                    <button class="btn btn-sm" onclick="app.exportPDF('year')" title="PDF Anno Selezionato" style="font-size:0.8rem;">
+                        <i class="ph ph-file-pdf"></i> PDF Anno
+                    </button>
+                    <!-- CSV Option retained just in case? Or replace? User said "non csv". I'll remove CSV buttons. -->
                 </div>
             </div>
             <h2 class="text-center text-gold mt-2 mb-4">Storico</h2>
@@ -197,7 +207,8 @@ const Views = {
                 <!-- Rendered JS -->
             </div>
         </div>
-    `,
+        `;
+    },
 
     salary: () => `
         <div class="fade-in">
@@ -407,10 +418,6 @@ class App {
             <div class="dashboard-header fade-in">
                 <div class="dashboard-greeting">${greeting}, Fabio</div>
                 <div class="dashboard-date">${dateStr}</div>
-                <!-- Weather Widget Container -->
-                <div id="weather-widget" style="min-height:30px; display:flex; justify-content:center; align-items:center; margin-top:5px;">
-                    <i class="ph ph-spinner ph-spin text-muted" style="font-size:1rem;"></i>
-                </div>
             </div>
 
             ${alertHtml}
@@ -437,7 +444,6 @@ class App {
 
         // Trigger quote interaction if "Loading..."
         if (!cloudQuote) this.loadQuote();
-        this.fetchWeather(); // Call Weather
     }
 
     // --- Sync Logic ---
@@ -739,60 +745,110 @@ class App {
         }
     }
 
-    // --- Export Logic ---
-    exportHistory(scope) {
+    // --- Export Logic (PDF) ---
+    exportPDF(scope) {
         const reports = Store.getReports();
         if (reports.length === 0) {
             alert("Nessun dato da esportare.");
             return;
         }
 
-        const now = new Date();
+        const picker = document.getElementById('export-month');
+        const selectedValue = picker ? picker.value : new Date().toISOString().slice(0, 7);
+
+        // Scope Logic
         let filtered = [];
+        let title = '';
         let filename = '';
 
         if (scope === 'month') {
-            const monthKey = now.toISOString().slice(0, 7); // "2025-01"
-            filtered = reports.filter(r => r.date.startsWith(monthKey));
-            filename = `Report_Mese_${monthKey}.csv`;
+            // Filter by "YYYY-MM"
+            filtered = reports.filter(r => r.date.startsWith(selectedValue));
+            title = `Report Mensile: ${selectedValue}`;
+            filename = `Report_${selectedValue}.pdf`;
         } else {
-            const yearKey = now.getFullYear().toString(); // "2025"
-            filtered = reports.filter(r => r.date.startsWith(yearKey));
-            filename = `Report_Anno_${yearKey}.csv`;
+            // Filter by "YYYY" from the picker
+            const year = selectedValue.split('-')[0];
+            filtered = reports.filter(r => r.date.startsWith(year));
+            title = `Report Annuale: ${year}`;
+            filename = `Report_Anno_${year}.pdf`;
         }
 
+        // Sort by date (Oldest to Newest for reading flow, or Newest to Oldest?)
+        // Usually reports are read chronologically.
+        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+
         if (filtered.length === 0) {
-            alert(`Nessun report trovato per il periodo selezionato (${scope}).`);
+            alert(`Nessun report trovato per il periodo: ${title}`);
             return;
         }
 
-        // Generate CSV
-        const header = ['Data', 'Tipo', 'Luogo', 'Ore Totali', 'Straordinari', 'Note', 'Assenza'];
-        const rows = filtered.map(r => [
-            r.date,
-            r.type,
-            `"${r.location || ''}"`, // Quote to handle commas
-            r.totalHours,
-            r.overtime || '0',
-            `"${r.notes || ''}"`,
-            r.absence ? 'SI' : 'NO'
-        ]);
+        // --- PDF Generation ---
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
 
-        const csvContent = [
-            header.join(','),
-            ...rows.map(row => row.join(','))
-        ].join('\n');
+        // Title
+        doc.setFontSize(18);
+        doc.setTextColor(40);
+        doc.text("Resoconto Interventi - Tecnosistem", 14, 22);
 
-        // Download Trigger
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(title, 14, 30);
+        doc.text(`Generato il: ${new Date().toLocaleDateString('it-IT')}`, 14, 36);
+
+        // Prepare Table Data
+        const tableBody = filtered.map(r => {
+            const dateStr = r.date.split('-').reverse().join('/');
+            const type = r.type ? r.type.toUpperCase() : '';
+            // If absence, type is ABSENCE or show note?
+            // User likes "ASSENZA" label if absent.
+            let displayType = type;
+            let displayLoc = r.location;
+
+            // Smart Absence Check (reuse logic ideally, but simplified here)
+            const noteLower = (r.notes || '').toLowerCase();
+            const isSmartAbsence = (!r.absence && (noteLower.includes('ferie') || noteLower.includes('malattia')));
+
+            if (r.absence || displayType === 'ASSENZA' || isSmartAbsence) {
+                displayType = 'ASSENZA';
+                displayLoc = r.notes || '(Vedi Note)'; // Absence reason usually in Note
+            }
+
+            return [
+                dateStr,
+                displayType,
+                displayLoc,
+                `${r.startTime}-${r.endTime}`,
+                r.totalHours,
+                r.overtime || '',
+                r.notes || ''
+            ];
+        });
+
+        doc.autoTable({
+            head: [['Data', 'Tipo', 'Luogo/Motivo', 'Orario', 'Ore', 'Str.', 'Note']],
+            body: tableBody,
+            startY: 44,
+            theme: 'grid',
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: [22, 163, 74] }, // Greenish header
+            alternateRowStyles: { fillColor: [240, 240, 240] }
+        });
+
+        // Totals Footer
+        let totalH = 0;
+        filtered.forEach(r => totalH += parseFloat(r.totalHours) || 0);
+
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(10);
+        doc.setTextColor(0);
+        doc.text(`Totale Ore Periodo: ${totalH.toFixed(1)}h`, 14, finalY);
+
+        // Signature area
+        doc.text("Firma: Fabio Sandrini", 150, finalY);
+
+        doc.save(filename);
     }
 
     // --- History Page ---
