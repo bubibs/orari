@@ -4,7 +4,7 @@ import { API } from './api.js';
 
 // --- Helper: Generate Time Options ---
 const generateTimeOptions = (selected = '') => {
-    let options = '';
+    let options = '<option value="" disabled selected>--:--</option>'; // Default empty
     for (let h = 0; h < 24; h++) {
         for (let m of ['00', '30']) {
             const time = `${h.toString().padStart(2, '0')}:${m}`;
@@ -14,6 +14,47 @@ const generateTimeOptions = (selected = '') => {
     }
     return options;
 };
+
+// ... (in Views) ...
+
+// ... (in renderHistory) ...
+container.innerHTML = reports.map(r => {
+    // Manual parse YYYY-MM-DD to dd/mm/yyyy to assume local date and avoid timezone shifts
+    let dateDisplay = r.date;
+    if (r.date && r.date.includes('-')) {
+        const parts = r.date.split('-'); // [YYYY, MM, DD]
+        if (parts.length === 3) {
+            dateDisplay = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+    }
+
+    return `
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <strong class="text-gold" style="font-size:1.1rem;">${dateDisplay}</strong>
+                         ${r.synced ? '<i class="ph ph-check-circle" style="color:#22c55e; font-size:0.8rem"></i>' : '<i class="ph ph-circle" style="color:#aaa; font-size:0.8rem"></i>'}
+                    </div>
+                    <span style="font-size:0.8rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">${r.type}</span>
+                </div>
+                <div style="font-weight:600; margin-bottom:4px;">${r.location}</div>
+                <div style="font-size:0.9rem; color:#aaa;">
+                    ${r.startTime} - ${r.endTime} &nbsp;|&nbsp; Tot: <strong>${r.totalHours}</strong>
+                    ${r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${r.overtime})</span>` : ''}
+                </div>
+                ${r.notes ? `<div style="font-size:0.85rem; color:#888; margin-top:5px; font-style:italic;">"${r.notes}"</div>` : ''}
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
+                    <button class="btn btn-icon-only text-white" style="background:#3b82f6; width:auto; padding:6px 12px; color:white !important;" onclick="app.editReport('${r.id}')">
+                        <i class="ph ph-pencil-simple" style="color:white !important;"></i> Modifica
+                    </button>
+                    <button class="btn btn-icon-only text-white" style="background:#ef4444; width:auto; padding:6px 12px; color:white !important;" onclick="app.deleteReport('${r.id}')">
+                        <i class="ph ph-trash" style="color:white !important;"></i> Elimina
+                    </button>
+                </div>
+            </div>
+        `}).join('');
+
 
 // --- View Components ---
 
@@ -86,8 +127,8 @@ const Views = {
                     <div class="form-group">
                         <label>Orari (Step 30 min)</label>
                         <div style="display: flex; gap: 10px;">
-                            <select name="startTime" id="field-start" required>${generateTimeOptions('08:00')}</select>
-                            <select name="endTime" id="field-end" required>${generateTimeOptions('17:00')}</select>
+                            <select name="startTime" id="field-start" required>${generateTimeOptions()}</select>
+                            <select name="endTime" id="field-end" required>${generateTimeOptions()}</select>
                         </div>
                     </div>
 
@@ -564,12 +605,14 @@ class App {
         }
 
         container.innerHTML = reports.map(r => {
-            // Format Date Italian Style dd/mm/yyyy
+            // Manual parse YYYY-MM-DD to dd/mm/yyyy to assume local date and avoid timezone shifts
             let dateDisplay = r.date;
-            try {
-                const dateObj = new Date(r.date);
-                dateDisplay = dateObj.toLocaleDateString('it-IT');
-            } catch (e) { }
+            if (r.date && r.date.includes('-')) {
+                const parts = r.date.split('-'); // [YYYY, MM, DD]
+                if (parts.length === 3) {
+                    dateDisplay = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+            }
 
             return `
             <div class="card">
@@ -588,11 +631,11 @@ class App {
                 ${r.notes ? `<div style="font-size:0.85rem; color:#888; margin-top:5px; font-style:italic;">"${r.notes}"</div>` : ''}
                 
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
-                    <button class="btn btn-icon-only" style="background:#3b82f6; width:auto; padding:6px 12px;" onclick="app.editReport('${r.id}')">
-                        <i class="ph ph-pencil-simple"></i> Modifica
+                    <button class="btn btn-icon-only text-white" style="background:#3b82f6; width:auto; padding:6px 12px; color:white !important;" onclick="app.editReport('${r.id}')">
+                        <i class="ph ph-pencil-simple" style="color:white !important;"></i> Modifica
                     </button>
-                    <button class="btn btn-icon-only" style="background:#ef4444; width:auto; padding:6px 12px;" onclick="app.deleteReport('${r.id}')">
-                        <i class="ph ph-trash"></i> Elimina
+                    <button class="btn btn-icon-only text-white" style="background:#ef4444; width:auto; padding:6px 12px; color:white !important;" onclick="app.deleteReport('${r.id}')">
+                        <i class="ph ph-trash" style="color:white !important;"></i> Elimina
                     </button>
                 </div>
             </div>

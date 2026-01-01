@@ -3,10 +3,14 @@ export const API = {
 
     async checkHealth() {
         try {
+            // Google Scripts sometimes return 302 redirects which fetch follows. 
+            // We just assume if we get ANY successful response (even plain text), we are safe.
             const response = await fetch(this.ENDPOINT + '?action=ping');
-            const json = await response.json();
-            return json.status === 'online';
+            // If the response is ok, we are likely connected. The JSON parsing is stricter.
+            // Let's just return response.ok
+            return response.ok;
         } catch (e) {
+            console.warn("Health check failed", e);
             return false;
         }
     },
