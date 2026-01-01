@@ -87,7 +87,23 @@ export const Store = {
         }
     },
 
-    // Cloud merge update for Settings
+    // Defaults
+    DEFAULTS: {
+        CONTACTS: [],
+        REPORTS: []
+    },
+
+    // Generic Get/Set
+    get(key) {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : (this.DEFAULTS[key.split('_')[1]] || []);
+    },
+
+    set(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+        window.dispatchEvent(new CustomEvent('store-update', { detail: { key, value } }));
+    },
+
     mergeCloudData(cloudData) {
         if (!cloudData) return;
 
