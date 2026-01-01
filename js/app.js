@@ -195,6 +195,9 @@ const Views = {
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h2 class="text-gold mt-4 mb-4">Stipendio</h2>
                 <div style="display:flex; gap:10px;">
+                    <button class="btn btn-icon-only" onclick="app.sync()" title="Sincronizza">
+                        <i class="ph ph-arrows-clockwise" id="salary-sync-icon"></i>
+                    </button>
                     <button class="btn btn-icon-only" onclick="app.toggleAnnual()" title="Vista Annuale">
                         <i class="ph ph-calendar"></i>
                     </button>
@@ -205,10 +208,10 @@ const Views = {
             </div>
             
             <div class="card" id="salary-month-picker-card">
-                <input type="month" id="salary-month" style="margin-bottom:15px;" onchange="app.renderSalary(this.value)">
+                <input type="month" id="salary-month" style="margin-bottom:15px; width:100%; font-size:1.1rem; padding:10px;" onchange="app.renderSalary(this.value)">
                 
                 <div id="salary-stats">
-                    <p>Seleziona un mese per vedere le statistiche.</p>
+                    <p class="text-center text-muted"><i class="ph ph-spinner ph-spin"></i> Caricamento...</p>
                 </div>
             </div>
 
@@ -631,24 +634,16 @@ class App {
         const settings = Object.fromEntries(fd.entries());
         Object.keys(settings).forEach(k => settings[k] = parseFloat(settings[k]));
 
-        const currentMonth = document.getElementById('salary-month').value || 'default';
+        const currentMonth = document.getElementById('salary-month').value || new Date().toISOString().slice(0, 7);
         Store.saveSettings(settings, currentMonth);
 
         this.toggleSettings();
         this.renderSalary(currentMonth);
         this.showToast(`Impostazioni salvate per ${currentMonth}`);
-        // API.saveSettings(settings); 
     }
 
-    renderSalary(monthStr) {
-        if (!monthStr && !this.showAnnual) return;
-
-        if (this.showAnnual) {
-            this.renderAnnualSalary(monthStr.split('-')[0] || new Date().getFullYear());
-            return;
-        }
-
-        const container = document.getElementById('salary-stats');
+    // Helper to calculate stats for a given month
+    calculateSalaryStats(monthStr) {
         const settings = Store.getSettings(monthStr);
         const reports = Store.getReports().filter(r => r.date.startsWith(monthStr));
 
@@ -674,6 +669,7 @@ class App {
             ot50 += o50;
         });
 
+        // CALCULATION ENGINE
         const base = settings.baseSalary;
         const rate = settings.hourlyRate;
 
@@ -686,13 +682,11 @@ class App {
 
         const lordo = base + extra25 + extra50 + allowance;
 
-        // NETTO ESTIMATION (2025 Rules)
+        // NETTO ESTIMATION
         const inps = lordo * 0.0919;
         const taxable = lordo - inps;
 
-        // IRPEF (Approx Brackets)
-        const annualPorjection = taxable * 12; // Roughly project annual to pick bracket? 
-        // Or simplified monthly brackets: 28k/12=2333, 50k/12=4166
+        // IRPEF (Monthly Brackets Approx)
         let irpef = 0;
         if (taxable <= 2333) {
             irpef = taxable * 0.23;
@@ -702,58 +696,93 @@ class App {
             irpef = (2333 * 0.23) + ((4166 - 2333) * 0.35) + ((taxable - 4166) * 0.43);
         }
 
-        // Deductions (Work + Spouse)
-        // Dummy formula for "dipendente" (decreases with income) + "spouse"
+        // Deductions
         const deductions = Math.max(0, 150 - ((taxable - 2000) * 0.05));
-
         const addizionali = taxable * 0.02;
         const netto = taxable - irpef - addizionali + deductions;
+
+        return {
+            month: monthStr,
+            daysWorked,
+            ot25,
+            ot50,
+            base,
+            extra25,
+            extra50,
+            allowance,
+            lordo,
+            netto,
+            settings
+        };
+    }
+
+    renderSalary(monthStr) {
+        // Default to current month if null/empty
+        if (!monthStr) monthStr = new Date().toISOString().slice(0, 7);
+
+        // Ensure Date Picker has the value
+        const picker = document.getElementById('salary-month');
+        if (picker && picker.value !== monthStr) {
+            picker.value = monthStr;
+        }
+
+        if (this.showAnnual) {
+            const year = monthStr.split('-')[0];
+            this.renderAnnualSalary(year);
+            return;
+        }
+
+        const container = document.getElementById('salary-stats');
+        const stats = this.calculateSalaryStats(monthStr);
 
         container.innerHTML = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
                 <div class="card text-center" style="margin:0; padding:10px;">
                      <div style="font-size:0.9rem; color:#aaa;">Giorni Lavorati</div>
-                     <div style="font-size:1.2rem; font-weight:bold;">${daysWorked.totale}</div>
-                     <div style="font-size:0.7rem; color:#888;">${daysWorked.sede} Sede / ${daysWorked.rientro + daysWorked.notte} Trasf.</div>
+                     <div style="font-size:1.2rem; font-weight:bold;">${stats.daysWorked.totale}</div>
+                     <div style="font-size:0.7rem; color:#888;">${stats.daysWorked.sede} Sede / ${stats.daysWorked.rientro + stats.daysWorked.notte} Trasf.</div>
                 </div>
                  <div class="card text-center" style="margin:0; padding:10px;">
                      <div style="font-size:0.9rem; color:#aaa;">Straordinari</div>
-                     <div style="font-size:1.1rem; font-weight:bold;">${ot25.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal;">(25%)</span></div>
-                     <div style="font-size:1.1rem; font-weight:bold;">${ot50.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal; color:#f87171;">(50%)</span></div>
+                     <div style="font-size:1.1rem; font-weight:bold;">${stats.ot25.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal;">(25%)</span></div>
+                     <div style="font-size:1.1rem; font-weight:bold;">${stats.ot50.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal; color:#f87171;">(50%)</span></div>
                 </div>
             </div>
             
             <div class="card mb-4">
                 <h4 style="border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:10px;">Dettaglio Lordo</h4>
-                <div class="data-row"><span>Base Mensile</span> <strong>€ ${base.toFixed(2)}</strong></div>
-                <div class="data-row"><span>Str. 25%</span> <strong>€ ${extra25.toFixed(2)}</strong></div>
-                <div class="data-row"><span>Str. 50%</span> <strong>€ ${extra50.toFixed(2)}</strong></div>
-                <div class="data-row"><span>Indennità</span> <strong>€ ${allowance.toFixed(2)}</strong></div>
+                <div class="data-row"><span>Base Mensile</span> <strong>€ ${stats.base.toFixed(2)}</strong></div>
+                <div class="data-row"><span>Str. 25%</span> <strong>€ ${stats.extra25.toFixed(2)}</strong></div>
+                <div class="data-row"><span>Str. 50%</span> <strong>€ ${stats.extra50.toFixed(2)}</strong></div>
+                <div class="data-row"><span>Indennità</span> <strong>€ ${stats.allowance.toFixed(2)}</strong></div>
                 <div class="data-row" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:5px; padding-top:5px;">
-                    <span>TOTALE LORDO</span> <strong class="text-white">€ ${lordo.toFixed(2)}</strong>
+                    <span>TOTALE LORDO</span> <strong class="text-white">€ ${stats.lordo.toFixed(2)}</strong>
                 </div>
             </div>
 
             <div class="card" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border:1px solid var(--primary-dim);">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span>NETTO STIMATO <small style="display:block; font-size:0.7rem; color:#aaa; font-weight:normal;">(CCNL Met. + Coniuge)</small></span>
-                    <strong class="text-gold" style="font-size:1.5rem;">€ ${netto.toFixed(2)}</strong>
+                    <strong class="text-gold" style="font-size:1.5rem;">€ ${stats.netto.toFixed(2)}</strong>
                 </div>
             </div>
          `;
 
+        // Populate settings form with stats.settings (which includes defaults if needed)
         const form = document.querySelector('#settings-modal form');
         document.querySelector('#settings-modal h3').innerHTML = `Impostazioni <span class="text-gold">${monthStr}</span>`;
-        if (form && settings) {
-            Object.keys(settings).forEach(k => {
-                if (form.elements[k]) form.elements[k].value = settings[k];
+        if (form && stats.settings) {
+            Object.keys(stats.settings).forEach(k => {
+                if (form.elements[k]) form.elements[k].value = stats.settings[k];
             });
         }
     }
 
     toggleAnnual() {
         this.showAnnual = !this.showAnnual;
-        this.navigate('salary', this.currentView === 'salary' ? (document.getElementById('salary-month').value || new Date().toISOString().slice(0, 7)) : null);
+        // Don't lose context of current month picker value
+        const currentVal = document.getElementById('salary-month')?.value || new Date().toISOString().slice(0, 7);
+        this.renderSalary(currentVal);
     }
 
     renderAnnualSalary(year) {
@@ -761,35 +790,63 @@ class App {
 
         let monthsData = [];
         let totalBase = 0;
-        let countMonths = 0;
+        let totalLordo = 0;
+        let totalNetto = 0;
 
         for (let i = 1; i <= 12; i++) {
             const m = `${year}-${String(i).padStart(2, '0')}`;
-            const settings = Store.getSettings(m);
+            const stats = this.calculateSalaryStats(m);
 
-            // Check if we actually have data for this month? 
-            // Logic: always assume base salary is accrued if we are listing the year, 
-            // OR only if reports exist?
-            // Simplification: Always list 12 months with their configured Base Salary.
-            totalBase += settings.baseSalary;
-            countMonths++;
-            monthsData.push({ month: m, base: settings.baseSalary });
+            totalBase += stats.base;
+            totalLordo += stats.lordo;
+            totalNetto += stats.netto;
+
+            monthsData.push(stats);
         }
 
-        const tredicesima = totalBase / 12;
+        // 13th Month (Estimated as Average Base)
+        const tredicesimaLordo = totalBase / 12;
+        // Estimate Net for 13th (Approx same tax rate as avg month)
+        // Simplified: (13th Lordo - 9.19% INPS - Irpef). Let's just use a ratio from the yearly avg.
+        const avgTaxRate = totalLordo > 0 ? (1 - (totalNetto / totalLordo)) : 0.30;
+        const tredicesimaNetto = tredicesimaLordo * (1 - avgTaxRate);
+
+        // Add 13th to totals
+        const annualLordo = totalLordo + tredicesimaLordo;
+        const annualNetto = totalNetto + tredicesimaNetto;
+
+        // Hide Month Picker in Annual View (it's confusing) or disable it
+        const pickerCard = document.getElementById('salary-month-picker-card');
+        // Actually, user might want to see title "Year X".
+        // We handle this by replacing content inside 'salary-stats', picker is strictly monthly.
+        // Let's hide picker input visually in CSS or JS?
+        // Better: renderAnnualSalary overrides the whole view structure inside renderSalary logic?
+        // No, renderSalary calls this. Let's just update container.
 
         container.innerHTML = `
-            <div class="card mb-4">
-                 <h3 class="text-gold text-center mb-3">Riepilogo ${year}</h3>
-                 <div class="data-row"><span>Media Base</span> <strong>€ ${(totalBase / 12).toFixed(2)}</strong></div>
-                 <div class="data-row"><span>13ma Mensilità</span> <strong class="text-white">€ ${tredicesima.toFixed(2)}</strong></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 class="text-gold" style="margin:0;">Riepilogo ${year}</h3>
+                <button class="btn btn-sm" onclick="app.toggleAnnual()">
+                    <i class="ph ph-arrow-left"></i> Torna al Mese
+                </button>
+            </div>
+
+            <div class="card mb-4" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%);">
+                 <div class="data-row"><span>Totale Lordo (13 m.)</span> <strong>€ ${annualLordo.toFixed(2)}</strong></div>
+                 <div class="data-row"><span>Totale Netto (13 m.)</span> <strong class="text-gold">€ ${annualNetto.toFixed(2)}</strong></div>
+                 <div class="data-row" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); font-size:0.85rem; color:#aaa;">
+                    <span>Di cui 13ma (Netto)</span> <span>~ € ${tredicesimaNetto.toFixed(2)}</span>
+                 </div>
             </div>
             
-            <div style="max-height:300px; overflow-y:auto;">
+            <div style="max-height:400px; overflow-y:auto; padding-right:5px;">
                 ${monthsData.map(d => `
-                    <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <span>${d.month}</span>
-                        <span>Base: € ${d.base.toFixed(2)}</span>
+                    <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center;">
+                        <span style="font-weight:bold; width:30%;">${d.month}</span>
+                        <div style="text-align:right;">
+                            <div style="font-size:0.9rem;">L: € ${d.lordo.toFixed(0)}</div>
+                            <div style="font-size:0.9rem; color:#fbbf24;">N: € ${d.netto.toFixed(0)}</div>
+                        </div>
                     </div>
                 `).join('')}
             </div>
