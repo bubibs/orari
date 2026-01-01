@@ -3,41 +3,38 @@ export const API = {
 
     async checkHealth() {
         try {
-            // Simple ping to check connectivity
             const response = await fetch(this.ENDPOINT + '?action=ping');
-            return true;
+            const json = await response.json();
+            return json.status === 'online';
         } catch (e) {
             return false;
         }
     },
 
-    async syncReport(report) {
+    async _post(action, data) {
         try {
-            // We use the "beacon" approach or simple text/plain POST to avoid complex CORS preflight checks.
-            // Google Apps Script handles raw POST data via e.postData.contents
-
-            const response = await fetch(this.ENDPOINT + '?action=saveReport', {
+            const response = await fetch(this.ENDPOINT + '?action=' + action, {
                 method: 'POST',
-                body: JSON.stringify(report)
+                body: JSON.stringify(data)
             });
-
-            // If we get here and the response is ok/200, it worked.
-            if (response.ok) {
-                return { success: true };
-            } else {
-                return { success: false, error: 'Server returned ' + response.status };
-            }
+            if (response.ok) return { success: true };
+            return { success: false, error: 'Server ' + response.status };
         } catch (error) {
-            console.error('Sync failed:', error);
-            // Don't swallow the error completely, let the caller know
+            console.error(action + ' failed:', error);
             return { success: false, error: String(error) };
         }
     },
 
+    saveReport(report) { return this._post('saveReport', report); },
+    saveContact(contact) { return this._post('saveContact', contact); },
+    deleteContact(id) { return this._post('deleteContact', { id }); },
+    saveSettings(settings) { return this._post('saveSettings', settings); },
+
     async fetchCloudData() {
         try {
+            // Requesting all data
             const response = await fetch(this.ENDPOINT + '?action=getData');
-            const data = await response.json();
+            const data = await response.json(); // Expected: { reports: [], contacts: [], settings: {} }
             return data;
         } catch (error) {
             console.error('Fetch failed:', error);

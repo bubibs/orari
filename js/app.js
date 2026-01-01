@@ -248,11 +248,50 @@ class App {
         }
     }
 
-    updateCloudStatus() {
-        const el = document.getElementById('cloud-status');
-        // Simple mock check
+    // --- Sync Logic ---
+
+    async sync() {
+        const btn = document.getElementById('cloud-btn');
+        if (btn) btn.classList.add('syncing');
+
+        this.updateCloudStatus('syncing');
+
+        // 1. Fetch Cloud Data & Merge
+        const cloudData = await API.fetchCloudData();
+        if (cloudData) {
+            Store.mergeCloudData(cloudData);
+            this.showToast('Sincronizzato con Cloud');
+
+            // Refresh current view if needed
+            if (this.currentView === 'contacts') this.renderContacts();
+            if (this.currentView === 'salary') this.renderSalary(document.getElementById('salary-month')?.value || new Date().toISOString().slice(0, 7));
+            if (this.currentView === 'history') this.renderHistory();
+
+        } else {
+            this.showToast('Errore Sincronizzazione', 'error');
+        }
+
+        // 2. Here we could retry uploading unsynced items, but for now we assume 
+        // the user operates mostly online or the single-action syncs worked.
+        // A robust queue system would be next step.
+
+        if (btn) btn.classList.remove('syncing');
+        this.updateCloudStatus();
+    }
+
+    updateCloudStatus(forceState) {
+        const container = document.getElementById('cloud-status');
+        const icon = document.getElementById('cloud-icon');
+
+        if (forceState === 'syncing') {
+            container.className = 'cloud-indicator syncing';
+            icon.className = 'ph ph-arrows-clockwise ph-spin';
+            return;
+        }
+
         API.checkHealth().then(online => {
-            el.className = `cloud-indicator ${online ? 'synced' : 'error'}`;
+            container.className = `cloud-indicator ${online ? 'synced' : 'error'}`;
+            icon.className = online ? 'ph ph-cloud-check' : 'ph ph-cloud-slash';
         });
     }
 
@@ -403,16 +442,25 @@ class App {
     handleContactSubmit(e) {
         e.preventDefault();
         const fd = new FormData(e.target);
-        Store.addContact(Object.fromEntries(fd.entries()));
-        this.showToast('Contatto aggiunto');
+        const contact = Object.fromEntries(fd.entries());
+
+        Store.addContact(contact);
+        this.showToast('Contatto salvato');
         this.renderContacts();
         e.target.reset();
+
+        // Cloud Sync
+        API.saveContact(contact).then(res => {
+            if (!res.success) console.warn('Cloud contact save failed');
+        });
     }
 
     deleteContact(id) {
         if (confirm('Eliminare contatto?')) {
             Store.deleteContact(id);
             this.renderContacts();
+            // Cloud Sync
+            API.deleteContact(id);
         }
     }
 
@@ -549,6 +597,9 @@ class App {
         this.toggleSettings();
         this.renderSalary(document.getElementById('salary-month').value);
         this.showToast('Impostazioni salvate');
+
+        // Cloud Sync
+        API.saveSettings(settings); // Fire and forget
     }
 }
 
