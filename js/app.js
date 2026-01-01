@@ -15,47 +15,6 @@ const generateTimeOptions = (selected = '') => {
     return options;
 };
 
-// ... (in Views) ...
-
-// ... (in renderHistory) ...
-container.innerHTML = reports.map(r => {
-    // Manual parse YYYY-MM-DD to dd/mm/yyyy to assume local date and avoid timezone shifts
-    let dateDisplay = r.date;
-    if (r.date && r.date.includes('-')) {
-        const parts = r.date.split('-'); // [YYYY, MM, DD]
-        if (parts.length === 3) {
-            dateDisplay = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-    }
-
-    return `
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <strong class="text-gold" style="font-size:1.1rem;">${dateDisplay}</strong>
-                         ${r.synced ? '<i class="ph ph-check-circle" style="color:#22c55e; font-size:0.8rem"></i>' : '<i class="ph ph-circle" style="color:#aaa; font-size:0.8rem"></i>'}
-                    </div>
-                    <span style="font-size:0.8rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">${r.type}</span>
-                </div>
-                <div style="font-weight:600; margin-bottom:4px;">${r.location}</div>
-                <div style="font-size:0.9rem; color:#aaa;">
-                    ${r.startTime} - ${r.endTime} &nbsp;|&nbsp; Tot: <strong>${r.totalHours}</strong>
-                    ${r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${r.overtime})</span>` : ''}
-                </div>
-                ${r.notes ? `<div style="font-size:0.85rem; color:#888; margin-top:5px; font-style:italic;">"${r.notes}"</div>` : ''}
-                
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
-                    <button class="btn btn-icon-only text-white" style="background:#3b82f6; width:auto; padding:6px 12px; color:white !important;" onclick="app.editReport('${r.id}')">
-                        <i class="ph ph-pencil-simple" style="color:white !important;"></i> Modifica
-                    </button>
-                    <button class="btn btn-icon-only text-white" style="background:#ef4444; width:auto; padding:6px 12px; color:white !important;" onclick="app.deleteReport('${r.id}')">
-                        <i class="ph ph-trash" style="color:white !important;"></i> Elimina
-                    </button>
-                </div>
-            </div>
-        `}).join('');
-
-
 // --- View Components ---
 
 const Views = {
@@ -225,7 +184,6 @@ const Views = {
         </div>
     `,
 
-    // ... salary view remains same ...
     salary: () => `
         <div class="fade-in">
              <button class="btn btn-icon-only" onclick="app.navigate('home')">
@@ -465,19 +423,6 @@ class App {
         }
 
         // 2. Try Cloud
-        // API handles upsert if ID exists, or we might need separate update logic?
-        // Apps Script "saveReport" is currently APPEND only. We need to fix this to allow UPDATES.
-        // For now, let's treat it as save. 
-        // NOTE: The user asked for "Modifica". Google Script side needs to handle update by ID.
-        // I'll call same endpoint, but if ID exists in sheet, it should update. 
-        // My previous script was append-only for reports. I need to fix that too or simplistic approach:
-        // Actually, let's rely on standard 'saveReport' and assume script does append. 
-        // If I want real update, I need 'updateReport' action or smart 'saveReport'.
-
-        // Wait, 'updateOrAppend' was used for CONTACTS, but REPORTS was just appendRow.
-        // I should fix the script to update Reports too if ID exists.
-        // Assuming I fixed script or will fix it:
-
         const result = await API.saveReport(report);
 
         btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Salva Report';
@@ -653,24 +598,18 @@ class App {
         if (confirm('Eliminare report definitivamente?')) {
             Store.deleteReport(id);
             this.renderHistory();
-            // We need a Delete Report endpoint in JS API which we didn't add yet to Apps Script explicitly
-            // NO WAIT! Apps Script 'deleteContact' was added, but not 'deleteReport'.
-            // The user asked for it. I should add deleteReport support.
-            // For now, I'll assume I add it to API.js and let it fail silently if script not updated,
-            // BUT I should update script to support 'deleteReport' too.
             API._post('deleteReport', { id });
         }
     }
 
     // --- Salary Page ---
-    // (Existing renderSalary logic...)
+
     renderSalary(monthStr) {
         if (!monthStr) return;
         const container = document.getElementById('salary-stats');
         const settings = Store.getSettings();
         const reports = Store.getReports().filter(r => r.date.startsWith(monthStr));
 
-        // ... same calc logic ...
         let daysWorked = 0;
         let totalHours = 0;
         let overtimeNormal = 0;
@@ -719,7 +658,8 @@ class App {
                 </div>
             </div>
          `;
-        // fill settings...
+
+        // Populate settings form
         const form = document.querySelector('#settings-modal form');
         if (form && settings) {
             Object.keys(settings).forEach(k => {
@@ -731,6 +671,7 @@ class App {
     toggleSettings() {
         document.getElementById('settings-modal').classList.toggle('hidden');
     }
+
     saveSettings(e) {
         e.preventDefault();
         const fd = new FormData(e.target);
