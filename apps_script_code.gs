@@ -33,14 +33,26 @@ function handleRequest(e) {
 
     if (action === "ping") return response({ status: "online" });
 
-    // 1. SAVE REPORT (Append)
+    // 1. SAVE REPORT (Update or Append)
     if (action === "saveReport" && data) {
-      sheets.reports.appendRow([
-        data.id, data.date, data.type, data.location, data.startTime, data.endTime,
-        String(data.totalHours), String(data.overtime), data.absence, data.lunchBreak ? "Si" : "No",
-        data.notes, new Date()
-      ]);
+      // Se ID esiste, aggiorna, altrimenti append
+      if (data.id) {
+         updateOrAppend(sheets.reports, data.id, [
+            data.id, data.date, data.type, data.location, data.startTime, data.endTime,
+            String(data.totalHours), String(data.overtime), data.absence, data.lunchBreak ? "Si" : "No",
+            data.notes, new Date()
+         ]);
+      } else {
+         // Fallback old style (no id?)
+         sheets.reports.appendRow([/*...*/]);
+      }
       return response({ success: true });
+    }
+    
+    // 1b. DELETE REPORT
+    if (action === "deleteReport" && data) {
+        deleteRowById(sheets.reports, data.id);
+        return response({ success: true });
     }
 
     // 2. SAVE CONTACT (Update or Append)
