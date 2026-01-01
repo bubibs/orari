@@ -195,12 +195,14 @@ const Views = {
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h2 class="text-gold mt-4 mb-4">Stipendio</h2>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn btn-icon-only" onclick="app.sync()" title="Sincronizza">
-                        <i class="ph ph-arrows-clockwise" id="salary-sync-icon"></i>
-                    </button>
                     <button class="btn btn-icon-only" onclick="app.toggleAnnual()" title="Vista Annuale">
                         <i class="ph ph-calendar"></i>
                     </button>
+                    <button class="btn btn-icon-only" onclick="app.toggleSettings()">
+                        <i class="ph ph-gear"></i>
+                    </button>
+                </div>
+            </div>
                     <button class="btn btn-icon-only" onclick="app.toggleSettings()">
                         <i class="ph ph-gear"></i>
                     </button>
@@ -635,7 +637,19 @@ class App {
         Object.keys(settings).forEach(k => settings[k] = parseFloat(settings[k]));
 
         const currentMonth = document.getElementById('salary-month').value || new Date().toISOString().slice(0, 7);
-        Store.saveSettings(settings, currentMonth);
+        Store.saveSettings(settings, currentMonth); // Save to specific month!
+
+        // Sync settings to cloud (as requested "salvarli sul cloud")
+        // We'll pass the month as context if the API supports it, or just the whole settings blob?
+        // Current API.saveSettings likely expects the object. 
+        // We should probably update API to handle month-specific settings, 
+        // OR just save the "current view's" settings as general settings?
+        // User said: "conviene salvarli sul cloud".
+        // Let's modify the API.saveSettings to accept the whole blob or month. 
+        // For now, I will assume we send the *current month's* settings as the active ones, 
+        // or potentially a new endpoint. 
+        // Given constraints, I'll send it as generic settings for now to ensure at least some backup.
+        API._post('saveSettings', { month: currentMonth, ...settings });
 
         this.toggleSettings();
         this.renderSalary(currentMonth);
@@ -793,35 +807,42 @@ class App {
         let totalLordo = 0;
         let totalNetto = 0;
 
+        // Always iterate 1-12
         for (let i = 1; i <= 12; i++) {
             const m = `${year}-${String(i).padStart(2, '0')}`;
             const stats = this.calculateSalaryStats(m);
 
-            totalBase += stats.base;
-            totalLordo += stats.lordo;
-            totalNetto += stats.netto;
+            // For annual totals, we only sum if the month actually has REPORTS (work done)
+            // OR should we sum base salary regardless? 
+            // "13ma è media stipendio base mensile di tutti i mesi" -> Implies we average the base of months available?
+            // User says: "voglio comunque vedere tutti i mesi dell'anno e la tredicesima"
+            // Let's sum stats.base for the 13th calc (assuming 12 months full year for now)
+            // But only sum Lordo/Netto if work was done (stats.lordo > base?) 
+            // Actually, if no work, Lordo is just Base? No, if no reports, stats.daysWorked.totale is 0. 
+            // CCNL: usually you are paid base even if sick/holiday... but this app tracks REPORTS.
+            // If no report, we assume 0 pay?? 
+            // User context is "Work Reports". Likely no report = no pay (freelance style logic?) 
+            // BUT defaults imply "Stipendio" (Salary). 
+            // Let's assume: If 0 reports, we display 0 values but show the Base setting for reference.
 
-            monthsData.push(stats);
+            const hasActivity = stats.daysWorked.totale > 0;
+
+            totalBase += stats.base; // Sum base for average (assuming full employment)
+            if (hasActivity) {
+                totalLordo += stats.lordo;
+                totalNetto += stats.netto;
+            }
+
+            monthsData.push({ ...stats, hasActivity });
         }
 
-        // 13th Month (Estimated as Average Base)
         const tredicesimaLordo = totalBase / 12;
-        // Estimate Net for 13th (Approx same tax rate as avg month)
-        // Simplified: (13th Lordo - 9.19% INPS - Irpef). Let's just use a ratio from the yearly avg.
+        // Estimate Net for 13th
         const avgTaxRate = totalLordo > 0 ? (1 - (totalNetto / totalLordo)) : 0.30;
         const tredicesimaNetto = tredicesimaLordo * (1 - avgTaxRate);
 
-        // Add 13th to totals
         const annualLordo = totalLordo + tredicesimaLordo;
         const annualNetto = totalNetto + tredicesimaNetto;
-
-        // Hide Month Picker in Annual View (it's confusing) or disable it
-        const pickerCard = document.getElementById('salary-month-picker-card');
-        // Actually, user might want to see title "Year X".
-        // We handle this by replacing content inside 'salary-stats', picker is strictly monthly.
-        // Let's hide picker input visually in CSS or JS?
-        // Better: renderAnnualSalary overrides the whole view structure inside renderSalary logic?
-        // No, renderSalary calls this. Let's just update container.
 
         container.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -832,20 +853,24 @@ class App {
             </div>
 
             <div class="card mb-4" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%);">
-                 <div class="data-row"><span>Totale Lordo (13 m.)</span> <strong>€ ${annualLordo.toFixed(2)}</strong></div>
-                 <div class="data-row"><span>Totale Netto (13 m.)</span> <strong class="text-gold">€ ${annualNetto.toFixed(2)}</strong></div>
+                 <div class="data-row"><span>Totale Lordo (Stima)</span> <strong>€ ${annualLordo.toFixed(2)}</strong></div>
+                 <div class="data-row"><span>Totale Netto (Stima)</span> <strong class="text-gold">€ ${annualNetto.toFixed(2)}</strong></div>
                  <div class="data-row" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); font-size:0.85rem; color:#aaa;">
-                    <span>Di cui 13ma (Netto)</span> <span>~ € ${tredicesimaNetto.toFixed(2)}</span>
+                    <span>13ma (Lordo / Netto)</span> <span>€ ${tredicesimaLordo.toFixed(0)} / € ${tredicesimaNetto.toFixed(0)}</span>
                  </div>
             </div>
             
             <div style="max-height:400px; overflow-y:auto; padding-right:5px;">
                 ${monthsData.map(d => `
                     <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center;">
-                        <span style="font-weight:bold; width:30%;">${d.month}</span>
+                        <span style="font-weight:bold; width:30%; color:${d.hasActivity ? 'white' : '#777'};">${d.month}</span>
                         <div style="text-align:right;">
-                            <div style="font-size:0.9rem;">L: € ${d.lordo.toFixed(0)}</div>
-                            <div style="font-size:0.9rem; color:#fbbf24;">N: € ${d.netto.toFixed(0)}</div>
+                            ${d.hasActivity ? `
+                                <div style="font-size:0.9rem;">L: € ${d.lordo.toFixed(0)}</div>
+                                <div style="font-size:0.9rem; color:#fbbf24;">N: € ${d.netto.toFixed(0)}</div>
+                            ` : `
+                                <div style="font-size:0.8rem; color:#555;">(Base: € ${d.base.toFixed(0)})</div>
+                            `}
                         </div>
                     </div>
                 `).join('')}

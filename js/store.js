@@ -14,18 +14,29 @@ export const Store = {
         // 1. Try specific month
         if (allSettings[monthStr]) return allSettings[monthStr];
 
-        // 2. Try default
-        if (allSettings['default']) return allSettings['default'];
-
         // 3. Fallback/Init Defaults (if nothing exists)
+        // correct default values provided by user
         const defaults = {
             baseSalary: 3480.76,
             hourlyRate: 17.23,
             allowanceReturn: 30.00,
             allowanceOvernight: 60.00,
             allowanceForeign: 105.00,
-            taxRate: 27 // Avg IRPEF estimate as placeholder, though calc will be dynamic
+            taxRate: 27
         };
+
+        // If we found 'default' settings in storage but they look like the old one (e.g. base 1500 or 2000),
+        // we might want to override them OR just trust the user.
+        // User complained about "2000".
+        // Let's force return these defaults if the retrieved 'default' set has baseSalary == 2000 or 1500
+        // (legacy values I might have used).
+        if (allSettings['default']) {
+            const d = allSettings['default'];
+            if (d.baseSalary === 2000 || d.baseSalary === 1500) {
+                return defaults; // Override legacy garbage
+            }
+            return d;
+        }
 
         // Save as default for future
         if (Object.keys(allSettings).length === 0) {
