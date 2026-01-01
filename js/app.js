@@ -617,7 +617,7 @@ class App {
                 ${isAbsence ?
                     /* Absence Layout: Note/Reason below Location */
                     `<div style="font-weight:600; color:#f87171; margin-bottom:4px;">
-                        <i class="ph ph-warning-circle"></i> ${r.notes || 'Motivo non specificato'}
+                        <span style="font-weight:normal; opacity:0.8;">Motivo:</span> ${r.notes || 'Non specificato'}
                      </div>`
                     :
                     /* Regular Work Layout: Hours */
