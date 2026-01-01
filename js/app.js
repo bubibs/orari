@@ -41,14 +41,15 @@ const Views = {
             
             <form id="report-form" onsubmit="app.handleReportSubmit(event)">
                 <div class="card">
-                    <div class="form-group">
+                    <div class="form-group text-center">
                         <label>Data</label>
-                        <input type="date" name="date" required id="field-date">
+                        <input type="date" name="date" required id="field-date" class="input-centered">
                     </div>
 
                     <div class="form-group">
                         <label>Tipo di Lavoro</label>
-                        <select name="type" id="field-type" onchange="app.handleTypeChange(this.value)">
+                        <select name="type" id="field-type" onchange="app.handleTypeChange(this.value)" required>
+                            <option value="" disabled selected>-- Seleziona Tipo --</option>
                             <option value="sede">In Sede</option>
                             <option value="trasferta_rientro">Trasferta con Rientro</option>
                             <option value="trasferta_notte">Trasferta con Pernottamento</option>
@@ -75,13 +76,13 @@ const Views = {
                     </div>
 
                     <div class="form-group checkbox-wrapper">
-                        <input type="checkbox" name="lunchBreak" id="field-lunch" checked>
+                        <input type="checkbox" name="lunchBreak" id="field-lunch">
                         <label for="field-lunch">Pausa Mensa (1h)</label>
                     </div>
 
                     <div class="form-group">
                         <label>Luogo Intervento</label>
-                        <input type="text" name="location" id="field-location" list="contacts-list" placeholder="Cerca o inserisci...">
+                        <input type="text" name="location" id="field-location" list="contacts-list" placeholder="Cerca azienda..." autocomplete="off">
                         <datalist id="contacts-list"></datalist>
                     </div>
 
@@ -355,7 +356,8 @@ class App {
         if (result.success) {
             this.showToast('Report salvato e sincronizzato!');
         } else {
-            this.showToast('Salvato in locale (Offline)', 'warning');
+            console.error(result.error);
+            this.showToast('Salvato Offline. Errore: ' + (result.error || 'Network'), 'warning');
         }
 
         // 3. Check Rubrica

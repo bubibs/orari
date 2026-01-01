@@ -1,11 +1,11 @@
 export const API = {
-    ENDPOINT: 'https://script.google.com/macros/s/AKfycby9VRIwDrWdPNjqw6T6FJY0c-czNPVUuVh4cg9JSfAggrN_WNHGoTqr5cCLfnBX48ZivQ/exec',
+    ENDPOINT: 'https://script.google.com/macros/s/AKfycbypX8DXc9dVSi9aZJ5ZIiNNLt2k4wJQJMyFep33USsCQixj0zFyfbzIOQNdnJIFoGbJGA/exec',
 
     async checkHealth() {
         try {
             // Simple ping to check connectivity
-            const response = await fetch(this.ENDPOINT + '?action=ping', { method: 'GET', mode: 'no-cors' });
-            return true; // If no network error, we assume online (opaque response with no-cors)
+            const response = await fetch(this.ENDPOINT + '?action=ping');
+            return true;
         } catch (e) {
             return false;
         }
@@ -13,25 +13,24 @@ export const API = {
 
     async syncReport(report) {
         try {
-            // Using no-cors because Google Apps Script mostly returns opaque responses unless configured with specific headers
-            // However, "no-cors" means we can't read the response. 
-            // If the script is set to return JSONP or JSON with CORS, we can change this.
-            // For now, we assume a standard POST.
+            // We use the "beacon" approach or simple text/plain POST to avoid complex CORS preflight checks.
+            // Google Apps Script handles raw POST data via e.postData.contents
 
-            const formData = new FormData();
-            formData.append('action', 'saveReport');
-            formData.append('data', JSON.stringify(report));
-
-            const response = await fetch(this.ENDPOINT, {
+            const response = await fetch(this.ENDPOINT + '?action=saveReport', {
                 method: 'POST',
-                body: formData
+                body: JSON.stringify(report)
             });
 
-            // If we get here, the network request 'succeeded' in reaching the server
-            return { success: true };
+            // If we get here and the response is ok/200, it worked.
+            if (response.ok) {
+                return { success: true };
+            } else {
+                return { success: false, error: 'Server returned ' + response.status };
+            }
         } catch (error) {
             console.error('Sync failed:', error);
-            return { success: false, error };
+            // Don't swallow the error completely, let the caller know
+            return { success: false, error: String(error) };
         }
     },
 
