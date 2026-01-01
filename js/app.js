@@ -50,7 +50,7 @@ const Views = {
 
     report: () => `
         <div class="fade-in">
-            <button class="btn btn-icon-only" onclick="app.navigate('home')">
+            <button class="btn btn-icon-only" style="color:#3b82f6;" onclick="app.navigate('home')">
                 <i class="ph ph-arrow-left"></i> Indietro
             </button>
             <h2 class="text-center text-gold mt-4 mb-4" id="report-title">Nuovo Report</h2>
@@ -133,7 +133,7 @@ const Views = {
 
     contacts: () => `
         <div class="fade-in">
-            <button class="btn btn-icon-only" onclick="app.navigate('home')">
+            <button class="btn btn-icon-only" style="color:#3b82f6;" onclick="app.navigate('home')">
                 <i class="ph ph-arrow-left"></i> Indietro
             </button>
             <h2 class="text-center text-gold mt-4 mb-4">Rubrica</h2>
@@ -183,7 +183,7 @@ const Views = {
         <div class="fade-in">
              <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <button class="btn btn-icon-only" onclick="app.navigate('home')">
+                    <button class="btn btn-icon-only" style="color:#3b82f6;" onclick="app.navigate('home')">
                         <i class="ph ph-arrow-left"></i> Indietro
                     </button>
                     <!-- Export Controls -->
@@ -212,7 +212,7 @@ const Views = {
 
     salary: () => `
         <div class="fade-in">
-             <button class="btn btn-icon-only" onclick="app.navigate('home')">
+             <button class="btn btn-icon-only" style="color:#3b82f6;" onclick="app.navigate('home')">
                 <i class="ph ph-arrow-left"></i> Indietro
             </button>
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -274,6 +274,7 @@ class App {
 
         // Auto-sync on start
         console.log("Auto-syncing data...");
+        this.fetchWeather();
         await this.sync();
     }
 
@@ -292,11 +293,11 @@ class App {
 
     // --- Weather Logic ---
     async fetchWeather() {
-        const container = document.getElementById('weather-widget');
+        const container = document.getElementById('weather-header');
         if (!container) return;
 
         if (!navigator.geolocation) {
-            container.innerHTML = '<span style="font-size:0.8rem; opacity:0.7">No GPS</span>';
+            // container.innerHTML = '<span style="font-size:0.8rem; opacity:0.7">No GPS</span>';
             return;
         }
 
