@@ -263,6 +263,7 @@ class App {
 
         // Auto-sync on start
         console.log("Auto-syncing data...");
+        this.fetchWeather(); // Init Weather
         await this.sync();
     }
 
@@ -407,10 +408,6 @@ class App {
             <div class="dashboard-header fade-in">
                 <div class="dashboard-greeting">${greeting}, Fabio</div>
                 <div class="dashboard-date">${dateStr}</div>
-                <!-- Weather Widget Container -->
-                <div id="weather-widget" style="min-height:30px; display:flex; justify-content:center; align-items:center; margin-top:5px;">
-                    <i class="ph ph-spinner ph-spin text-muted" style="font-size:1rem;"></i>
-                </div>
             </div>
 
             ${alertHtml}
