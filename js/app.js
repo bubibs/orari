@@ -434,7 +434,6 @@ class App {
 
         // Trigger quote interaction if "Loading..."
         if (!cloudQuote) this.loadQuote();
-        this.fetchWeather(); // Call Weather
     }
 
     // --- Sync Logic ---
