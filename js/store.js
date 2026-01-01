@@ -57,18 +57,32 @@ export const Store = {
         if (!localStorage.getItem(this.KEYS.REPORTS)) this.set(this.KEYS.REPORTS, []);
         if (!localStorage.getItem(this.KEYS.CONTACTS)) this.set(this.KEYS.CONTACTS, []);
 
-        // Settings Migration: Old format was a direct object. New format is { "default": {...}, "2025-01": {...} }
-        const settings = localStorage.getItem(this.KEYS.SETTINGS);
-        if (settings) {
+        // Settings Migration & Cleanup
+        const settingsRaw = localStorage.getItem(this.KEYS.SETTINGS);
+        if (settingsRaw) {
             try {
-                const parsed = JSON.parse(settings);
-                // Check if it's the old flat format (has 'baseSalary' directly)
-                if (parsed.baseSalary !== undefined) {
+                let allSettings = JSON.parse(settingsRaw);
+
+                // 1. Convert old flat format to new structure
+                if (allSettings.baseSalary !== undefined) {
                     console.log("Migrating settings to new format...");
-                    const newFormat = { 'default': parsed };
-                    this.set(this.KEYS.SETTINGS, newFormat);
+                    allSettings = { 'default': allSettings };
+                    this.set(this.KEYS.SETTINGS, allSettings);
                 }
-            } catch (e) { }
+
+                // 2. Aggressively purge "2000" defaults which the user hates
+                if (allSettings['default']) {
+                    const d = allSettings['default'];
+                    // Fuzzy check for 2000 or 1500 (legacy values)
+                    if (Math.abs(d.baseSalary - 2000) < 1 || Math.abs(d.baseSalary - 1500) < 1) {
+                        console.log("Purging legacy 2000 default settings.");
+                        delete allSettings['default'];
+                        this.set(this.KEYS.SETTINGS, allSettings);
+                    }
+                }
+            } catch (e) {
+                console.error("Settings migration error", e);
+            }
         }
     },
 

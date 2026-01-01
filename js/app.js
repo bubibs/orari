@@ -205,8 +205,8 @@ const Views = {
             </div>
 
             
-            <div class="card" id="salary-month-picker-card">
-                <input type="month" id="salary-month" style="margin-bottom:15px; width:100%; font-size:1.1rem; padding:10px;" onchange="app.renderSalary(this.value)">
+            <div class="card" id="salary-month-picker-card" style="display:flex; flex-direction:column; align-items:center;">
+                <input type="month" id="salary-month" style="margin-bottom:15px; width:100%; max-width:250px; font-size:1.1rem; padding:10px;" onchange="app.renderSalary(this.value)">
                 
                 <div id="salary-stats">
                     <p class="text-center text-muted"><i class="ph ph-spinner ph-spin"></i> Caricamento...</p>
@@ -726,6 +726,10 @@ class App {
         };
     }
 
+    formatMoney(amount) {
+        return amount.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     renderSalary(monthStr) {
         // Default to current month if null/empty
         if (!monthStr) monthStr = new Date().toISOString().slice(0, 7);
@@ -761,19 +765,19 @@ class App {
             
             <div class="card mb-4">
                 <h4 style="border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:10px;">Dettaglio Lordo</h4>
-                <div class="data-row"><span>Base Mensile</span> <strong>€ ${stats.base.toFixed(2)}</strong></div>
-                <div class="data-row"><span>Str. 25%</span> <strong>€ ${stats.extra25.toFixed(2)}</strong></div>
-                <div class="data-row"><span>Str. 50%</span> <strong>€ ${stats.extra50.toFixed(2)}</strong></div>
-                <div class="data-row"><span>Indennità</span> <strong>€ ${stats.allowance.toFixed(2)}</strong></div>
+                <div class="data-row"><span>Base Mensile</span> <strong>€ ${this.formatMoney(stats.base)}</strong></div>
+                <div class="data-row"><span>Str. 25%</span> <strong>€ ${this.formatMoney(stats.extra25)}</strong></div>
+                <div class="data-row"><span>Str. 50%</span> <strong>€ ${this.formatMoney(stats.extra50)}</strong></div>
+                <div class="data-row"><span>Indennità</span> <strong>€ ${this.formatMoney(stats.allowance)}</strong></div>
                 <div class="data-row" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:5px; padding-top:5px;">
-                    <span>TOTALE LORDO</span> <strong class="text-white">€ ${stats.lordo.toFixed(2)}</strong>
+                    <span>TOTALE LORDO</span> <strong class="text-white">€ ${this.formatMoney(stats.lordo)}</strong>
                 </div>
             </div>
 
             <div class="card" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border:1px solid var(--primary-dim);">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span>NETTO STIMATO <small style="display:block; font-size:0.7rem; color:#aaa; font-weight:normal;">(CCNL Met. + Coniuge)</small></span>
-                    <strong class="text-gold" style="font-size:1.5rem;">€ ${stats.netto.toFixed(2)}</strong>
+                    <strong class="text-gold" style="font-size:1.5rem;">€ ${this.formatMoney(stats.netto)}</strong>
                 </div>
             </div>
          `;
@@ -849,10 +853,10 @@ class App {
             </div>
 
             <div class="card mb-4" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%);">
-                 <div class="data-row"><span>Totale Annuo Lordo (+13ma)</span> <strong>€ ${annualLordo.toFixed(2)}</strong></div>
-                 <div class="data-row"><span>Totale Annuo Netto (+13ma)</span> <strong class="text-gold">€ ${annualNetto.toFixed(2)}</strong></div>
+                 <div class="data-row"><span>Totale Annuo Lordo (+13ma)</span> <strong>€ ${this.formatMoney(annualLordo)}</strong></div>
+                 <div class="data-row"><span>Totale Annuo Netto (+13ma)</span> <strong class="text-gold">€ ${this.formatMoney(annualNetto)}</strong></div>
                  <div class="data-row" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); font-size:0.85rem; color:#aaa;">
-                    <span>Di cui 13ma (Lordo / Netto)</span> <span>€ ${tredicesimaLordo.toFixed(0)} / € ${tredicesimaNetto.toFixed(0)}</span>
+                    <span>Di cui 13ma (Lordo / Netto)</span> <span>€ ${this.formatMoney(tredicesimaLordo)} / € ${this.formatMoney(tredicesimaNetto)}</span>
                  </div>
             </div>
             
@@ -863,11 +867,11 @@ class App {
                         <div style="text-align:right; width:80%;">
                             ${d.hasActivity ? `
                                 <div style="font-size:0.9rem; display:flex; justify-content:space-between; margin-left:10%;">
-                                    <span>Lord: € ${d.lordo.toFixed(0)}</span>
-                                    <span style="color:#fbbf24;">Net: € ${d.netto.toFixed(0)}</span>
+                                    <span>Lord: € ${this.formatMoney(d.lordo)}</span>
+                                    <span style="color:#fbbf24;">Net: € ${this.formatMoney(d.netto)}</span>
                                 </div>
                             ` : `
-                                <div style="font-size:0.8rem; color:#555; text-align:right;">(Base: € ${d.base.toFixed(0)})</div>
+                                <div style="font-size:0.8rem; color:#555; text-align:right;">(Base: € ${this.formatMoney(d.base)})</div>
                             `}
                         </div>
                     </div>
