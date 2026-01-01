@@ -222,7 +222,6 @@ const Views = {
                     <div class="form-group"><label>Indennità Rientro (€)</label><input type="number" name="allowanceReturn" step="0.01"></div>
                     <div class="form-group"><label>Indennità Notte (€)</label><input type="number" name="allowanceOvernight" step="0.01"></div>
                     <div class="form-group"><label>Indennità Estero (€)</label><input type="number" name="allowanceForeign" step="0.01"></div>
-                    <!-- Tax Rate removed as per request (auto-calc) -->
                     
                     <div style="display:flex; gap:10px; margin-top:20px;">
                         <button type="button" class="btn" onclick="app.toggleSettings()">Chiudi</button>
@@ -240,7 +239,8 @@ class App {
     constructor() {
         this.root = document.getElementById('main-content');
         this.currentView = 'home';
-        this.editReportId = null; // Track if we are editing
+        this.editReportId = null;
+        this.showAnnual = false;
         this.init();
     }
 
@@ -260,7 +260,7 @@ class App {
 
         // Post-render lifecycle
         if (viewName === 'home') this.loadQuote();
-        if (viewName === 'report') this.initReportForm(params); // params might contain report to edit
+        if (viewName === 'report') this.initReportForm(params);
         if (viewName === 'contacts') this.renderContacts();
         if (viewName === 'history') this.renderHistory();
         if (viewName === 'salary') this.renderSalary(new Date().toISOString().slice(0, 7));
@@ -273,16 +273,14 @@ class App {
         if (btn) btn.classList.add('syncing');
         this.updateCloudStatus('syncing');
 
-        // 1. Fetch Cloud Data & Merge
         const cloudData = await API.fetchCloudData();
         if (cloudData) {
             Store.mergeCloudData(cloudData);
             this.showToast('Dati Cloud scaricati');
 
-            // Refresh views with new data
             if (this.currentView === 'contacts') this.renderContacts();
             if (this.currentView === 'history') this.renderHistory();
-            if (this.currentView === 'salary') this.renderSalary(document.getElementById('salary-month')?.value);
+            if (this.currentView === 'salary' && !this.showAnnual) this.renderSalary(document.getElementById('salary-month')?.value);
 
         } else {
             console.warn("Sync returned null or failed");
@@ -320,7 +318,6 @@ class App {
 
     // --- Components logic ---
     async loadQuote() {
-        // ... existing quote logic
         const el = document.getElementById('daily-quote');
         const authorEl = document.getElementById('quote-author');
         if (!el) return;
@@ -338,7 +335,6 @@ class App {
     // --- Report Page ---
 
     initReportForm(reportToEdit = null) {
-        // Load contacts for datalist
         const list = document.getElementById('contacts-list');
         Store.getContacts().forEach(c => {
             const opt = document.createElement('option');
@@ -346,13 +342,11 @@ class App {
             list.appendChild(opt);
         });
 
-        // Add calc listeners
         const inputs = ['field-start', 'field-end', 'field-lunch', 'field-type', 'field-date'];
         inputs.forEach(id => {
             document.getElementById(id)?.addEventListener('change', () => this.calculateHours());
         });
 
-        // If Editing?
         if (reportToEdit) {
             this.editReportId = reportToEdit.id;
             document.getElementById('report-title').innerText = "Modifica Report";
@@ -365,7 +359,7 @@ class App {
             document.getElementById('field-lunch').checked = reportToEdit.lunchBreak;
             document.getElementById('field-location').value = reportToEdit.location;
             document.getElementById('field-notes').value = reportToEdit.notes || '';
-            this.calculateHours(); // Updates totals
+            this.calculateHours();
         } else {
             this.editReportId = null;
             document.getElementById('field-date').valueAsDate = new Date();
@@ -409,22 +403,13 @@ class App {
         let overtime50 = 0;
 
         if (isWeekend) {
-            overtime50 = diffHrs; // All hours on weekend are 50% (simplification based on request "tutte quelle sab e dom")
-            // Or usually it's base + 50%. User said "ore straordinarie al 50%".
-            // Typically "straordinario" implies hours BEYOND 8? 
-            // The user said: "tutte quelle che son fatte da sab e dom * paga oraria+25%?? NO +50%"?
-            // User request: "ore straordinarie al 50% (tutte quelle che son fatte da sab e dom)"
-            // Implications: DO Weekend work count towards base salary days? 
-            // Usually weekend work is EXTRA. Let's assume ALL weekend hours are Overtime 50%.
+            overtime50 = diffHrs;
         } else {
-            // Mon-Fri
-            const normalHours = Math.min(diffHrs, 8);
             overtime25 = Math.max(0, diffHrs - 8);
         }
 
         document.getElementById('calc-total').textContent = diffHrs.toFixed(1) + 'h';
 
-        // Show breakdown
         let otString = '';
         if (overtime25 > 0) otString += `<span class="text-gold">${overtime25.toFixed(1)}h (25%)</span> `;
         if (overtime50 > 0) otString += `<span style="color:#f87171;">${overtime50.toFixed(1)}h (50%)</span>`;
@@ -432,7 +417,6 @@ class App {
 
         document.getElementById('calc-overtime').innerHTML = otString;
 
-        // Hidden fields for storage
         document.getElementById('field-ot25').value = overtime25.toFixed(2);
         document.getElementById('field-ot50').value = overtime50.toFixed(2);
     }
@@ -446,7 +430,6 @@ class App {
         const report = Object.fromEntries(fd.entries());
         report.lunchBreak = !!report.lunchBreak;
         report.totalHours = document.getElementById('calc-total').textContent;
-        // Keep 'overtime' for backward compatibility display, but rely on detailed fields for calc
         report.overtime = document.getElementById('calc-overtime').innerText;
         report.overtime25 = document.getElementById('field-ot25').value;
         report.overtime50 = document.getElementById('field-ot50').value;
@@ -454,14 +437,12 @@ class App {
 
         if (!report.id) report.id = Date.now().toString();
 
-        // 1. Save Local (Update if exists)
         if (this.editReportId) {
             Store.updateReport(report);
         } else {
             Store.addReport(report);
         }
 
-        // 2. Try Cloud
         const result = await API.saveReport(report);
 
         btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Salva Report';
@@ -472,7 +453,6 @@ class App {
             this.showToast('Salvato Offline: ' + (result.error || 'Network'), 'warning');
         }
 
-        // 3. Auto-save new Contact
         const locationName = report.location;
         if (locationName && locationName.toLowerCase() !== 'tecnosistem') {
             const exists = Store.getContacts().find(c => c.company.toLowerCase() === locationName.toLowerCase());
@@ -483,13 +463,12 @@ class App {
                     city: '', street: '', number: '', person: '', phone: ''
                 };
                 Store.addContact(newContact);
-                console.log('Auto-saved new contact:', locationName);
-                API.saveContact(newContact); // Background sync
+                API.saveContact(newContact);
                 this.showToast('Luogo aggiunto in Rubrica', 'success');
             }
         }
 
-        setTimeout(() => this.navigate('home'), 1000); // Redirect to Home
+        setTimeout(() => this.navigate('home'), 1000);
     }
 
     // --- Contacts Page ---
@@ -589,10 +568,9 @@ class App {
         }
 
         container.innerHTML = reports.map(r => {
-            // Manual parse YYYY-MM-DD to dd/mm/yyyy to assume local date and avoid timezone shifts
             let dateDisplay = r.date;
             if (r.date && r.date.includes('-')) {
-                const parts = r.date.split('-'); // [YYYY, MM, DD]
+                const parts = r.date.split('-');
                 if (parts.length === 3) {
                     dateDisplay = `${parts[2]}/${parts[1]}/${parts[0]}`;
                 }
@@ -643,70 +621,6 @@ class App {
 
     // --- Salary Page ---
 
-    renderSalary(monthStr) {
-        if (!monthStr) return;
-        const container = document.getElementById('salary-stats');
-        const settings = Store.getSettings();
-        const reports = Store.getReports().filter(r => r.date.startsWith(monthStr));
-
-        let daysWorked = 0;
-        let totalHours = 0;
-        let overtimeNormal = 0;
-        let travelReturn = 0;
-        let travelOvernight = 0;
-        let travelForeign = 0;
-
-        reports.forEach(r => {
-            const hrs = parseFloat(r.totalHours) || 0;
-            const ot = parseFloat(r.overtime) || 0;
-            if (hrs > 0) daysWorked++;
-            totalHours += hrs;
-            if (r.type === 'trasferta_rientro') travelReturn++;
-            if (r.type === 'trasferta_notte') travelOvernight++;
-            if (r.type === 'trasferta_estero') travelForeign++;
-            overtimeNormal += ot;
-        });
-
-        const base = settings.baseSalary;
-        const bonusTravel = (travelReturn * settings.allowanceReturn) +
-            (travelOvernight * settings.allowanceOvernight) +
-            (travelForeign * settings.allowanceForeign);
-        const otPay = overtimeNormal * (settings.hourlyRate * 1.25);
-        const gross = base + bonusTravel + otPay;
-        const net = gross * (1 - (settings.taxRate / 100));
-
-        container.innerHTML = `
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                <div class="card text-center" style="margin:0; padding:10px;">
-                    <div style="font-size:0.9rem; color:#aaa;">Giorni Lavorati</div>
-                    <div style="font-size:1.2rem; font-weight:bold;">${daysWorked}</div>
-                </div>
-                 <div class="card text-center" style="margin:0; padding:10px;">
-                    <div style="font-size:0.9rem; color:#aaa;">Ore Totali</div>
-                    <div style="font-size:1.2rem; font-weight:bold;">${totalHours.toFixed(1)}</div>
-                </div>
-            </div>
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span>Lordo Stimato</span>
-                    <strong>€ ${gross.toFixed(2)}</strong>
-                </div>
-                <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">
-                    <span>Netto Stimato</span>
-                    <strong class="text-gold" style="font-size:1.2rem;">€ ${net.toFixed(2)}</strong>
-                </div>
-            </div>
-         `;
-
-        // Populate settings form
-        const form = document.querySelector('#settings-modal form');
-        if (form && settings) {
-            Object.keys(settings).forEach(k => {
-                if (form.elements[k]) form.elements[k].value = settings[k];
-            });
-        }
-    }
-
     toggleSettings() {
         document.getElementById('settings-modal').classList.toggle('hidden');
     }
@@ -718,25 +632,24 @@ class App {
         Object.keys(settings).forEach(k => settings[k] = parseFloat(settings[k]));
 
         const currentMonth = document.getElementById('salary-month').value || 'default';
-        Store.saveSettings(settings, currentMonth); // Save to specific month!
+        Store.saveSettings(settings, currentMonth);
 
         this.toggleSettings();
         this.renderSalary(currentMonth);
         this.showToast(`Impostazioni salvate per ${currentMonth}`);
-        // API.saveSettings(settings); // TODO: Update Cloud Sync for advanced structure
+        // API.saveSettings(settings); 
     }
 
     renderSalary(monthStr) {
         if (!monthStr && !this.showAnnual) return;
 
-        // Toggle view check
         if (this.showAnnual) {
             this.renderAnnualSalary(monthStr.split('-')[0] || new Date().getFullYear());
             return;
         }
 
         const container = document.getElementById('salary-stats');
-        const settings = Store.getSettings(monthStr); // Get specific or default
+        const settings = Store.getSettings(monthStr);
         const reports = Store.getReports().filter(r => r.date.startsWith(monthStr));
 
         let daysWorked = { sede: 0, rientro: 0, notte: 0, estero: 0, totale: 0 };
@@ -748,9 +661,6 @@ class App {
             const hrs = parseFloat(r.totalHours) || 0;
             const o25 = parseFloat(r.overtime25) || 0;
             const o50 = parseFloat(r.overtime50) || 0;
-
-            // Backward compatibility: if no ot25/50 but has 'overtime', assume 25%?
-            // Let's stick to zeros if not present for safety.
 
             if (hrs > 0) daysWorked.totale++;
             totalHours += hrs;
@@ -764,18 +674,11 @@ class App {
             ot50 += o50;
         });
 
-        // CALCULATION ENGINE (CCNL Metalmeccanici Approx)
         const base = settings.baseSalary;
         const rate = settings.hourlyRate;
 
         const extra25 = ot25 * (rate * 1.25);
-        const extra50 = ot50 * (rate * 1.50); // User asked for 25% on 50%?? No, "straordinarie al 50% * paga oraria+25%?"
-        // Re-read request: "ore straordinarie al 25% ... * paga orarria+25% + ore straordinarie al 50% ... * paga oraria+25%."
-        // WAIT. "paga oraria+25%" for BOTH? That seems like a typo in user request or I misunderstood.
-        // "ore straordinarie al 50% ... * paga oraria+25%" -> This implies the multiplier is same?
-        // Usually: OT 25% = Rate * 1.25. OT 50% = Rate * 1.50.
-        // I will assume standard logic: 50% means Rate * 1.5. using 1.25 for a 50% OT makes no sense.
-        // Let's implement Rate * 1.50 for the weekend one.
+        const extra50 = ot50 * (rate * 1.50);
 
         const allowance = (daysWorked.rientro * settings.allowanceReturn) +
             (daysWorked.notte * settings.allowanceOvernight) +
@@ -783,15 +686,13 @@ class App {
 
         const lordo = base + extra25 + extra50 + allowance;
 
-        // NETTO ESTIMATION for 2025 (Simple Algorithm)
-        // 1. INPS (9.19%)
+        // NETTO ESTIMATION (2025 Rules)
         const inps = lordo * 0.0919;
         const taxable = lordo - inps;
 
-        // 2. IRPEF Brackets 2024/25 (Approx)
-        // 0-28k: 23%, 28-50k: 35%, >50k: 43%
-        // We project annual to guess bracket, or just apply monthly brackets?
-        // Let's apply simplified monthly brackets (28000/12 = 2333, 50000/12 = 4166)
+        // IRPEF (Approx Brackets)
+        const annualPorjection = taxable * 12; // Roughly project annual to pick bracket? 
+        // Or simplified monthly brackets: 28k/12=2333, 50k/12=4166
         let irpef = 0;
         if (taxable <= 2333) {
             irpef = taxable * 0.23;
@@ -801,23 +702,11 @@ class App {
             irpef = (2333 * 0.23) + ((4166 - 2333) * 0.35) + ((taxable - 4166) * 0.43);
         }
 
-        // 3. Detrazioni (Work + Spouse)
-        // Lavoro Dipendente: (Approx formula 2025) ~150€/month scaling down
-        // Coniuge a carico: ~60€/month scaling down
-        // Total deductions approx 200€ for average salary?
-        // Let's use a dynamic approx: 
-        // Detrazione Lavoro = 1880 / 12 = 156 (if income < 15k). 
-        // Let's simplify: Fixed estimated deduction or user configurable? 
-        // User asked "usa regole CCNL ... moglie a carico".
-        // Base deduction estimate: 100 (Work) + 50 (Spouse) = 150.
-        // As salary goes up, deduction goes down.
-        const deductions = Math.max(0, 150 - ((taxable - 2000) * 0.05)); // Dummy formula to simulate reduction
+        // Deductions (Work + Spouse)
+        // Dummy formula for "dipendente" (decreases with income) + "spouse"
+        const deductions = Math.max(0, 150 - ((taxable - 2000) * 0.05));
 
-        // 4. Locali (Addizionali)
-        // Azzano Mella / Lombardia ~1.7 - 2.0%
         const addizionali = taxable * 0.02;
-
-        // Final Net
         const netto = taxable - irpef - addizionali + deductions;
 
         container.innerHTML = `
@@ -853,9 +742,7 @@ class App {
             </div>
          `;
 
-        // Populate settings form with CURRENT MONTH settings
         const form = document.querySelector('#settings-modal form');
-        // Update Title to show context
         document.querySelector('#settings-modal h3').innerHTML = `Impostazioni <span class="text-gold">${monthStr}</span>`;
         if (form && settings) {
             Object.keys(settings).forEach(k => {
@@ -866,15 +753,12 @@ class App {
 
     toggleAnnual() {
         this.showAnnual = !this.showAnnual;
-        this.navigate('salary', this.lastMonth || new Date().toISOString().slice(0, 7));
+        this.navigate('salary', this.currentView === 'salary' ? (document.getElementById('salary-month').value || new Date().toISOString().slice(0, 7)) : null);
     }
 
     renderAnnualSalary(year) {
         const container = document.getElementById('salary-stats');
 
-        // 13ma Calculation: Average of Base Salary of months worked (simplified)
-        // Or assumes full base salary if worked all year.
-        // Let's scan all months with settings.
         let monthsData = [];
         let totalBase = 0;
         let countMonths = 0;
@@ -882,20 +766,17 @@ class App {
         for (let i = 1; i <= 12; i++) {
             const m = `${year}-${String(i).padStart(2, '0')}`;
             const settings = Store.getSettings(m);
-            // Calculate base for this month? Assuming if settings exist or reports exist?
-            // User says: "13ma è media stipendio base mensile di tutti i mesi"
-            // We just sum base of used months / 12? Or Sum Base / 12? 
-            // "media dello stipendio base mensile di tutti i mesi dell'anno in questione"
-            // Usually 13ma accrues per month worked.
 
-            // Let's just list the months and total net.
-            // (Code abbreviated for now, will implement listing)
+            // Check if we actually have data for this month? 
+            // Logic: always assume base salary is accrued if we are listing the year, 
+            // OR only if reports exist?
+            // Simplification: Always list 12 months with their configured Base Salary.
             totalBase += settings.baseSalary;
             countMonths++;
             monthsData.push({ month: m, base: settings.baseSalary });
         }
 
-        const tredicesima = totalBase / 12; // Simplified average
+        const tredicesima = totalBase / 12;
 
         container.innerHTML = `
             <div class="card mb-4">
@@ -908,12 +789,13 @@ class App {
                 ${monthsData.map(d => `
                     <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
                         <span>${d.month}</span>
-                        <span>Base: € ${d.base}</span>
+                        <span>Base: € ${d.base.toFixed(2)}</span>
                     </div>
                 `).join('')}
             </div>
         `;
     }
+}
 
 window.app = new App();
 window.Store = Store;
