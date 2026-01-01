@@ -203,11 +203,7 @@ const Views = {
                     </button>
                 </div>
             </div>
-                    <button class="btn btn-icon-only" onclick="app.toggleSettings()">
-                        <i class="ph ph-gear"></i>
-                    </button>
-                </div>
-            </div>
+
             
             <div class="card" id="salary-month-picker-card">
                 <input type="month" id="salary-month" style="margin-bottom:15px; width:100%; font-size:1.1rem; padding:10px;" onchange="app.renderSalary(this.value)">
