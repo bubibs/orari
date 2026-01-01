@@ -64,7 +64,8 @@ export const Store = {
                 let allSettings = JSON.parse(settingsRaw);
 
                 // 1. Convert old flat format to new structure
-                if (allSettings.baseSalary !== undefined) {
+                // Logic: if it has 'baseSalary' AND does not have 'default' or valid month keys, it's old.
+                if (allSettings.baseSalary !== undefined && !allSettings['default']) {
                     console.log("Migrating settings to new format...");
                     allSettings = { 'default': allSettings };
                     this.set(this.KEYS.SETTINGS, allSettings);
@@ -75,7 +76,7 @@ export const Store = {
                     const d = allSettings['default'];
                     // Fuzzy check for 2000 or 1500 (legacy values)
                     if (Math.abs(d.baseSalary - 2000) < 1 || Math.abs(d.baseSalary - 1500) < 1) {
-                        console.log("Purging legacy 2000 default settings.");
+                        console.log("Purging legacy 2000 default settings during init.");
                         delete allSettings['default'];
                         this.set(this.KEYS.SETTINGS, allSettings);
                     }
@@ -87,53 +88,31 @@ export const Store = {
     },
 
     // Cloud merge update for Settings
-    // Cloud Settings likely come as a flat Key-Value pair from simple sheet. 
-    // We might need to rethink cloud sync for complex settings. 
-    // For now, let's assume Cloud only syncs 'default' settings or we skip advanced sync for now 
-    // to avoid breaking the simple Key-Value structure until script is updated.
-    // We'll keep local priority for complex salary data.,
-
-    // Defaults
-    DEFAULTS: {
-        // SETTINGS is now handled by getSettings/saveSettings with internal defaults
-        CONTACTS: [],
-        REPORTS: []
-    },
-
-    // Generic Get/Set
-    get(key) {
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : (this.DEFAULTS[key.split('_')[1]] || []); // Fallback to default if match, else empty array
-    },
-
-    set(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-
-        // Dispatch event for reactivity
-        window.dispatchEvent(new CustomEvent('store-update', { detail: { key, value } }));
-    },
-
-    // Settings
-    getSettings() {
-        const stored = localStorage.getItem(this.KEYS.SETTINGS);
-        return stored ? { ...this.DEFAULTS.SETTINGS, ...JSON.parse(stored) } : this.DEFAULTS.SETTINGS;
-    },
-
-    saveSettings(settings) {
-        this.set(this.KEYS.SETTINGS, settings);
-    },
-
-    // Sync Logic
     mergeCloudData(cloudData) {
         if (!cloudData) return;
 
-        // 1. Settings (Cloud wins)
-        // Now expecting a map { "default":{...}, "2025-01":{...} }
+        // 1. Settings (Cloud wins but smartly)
         if (cloudData.settings && Object.keys(cloudData.settings).length > 0) {
-            const current = this.get(this.KEYS.SETTINGS) || {}; // Get raw settings object
-            // Merge deeper
-            const merged = { ...current, ...cloudData.settings };
-            this.set(this.KEYS.SETTINGS, merged);
+            const current = this.get(this.KEYS.SETTINGS) || {};
+
+            // CHECK IF CLOUD DATA IS FLAT (Legacy Script)
+            if (cloudData.settings.baseSalary !== undefined && !cloudData.settings['default']) {
+                console.warn("Received legacy FLAT settings from cloud. Updating 'default' only.");
+                // It's flat. Do NOT merge to root using `...current` or we corrupt structure.
+                // Just map it to 'default' key if local default is missing or we want to overwrite it.
+                // Or better, ignore it if we have better local data?
+                // User said "conviene salvarli sul cloud", so cloud logic implies truth.
+                // We'll update only the 'default' key.
+                const merged = { ...current };
+                merged['default'] = { ...merged['default'], ...cloudData.settings };
+                this.set(this.KEYS.SETTINGS, merged);
+
+            } else {
+                // IT IS STRUCTURED (New Script)
+                // Proceed with deep merge
+                const merged = { ...current, ...cloudData.settings };
+                this.set(this.KEYS.SETTINGS, merged);
+            }
         }
 
         // 2. Contacts (Merge by ID)
