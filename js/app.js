@@ -282,7 +282,7 @@ class App {
 
     // --- Weather Logic ---
     async fetchWeather() {
-        const container = document.getElementById('weather-widget');
+        const container = document.getElementById('weather-header');
         if (!container) return;
 
         if (!navigator.geolocation) {
