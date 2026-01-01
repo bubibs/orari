@@ -686,9 +686,11 @@ class App {
         const extra25 = ot25 * (rate * 1.25);
         const extra50 = ot50 * (rate * 1.50);
 
-        const allowance = (daysWorked.rientro * settings.allowanceReturn) +
-            (daysWorked.notte * settings.allowanceOvernight) +
-            (daysWorked.estero * settings.allowanceForeign);
+        const allowanceReturnTotal = daysWorked.rientro * settings.allowanceReturn;
+        const allowanceOvernightTotal = daysWorked.notte * settings.allowanceOvernight;
+        const allowanceForeignTotal = daysWorked.estero * settings.allowanceForeign;
+
+        const allowance = allowanceReturnTotal + allowanceOvernightTotal + allowanceForeignTotal;
 
         const lordo = base + extra25 + extra50 + allowance;
 
@@ -720,6 +722,9 @@ class App {
             extra25,
             extra50,
             allowance,
+            allowanceReturnTotal,
+            allowanceOvernightTotal,
+            allowanceForeignTotal,
             lordo,
             netto,
             settings
@@ -770,7 +775,12 @@ class App {
                     <div class="data-row"><span>Base Mensile</span> <strong>€ ${this.formatMoney(stats.base)}</strong></div>
                     <div class="data-row"><span>Str. 25%</span> <strong>€ ${this.formatMoney(stats.extra25)}</strong></div>
                     <div class="data-row"><span>Str. 50%</span> <strong>€ ${this.formatMoney(stats.extra50)}</strong></div>
-                    <div class="data-row"><span>Indennità</span> <strong>€ ${this.formatMoney(stats.allowance)}</strong></div>
+                    
+                    ${stats.allowanceReturnTotal > 0 ? `<div class="data-row"><span style="color:#aaa; padding-left:10px;">- Ind. Rientro</span> <span>€ ${this.formatMoney(stats.allowanceReturnTotal)}</span></div>` : ''}
+                    ${stats.allowanceOvernightTotal > 0 ? `<div class="data-row"><span style="color:#aaa; padding-left:10px;">- Ind. Pernott.</span> <span>€ ${this.formatMoney(stats.allowanceOvernightTotal)}</span></div>` : ''}
+                    ${stats.allowanceForeignTotal > 0 ? `<div class="data-row"><span style="color:#aaa; padding-left:10px;">- Ind. Estero</span> <span>€ ${this.formatMoney(stats.allowanceForeignTotal)}</span></div>` : ''}
+                    ${stats.allowance === 0 ? `<div class="data-row"><span>Indennità</span> <strong>€ 0,00</strong></div>` : ''}
+
                     <div class="data-row" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:5px; padding-top:5px;">
                         <span>TOTALE LORDO</span> <strong class="text-white">€ ${this.formatMoney(stats.lordo)}</strong>
                     </div>
