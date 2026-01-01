@@ -282,6 +282,8 @@ class App {
             if (this.currentView === 'contacts') this.renderContacts();
             if (this.currentView === 'history') this.renderHistory();
             if (this.currentView === 'salary' && !this.showAnnual) this.renderSalary(document.getElementById('salary-month')?.value);
+            // REFRESH HOME TO SHOW NEW QUOTE IMMEDIATELY
+            if (this.currentView === 'home') this.loadQuote();
 
         } else {
             console.warn("Sync returned null or failed");
