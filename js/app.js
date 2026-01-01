@@ -20,9 +20,11 @@ const generateTimeOptions = (selected = '') => {
 const Views = {
     home: () => `
         <div class="fade-in">
-            <div class="quote-widget">
-                <p id="daily-quote" class="quote-text">Loading inspiration...</p>
-                <div id="quote-author" class="quote-author"></div>
+            <!-- Dynamic Dashboard (Header, Stats, Alert, Quote) -->
+            <div id="home-dashboard">
+                <div class="text-center" style="padding: 20px 0;">
+                    <i class="ph ph-spinner ph-spin text-gold" style="font-size:2rem;"></i>
+                </div>
             </div>
 
             <div class="nav-grid">
@@ -260,11 +262,106 @@ class App {
         this.root.innerHTML = Views[viewName]();
 
         // Post-render lifecycle
-        if (viewName === 'home') this.loadQuote();
+        if (viewName === 'home') this.renderHomeDashboard(); // CHANGED: Load full dashboard
         if (viewName === 'report') this.initReportForm(params);
         if (viewName === 'contacts') this.renderContacts();
         if (viewName === 'history') this.renderHistory();
         if (viewName === 'salary') this.renderSalary(new Date().toISOString().slice(0, 7));
+    }
+
+    // --- Home Dashboard Logic ---
+    renderHomeDashboard() {
+        const container = document.getElementById('home-dashboard');
+        if (!container) return;
+
+        // 1. Date & Greeting
+        const now = new Date();
+        const options = { weekday: 'long', day: 'numeric', month: 'long' };
+        const dateStr = now.toLocaleDateString('it-IT', options);
+        const hour = now.getHours();
+        let greeting = 'Buongiorno';
+        if (hour >= 13) greeting = 'Buon Pomeriggio';
+        if (hour >= 18) greeting = 'Buonasera';
+
+        // 2. Stats (Current Month Hours)
+        // Filter reports for current month YYYY-MM
+        const currentMonthKey = now.toISOString().slice(0, 7); // "2025-01"
+        const reports = Store.getReports();
+        const monthReports = reports.filter(r => r.date.startsWith(currentMonthKey));
+
+        let totalHours = 0;
+        let daysWorked = 0;
+        monthReports.forEach(r => {
+            // Only count if not strict absence (or count as 0 hours if paid absence? Logic says hours played)
+            // Typically "Total Hours" means worked hours.
+            // If absence, totalHours is usually 0 unless "Permesso" etc.
+            // We trust r.totalHours
+            totalHours += parseFloat(r.totalHours) || 0;
+            if (!r.absence && r.type !== 'Assenza') daysWorked++;
+        });
+
+        // 3. Alert Logic (Missing Report)
+        // Check if report exists for TODAY "YYYY-MM-DD"
+        // And if today is Mon-Fri (1-5)
+        const todayStr = now.toISOString().slice(0, 10);
+        const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+        const hasReportToday = reports.some(r => r.date === todayStr);
+        const isWorkDay = dayOfWeek >= 1 && dayOfWeek <= 5;
+
+        // Build Alert HTML
+        let alertHtml = '';
+        if (isWorkDay && !hasReportToday) {
+            alertHtml = `
+            <div class="alert-box" onclick="app.navigate('report')">
+                <div class="alert-content">
+                    <i class="ph ph-warning-circle" style="font-size:1.5rem;"></i>
+                    <span>Non hai ancora compilato il report di oggi.</span>
+                </div>
+                <button class="alert-action">Compila Ora</button>
+            </div>`;
+        } else if (hasReportToday) {
+            // Optional: Show success? Or keep clean. User asked for "Missing report alert". 
+            // Maybe a subtle "Done" indicator? Let's keep it clean as per "Dashboard".
+            // We can show a small green check in the stats area?
+        }
+
+        // 4. Quote (Get existing logic)
+        // We will fetch it and render it inside the dashboard grid
+        const cloudQuote = Store.get(Store.KEYS.DAILY_QUOTE);
+        const quoteText = (cloudQuote && cloudQuote.text) ? `"${cloudQuote.text}"` : '"Caricamento ispirazione..."';
+        const quoteAuthor = (cloudQuote && cloudQuote.author) ? `- ${cloudQuote.author}` : '';
+
+        // RENDER
+        container.innerHTML = `
+            <div class="dashboard-header fade-in">
+                <div class="dashboard-greeting">${greeting}, User</div>
+                <div class="dashboard-date">${dateStr}</div>
+            </div>
+
+            ${alertHtml}
+
+            <!-- Stats Row -->
+            <div class="stat-card fade-in">
+                <div class="stat-item">
+                    <div class="stat-value">${totalHours}h</div>
+                    <div class="stat-label">Ore Mese</div>
+                </div>
+                <div style="width:1px; height:40px; background:rgba(255,255,255,0.1);"></div>
+                <div class="stat-item">
+                    <div class="stat-value">${daysWorked}</div>
+                    <div class="stat-label">Giorni Lav.</div>
+                </div>
+            </div>
+
+            <!-- Quote Widget (Integrated) -->
+            <div class="quote-widget fade-in" style="margin-top:10px; border:none; padding-top:0;">
+                <p id="daily-quote" class="quote-text">${quoteText}</p>
+                <div id="quote-author" class="quote-author">${quoteAuthor}</div>
+            </div>
+        `;
+
+        // Trigger quote interaction if "Loading..."
+        if (!cloudQuote) this.loadQuote();
     }
 
     // --- Sync Logic ---
