@@ -849,23 +849,25 @@ class App {
             </div>
 
             <div class="card mb-4" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%);">
-                 <div class="data-row"><span>Totale Lordo (Stima)</span> <strong>€ ${annualLordo.toFixed(2)}</strong></div>
-                 <div class="data-row"><span>Totale Netto (Stima)</span> <strong class="text-gold">€ ${annualNetto.toFixed(2)}</strong></div>
+                 <div class="data-row"><span>Totale Annuo Lordo (+13ma)</span> <strong>€ ${annualLordo.toFixed(2)}</strong></div>
+                 <div class="data-row"><span>Totale Annuo Netto (+13ma)</span> <strong class="text-gold">€ ${annualNetto.toFixed(2)}</strong></div>
                  <div class="data-row" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); font-size:0.85rem; color:#aaa;">
-                    <span>13ma (Lordo / Netto)</span> <span>€ ${tredicesimaLordo.toFixed(0)} / € ${tredicesimaNetto.toFixed(0)}</span>
+                    <span>Di cui 13ma (Lordo / Netto)</span> <span>€ ${tredicesimaLordo.toFixed(0)} / € ${tredicesimaNetto.toFixed(0)}</span>
                  </div>
             </div>
             
             <div style="max-height:400px; overflow-y:auto; padding-right:5px;">
                 ${monthsData.map(d => `
                     <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center;">
-                        <span style="font-weight:bold; width:30%; color:${d.hasActivity ? 'white' : '#777'};">${d.month}</span>
-                        <div style="text-align:right;">
+                        <span style="font-weight:bold; width:20%; color:${d.hasActivity ? 'white' : '#777'};">${d.month}</span>
+                        <div style="text-align:right; width:80%;">
                             ${d.hasActivity ? `
-                                <div style="font-size:0.9rem;">L: € ${d.lordo.toFixed(0)}</div>
-                                <div style="font-size:0.9rem; color:#fbbf24;">N: € ${d.netto.toFixed(0)}</div>
+                                <div style="font-size:0.9rem; display:flex; justify-content:space-between; margin-left:10%;">
+                                    <span>Lord: € ${d.lordo.toFixed(0)}</span>
+                                    <span style="color:#fbbf24;">Net: € ${d.netto.toFixed(0)}</span>
+                                </div>
                             ` : `
-                                <div style="font-size:0.8rem; color:#555;">(Base: € ${d.base.toFixed(0)})</div>
+                                <div style="font-size:0.8rem; color:#555; text-align:right;">(Base: € ${d.base.toFixed(0)})</div>
                             `}
                         </div>
                     </div>

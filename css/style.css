@@ -1,6 +1,7 @@
 :root {
     color-scheme: dark;
     /* Force dark system controls (dates, selects) */
+    text-align: center;
 
     --primary: #FFD700;
     /* Gold */

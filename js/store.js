@@ -114,12 +114,11 @@ export const Store = {
         if (!cloudData) return;
 
         // 1. Settings (Cloud wins)
+        // Now expecting a map { "default":{...}, "2025-01":{...} }
         if (cloudData.settings && Object.keys(cloudData.settings).length > 0) {
-            const current = this.getSettings();
-            // Merge defaults + cloud
-            const merged = { ...this.DEFAULTS.SETTINGS, ...cloudData.settings };
-            // Convert to numbers since JSON might return strings
-            Object.keys(merged).forEach(k => merged[k] = Number(merged[k]) || merged[k]);
+            const current = this.get(this.KEYS.SETTINGS) || {}; // Get raw settings object
+            // Merge deeper
+            const merged = { ...current, ...cloudData.settings };
             this.set(this.KEYS.SETTINGS, merged);
         }
 
@@ -129,20 +128,16 @@ export const Store = {
             const cloud = cloudData.contacts.map(c => ({
                 id: String(c.id),
                 company: c.company,
-                // Handle deprecated 'address' field if present or new fields
                 city: c.city || '',
-                street: c.street || (c.address || ''), // Fallback if data is old
+                street: c.street || (c.address || ''),
                 number: c.number || '',
                 person: c.person,
                 phone: c.phone
             }));
 
-            // Simple strategy: Cloud > Local for conflict, but keep locals not in cloud?
-            // User requested "cloud sync", usually implying cloud is truth.
-            // Let's union them by ID, preferring cloud versions.
             const map = new Map();
             local.forEach(c => map.set(String(c.id), c));
-            cloud.forEach(c => map.set(String(c.id), c)); // Overwrites local if ID matches
+            cloud.forEach(c => map.set(String(c.id), c));
 
             this.set(this.KEYS.CONTACTS, Array.from(map.values()));
         }
@@ -152,24 +147,25 @@ export const Store = {
             const local = this.getReports();
             const cloud = cloudData.reports.map(r => ({
                 id: String(r.id),
-                date: r.date ? new Date(r.date).toISOString().split('T')[0] : '', // Fix Date format
+                date: r.date ? new Date(r.date).toISOString().split('T')[0] : '',
                 type: r.type,
                 location: r.location,
-                startTime: r.starttime ? r.starttime.substring(0, 5) : '', // HH:MM
+                startTime: r.starttime ? r.starttime.substring(0, 5) : '',
                 endTime: r.endtime ? r.endtime.substring(0, 5) : '',
                 totalHours: r.totalhours,
                 overtime: r.overtime,
+                overtime25: r.overtime25 || 0, // Sync NEW fields
+                overtime50: r.overtime50 || 0, // Sync NEW fields
                 absence: r.absence,
                 lunchBreak: r.lunchbreak === true || r.lunchbreak === 'true',
                 notes: r.notes,
-                synced: true // Mark as synced
+                synced: true
             }));
 
             const map = new Map();
             local.forEach(r => map.set(String(r.id), r));
             cloud.forEach(r => map.set(String(r.id), r));
 
-            // Sort by date desc
             const sorted = Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
             this.set(this.KEYS.REPORTS, sorted);
         }
