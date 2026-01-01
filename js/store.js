@@ -64,7 +64,10 @@ export const Store = {
             const cloud = cloudData.contacts.map(c => ({
                 id: String(c.id),
                 company: c.company,
-                address: c.address,
+                // Handle deprecated 'address' field if present or new fields
+                city: c.city || '',
+                street: c.street || (c.address || ''), // Fallback if data is old
+                number: c.number || '',
                 person: c.person,
                 phone: c.phone
             }));

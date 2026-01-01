@@ -19,8 +19,8 @@ function handleRequest(e) {
     // --- SETUP FOGLI ---
     let sheets = {
       reports: getOrCreateSheet(ss, "Reports", ["ID", "Date", "Type", "Location", "StartTime", "EndTime", "TotalHours", "Overtime", "Absence", "LunchBreak", "Notes", "Timestamp"]),
-      contacts: getOrCreateSheet(ss, "Contacts", ["ID", "Company", "Address", "Person", "Phone", "Timestamp"]),
-      settings: getOrCreateSheet(ss, "Settings", ["Key", "Value"]) // Key-Value store semplice
+      contacts: getOrCreateSheet(ss, "Contacts", ["ID", "Company", "City", "Street", "Number", "Person", "Phone", "Timestamp"]),
+      settings: getOrCreateSheet(ss, "Settings", ["Key", "Value"])
     };
 
     const action = e.parameter.action || (e.postData ? "save" : "ping");
@@ -28,14 +28,9 @@ function handleRequest(e) {
     if (e.postData) {
        data = JSON.parse(e.postData.contents || e.parameter.data);
     }
-
-    // --- AZIONI ---
-
-    if (action === "ping") return response({ status: "online" });
-
-    // 1. SAVE REPORT (Update or Append)
+    
+    // ... ping and reports (omitted for brevity in replacement if unchanged, but context needs to be right) ...
     if (action === "saveReport" && data) {
-      // Se ID esiste, aggiorna, altrimenti append
       if (data.id) {
          updateOrAppend(sheets.reports, data.id, [
             data.id, data.date, data.type, data.location, data.startTime, data.endTime,
@@ -43,13 +38,15 @@ function handleRequest(e) {
             data.notes, new Date()
          ]);
       } else {
-         // Fallback old style (no id?)
-         sheets.reports.appendRow([/*...*/]);
+         sheets.reports.appendRow([
+            data.id, data.date, data.type, data.location, data.startTime, data.endTime,
+            String(data.totalHours), String(data.overtime), data.absence, data.lunchBreak ? "Si" : "No",
+            data.notes, new Date()
+         ]);
       }
       return response({ success: true });
     }
     
-    // 1b. DELETE REPORT
     if (action === "deleteReport" && data) {
         deleteRowById(sheets.reports, data.id);
         return response({ success: true });
@@ -58,7 +55,7 @@ function handleRequest(e) {
     // 2. SAVE CONTACT (Update or Append)
     if (action === "saveContact" && data) {
       updateOrAppend(sheets.contacts, data.id, [
-        data.id, data.company, data.address, data.person, data.phone, new Date()
+        data.id, data.company, data.city, data.street, data.number, data.person, data.phone, new Date()
       ]);
       return response({ success: true });
     }

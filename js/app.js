@@ -140,9 +140,19 @@ const Views = {
                     <div class="form-group">
                         <input type="text" name="company" id="contact-company" placeholder="Azienda" required>
                     </div>
-                    <div class="form-group">
-                        <input type="text" name="address" id="contact-address" placeholder="Indirizzo">
+                    <!-- Split Address -->
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
+                        <div class="form-group">
+                            <input type="text" name="street" id="contact-street" placeholder="Via/Piazza">
+                        </div>
+                         <div class="form-group">
+                            <input type="text" name="number" id="contact-number" placeholder="N°">
+                        </div>
                     </div>
+                    <div class="form-group">
+                        <input type="text" name="city" id="contact-city" placeholder="Città">
+                    </div>
+                    
                     <div class="form-group">
                         <input type="text" name="person" id="contact-person" placeholder="Referente">
                     </div>
@@ -437,7 +447,24 @@ class App {
             this.showToast('Salvato Offline: ' + (result.error || 'Network'), 'warning');
         }
 
-        setTimeout(() => this.navigate('history'), 1500); // Go to history to see it
+        // 3. Auto-save new Contact
+        const locationName = report.location;
+        if (locationName && locationName.toLowerCase() !== 'tecnosistem') {
+            const exists = Store.getContacts().find(c => c.company.toLowerCase() === locationName.toLowerCase());
+            if (!exists) {
+                const newContact = {
+                    id: Date.now().toString() + '_auto',
+                    company: locationName,
+                    city: '', street: '', number: '', person: '', phone: ''
+                };
+                Store.addContact(newContact);
+                console.log('Auto-saved new contact:', locationName);
+                API.saveContact(newContact); // Background sync
+                this.showToast('Luogo aggiunto in Rubrica', 'success');
+            }
+        }
+
+        setTimeout(() => this.navigate('home'), 1000); // Redirect to Home
     }
 
     // --- Contacts Page ---
@@ -451,25 +478,27 @@ class App {
             return;
         }
 
-        container.innerHTML = contacts.map(c => `
+        container.innerHTML = contacts.map(c => {
+            const fullAddress = [c.street, c.number, c.city].filter(Boolean).join(', ');
+            return `
             <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="flex:1;">
                     <strong>${c.company}</strong>
-                    <div style="font-size:0.85rem; color:#aaa;">${c.address || ''}</div>
+                    <div style="font-size:0.85rem; color:#aaa;">${fullAddress || 'Nessun indirizzo'}</div>
                     <div style="font-size:0.85rem; color:#aaa;">${c.person || ''}</div>
                 </div>
                 <div style="display:flex; gap:8px;">
-                     <button class="btn btn-icon-only" style="background:#3b82f6;" onclick="app.editContact('${c.id}')">
-                        <i class="ph ph-pencil-simple"></i>
+                     <button class="btn btn-icon-only text-white" style="background:#3b82f6;" onclick="app.editContact('${c.id}')">
+                        <i class="ph ph-pencil-simple" style="color:white; font-weight:bold;"></i>
                     </button>
-                    ${c.address ? `<a href="https://maps.apple.com/?q=${encodeURIComponent(c.address)}" target="_blank" class="btn btn-icon-only btn-primary"><i class="ph ph-map-pin"></i></a>` : ''}
+                    ${fullAddress ? `<a href="https://maps.apple.com/?q=${encodeURIComponent(fullAddress)}" target="_blank" class="btn btn-icon-only btn-primary"><i class="ph ph-map-pin"></i></a>` : ''}
                     ${c.phone ? `<a href="tel:${c.phone}" class="btn btn-icon-only btn-primary"><i class="ph ph-phone"></i></a>` : ''}
                     <button class="btn btn-icon-only" style="background:#ef4444;" onclick="app.deleteContact('${c.id}')">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     editContact(id) {
@@ -479,7 +508,9 @@ class App {
         document.getElementById('contact-form-title').innerText = "Modifica Contatto";
         document.getElementById('contact-id').value = c.id;
         document.getElementById('contact-company').value = c.company;
-        document.getElementById('contact-address').value = c.address;
+        document.getElementById('contact-city').value = c.city || '';
+        document.getElementById('contact-street').value = c.street || '';
+        document.getElementById('contact-number').value = c.number || '';
         document.getElementById('contact-person').value = c.person;
         document.getElementById('contact-phone').value = c.phone;
 

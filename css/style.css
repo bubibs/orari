@@ -1,4 +1,7 @@
 :root {
+    color-scheme: dark;
+    /* Force dark system controls (dates, selects) */
+
     --primary: #FFD700;
     /* Gold */
     --primary-dim: #cca700;
