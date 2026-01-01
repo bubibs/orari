@@ -611,13 +611,17 @@ class App {
                     <span class="badge ${badgeClass}">${badgeLabel}</span>
                 </div>
                 
+                <!-- Location (Always Shown) -->
+                <div style="font-weight:600; font-size:1rem; margin-bottom:4px;">${r.location}</div>
+
                 ${isAbsence ?
-                    /* Absence Layout */
-                    `<div style="font-weight:600; margin-bottom:4px; color:#f87171;">${r.notes || 'Nessuna nota'}</div>`
+                    /* Absence Layout: Note/Reason below Location */
+                    `<div style="font-weight:600; color:#f87171; margin-bottom:4px;">
+                        <i class="ph ph-warning-circle"></i> ${r.notes || 'Motivo non specificato'}
+                     </div>`
                     :
-                    /* Regular Work Layout */
-                    `<div style="font-weight:600; margin-bottom:4px;">${r.location}</div>
-                     <div style="font-size:0.9rem; color:#aaa;">
+                    /* Regular Work Layout: Hours */
+                    `<div style="font-size:0.9rem; color:#aaa;">
                         ${r.startTime} - ${r.endTime} &nbsp;|&nbsp; Tot: <strong>${r.totalHours}</strong>
                         ${r.overtime && r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${r.overtime})</span>` : ''}
                      </div>
