@@ -322,15 +322,19 @@ class App {
         const el = document.getElementById('daily-quote');
         const authorEl = document.getElementById('quote-author');
         if (!el) return;
-        const quotes = [
-            { text: "L'unico modo per fare un ottimo lavoro è amare quello che fai.", author: "Steve Jobs" },
-            { text: "Il successo è la somma di piccoli sforzi, ripetuti giorno dopo giorno.", author: "Robert Collier" },
-            { text: "Non aspettare. Il momento non sarà mai quello giusto.", author: "Napoleon Hill" }
-        ];
-        const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-        const quote = quotes[dayOfYear % quotes.length];
-        el.textContent = `"${quote.text}"`;
-        authorEl.textContent = `- ${quote.author}`;
+
+        // Try getting from Cloud Sync first
+        const cloudQuote = Store.get(Store.KEYS.DAILY_QUOTE);
+
+        if (cloudQuote && cloudQuote.text) {
+            el.textContent = `"${cloudQuote.text}"`;
+            authorEl.textContent = cloudQuote.author ? `- ${cloudQuote.author}` : '';
+            return;
+        }
+
+        // Fallback (Offline/First Load)
+        el.textContent = "\"Caricamento ispirazione...\"";
+        authorEl.textContent = "";
     }
 
     // --- Report Page ---

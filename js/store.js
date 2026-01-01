@@ -4,6 +4,7 @@ export const Store = {
         SETTINGS: 'tecnosistem_settings',
         CONTACTS: 'tecnosistem_contacts',
         REPORTS: 'tecnosistem_reports',
+        DAILY_QUOTE: 'tecnosistem_quote',
         QUEUE: 'tecnosistem_sync_queue'
     },
 
@@ -90,7 +91,8 @@ export const Store = {
     // Defaults
     DEFAULTS: {
         CONTACTS: [],
-        REPORTS: []
+        REPORTS: [],
+        DAILY_QUOTE: null
     },
 
     // Generic Get/Set
@@ -106,6 +108,11 @@ export const Store = {
 
     mergeCloudData(cloudData) {
         if (!cloudData) return;
+
+        // 0. Daily Quote (Cloud wins)
+        if (cloudData.quote) {
+            this.set(this.KEYS.DAILY_QUOTE, cloudData.quote);
+        }
 
         // 1. Settings (Cloud wins but smartly)
         if (cloudData.settings && Object.keys(cloudData.settings).length > 0) {
