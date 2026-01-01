@@ -727,68 +727,74 @@ class App {
     }
 
     formatMoney(amount) {
+        if (amount === undefined || amount === null || isNaN(amount)) return '0,00';
         return amount.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     renderSalary(monthStr) {
-        // Default to current month if null/empty
-        if (!monthStr) monthStr = new Date().toISOString().slice(0, 7);
+        try {
+            // Default to current month if null/empty
+            if (!monthStr) monthStr = new Date().toISOString().slice(0, 7);
 
-        // Ensure Date Picker has the value
-        const picker = document.getElementById('salary-month');
-        if (picker && picker.value !== monthStr) {
-            picker.value = monthStr;
-        }
+            // Ensure Date Picker has the value
+            const picker = document.getElementById('salary-month');
+            if (picker && picker.value !== monthStr) {
+                picker.value = monthStr;
+            }
 
-        if (this.showAnnual) {
-            const year = monthStr.split('-')[0];
-            this.renderAnnualSalary(year);
-            return;
-        }
+            if (this.showAnnual) {
+                const year = monthStr.split('-')[0];
+                this.renderAnnualSalary(year);
+                return;
+            }
 
-        const container = document.getElementById('salary-stats');
-        const stats = this.calculateSalaryStats(monthStr);
+            const container = document.getElementById('salary-stats');
+            const stats = this.calculateSalaryStats(monthStr);
 
-        container.innerHTML = `
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                <div class="card text-center" style="margin:0; padding:10px;">
-                     <div style="font-size:0.9rem; color:#aaa;">Giorni Lavorati</div>
-                     <div style="font-size:1.2rem; font-weight:bold;">${stats.daysWorked.totale}</div>
-                     <div style="font-size:0.7rem; color:#888;">${stats.daysWorked.sede} Sede / ${stats.daysWorked.rientro + stats.daysWorked.notte} Trasf.</div>
+            container.innerHTML = `
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                    <div class="card text-center" style="margin:0; padding:10px;">
+                        <div style="font-size:0.9rem; color:#aaa;">Giorni Lavorati</div>
+                        <div style="font-size:1.2rem; font-weight:bold;">${stats.daysWorked.totale}</div>
+                        <div style="font-size:0.7rem; color:#888;">${stats.daysWorked.sede} Sede / ${stats.daysWorked.rientro + stats.daysWorked.notte} Trasf.</div>
+                    </div>
+                    <div class="card text-center" style="margin:0; padding:10px;">
+                        <div style="font-size:0.9rem; color:#aaa;">Straordinari</div>
+                        <div style="font-size:1.1rem; font-weight:bold;">${stats.ot25.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal;">(25%)</span></div>
+                        <div style="font-size:1.1rem; font-weight:bold;">${stats.ot50.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal; color:#f87171;">(50%)</span></div>
+                    </div>
                 </div>
-                 <div class="card text-center" style="margin:0; padding:10px;">
-                     <div style="font-size:0.9rem; color:#aaa;">Straordinari</div>
-                     <div style="font-size:1.1rem; font-weight:bold;">${stats.ot25.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal;">(25%)</span></div>
-                     <div style="font-size:1.1rem; font-weight:bold;">${stats.ot50.toFixed(1)}h <span style="font-size:0.8rem; font-weight:normal; color:#f87171;">(50%)</span></div>
+                
+                <div class="card mb-4">
+                    <h4 style="border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:10px;">Dettaglio Lordo</h4>
+                    <div class="data-row"><span>Base Mensile</span> <strong>€ ${this.formatMoney(stats.base)}</strong></div>
+                    <div class="data-row"><span>Str. 25%</span> <strong>€ ${this.formatMoney(stats.extra25)}</strong></div>
+                    <div class="data-row"><span>Str. 50%</span> <strong>€ ${this.formatMoney(stats.extra50)}</strong></div>
+                    <div class="data-row"><span>Indennità</span> <strong>€ ${this.formatMoney(stats.allowance)}</strong></div>
+                    <div class="data-row" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:5px; padding-top:5px;">
+                        <span>TOTALE LORDO</span> <strong class="text-white">€ ${this.formatMoney(stats.lordo)}</strong>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="card mb-4">
-                <h4 style="border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:10px;">Dettaglio Lordo</h4>
-                <div class="data-row"><span>Base Mensile</span> <strong>€ ${this.formatMoney(stats.base)}</strong></div>
-                <div class="data-row"><span>Str. 25%</span> <strong>€ ${this.formatMoney(stats.extra25)}</strong></div>
-                <div class="data-row"><span>Str. 50%</span> <strong>€ ${this.formatMoney(stats.extra50)}</strong></div>
-                <div class="data-row"><span>Indennità</span> <strong>€ ${this.formatMoney(stats.allowance)}</strong></div>
-                <div class="data-row" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:5px; padding-top:5px;">
-                    <span>TOTALE LORDO</span> <strong class="text-white">€ ${this.formatMoney(stats.lordo)}</strong>
-                </div>
-            </div>
 
-            <div class="card" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border:1px solid var(--primary-dim);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>NETTO STIMATO <small style="display:block; font-size:0.7rem; color:#aaa; font-weight:normal;">(CCNL Met. + Coniuge)</small></span>
-                    <strong class="text-gold" style="font-size:1.5rem;">€ ${this.formatMoney(stats.netto)}</strong>
+                <div class="card" style="background: linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%); border:1px solid var(--primary-dim);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>NETTO STIMATO <small style="display:block; font-size:0.7rem; color:#aaa; font-weight:normal;">(CCNL Met. + Coniuge)</small></span>
+                        <strong class="text-gold" style="font-size:1.5rem;">€ ${this.formatMoney(stats.netto)}</strong>
+                    </div>
                 </div>
-            </div>
-         `;
+            `;
 
-        // Populate settings form with stats.settings (which includes defaults if needed)
-        const form = document.querySelector('#settings-modal form');
-        document.querySelector('#settings-modal h3').innerHTML = `Impostazioni <span class="text-gold">${monthStr}</span>`;
-        if (form && stats.settings) {
-            Object.keys(stats.settings).forEach(k => {
-                if (form.elements[k]) form.elements[k].value = stats.settings[k];
-            });
+            // Populate settings form with stats.settings (which includes defaults if needed)
+            const form = document.querySelector('#settings-modal form');
+            document.querySelector('#settings-modal h3').innerHTML = `Impostazioni <span class="text-gold">${monthStr}</span>`;
+            if (form && stats.settings) {
+                Object.keys(stats.settings).forEach(k => {
+                    if (form.elements[k]) form.elements[k].value = stats.settings[k];
+                });
+            }
+        } catch (e) {
+            console.error("Render Salary Error:", e);
+            document.getElementById('salary-stats').innerHTML = `<p class="text-center" style="color:#ef4444;">Errore caricamento dati: ${e.message}</p>`;
         }
     }
 
