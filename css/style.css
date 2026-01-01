@@ -475,3 +475,16 @@ textarea:focus {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
 }
+
+/* Footer Signature */
+.app-footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    margin-top: auto;
+    /* Push to bottom if using flex column */
+    letter-spacing: 1px;
+    font-weight: 300;
+    text-transform: uppercase;
+}

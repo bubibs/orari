@@ -334,7 +334,7 @@ class App {
         // RENDER
         container.innerHTML = `
             <div class="dashboard-header fade-in">
-                <div class="dashboard-greeting">${greeting}, User</div>
+                <div class="dashboard-greeting">${greeting}, Fabio</div>
                 <div class="dashboard-date">${dateStr}</div>
             </div>
 
