@@ -7,16 +7,70 @@ export const Store = {
         QUEUE: 'tecnosistem_sync_queue'
     },
 
+    // --- Settings (Month-Specific) ---
+    getSettings(monthStr = 'default') {
+        const allSettings = this.get(this.KEYS.SETTINGS) || {};
+
+        // 1. Try specific month
+        if (allSettings[monthStr]) return allSettings[monthStr];
+
+        // 2. Try default
+        if (allSettings['default']) return allSettings['default'];
+
+        // 3. Fallback/Init Defaults (if nothing exists)
+        const defaults = {
+            baseSalary: 3480.76,
+            hourlyRate: 17.23,
+            allowanceReturn: 30.00,
+            allowanceOvernight: 60.00,
+            allowanceForeign: 105.00,
+            taxRate: 27 // Avg IRPEF estimate as placeholder, though calc will be dynamic
+        };
+
+        // Save as default for future
+        if (Object.keys(allSettings).length === 0) {
+            this.saveSettings(defaults, 'default');
+            return defaults;
+        }
+
+        return defaults;
+    },
+
+    saveSettings(settings, monthStr = 'default') {
+        const allSettings = this.get(this.KEYS.SETTINGS) || {};
+        allSettings[monthStr] = settings;
+        this.set(this.KEYS.SETTINGS, allSettings);
+    },
+
+    init() {
+        if (!localStorage.getItem(this.KEYS.REPORTS)) this.set(this.KEYS.REPORTS, []);
+        if (!localStorage.getItem(this.KEYS.CONTACTS)) this.set(this.KEYS.CONTACTS, []);
+
+        // Settings Migration: Old format was a direct object. New format is { "default": {...}, "2025-01": {...} }
+        const settings = localStorage.getItem(this.KEYS.SETTINGS);
+        if (settings) {
+            try {
+                const parsed = JSON.parse(settings);
+                // Check if it's the old flat format (has 'baseSalary' directly)
+                if (parsed.baseSalary !== undefined) {
+                    console.log("Migrating settings to new format...");
+                    const newFormat = { 'default': parsed };
+                    this.set(this.KEYS.SETTINGS, newFormat);
+                }
+            } catch (e) { }
+        }
+    },
+
+    // Cloud merge update for Settings
+    // Cloud Settings likely come as a flat Key-Value pair from simple sheet. 
+    // We might need to rethink cloud sync for complex settings. 
+    // For now, let's assume Cloud only syncs 'default' settings or we skip advanced sync for now 
+    // to avoid breaking the simple Key-Value structure until script is updated.
+    // We'll keep local priority for complex salary data.,
+
     // Defaults
     DEFAULTS: {
-        SETTINGS: {
-            baseSalary: 1500,
-            hourlyRate: 10,
-            allowanceReturn: 20,
-            allowanceOvernight: 50,
-            allowanceForeign: 80,
-            taxRate: 23
-        },
+        // SETTINGS is now handled by getSettings/saveSettings with internal defaults
         CONTACTS: [],
         REPORTS: []
     },
