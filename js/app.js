@@ -179,10 +179,20 @@ const Views = {
 
     history: () => `
         <div class="fade-in">
-             <button class="btn btn-icon-only" onclick="app.navigate('home')">
-                <i class="ph ph-arrow-left"></i> Indietro
-            </button>
-            <h2 class="text-center text-gold mt-4 mb-4">Storico</h2>
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <button class="btn btn-icon-only" onclick="app.navigate('home')">
+                    <i class="ph ph-arrow-left"></i>
+                </button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-icon-only" onclick="app.exportHistory('month')" title="Export Mese CSV">
+                        <i class="ph ph-file-csv"></i> Mese
+                    </button>
+                    <button class="btn btn-icon-only" onclick="app.exportHistory('year')" title="Export Anno CSV">
+                        <i class="ph ph-file-csv"></i> Anno
+                    </button>
+                </div>
+            </div>
+            <h2 class="text-center text-gold mt-2 mb-4">Storico</h2>
             <div id="history-list">
                 <!-- Rendered JS -->
             </div>
@@ -269,6 +279,67 @@ class App {
         if (viewName === 'salary') this.renderSalary(new Date().toISOString().slice(0, 7));
     }
 
+    // --- Weather Logic ---
+    async fetchWeather() {
+        const container = document.getElementById('weather-widget');
+        if (!container) return;
+
+        if (!navigator.geolocation) {
+            container.innerHTML = '<span style="font-size:0.8rem; opacity:0.7">No GPS</span>';
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(async position => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                const data = await res.json();
+
+                if (data.current_weather) {
+                    const temp = Math.round(data.current_weather.temperature);
+                    const code = data.current_weather.weathercode;
+                    const icon = this.getWeatherIcon(code);
+
+                    container.innerHTML = `
+                        <div class="fade-in" style="display:flex; align-items:center; gap:8px;">
+                            <i class="${icon}" style="font-size:1.5rem; color:#facc15;"></i>
+                            <span style="font-size:1.2rem; font-weight:600;">${temp}°</span>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.error("Weather error", e);
+                container.innerHTML = '<span style="font-size:0.8rem; opacity:0.7">N/A</span>';
+            }
+        }, err => {
+            console.warn("GPS Denied", err);
+            container.innerHTML = `<span style="font-size:0.8rem; opacity:0.7">GPS Off</span>`;
+        });
+    }
+
+    getWeatherIcon(code) {
+        // WMO Weather interpretation codes (WW)
+        // 0: Clear sky
+        // 1, 2, 3: Mainly clear, partly cloudy, and overcast
+        // 45, 48: Fog
+        // 51-55: Drizzle
+        // 61-65: Rain
+        // 71-77: Snow
+        // 80-82: Rain showers
+        // 95-99: Thunderstorm
+
+        if (code === 0) return 'ph ph-sun';
+        if (code >= 1 && code <= 3) return 'ph ph-cloud-sun';
+        if (code >= 45 && code <= 48) return 'ph ph-cloud-fog';
+        if (code >= 51 && code <= 67) return 'ph ph-cloud-rain';
+        if (code >= 71 && code <= 77) return 'ph ph-snowflake';
+        if (code >= 80 && code <= 82) return 'ph ph-cloud-rain';
+        if (code >= 95 && code <= 99) return 'ph ph-cloud-lightning';
+        return 'ph ph-sun'; // Default
+    }
+
     // --- Home Dashboard Logic ---
     renderHomeDashboard() {
         const container = document.getElementById('home-dashboard');
@@ -336,6 +407,10 @@ class App {
             <div class="dashboard-header fade-in">
                 <div class="dashboard-greeting">${greeting}, Fabio</div>
                 <div class="dashboard-date">${dateStr}</div>
+                <!-- Weather Widget Container -->
+                <div id="weather-widget" style="min-height:30px; display:flex; justify-content:center; align-items:center; margin-top:5px;">
+                    <i class="ph ph-spinner ph-spin text-muted" style="font-size:1rem;"></i>
+                </div>
             </div>
 
             ${alertHtml}
@@ -362,6 +437,7 @@ class App {
 
         // Trigger quote interaction if "Loading..."
         if (!cloudQuote) this.loadQuote();
+        this.fetchWeather(); // Call Weather
     }
 
     // --- Sync Logic ---
