@@ -596,9 +596,18 @@ class App {
                 }
             }
 
-            // Determine Status/Badge (Case Insensitive)
-            const typeNorm = (r.type || '').toUpperCase(); // Normalize to uppercase
-            const isAbsence = r.absence === true || String(r.absence) === 'true' || typeNorm === 'ASSENZA';
+            // Determine Status/Badge (Case Insensitive & Smart Detection)
+            const typeNorm = (r.type || '').toUpperCase();
+            const noteLower = (r.notes || '').toLowerCase();
+
+            // Treat as Absence if: 
+            // 1. Explicitly marked as absence
+            // 2. Type is 'Assenza'
+            // 3. Notes contain keywords like 'ferie', 'malattia', 'permesso', 'mutua'
+            let isAbsence = r.absence === true || String(r.absence) === 'true' || typeNorm === 'ASSENZA';
+            if (!isAbsence && (noteLower.includes('ferie') || noteLower.includes('malattia') || noteLower.includes('permesso') || noteLower.includes('mutua') || noteLower.includes('lutto') || noteLower.includes('infortunio'))) {
+                isAbsence = true;
+            }
 
             const getBadgeClass = (t, isAbs) => {
                 if (isAbs) return 'badge-assenza';
@@ -609,14 +618,19 @@ class App {
             };
 
             const badgeClass = getBadgeClass(typeNorm, isAbsence);
+            // If detected via notes, show "ASSENZA" (or specific type if we wanted, but uniform is safer)
             const badgeLabel = isAbsence ? 'ASSENZA' : r.type.toUpperCase();
 
             // Border Color Logic
-            let borderColor = '#eab308'; // Default Yellow (Other)
+            let borderColor = '#eab308'; // Default Yellow
             if (isAbsence) borderColor = '#ef4444'; // Red
             else if (typeNorm === 'SEDE') borderColor = '#3b82f6'; // Blue
             else if (typeNorm === 'TRASFERTA') borderColor = '#eab308'; // Yellow
             else if (typeNorm.includes('SMART')) borderColor = '#10b981'; // Green
+
+            // Main Title Logic: If Absence, show the Note (Reason). If Work, show Location.
+            const mainTitle = isAbsence ? (r.notes || 'Assenza Generica') : r.location;
+            const mainTitleColor = isAbsence ? '#f87171' : 'inherit'; // Red title for absence
 
             return `
             <div class="card" style="border-left: 4px solid ${borderColor};">
@@ -628,16 +642,16 @@ class App {
                     <span class="badge ${badgeClass}">${badgeLabel}</span>
                 </div>
                 
-                <!-- Location (Always Shown) -->
-                <div style="font-weight:600; font-size:1rem; margin-bottom:4px;">${r.location}</div>
+                <!-- Main Title: Location OR Absence Reason -->
+                <div style="font-weight:600; font-size:1rem; margin-bottom:4px; color:${mainTitleColor}; text-transform: capitalize;">
+                    ${isAbsence ? '<i class="ph ph-warning-circle"></i> ' : ''}${mainTitle}
+                </div>
 
                 ${isAbsence ?
-                    /* Absence Layout: Note/Reason below Location */
-                    `<div style="font-weight:600; color:#f87171; margin-bottom:4px;">
-                        <span style="font-weight:normal; opacity:0.8;">Motivo:</span> ${r.notes || 'Non specificato'}
-                     </div>`
+                    /* Absence Layout: Simplified (Title is enough usually, maybe show hours if > 0) */
+                    (r.totalHours && r.totalHours !== '0' && r.totalHours !== '0.0' ? `<div style="font-size:0.9rem; color:#aaa;">Ore segnate: <strong>${r.totalHours}</strong></div>` : '')
                     :
-                    /* Regular Work Layout: Hours */
+                    /* Regular Work Layout: Hours + Notes if any */
                     `<div style="font-size:0.9rem; color:#aaa;">
                         ${r.startTime} - ${r.endTime} &nbsp;|&nbsp; Tot: <strong>${r.totalHours}</strong>
                         ${r.overtime && r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${r.overtime})</span>` : ''}
