@@ -181,7 +181,7 @@ const Views = {
         <div class="fade-in">
              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
                 <button class="btn btn-icon-only" onclick="app.navigate('home')">
-                    <i class="ph ph-arrow-left"></i>
+                    <i class="ph ph-arrow-left"></i> Indietro
                 </button>
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-icon-only" onclick="app.exportHistory('month')" title="Export Mese CSV">
@@ -263,7 +263,6 @@ class App {
 
         // Auto-sync on start
         console.log("Auto-syncing data...");
-        this.fetchWeather(); // Init Weather
         await this.sync();
     }
 
@@ -282,7 +281,7 @@ class App {
 
     // --- Weather Logic ---
     async fetchWeather() {
-        const container = document.getElementById('weather-header');
+        const container = document.getElementById('weather-widget');
         if (!container) return;
 
         if (!navigator.geolocation) {
@@ -408,6 +407,10 @@ class App {
             <div class="dashboard-header fade-in">
                 <div class="dashboard-greeting">${greeting}, Fabio</div>
                 <div class="dashboard-date">${dateStr}</div>
+                <!-- Weather Widget Container -->
+                <div id="weather-widget" style="min-height:30px; display:flex; justify-content:center; align-items:center; margin-top:5px;">
+                    <i class="ph ph-spinner ph-spin text-muted" style="font-size:1rem;"></i>
+                </div>
             </div>
 
             ${alertHtml}
@@ -434,6 +437,7 @@ class App {
 
         // Trigger quote interaction if "Loading..."
         if (!cloudQuote) this.loadQuote();
+        this.fetchWeather(); // Call Weather
     }
 
     // --- Sync Logic ---
@@ -735,8 +739,63 @@ class App {
         }
     }
 
-    // --- History Page ---
+    // --- Export Logic ---
+    exportHistory(scope) {
+        const reports = Store.getReports();
+        if (reports.length === 0) {
+            alert("Nessun dato da esportare.");
+            return;
+        }
 
+        const now = new Date();
+        let filtered = [];
+        let filename = '';
+
+        if (scope === 'month') {
+            const monthKey = now.toISOString().slice(0, 7); // "2025-01"
+            filtered = reports.filter(r => r.date.startsWith(monthKey));
+            filename = `Report_Mese_${monthKey}.csv`;
+        } else {
+            const yearKey = now.getFullYear().toString(); // "2025"
+            filtered = reports.filter(r => r.date.startsWith(yearKey));
+            filename = `Report_Anno_${yearKey}.csv`;
+        }
+
+        if (filtered.length === 0) {
+            alert(`Nessun report trovato per il periodo selezionato (${scope}).`);
+            return;
+        }
+
+        // Generate CSV
+        const header = ['Data', 'Tipo', 'Luogo', 'Ore Totali', 'Straordinari', 'Note', 'Assenza'];
+        const rows = filtered.map(r => [
+            r.date,
+            r.type,
+            `"${r.location || ''}"`, // Quote to handle commas
+            r.totalHours,
+            r.overtime || '0',
+            `"${r.notes || ''}"`,
+            r.absence ? 'SI' : 'NO'
+        ]);
+
+        const csvContent = [
+            header.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        // Download Trigger
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- History Page ---
     renderHistory() {
         const container = document.getElementById('history-list');
         // SORT REPORTS: Most recent first
