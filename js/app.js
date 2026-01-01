@@ -496,7 +496,10 @@ class App {
                 <div style="flex:1;">
                     <strong>${c.company}</strong>
                     <div style="font-size:0.85rem; color:#aaa;">${fullAddress || 'Nessun indirizzo'}</div>
-                    <div style="font-size:0.85rem; color:#aaa;">${c.person || ''}</div>
+                    <!-- Highlighted Contact Person -->
+                    <div class="contact-highlight">
+                        <i class="ph ph-user"></i> ${c.person || 'Nessun referente'}
+                    </div>
                 </div>
                 <div style="display:flex; gap:8px;">
                      <button class="btn btn-icon-only text-white" style="background:#3b82f6;" onclick="app.editContact('${c.id}')">
@@ -567,7 +570,17 @@ class App {
 
     renderHistory() {
         const container = document.getElementById('history-list');
-        const reports = Store.getReports();
+        // SORT REPORTS: Most recent first
+        const reports = Store.getReports().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Color/Badge Helper
+        const getBadgeClass = (type, isAbsence) => {
+            if (isAbsence || type === 'Assenza') return 'badge-assenza';
+            if (type === 'Sede') return 'badge-sede';
+            if (type === 'Trasferta') return 'badge-trasferta';
+            if (type === 'Smart Working') return 'badge-smart';
+            return 'badge'; // Default
+        };
 
         if (reports.length === 0) {
             container.innerHTML = '<p class="text-center text-muted">Nessun report.</p>';
@@ -583,23 +596,35 @@ class App {
                 }
             }
 
+            // Determine Status/Badge
+            const isAbsence = r.absence === true || r.absence === 'true' || r.type === 'Assenza';
+            const badgeClass = getBadgeClass(r.type, isAbsence);
+            const badgeLabel = isAbsence ? 'ASSENZA' : r.type;
+
             return `
-            <div class="card">
+            <div class="card" style="border-left: 4px solid ${isAbsence ? '#ef4444' : (r.type === 'Sede' ? '#3b82f6' : '#eab308')};">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <strong class="text-gold" style="font-size:1.1rem;">${dateDisplay}</strong>
                          ${r.synced ? '<i class="ph ph-check-circle" style="color:#22c55e; font-size:0.8rem"></i>' : '<i class="ph ph-circle" style="color:#aaa; font-size:0.8rem"></i>'}
                     </div>
-                    <span style="font-size:0.8rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">${r.type}</span>
+                    <span class="badge ${badgeClass}">${badgeLabel}</span>
                 </div>
-                <div style="font-weight:600; margin-bottom:4px;">${r.location}</div>
-                <div style="font-size:0.9rem; color:#aaa;">
-                    ${r.startTime} - ${r.endTime} &nbsp;|&nbsp; Tot: <strong>${r.totalHours}</strong>
-                    ${r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${r.overtime})</span>` : ''}
-                </div>
-                ${r.notes ? `<div style="font-size:0.85rem; color:#888; margin-top:5px; font-style:italic;">"${r.notes}"</div>` : ''}
                 
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
+                ${isAbsence ?
+                    /* Absence Layout */
+                    `<div style="font-weight:600; margin-bottom:4px; color:#f87171;">${r.notes || 'Nessuna nota'}</div>`
+                    :
+                    /* Regular Work Layout */
+                    `<div style="font-weight:600; margin-bottom:4px;">${r.location}</div>
+                     <div style="font-size:0.9rem; color:#aaa;">
+                        ${r.startTime} - ${r.endTime} &nbsp;|&nbsp; Tot: <strong>${r.totalHours}</strong>
+                        ${r.overtime && r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${r.overtime})</span>` : ''}
+                     </div>
+                     ${r.notes ? `<div style="font-size:0.85rem; color:#888; margin-top:5px; font-style:italic;">"${r.notes}"</div>` : ''}`
+                }
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
                     <button class="btn btn-icon-only text-white" style="background:#3b82f6; width:auto; padding:6px 12px; color:white !important;" onclick="app.editReport('${r.id}')">
                         <i class="ph ph-pencil-simple" style="color:white !important;"></i> Modifica
                     </button>
