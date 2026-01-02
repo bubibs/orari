@@ -886,10 +886,11 @@ class App {
             const noteLower = (r.notes || '').toLowerCase();
 
             // Treat as Absence if: 
-            // 1. Explicitly marked as absence
-            // 2. Type is 'Assenza'
-            // 3. Notes contain keywords like 'ferie', 'malattia', 'permesso', 'mutua'
-            let isAbsence = r.absence === true || String(r.absence) === 'true' || typeNorm === 'ASSENZA';
+            // 1. Explicitly marked as absence (boolean)
+            // 2. Absence field contains a string (e.g., 'ferie', 'malattia')
+            // 3. Type is 'Assenza'
+            // 4. Notes contain keywords like 'ferie', 'malattia', 'permesso', 'mutua'
+            let isAbsence = r.absence === true || String(r.absence) === 'true' || (r.absence && r.absence !== '') || typeNorm === 'ASSENZA';
             if (!isAbsence && (noteLower.includes('ferie') || noteLower.includes('malattia') || noteLower.includes('permesso') || noteLower.includes('mutua') || noteLower.includes('lutto') || noteLower.includes('infortunio'))) {
                 isAbsence = true;
             }
@@ -903,8 +904,12 @@ class App {
             };
 
             const badgeClass = getBadgeClass(typeNorm, isAbsence);
-            // If detected via notes, show "ASSENZA" (or specific type if we wanted, but uniform is safer)
-            const badgeLabel = isAbsence ? 'ASSENZA' : r.type.toUpperCase();
+            // If detected via notes or absence field, show specific label if possible
+            let badgeLabel = typeNorm;
+            if (isAbsence) {
+                // Use the concrete absence type if available, otherwise fallback to "ASSENZA"
+                badgeLabel = (r.absence && typeof r.absence === 'string' && r.absence !== 'true') ? r.absence.toUpperCase() : 'ASSENZA';
+            }
 
             // Border Color Logic
             let borderColor = '#eab308'; // Default Yellow
