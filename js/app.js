@@ -529,7 +529,7 @@ class App {
             list.appendChild(opt);
         });
 
-        const inputs = ['field-start', 'field-end', 'field-lunch', 'field-type', 'field-date'];
+        const inputs = ['field-start', 'field-end', 'field-lunch', 'field-type', 'field-date', 'field-absence'];
         inputs.forEach(id => {
             document.getElementById(id)?.addEventListener('change', () => this.calculateHours());
         });
@@ -986,7 +986,10 @@ class App {
         e.preventDefault();
         const fd = new FormData(e.target);
         const settings = Object.fromEntries(fd.entries());
-        Object.keys(settings).forEach(k => settings[k] = parseFloat(settings[k]));
+        Object.keys(settings).forEach(k => {
+            let val = parseFloat(settings[k]);
+            settings[k] = isNaN(val) ? 0 : val;
+        });
 
         const currentMonth = document.getElementById('salary-month').value || new Date().toISOString().slice(0, 7);
         Store.saveSettings(settings, currentMonth); // Save to specific month!
@@ -1019,17 +1022,23 @@ class App {
         let ot50 = 0;
 
         reports.forEach(r => {
-            const hrs = parseFloat(r.totalHours) || 0;
-            const o25 = parseFloat(r.overtime25) || 0;
-            const o50 = parseFloat(r.overtime50) || 0;
+            const parseNum = (v) => {
+                const n = parseFloat(String(v).replace(',', '.'));
+                return isNaN(n) ? 0 : n;
+            };
+
+            const hrs = parseNum(r.totalHours);
+            const o25 = parseNum(r.overtime25);
+            const o50 = parseNum(r.overtime50);
 
             if (hrs > 0) daysWorked.totale++;
             totalHours += hrs;
 
-            if (r.type === 'sede') daysWorked.sede++;
-            if (r.type === 'trasferta_rientro') daysWorked.rientro++;
-            if (r.type === 'trasferta_notte') daysWorked.notte++;
-            if (r.type === 'trasferta_estero') daysWorked.estero++;
+            const type = (r.type || '').toLowerCase();
+            if (type === 'sede') daysWorked.sede++;
+            if (type === 'trasferta_rientro') daysWorked.rientro++;
+            if (type === 'trasferta_notte') daysWorked.notte++;
+            if (type === 'trasferta_estero') daysWorked.estero++;
 
             ot25 += o25;
             ot50 += o50;
