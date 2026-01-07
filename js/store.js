@@ -175,20 +175,29 @@ export const Store = {
                     return isNaN(n) ? 0 : n;
                 };
 
+                // Helper to find value by normalized key OR common aliases
+                const getVal = (aliases) => {
+                    for (let a of aliases) {
+                        const normA = a.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        if (r[normA] !== undefined) return r[normA];
+                    }
+                    return undefined;
+                };
+
                 return {
-                    id: String(r.id),
+                    id: String(r.id || getVal(['id'])),
                     date: r.date ? new Date(r.date).toISOString().split('T')[0] : '',
-                    type: r.type,
-                    location: r.location,
-                    startTime: r.starttime ? r.starttime.substring(0, 5) : '',
-                    endTime: r.endtime ? r.endtime.substring(0, 5) : '',
-                    totalHours: String(parseNum(r.totalhours)),
-                    overtime: r.overtime || '',
-                    overtime25: String(parseNum(r.overtime25)), // Sync NEW fields as strings for consistency
-                    overtime50: String(parseNum(r.overtime50)),
-                    absence: r.absence,
-                    lunchBreak: r.lunchbreak === true || r.lunchbreak === 'true',
-                    notes: r.notes,
+                    type: r.type || getVal(['tipo', 'lavoro']),
+                    location: r.location || getVal(['luogo', 'azienda', 'cliente']),
+                    startTime: r.starttime || getVal(['inizio', 'start', 'oraInizio']),
+                    endTime: r.endtime || getVal(['fine', 'end', 'oraFine']),
+                    totalHours: String(parseNum(r.totalhours || getVal(['ore', 'totale', 'hours']))),
+                    overtime: r.overtime || getVal(['straordinari', 'straord', 'ot']),
+                    overtime25: String(parseNum(r.overtime25 || getVal(['overtime25', 'straord25', 'ot25', 'extra25']))),
+                    overtime50: String(parseNum(r.overtime50 || getVal(['overtime50', 'straord50', 'ot50', 'extra50']))),
+                    absence: r.absence || getVal(['assenza', 'ferie', 'malattia']),
+                    lunchBreak: (r.lunchbreak !== undefined ? r.lunchbreak : getVal(['mensa', 'pausa', 'lunch'])) === true || r.lunchbreak === 'true',
+                    notes: r.notes || getVal(['note', 'descr', 'descrizione']),
                     synced: true
                 };
             });
