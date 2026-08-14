@@ -83,7 +83,9 @@ function calcolaOre() {
 
     const oreTotali = minutiTotali / 60;
     let straordinari = 0;
-    const dataObj = new Date(dataVal);
+    
+    const [anno, mese, giorno] = dataVal.split('-').map(Number);
+    const dataObj = new Date(anno, mese - 1, giorno);
     
     if (dataObj.getDay() === 0 || dataObj.getDay() === 6) {
         straordinari = oreTotali;
