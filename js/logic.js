@@ -14,37 +14,40 @@ function calcolaOre(inizio, fine, pausa) {
 }
 
 function calcolaStraordinari(ore, data) {
-    let d;
-    
-    // Riconosce automaticamente il formato della data (YYYY-MM-DD o DD-MM-YYYY o DD/MM/YYYY)
-    if (typeof data === 'string') {
-        let parti = data.includes('/') ? data.split('/') : data.split('-');
-        
-        if (parti.length === 3) {
-            if (parti[0].length === 4) {
-                // Formato internazionale: Anno-Mese-Giorno
-                d = new Date(parti[0], parti[1] - 1, parti[2]);
-            } else {
-                // Formato italiano: Giorno-Mese-Anno
-                // Gestisce anche l'anno a 2 cifre (es "26" diventa "2026")
-                let anno = parti[2].length === 2 ? 2000 + parseInt(parti[2]) : parseInt(parti[2]);
-                d = new Date(anno, parti[1] - 1, parseInt(parti[0]));
-            }
+    let giornoSettimana;
+
+    try {
+        // Converte in stringa per l'analisi sicura
+        let str = data instanceof Date ? data.toISOString() : String(data);
+        let d;
+
+        // Cerca formato Anno-Mese-Giorno (es. 2026-08-15)
+        let matchIso = str.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+        if (matchIso) {
+            // Fissa l'orario alle 12:00 (Mezzogiorno) per evitare che il fuso orario sposti la data al giorno prima
+            d = new Date(parseInt(matchIso[1], 10), parseInt(matchIso[2], 10) - 1, parseInt(matchIso[3], 10), 12, 0, 0);
         } else {
-            d = new Date(data); // Fallback di sicurezza
+            // Cerca formato Giorno-Mese-Anno (es. 15-08-2026)
+            let matchIta = str.match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+            if (matchIta) {
+                d = new Date(parseInt(matchIta[3], 10), parseInt(matchIta[2], 10) - 1, parseInt(matchIta[1], 10), 12, 0, 0);
+            } else {
+                // Fallback di sicurezza
+                d = !isNaN(data) ? new Date(Number(data)) : new Date(data);
+            }
         }
-    } else {
-        d = new Date(data);
+        giornoSettimana = d.getDay();
+    } catch (e) {
+        giornoSettimana = new Date(data).getDay();
     }
 
-    const giornoSettimana = d.getDay(); // 0 = Domenica, 6 = Sabato
     let str25 = 0;
     let str50 = 0;
 
-    // Sabato (6) e Domenica (0) vanno al 50%
+    // 0 = Domenica, 6 = Sabato -> Entrambi al 50%
     if (giornoSettimana === 0 || giornoSettimana === 6) {
         str50 = ore;
-    } else { // Lunedì - Venerdì
+    } else { // Lunedì - Venerdì -> Ore oltre le 8 vanno al 25%
         if (ore > 8) str25 = ore - 8;
     }
     
