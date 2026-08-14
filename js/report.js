@@ -1,12 +1,20 @@
+// js/report.js
+
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
 let rubricaMemoria = [];
 // Memoria locale per le tariffe correnti da "congelare" nel report
 let tariffeAttuali = { base: 0, t25: 0, t50: 0, ind_rie: 0, ind_per: 0, ind_est: 0, tasse: 0 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Data odierna
+    // 1. Data odierna (Formattata in ora locale per evitare sfalsamenti UTC)
     const dataInput = document.getElementById('rep-data');
-    if(dataInput) dataInput.valueAsDate = new Date();
+    if (dataInput) {
+        const oggi = new Date();
+        const yyyy = oggi.getFullYear();
+        const mm = String(oggi.getMonth() + 1).padStart(2, '0');
+        const dd = String(oggi.getDate()).padStart(2, '0');
+        dataInput.value = `${yyyy}-${mm}-${dd}`;
+    }
     
     // 2. Vincolo mezz'ore sugli input
     const timeInputs = [document.getElementById('rep-inizio'), document.getElementById('rep-fine')];
@@ -75,22 +83,35 @@ function calcolaOre() {
     }
 
     if (!inizio || !fine) return;
-    const [hIni, mIni] = inizio.split(':').map(Number);
-    const [hFin, mFin] = fine.split(':').map(Number);
-    let minutiTotali = (hFin * 60 + mFin) - (hIni * 60 + mIni);
-    if (mensa) minutiTotali -= 60;
-    if (minutiTotali < 0) minutiTotali = 0;
 
-    const oreTotali = minutiTotali / 60;
+    // Calcolo delle ore lavorate (sfrutta logic.js se presente, altrimenti calcolo locale)
+    let oreTotali = 0;
+    if (typeof window.calcolaOre === 'function') {
+        oreTotali = window.calcolaOre(inizio, fine, mensa);
+    } else {
+        const [hIni, mIni] = inizio.split(':').map(Number);
+        const [hFin, mFin] = fine.split(':').map(Number);
+        let minutiTotali = (hFin * 60 + mFin) - (hIni * 60 + mIni);
+        if (minutiTotali < 0) minutiTotali += 1440;
+        if (mensa && minutiTotali >= 60) minutiTotali -= 60;
+        oreTotali = minutiTotali / 60;
+    }
+
     let straordinari = 0;
-    
-    const [anno, mese, giorno] = dataVal.split('-').map(Number);
-    const dataObj = new Date(anno, mese - 1, giorno);
-    
-    if (dataObj.getDay() === 0 || dataObj.getDay() === 6) {
-        straordinari = oreTotali;
-    } else if (oreTotali > 8) {
-        straordinari = oreTotali - 8;
+
+    // Calcolo straordinari sincronizzato con logic.js
+    if (typeof window.calcolaStraordinari === 'function' && dataVal) {
+        const { str25, str50 } = window.calcolaStraordinari(oreTotali, dataVal);
+        straordinari = str25 + str50; // Somma le ore straordinarie per il display
+    } else if (dataVal) {
+        // Fallback di sicurezza in locale
+        const [anno, mese, giorno] = dataVal.split('-').map(Number);
+        const dataObj = new Date(anno, mese - 1, giorno, 12, 0, 0); // Mezzogiorno sicuro
+        if (dataObj.getDay() === 0 || dataObj.getDay() === 6) {
+            straordinari = oreTotali;
+        } else if (oreTotali > 8) {
+            straordinari = oreTotali - 8;
+        }
     }
 
     document.getElementById('display-totali').innerText = oreTotali.toFixed(1);
