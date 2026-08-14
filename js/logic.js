@@ -14,11 +14,25 @@ function calcolaOre(inizio, fine, pausa) {
 }
 
 function calcolaStraordinari(ore, data) {
-    // Gestione sicura della data per evitare problemi di fuso orario (UTC vs Locale)
     let d;
-    if (typeof data === 'string' && data.includes('-')) {
-        const [anno, mese, giorno] = data.split('-').map(Number);
-        d = new Date(anno, mese - 1, giorno); // Crea la data nell'ora locale
+    
+    // Riconosce automaticamente il formato della data (YYYY-MM-DD o DD-MM-YYYY o DD/MM/YYYY)
+    if (typeof data === 'string') {
+        let parti = data.includes('/') ? data.split('/') : data.split('-');
+        
+        if (parti.length === 3) {
+            if (parti[0].length === 4) {
+                // Formato internazionale: Anno-Mese-Giorno
+                d = new Date(parti[0], parti[1] - 1, parti[2]);
+            } else {
+                // Formato italiano: Giorno-Mese-Anno
+                // Gestisce anche l'anno a 2 cifre (es "26" diventa "2026")
+                let anno = parti[2].length === 2 ? 2000 + parseInt(parti[2]) : parseInt(parti[2]);
+                d = new Date(anno, parti[1] - 1, parseInt(parti[0]));
+            }
+        } else {
+            d = new Date(data); // Fallback di sicurezza
+        }
     } else {
         d = new Date(data);
     }
@@ -27,7 +41,7 @@ function calcolaStraordinari(ore, data) {
     let str25 = 0;
     let str50 = 0;
 
-    // Sabato (6) e Domenica (0) vanno entrambi al 50%
+    // Sabato (6) e Domenica (0) vanno al 50%
     if (giornoSettimana === 0 || giornoSettimana === 6) {
         str50 = ore;
     } else { // Lunedì - Venerdì
