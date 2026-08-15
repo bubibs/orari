@@ -89,31 +89,50 @@ function setupBackupButtons() {
     });
 }
 
-function loadMotivationalQuote() {
+async function loadMotivationalQuote() {
     const quoteElement = document.getElementById('motivationalQuote');
-    if (!quoteElement) return;
-    
-    const fallbackQuotes = [
-        'Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.',
-        'Non aspettare il momento perfetto, inizia da dove sei.',
-        'La differenza tra l\'impossibile e il possibile sta nella determinazione.',
-        'Ogni esperto è stato un giorno un principiante.',
-        'Il futuro appartiene a coloro che credono nella bellezza dei propri sogni.',
-        'Non contare i giorni, fai in modo che i giorni contino.',
-        'Il lavoro duro batte il talento quando il talento non lavora sodo.',
-        'Il successo non è definitivo, il fallimento non è fatale: è il coraggio di continuare che conta.'
-    ];
     
     try {
+        // Try to get quote from cache (stored with today's date)
         const today = new Date().toDateString();
-        let quote = localStorage.getItem(`quote_${today}`);
-        if (!quote) {
-            quote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
-            localStorage.setItem(`quote_${today}`, quote);
+        const cachedQuote = localStorage.getItem(`quote_${today}`);
+        
+        if (cachedQuote) {
+            quoteElement.innerHTML = `<p>${cachedQuote}</p>`;
+            return;
         }
-        quoteElement.innerHTML = `<p>${quote}</p>`;
+        
+        // Fetch new quote from API (quotable doesn't support Italian, so we'll use fallback)
+        // Try to fetch anyway, but use fallback if it fails
+        try {
+            const response = await fetch('https://api.quotable.io/random');
+            if (response.ok) {
+                const data = await response.json();
+                // Use fallback quotes in Italian instead
+                throw new Error('Using Italian quotes');
+            } else {
+                throw new Error('Failed to fetch quote');
+            }
+        } catch {
+            throw new Error('Using fallback');
+        }
     } catch (error) {
-        quoteElement.innerHTML = `<p>${fallbackQuotes[0]}</p>`;
+        // Fallback quotes in Italian
+        const fallbackQuotes = [
+            'Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.',
+            'Non aspettare il momento perfetto, inizia da dove sei.',
+            'La differenza tra l\'impossibile e il possibile sta nella determinazione.',
+            'Ogni esperto è stato un giorno un principiante.',
+            'Il futuro appartiene a coloro che credono nella bellezza dei propri sogni.',
+            'Non contare i giorni, fai in modo che i giorni contino.',
+            'Il lavoro duro batte il talento quando il talento non lavora sodo.',
+            'Il successo non è definitivo, il fallimento non è fatale: è il coraggio di continuare che conta.'
+        ];
+        
+        const randomQuote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+        quoteElement.innerHTML = `<p>${randomQuote}</p>`;
+        const today = new Date().toDateString();
+        localStorage.setItem(`quote_${today}`, randomQuote);
     }
 }
 
