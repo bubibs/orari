@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>TECNOSISTEM - Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // Fullscreen support
+        function requestFullscreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            }
+        }
+        
+        // Auto fullscreen on load (if supported)
+        window.addEventListener('load', function() {
+            // Try to enter fullscreen after a short delay
+            setTimeout(function() {
+                if (screen.availHeight > window.innerHeight) {
+                    requestFullscreen();
+                }
+            }, 500);
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">TECNOSISTEM</h1>
+            </div>
+            <p class="subtitle">the Italian Job</p>
+            <div class="backup-status" id="backupStatus">
+                <span class="status-icon" id="statusIcon">💾</span>
+                <span class="status-text" id="statusText">Locale</span>
+            </div>
+        </header>
+
+        <div class="motivational-quote" id="motivationalQuote">
+            <p>Caricamento frase motivazionale...</p>
+        </div>
+
+        <nav class="main-nav">
+            <a href="report.html" class="nav-button">
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">Inserisci Report</span>
+            </a>
+            <a href="stipendio.html" class="nav-button">
+                <span class="nav-icon">💰</span>
+                <span class="nav-text">Stipendio</span>
+            </a>
+            <a href="rubrica.html" class="nav-button">
+                <span class="nav-icon">📇</span>
+                <span class="nav-text">Rubrica</span>
+            </a>
+            <a href="storico.html" class="nav-button">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Storico</span>
+            </a>
+        </nav>
+        
+        <div class="backup-section" style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; backdrop-filter: blur(10px);">
+            <h3 style="color: var(--text-dark); margin-bottom: 15px; font-size: 1.2rem; text-align: center;">Backup Dati</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="exportBackupBtn" class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 1rem;">
+                    📥 Esporta Backup
+                </button>
+                <label for="importBackupInput" class="btn btn-secondary" style="width: 100%; text-align: center; cursor: pointer; display: block; padding: 12px; font-size: 1rem;">
+                    📤 Carica Backup
+                </label>
+                <input type="file" id="importBackupInput" accept=".json" style="display: none;">
+                <div id="lastBackupInfo" style="color: var(--text-light); font-size: 0.85rem; text-align: center; margin-top: 10px; opacity: 0.8;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="home.js"></script>
+</body>
+</html>
+
