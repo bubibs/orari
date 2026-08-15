@@ -6,6 +6,11 @@ const SHEET_SETTINGS = "Settings";
 
 // --- DO POST ---
 function doPost(e) {
+  // Check if e exists
+  if (!e || !e.postData) {
+     return ContentService.createTextOutput(JSON.stringify({success:false, error:'No postData found. This function must be called via POST request.'})).setMimeType(ContentService.MimeType.JSON);
+  }
+
   const params = typeof e.postData.contents === 'string' ? JSON.parse(e.postData.contents) : {};
   const action = e.parameter.action;
   
@@ -51,38 +56,49 @@ function getData() {
   
   // 1. Reports
   const sheetReports = getOrCreateSheet(ss, SHEET_REPORTS);
-  const dataReports = sheetReports.getDataRange().getValues();
-  const headersReports = dataReports.shift();
-  const numericReportFields = ['totalhours', 'overtime', 'overtime25', 'overtime50'];
+  const dataRange = sheetReports.getDataRange();
+  const values = dataRange.getValues();
+  const displayValues = dataRange.getDisplayValues(); // GET WHAT USER SEES
+  
+  const headersReports = values.shift();
+  displayValues.shift();
 
-  const reports = dataReports.map(row => {
+  const reports = values.map((row, rowIndex) => {
     let r = {};
     headersReports.forEach((h, i) => {
         let val = row[i];
+        let displayVal = displayValues[rowIndex][i];
         
-        // 1. Handle Dates (Force String YYYY-MM-DD)
-        if (h === 'date') {
+        let key = String(h).toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!key) key = 'column' + i;
+
+        if (key === 'date') {
              if (val instanceof Date) {
-                 r[h] = Utilities.formatDate(val, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
+                 r[key] = Utilities.formatDate(val, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
              } else {
-                 r[h] = val;
+                 r[key] = displayVal;
              }
              return;
         }
 
-        // 2. Handle Numeric Fields (Block Dates/TimeObjects)
-        if (numericReportFields.includes(h)) {
-             if (val instanceof Date) {
-                 r[h] = 0; // Prevent "1899" or huge timestamps
+        const isNumeric = ['totalhours', 'overtime', 'overtime25', 'overtime50', 'straordinari', 'straord', 'ore'].some(term => key.includes(term));
+
+        if (isNumeric) {
+             // Use displayVal to avoid TZ issues
+             // Might be "00:30", "0,5", "0.5", "8.50"
+             if (displayVal.includes(':')) {
+                 let parts = displayVal.split(':');
+                 let h = parseInt(parts[0], 10) || 0;
+                 let m = parseInt(parts[1], 10) || 0;
+                 r[key] = parseFloat((h + (m / 60)).toFixed(2));
              } else {
-                 let n = parseFloat(String(val).replace(',', '.'));
-                 r[h] = isNaN(n) ? 0 : n;
+                 let n = parseFloat(displayVal.replace(',', '.'));
+                 r[key] = isNaN(n) ? 0 : n;
              }
              return;
         }
 
-        // 3. Default
-        r[h] = val;
+        r[key] = val;
     });
     return r;
   });
@@ -99,32 +115,27 @@ function getData() {
 
   // 3. Settings (Month Specific)
   const sheetSettings = getOrCreateSheet(ss, SHEET_SETTINGS);
-  const dataSettings = sheetSettings.getDataRange().getValues();
-  const headersSettings = dataSettings.shift();
+  const settingsRange = sheetSettings.getDataRange();
+  const valuesSettings = settingsRange.getValues();
+  const displaySettings = settingsRange.getDisplayValues();
   
-  // Transform settings rows into a map: { "2025-01": {...}, "default": {...} }
+  const headersSettings = valuesSettings.shift();
+  displaySettings.shift();
+  
   let settingsMap = {};
   if (headersSettings && headersSettings.length > 0) {
-      // Define known numeric fields to avoid parsing 'month' or accidental Dates
       const numericFields = ['baseSalary', 'hourlyRate', 'allowanceReturn', 'allowanceOvernight', 'allowanceForeign', 'taxRate'];
 
-      dataSettings.forEach(row => {
+      valuesSettings.forEach((row, rowIndex) => {
           let s = {};
           headersSettings.forEach((h, i) => s[h] = row[i]);
           
           if (s.month) {
-             // Parse ONLY numeric fields safely
              Object.keys(s).forEach(k => {
                  if (numericFields.includes(k)) {
-                     // If cell is a Date (bad formatting), Number(date) creates a huge timestamp. Prevent this.
-                     if (s[k] instanceof Date) {
-                         s[k] = 0; 
-                     } else {
-                         // Parse float, replace comma with dot if string, handle errors
-                         let val = s[k];
-                         if (typeof val === 'string') val = val.replace(',', '.');
-                         s[k] = parseFloat(val) || 0;
-                     }
+                     let dVal = displaySettings[rowIndex][headersSettings.indexOf(k)];
+                     let n = parseFloat(dVal.replace(/[^-0-9,.]/g, '').replace(',', '.'));
+                     s[k] = isNaN(n) ? (parseFloat(s[k]) || 0) : n;
                  }
              });
              settingsMap[s.month] = s;
@@ -304,14 +315,20 @@ function saveSettings(params) {
     const data = sheet.getDataRange().getValues();
     let rowIndex = data.findIndex(r => r[0] == params.month);
     
+    const parseNum = (v) => {
+        if (v === undefined || v === null || v === '') return 0;
+        let n = parseFloat(String(v).replace(',', '.'));
+        return isNaN(n) ? 0 : n;
+    };
+
     const row = [
         params.month,
-        params.baseSalary,
-        params.hourlyRate,
-        params.allowanceReturn,
-        params.allowanceOvernight,
-        params.allowanceForeign,
-        params.taxRate || 27
+        parseNum(params.baseSalary),
+        parseNum(params.hourlyRate),
+        parseNum(params.allowanceReturn),
+        parseNum(params.allowanceOvernight),
+        parseNum(params.allowanceForeign),
+        parseNum(params.taxRate || 27)
     ];
     
     if (rowIndex > -1) {
