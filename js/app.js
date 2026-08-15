@@ -582,9 +582,16 @@ class App {
         if (diffHrs < 0) diffHrs = 0;
 
         const dateVal = document.getElementById('field-date').value;
-        const dateObj = new Date(dateVal);
-        const day = dateObj.getDay(); // 0=Sun, 6=Sat
-        const isWeekend = (day === 0 || day === 6);
+        let day = 0;
+        let isWeekend = false;
+        if (dateVal) {
+            const parts = dateVal.split('-').map(Number);
+            if (parts.length === 3) {
+                const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                day = dateObj.getDay(); // 0=Sun, 6=Sat
+                isWeekend = (day === 0 || day === 6);
+            }
+        }
 
         let overtime25 = 0;
         let overtime50 = 0;
