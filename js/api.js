@@ -1,48 +1,310 @@
-export const API = {
-    ENDPOINT: 'https://script.google.com/macros/s/AKfycbypX8DXc9dVSi9aZJ5ZIiNNLt2k4wJQJMyFep33USsCQixj0zFyfbzIOQNdnJIFoGbJGA/exec',
+// Local Storage API
+// All data is stored locally using the Storage module
 
-    async checkHealth() {
+const API = {
+    // Check sync status (always synced for local storage)
+    async checkSync() {
+        return { synced: true };
+    },
+
+    // Reports
+    async getReports(filters = {}) {
         try {
-            // Google Scripts sometimes return 302 redirects which fetch follows. 
-            // We just assume if we get ANY successful response (even plain text), we are safe.
-            const response = await fetch(this.ENDPOINT + '?action=ping');
-            // If the response is ok, we are likely connected. The JSON parsing is stricter.
-            // Let's just return response.ok
-            return response.ok;
-        } catch (e) {
-            console.warn("Health check failed", e);
-            return false;
+            let reports = Storage.getReports();
+            
+            // Apply filters
+            if (filters.month && filters.year) {
+                reports = reports.filter(r => {
+                    if (!r.data) return false;
+                    const parts = r.data.split('-');
+                    if (parts.length === 3) {
+                        return parseInt(parts[1], 10) === parseInt(filters.month, 10) &&
+                               parseInt(parts[0], 10) === parseInt(filters.year, 10);
+                    }
+                    const reportDate = new Date(r.data);
+                    return reportDate.getMonth() + 1 === parseInt(filters.month, 10) &&
+                           reportDate.getFullYear() === parseInt(filters.year, 10);
+                });
+            }
+            
+            return { success: true, data: reports };
+        } catch (error) {
+            console.error('Get reports error:', error);
+            return { success: false, data: [], error: error.toString() };
         }
     },
 
-    async _post(action, data) {
+    async saveReport(reportData) {
         try {
-            const response = await fetch(this.ENDPOINT + '?action=' + action, {
-                method: 'POST',
-                body: JSON.stringify(data)
+            // Ensure reportData has all required fields
+            if (!reportData.data) {
+                return { success: false, error: 'Data mancante' };
+            }
+            
+            // Add updatedAt timestamp
+            reportData.updatedAt = new Date().toISOString();
+            
+            const result = Storage.saveReport(reportData);
+            return result;
+        } catch (error) {
+            console.error('Save report error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    async updateReport(id, reportData) {
+        try {
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
+            }
+            
+            reportData.id = id;
+            reportData.updatedAt = new Date().toISOString();
+            
+            const result = Storage.saveReport(reportData);
+            return result;
+        } catch (error) {
+            console.error('Update report error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    async deleteReport(id) {
+        try {
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
+            }
+            
+            const result = Storage.deleteReport(id);
+            return result;
+        } catch (error) {
+            console.error('Delete report error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    async getReportById(id) {
+        try {
+            const report = Storage.getReportById(id);
+            return report ? { success: true, data: report } : { success: false, error: 'Report non trovato' };
+        } catch (error) {
+            console.error('Get report by ID error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    // Contacts
+    async getContacts() {
+        try {
+            const contacts = Storage.getContacts();
+            return { success: true, data: contacts };
+        } catch (error) {
+            console.error('Get contacts error:', error);
+            return { success: false, data: [], error: error.toString() };
+        }
+    },
+
+    async saveContact(contactData) {
+        try {
+            if (!contactData.azienda) {
+                return { success: false, error: 'Azienda mancante' };
+            }
+            
+            const result = Storage.saveContact(contactData);
+            return result;
+        } catch (error) {
+            console.error('Save contact error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    async updateContact(id, contactData) {
+        try {
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
+            }
+            
+            contactData.id = id;
+            const result = Storage.saveContact(contactData);
+            return result;
+        } catch (error) {
+            console.error('Update contact error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    async deleteContact(id) {
+        try {
+            if (!id) {
+                return { success: false, error: 'ID mancante' };
+            }
+            
+            const result = Storage.deleteContact(id);
+            return result;
+        } catch (error) {
+            console.error('Delete contact error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    async getContactById(id) {
+        try {
+            const contact = Storage.getContactById(id);
+            return contact ? { success: true, data: contact } : { success: false, error: 'Contatto non trovato' };
+        } catch (error) {
+            console.error('Get contact by ID error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    // Settings
+    async getSettings() {
+        try {
+            const settings = Storage.getSettings();
+            return { success: true, data: settings };
+        } catch (error) {
+            console.error('Get settings error:', error);
+            // Return default settings on error
+            return { 
+                success: true, 
+                data: {
+                    pagaBase: 2000,
+                    pagaOraria: 12.5,
+                    indennitaRientro: 15,
+                    indennitaPernottamento: 50,
+                    indennitaEstero: 100
+                }
+            };
+        }
+    },
+
+    async saveSettings(settings) {
+        try {
+            const result = Storage.saveSettings(settings);
+            return result;
+        } catch (error) {
+            console.error('Save settings error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    // Impostazioni Mensili (tutte le impostazioni per mese/anno)
+    async getSettingsMensili(month, year) {
+        try {
+            const settings = Storage.getSettingsMensili(month, year);
+            if (settings) {
+                return { success: true, data: settings };
+            }
+            // Fallback to default settings
+            const defaultSettings = Storage.getSettings();
+            return { success: true, data: defaultSettings };
+        } catch (error) {
+            console.error('Get settings mensili error:', error);
+            const defaultSettings = Storage.getSettings();
+            return { success: true, data: defaultSettings };
+        }
+    },
+
+    async saveSettingsMensili(month, year, settings) {
+        try {
+            const result = Storage.saveSettingsMensili(month, year, settings);
+            return result;
+        } catch (error) {
+            console.error('Save settings mensili error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    // Paga Base Mensile (mantenuto per retrocompatibilità)
+    async getPagaBaseMensile(month, year) {
+        try {
+            const settingsResult = await this.getSettingsMensili(month, year);
+            return settingsResult.data?.pagaBase || 2000;
+        } catch (error) {
+            console.error('Get paga base mensile error:', error);
+            return 2000;
+        }
+    },
+
+    async savePagaBaseMensile(month, year, pagaBase) {
+        try {
+            const settingsResult = await this.getSettingsMensili(month, year);
+            const settings = settingsResult.data || Storage.getSettings();
+            settings.pagaBase = pagaBase;
+            return await this.saveSettingsMensili(month, year, settings);
+        } catch (error) {
+            console.error('Save paga base mensile error:', error);
+            return { success: false, error: error.toString() };
+        }
+    },
+
+    // Salary data (calculated from reports)
+    async getSalaryData(month, year) {
+        try {
+            const reportsResult = await this.getReports({ month, year });
+            const reports = reportsResult.data || [];
+            
+            let giorniLavorati = 0;
+            let giorniTrasferta = 0;
+            let giorniAssenza = 0;
+            let oreSede = 0;
+            let oreTrasfertaRientro = 0;
+            let oreTrasfertaPernottamento = 0;
+            let oreTrasfertaEstero = 0;
+            let oreStraordinarie = 0;
+            
+            reports.forEach(report => {
+                if (report.assenza) {
+                    giorniAssenza++;
+                } else if (report.tipoLavoro === 'in sede') {
+                    giorniLavorati++;
+                    oreSede += parseFloat(report.oreTotali) || 0;
+                } else if (report.tipoLavoro === 'trasferta con rientro') {
+                    giorniLavorati++;
+                    giorniTrasferta++;
+                    oreTrasfertaRientro += parseFloat(report.oreTotali) || 0;
+                } else if (report.tipoLavoro === 'trasferta con pernottamento') {
+                    giorniLavorati++;
+                    giorniTrasferta++;
+                    oreTrasfertaPernottamento += parseFloat(report.oreTotali) || 0;
+                } else if (report.tipoLavoro === 'trasferta estero') {
+                    giorniLavorati++;
+                    giorniTrasferta++;
+                    oreTrasfertaEstero += parseFloat(report.oreTotali) || 0;
+                }
+                
+                oreStraordinarie += parseFloat(report.oreStraordinarie) || 0;
             });
-            if (response.ok) return { success: true };
-            return { success: false, error: 'Server ' + response.status };
+            
+            return {
+                success: true,
+                data: {
+                    giorniLavorati,
+                    giorniTrasferta,
+                    giorniAssenza,
+                    oreSede,
+                    oreTrasfertaRientro,
+                    oreTrasfertaPernottamento,
+                    oreTrasfertaEstero,
+                    oreStraordinarie
+                }
+            };
         } catch (error) {
-            console.error(action + ' failed:', error);
-            return { success: false, error: String(error) };
-        }
-    },
-
-    saveReport(report) { return this._post('saveReport', report); },
-    saveContact(contact) { return this._post('saveContact', contact); },
-    deleteContact(id) { return this._post('deleteContact', { id }); },
-    saveSettings(settings) { return this._post('saveSettings', settings); },
-
-    async fetchCloudData() {
-        try {
-            // Requesting all data
-            const response = await fetch(this.ENDPOINT + '?action=getData');
-            const data = await response.json(); // Expected: { reports: [], contacts: [], settings: {} }
-            return data;
-        } catch (error) {
-            console.error('Fetch failed:', error);
-            return null;
+            console.error('Get salary data error:', error);
+            return { 
+                success: false, 
+                error: error.toString(),
+                data: {
+                    giorniLavorati: 0,
+                    giorniTrasferta: 0,
+                    giorniAssenza: 0,
+                    oreSede: 0,
+                    oreTrasfertaRientro: 0,
+                    oreTrasfertaPernottamento: 0,
+                    oreTrasfertaEstero: 0,
+                    oreStraordinarie: 0
+                }
+            };
         }
     }
 };

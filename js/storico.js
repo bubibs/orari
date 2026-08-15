@@ -1,49 +1,120 @@
-async function salvaLavoro() {
-    const btn = document.getElementById('btn-salva');
-    const originalContent = btn.innerHTML;
+// Storico page functionality
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load reports
+    await loadReports();
+});
+
+async function loadReports() {
+    const reportsList = document.getElementById('reportsList');
     
-    // Feedback immediato iPhone
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> INVIO...';
-    updateSyncStatus('working');
-
-    const dati = {
-        azione: 'salva_lavoro',
-        data: document.getElementById('input-data').value,
-        tipo: document.getElementById('input-tipo').value,
-        localita: document.getElementById('input-posizione').value,
-        inizio: document.getElementById('input-inizio').value,
-        fine: document.getElementById('input-fine').value,
-        mensa: document.getElementById('input-mensa').value,
-        note: document.getElementById('input-note').value,
-        ore: document.getElementById('input-ore').value
-    };
-
     try {
-        await fetch(WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(dati)
+        const result = await API.getReports();
+        const reports = result.data || [];
+        
+        if (reports.length === 0) {
+            reportsList.innerHTML = '<p style="color: #666;">Nessun report salvato</p>';
+            return;
+        }
+        
+        // Sort by date (most recent first)
+        reports.sort((a, b) => {
+            const dateA = new Date(a.data || a.createdAt);
+            const dateB = new Date(b.data || b.createdAt);
+            return dateB - dateA;
         });
-
-        // Simuliamo attesa per feedback
-        setTimeout(() => {
-            updateSyncStatus('success');
-            btn.innerHTML = '<i class="fas fa-check"></i> FATTO!';
-            btn.style.background = "#34C759";
+        
+        reportsList.innerHTML = reports.map(report => {
+            let date;
+            if (report.data && report.data.includes('-')) {
+                const [y, m, d] = report.data.split('-').map(Number);
+                date = new Date(y, m - 1, d);
+            } else {
+                date = new Date(report.data || report.createdAt);
+            }
+            const formattedDate = date.toLocaleDateString('it-IT', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
             
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
-                btn.style.background = "";
-                // Pulisce campi
-                document.getElementById('input-posizione').value = "";
-                document.getElementById('input-ore').value = "";
-            }, 1500);
-        }, 1000);
-    } catch (e) {
-        updateSyncStatus('error');
-        btn.disabled = false;
-        btn.innerHTML = 'ERRORE!';
+            const tipoLavoroLabels = {
+                'in sede': 'In sede',
+                'trasferta con rientro': 'Trasferta con rientro',
+                'trasferta con pernottamento': 'Trasferta con pernottamento',
+                'trasferta estero': 'Trasferta estero'
+            };
+            
+            const assenzaLabels = {
+                'ferie': 'Ferie',
+                'malattia': 'Malattia',
+                'permesso': 'Permesso'
+            };
+            
+            return `
+                <div class="list-item">
+                    <div class="list-item-header">
+                        <div class="list-item-title">${formattedDate}</div>
+                        <div class="list-item-actions">
+                            <button onclick="editReport('${report.id}')" class="btn-icon btn-edit" title="Modifica">✏️</button>
+                            <button onclick="deleteReport('${report.id}')" class="btn-icon btn-delete" title="Elimina">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="list-item-details">
+                        ${report.assenza ? 
+                            `<strong>Assenza:</strong> ${assenzaLabels[report.assenza] || report.assenza}<br>` :
+                            `<strong>Tipo lavoro:</strong> ${tipoLavoroLabels[report.tipoLavoro] || report.tipoLavoro}<br>
+                             <strong>Orario:</strong> ${report.oraInizio || ''} - ${report.oraFine || ''}<br>
+                             <strong>Ore totali:</strong> ${report.oreTotali || 0}h<br>
+                             ${report.oreStraordinarie > 0 ? `<strong>Ore straordinarie:</strong> ${report.oreStraordinarie}h<br>` : ''}`
+                        }
+                        ${report.luogoIntervento ? `<strong>Luogo:</strong> ${report.luogoIntervento}<br>` : ''}
+                        ${report.note ? `<strong>Note:</strong> ${report.note}` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        reportsList.innerHTML = '<p style="color: var(--error-color);">Errore nel caricamento dei report</p>';
     }
 }
+
+async function editReport(id) {
+    window.location.href = `report.html?id=${id}`;
+}
+
+async function deleteReport(id) {
+    if (!confirm('Sei sicuro di voler eliminare questo report?')) {
+        return;
+    }
+    
+    try {
+        const result = await API.deleteReport(id);
+        if (result.success) {
+            showNotification('Report eliminato', 'success');
+            await loadReports();
+        } else {
+            showNotification('Errore nell\'eliminazione: ' + (result.error || 'Errore sconosciuto'), 'error');
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        showNotification('Errore nell\'eliminazione. Riprova.', 'error');
+    }
+}
+
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Make functions global for onclick handlers
+window.editReport = editReport;
+window.deleteReport = deleteReport;
+

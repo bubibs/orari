@@ -1,218 +1,373 @@
-// js/report.js
+// Report page functionality
+let editingReportId = null;
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMjZY2BKMAxgcUITrf-BEyb3uXIjToQbTlgGRWjjxdJsse7-azQXzqLiD6IMJS7DKOqw/exec";
-let rubricaMemoria = [];
-// Memoria locale per le tariffe correnti da "congelare" nel report
-let tariffeAttuali = { base: 0, t25: 0, t50: 0, ind_rie: 0, ind_per: 0, ind_est: 0, tasse: 0 };
-
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Data odierna (Formattata in ora locale per evitare sfalsamenti UTC)
-    const dataInput = document.getElementById('rep-data');
-    if (dataInput) {
-        const oggi = new Date();
-        const yyyy = oggi.getFullYear();
-        const mm = String(oggi.getMonth() + 1).padStart(2, '0');
-        const dd = String(oggi.getDate()).padStart(2, '0');
-        dataInput.value = `${yyyy}-${mm}-${dd}`;
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if editing
+    const urlParams = new URLSearchParams(window.location.search);
+    editingReportId = urlParams.get('id');
+    
+    // Load contacts for autocomplete
+    await loadContacts();
+    
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('data').value = today;
+    
+    // Set time inputs to 30-minute steps (already set in HTML, but ensure it's correct)
+    const oraInizioInput = document.getElementById('oraInizio');
+    const oraFineInput = document.getElementById('oraFine');
+    oraInizioInput.setAttribute('step', '1800');
+    oraFineInput.setAttribute('step', '1800');
+    
+    // Round to nearest 30 minutes when user selects a time
+    oraInizioInput.addEventListener('change', function() {
+        const time = this.value;
+        if (time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const roundedMinutes = Math.round(minutes / 30) * 30;
+            const finalMinutes = roundedMinutes === 60 ? 0 : roundedMinutes;
+            const finalHours = roundedMinutes === 60 ? (hours + 1) % 24 : hours;
+            this.value = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
+            calculateHours();
+        }
+    });
+    
+    oraFineInput.addEventListener('change', function() {
+        const time = this.value;
+        if (time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const roundedMinutes = Math.round(minutes / 30) * 30;
+            const finalMinutes = roundedMinutes === 60 ? 0 : roundedMinutes;
+            const finalHours = roundedMinutes === 60 ? (hours + 1) % 24 : hours;
+            this.value = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
+            calculateHours();
+        }
+    });
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Load report if editing
+    if (editingReportId) {
+        await loadReport(editingReportId);
     }
     
-    // 2. Vincolo mezz'ore sugli input
-    const timeInputs = [document.getElementById('rep-inizio'), document.getElementById('rep-fine')];
-    timeInputs.forEach(input => {
-        if(!input) return;
-        input.addEventListener('blur', function() {
-            if(this.value) {
-                let [h, m] = this.value.split(':').map(Number);
-                m = (m < 15) ? 0 : (m < 45 ? 30 : 0);
-                if (m === 0 && Number(this.value.split(':')[1]) >= 45) h = (h + 1) % 24;
-                this.value = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                calcolaOre();
-            }
-        });
-    });
-
-    checkTipoLavoro();
-    // Carichiamo rubrica e le tariffe correnti all'avvio
-    caricaDatiIniziali(); 
 });
 
-async function caricaDatiIniziali() {
-    updateCloudIcon('working');
-    try {
-        // Carica Rubrica
-        const resRubrica = await fetch(`${WEB_APP_URL}?azione=rubrica`);
-        const jsonRubrica = await resRubrica.json();
-        rubricaMemoria = jsonRubrica.data || [];
-
-        // Carica Tariffe per congelarle nel report
-        const resTariffe = await fetch(`${WEB_APP_URL}?azione=leggi_impostazioni`);
-        const jsonTariffe = await resTariffe.json();
-        if(jsonTariffe.data) {
-            tariffeAttuali = jsonTariffe.data;
+function setupEventListeners() {
+    const form = document.getElementById('reportForm');
+    const tipoLavoro = document.getElementById('tipoLavoro');
+    const oraInizio = document.getElementById('oraInizio');
+    const oraFine = document.getElementById('oraFine');
+    const pausaMensa = document.getElementById('pausaMensa');
+    const assenza = document.getElementById('assenza');
+    
+    // Auto-fill for "in sede"
+    tipoLavoro.addEventListener('change', () => {
+        if (tipoLavoro.value === 'in sede') {
+            oraInizio.value = '08:00';
+            oraFine.value = '17:00';
+            pausaMensa.checked = true;
+            document.getElementById('luogoIntervento').value = 'Tecnosistem';
+            calculateHours();
         }
-
-        updateCloudIcon('success');
-    } catch(e) { 
-        console.error("Errore caricamento dati iniziali", e);
-        updateCloudIcon('error'); 
-    }
+    });
+    
+    // Calculate hours when times change
+    oraInizio.addEventListener('change', calculateHours);
+    oraFine.addEventListener('change', calculateHours);
+    pausaMensa.addEventListener('change', calculateHours);
+    
+    // Disable time fields if assenza is selected
+    assenza.addEventListener('change', () => {
+        const hasAssenza = assenza.value !== '';
+        oraInizio.disabled = hasAssenza;
+        oraFine.disabled = hasAssenza;
+        tipoLavoro.disabled = hasAssenza;
+        if (!hasAssenza) {
+            calculateHours();
+        } else {
+            document.getElementById('oreTotali').value = '';
+            document.getElementById('oreStraordinarie').value = '';
+        }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveReport();
+    });
 }
 
-function checkTipoLavoro() {
-    const tipo = document.getElementById('rep-tipo').value;
-    if (tipo === "In sede") {
-        document.getElementById('rep-inizio').value = "08:00";
-        document.getElementById('rep-fine').value = "17:00";
-        document.getElementById('rep-mensa').checked = true;
-        document.getElementById('rep-luogo').value = "Tecnosistem";
-    }
-    calcolaOre();
-}
-
-function calcolaOre() {
-    const dataVal = document.getElementById('rep-data').value;
-    const inizio = document.getElementById('rep-inizio').value;
-    const fine = document.getElementById('rep-fine').value;
-    const mensa = document.getElementById('rep-mensa').checked;
-    const assenza = document.getElementById('rep-assenza').value;
-
-    if (assenza !== "Nessuna") {
-        document.getElementById('display-totali').innerText = "8.0";
-        document.getElementById('display-straord').innerText = "0.0";
+function calculateHours() {
+    const oraInizio = document.getElementById('oraInizio').value;
+    const oraFine = document.getElementById('oraFine').value;
+    const pausaMensa = document.getElementById('pausaMensa').checked;
+    const data = document.getElementById('data').value;
+    const assenza = document.getElementById('assenza').value;
+    
+    if (!oraInizio || !oraFine || assenza) {
+        document.getElementById('oreTotali').value = '';
+        document.getElementById('oreStraordinarie').value = '';
         return;
     }
-
-    if (!inizio || !fine) return;
-
-    // Calcolo delle ore lavorate (sfrutta logic.js se presente, altrimenti calcolo locale)
-    let oreTotali = 0;
-    if (typeof window.calcolaOre === 'function') {
-        oreTotali = window.calcolaOre(inizio, fine, mensa);
-    } else {
-        const [hIni, mIni] = inizio.split(':').map(Number);
-        const [hFin, mFin] = fine.split(':').map(Number);
-        let minutiTotali = (hFin * 60 + mFin) - (hIni * 60 + mIni);
-        if (minutiTotali < 0) minutiTotali += 1440;
-        if (mensa && minutiTotali >= 60) minutiTotali -= 60;
-        oreTotali = minutiTotali / 60;
+    
+    const start = new Date(`2000-01-01T${oraInizio}`);
+    const end = new Date(`2000-01-01T${oraFine}`);
+    
+    if (end <= start) {
+        // Assume next day
+        end.setDate(end.getDate() + 1);
     }
-
-    let straordinari = 0;
-
-    // Calcolo straordinari sincronizzato con logic.js
-    if (typeof window.calcolaStraordinari === 'function' && dataVal) {
-        const { str25, str50 } = window.calcolaStraordinari(oreTotali, dataVal);
-        straordinari = str25 + str50; // Somma le ore straordinarie per il display
-    } else if (dataVal) {
-        // Fallback di sicurezza in locale
-        const [anno, mese, giorno] = dataVal.split('-').map(Number);
-        const dataObj = new Date(anno, mese - 1, giorno, 12, 0, 0); // Mezzogiorno sicuro
-        if (dataObj.getDay() === 0 || dataObj.getDay() === 6) {
-            straordinari = oreTotali;
-        } else if (oreTotali > 8) {
-            straordinari = oreTotali - 8;
-        }
+    
+    let diffHours = (end - start) / (1000 * 60 * 60);
+    
+    // Subtract lunch break if checked
+    if (pausaMensa) {
+        diffHours -= 1;
     }
-
-    document.getElementById('display-totali').innerText = oreTotali.toFixed(1);
-    document.getElementById('display-straord').innerText = straordinari.toFixed(1);
+    
+    // Round to nearest 0.5
+    diffHours = Math.round(diffHours * 2) / 2;
+    
+    document.getElementById('oreTotali').value = diffHours.toFixed(1);
+    
+    // Calculate overtime
+    const [year, month, day] = data.split('-').map(Number);
+    const reportDate = new Date(year, month - 1, day);
+    const dayOfWeek = reportDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    let straordinarie = 0;
+    if (isWeekend) {
+        // All hours are overtime on weekends
+        straordinarie = diffHours;
+    } else if (diffHours > 8) {
+        // Hours over 8 are overtime
+        straordinarie = diffHours - 8;
+    }
+    
+    document.getElementById('oreStraordinarie').value = straordinarie.toFixed(1);
 }
 
-// SUGGESTIONS RUBRICA
-function suggestLuogo() {
-    const val = document.getElementById('rep-luogo').value.toLowerCase();
-    const box = document.getElementById('suggestions');
-    if(val.length < 2) { box.style.display = 'none'; return; }
-    const matches = rubricaMemoria.filter(c => c.nome.toLowerCase().includes(val));
-    if(matches.length > 0) {
-        box.innerHTML = matches.map(m => `<div class="suggest-item" onclick="setLuogo('${m.nome.replace(/'/g, "\\'")}','')"><b>${m.nome.toUpperCase()}</b></div>`).join('');
-        box.style.display = 'block';
-    } else { box.style.display = 'none'; }
-}
-
-function setLuogo(n) {
-    document.getElementById('rep-luogo').value = n;
-    document.getElementById('suggestions').style.display = 'none';
-    calcolaOre();
-}
-
-// INVIO REPORT (CON TARIFFE CONGELATE)
-async function salvaReport() {
-    const btn = document.getElementById('btn-save-rep');
-    const btnIcon = document.getElementById('btn-icon');
-    const btnText = document.getElementById('btn-text');
-    const luogo = document.getElementById('rep-luogo').value;
-
-    if(!luogo) return alert("Inserisci il luogo!");
-
-    btn.disabled = true;
-    btnText.innerText = "INVIO IN CORSO...";
-    btnIcon.className = "fas fa-spinner fa-spin-custom";
-    updateCloudIcon('working');
-
-    // Creiamo il payload includendo le tariffe caricate all'inizio
-    const payload = {
-        azione: "salva_report",
-        data: document.getElementById('rep-data').value,
-        tipo: document.getElementById('rep-tipo').value,
-        assenza: document.getElementById('rep-assenza').value,
-        inizio: document.getElementById('rep-inizio').value,
-        fine: document.getElementById('rep-fine').value,
-        mensa: document.getElementById('rep-mensa').checked ? "SI" : "NO",
-        luogo: luogo,
-        note: document.getElementById('rep-note').value,
-        ore_tot: document.getElementById('display-totali').innerText,
-        ore_str: document.getElementById('display-straord').innerText,
-        
-        // DATI ECONOMICI AUTOMATICI (Congelano il valore del mese attuale)
-        paga_base: tariffeAttuali.base || 0,
-        t25: tariffeAttuali.t25 || 0,
-        t50: tariffeAttuali.t50 || 0,
-        ind_rie: tariffeAttuali.ind_rientro || 0,
-        ind_per: tariffeAttuali.ind_pernott || 0,
-        ind_est: tariffeAttuali.ind_estero || 0,
-        tasse: tariffeAttuali.tasse || 0
-    };
-
+async function loadContacts() {
     try {
-        await fetch(WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(payload)
-        });
-
-        updateCloudIcon('success');
-        btnIcon.className = "fas fa-check";
-        btnText.innerText = "REPORT INVIATO!";
+        const result = await API.getContacts();
+        const datalist = document.getElementById('luoghiList');
         
+        if (!datalist) {
+            console.error('datalist element not found');
+            return;
+        }
+        
+        datalist.innerHTML = '';
+        
+        if (result && result.success && result.data && result.data.length > 0) {
+            result.data.forEach(contact => {
+                if (contact.azienda) {
+                    const option = document.createElement('option');
+                    option.value = contact.azienda;
+                    datalist.appendChild(option);
+                }
+            });
+            console.log(`Loaded ${result.data.length} contacts for autocomplete`);
+        } else {
+            console.log('No contacts found for autocomplete');
+        }
+    } catch (error) {
+        console.error('Error loading contacts:', error);
+    }
+}
+
+async function loadReport(id) {
+    try {
+        const result = await API.getReportById(id);
+        if (result && result.success && result.data) {
+            const report = result.data;
+            document.getElementById('data').value = report.data || '';
+            document.getElementById('tipoLavoro').value = report.tipoLavoro || '';
+            document.getElementById('assenza').value = report.assenza || '';
+            document.getElementById('oraInizio').value = report.oraInizio || '';
+            document.getElementById('oraFine').value = report.oraFine || '';
+            document.getElementById('pausaMensa').checked = report.pausaMensa || false;
+            document.getElementById('luogoIntervento').value = report.luogoIntervento || '';
+            document.getElementById('note').value = report.note || '';
+            document.getElementById('oreTotali').value = report.oreTotali || '';
+            document.getElementById('oreStraordinarie').value = report.oreStraordinarie || '';
+            
+            // Trigger change event for tipoLavoro if needed
+            if (report.tipoLavoro) {
+                document.getElementById('tipoLavoro').dispatchEvent(new Event('change'));
+            }
+        } else {
+            showNotification('Report non trovato', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading report:', error);
+        showNotification('Errore nel caricamento del report', 'error');
+    }
+}
+
+async function saveReport() {
+    const saveButton = document.getElementById('saveButton');
+    const form = document.getElementById('reportForm');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    
+    // Prevent double click
+    if (saveButton.disabled) {
+        return;
+    }
+    
+    // Validate form
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Disable button and show loading
+    saveButton.disabled = true;
+    saveButton.classList.add('loading');
+    saveButton.textContent = 'Salvataggio...';
+    
+    // Update status icon
+    if (statusIcon) {
+        statusIcon.textContent = '💾';
+        statusIcon.style.animation = 'cloudPulse 1s ease-in-out infinite';
+    }
+    if (statusText) {
+        statusText.textContent = 'Salvataggio...';
+    }
+    
+    const reportData = {
+        data: document.getElementById('data').value,
+        tipoLavoro: document.getElementById('tipoLavoro').value,
+        assenza: document.getElementById('assenza').value || null,
+        oraInizio: document.getElementById('oraInizio').value,
+        oraFine: document.getElementById('oraFine').value,
+        pausaMensa: document.getElementById('pausaMensa').checked,
+        luogoIntervento: document.getElementById('luogoIntervento').value,
+        note: document.getElementById('note').value,
+        oreTotali: parseFloat(document.getElementById('oreTotali').value) || 0,
+        oreStraordinarie: parseFloat(document.getElementById('oreStraordinarie').value) || 0
+    };
+    
+    if (editingReportId) {
+        reportData.id = editingReportId;
+    }
+    
+    try {
+        // Get settings for the month/year of the report
+        const [year, month] = reportData.data.split('-').map(Number);
+        
+        // Get settings for this month/year
+        const settingsResult = await API.getSettingsMensili(month, year);
+        const settings = settingsResult.data || {};
+        
+        // Add settings values to report data (these are the settings used for this report)
+        reportData.settingsSnapshot = {
+            pagaBase: settings.pagaBase || 2000,
+            pagaOraria: settings.pagaOraria || 12.5,
+            indennitaRientro: settings.indennitaRientro || 15,
+            indennitaPernottamento: settings.indennitaPernottamento || 50,
+            indennitaEstero: settings.indennitaEstero || 100,
+            month: month,
+            year: year
+        };
+        
+        // Save report
+        let result;
+        if (editingReportId) {
+            result = await API.updateReport(editingReportId, reportData);
+        } else {
+            result = await API.saveReport(reportData);
+        }
+        
+        // Check if save was successful
+        if (!result || !result.success) {
+            throw new Error(result?.error || 'Errore nel salvataggio');
+        }
+        
+        // Success
+        if (statusIcon) {
+            statusIcon.textContent = '💾';
+            statusIcon.style.animation = 'none';
+        }
+        if (statusText) {
+            statusText.textContent = 'Salvato';
+        }
+        
+        // Save contact if new location
+        if (reportData.luogoIntervento && reportData.luogoIntervento !== 'Tecnosistem') {
+            await saveContactIfNew(reportData.luogoIntervento);
+        }
+        
+        showNotification('Report salvato con successo!', 'success');
+        
+        // Redirect after 1.5 seconds
         setTimeout(() => {
             window.location.href = 'index.html';
-        }, 1200);
-
-    } catch (e) {
-        updateCloudIcon('error');
-        btn.disabled = false;
-        btnIcon.className = "fas fa-paper-plane";
-        btnText.innerText = "INVIA REPORT";
-        alert("Errore di connessione. Riprova.");
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Save error:', error);
+        
+        // Error
+        if (statusIcon) {
+            statusIcon.textContent = '💾';
+            statusIcon.style.animation = 'none';
+        }
+        if (statusText) {
+            statusText.textContent = 'Locale';
+        }
+        
+        showNotification('Errore nel salvataggio: ' + (error.message || 'Errore sconosciuto'), 'error');
+        
+    } finally {
+        saveButton.disabled = false;
+        saveButton.classList.remove('loading');
+        saveButton.textContent = 'Salva Report';
     }
 }
 
-function updateCloudIcon(s) {
-    const icon = document.getElementById('sync-indicator');
-    const text = document.getElementById('sync-text');
-    if (!icon || !text) return;
-    icon.className = 'fas fa-cloud';
-    if (s === 'working') { 
-        icon.classList.add('sync-working', 'status-working'); 
-        text.innerText = "Sincronizzazione..."; 
-    }
-    else if (s === 'success') { 
-        icon.classList.add('status-success'); 
-        text.innerText = "Cloud Online"; 
-    }
-    else if (s === 'error') { 
-        icon.classList.add('status-error'); 
-        text.innerText = "Cloud Error"; 
+async function saveContactIfNew(azienda) {
+    try {
+        const contacts = await API.getContacts();
+        const exists = contacts.data.some(c => c.azienda.toLowerCase() === azienda.toLowerCase());
+        
+        if (!exists) {
+            await API.saveContact({
+                azienda: azienda,
+                citta: '',
+                via: '',
+                referente: '',
+                telefono: ''
+            });
+        }
+    } catch (error) {
+        console.error('Error saving contact:', error);
     }
 }
+
+async function checkCloudStatus() {
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    
+    // Always synced for local storage
+    statusIcon.textContent = '💾';
+    statusIcon.classList.add('synced');
+    statusText.textContent = 'Salvataggio Locale';
+    statusIcon.style.filter = 'none';
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
