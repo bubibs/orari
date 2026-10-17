@@ -8,12 +8,62 @@ export const Store = {
         QUEUE: 'tecnosistem_sync_queue'
     },
 
+    // Helper to normalize month key to YYYY-MM (e.g. "Thu Oct 01 2026..." -> "2026-10")
+    normalizeMonthKey(key, value) {
+        if (!key || key === 'default') return 'default';
+
+        // 1. Check if key is already YYYY-MM
+        const mIso = String(key).match(/^(\d{4})-(\d{2})$/);
+        if (mIso) return `${mIso[1]}-${mIso[2]}`;
+
+        // 2. Check for Date string e.g. "Thu Oct 01 2026 00:00:00..."
+        const months = {
+            'jan': '01', 'gen': '01',
+            'feb': '02',
+            'mar': '03',
+            'apr': '04',
+            'may': '05', 'mag': '05',
+            'jun': '06', 'giu': '06',
+            'jul': '07', 'lug': '07',
+            'aug': '08', 'ago': '08',
+            'sep': '09', 'set': '09',
+            'oct': '10', 'ott': '10',
+            'nov': '11',
+            'dec': '12', 'dic': '12'
+        };
+        const mDate = String(key).match(/([A-Za-z]{3})\s+\d{1,2}\s+(\d{4})/);
+        if (mDate) {
+            const mName = mDate[1].toLowerCase();
+            const year = mDate[2];
+            if (months[mName]) {
+                return `${year}-${months[mName]}`;
+            }
+        }
+
+        // 3. Fallback: check value.month if available
+        if (value && value.month && value.month !== 'default') {
+            const vIso = String(value.month).match(/^(\d{4})-(\d{2})/);
+            if (vIso) return `${vIso[1]}-${vIso[2]}`;
+
+            const d = new Date(value.month);
+            if (!isNaN(d.getTime())) {
+                const midday = new Date(d.getTime() + 12 * 3600 * 1000);
+                const y = midday.getUTCFullYear();
+                const m = String(midday.getUTCMonth() + 1).padStart(2, '0');
+                return `${y}-${m}`;
+            }
+        }
+
+        return key;
+    },
+
     // --- Settings (Month-Specific) ---
     getSettings(monthStr = 'default') {
         const allSettings = this.get(this.KEYS.SETTINGS) || {};
+        const normMonth = this.normalizeMonthKey(monthStr);
 
-        // 1. Try specific month
-        let settings = allSettings[monthStr];
+        // 1. Try specific month (normalized or raw)
+        let settings = allSettings[normMonth] || allSettings[monthStr];
 
         // 2. Try 'default' if month not found
         if (!settings && allSettings['default']) {
@@ -57,7 +107,8 @@ export const Store = {
 
     saveSettings(settings, monthStr = 'default') {
         const allSettings = this.get(this.KEYS.SETTINGS) || {};
-        allSettings[monthStr] = settings;
+        const normMonth = this.normalizeMonthKey(monthStr);
+        allSettings[normMonth] = settings;
         this.set(this.KEYS.SETTINGS, allSettings);
     },
 
@@ -76,18 +127,34 @@ export const Store = {
                 if (allSettings.baseSalary !== undefined && !allSettings['default']) {
                     console.log("Migrating settings to new format...");
                     allSettings = { 'default': allSettings };
-                    this.set(this.KEYS.SETTINGS, allSettings);
                 }
 
-                // 2. Aggressively purge "2000" defaults which the user hates
+                // 2. Normalize and migrate any non YYYY-MM keys
+                let updated = false;
+                Object.keys(allSettings).forEach(k => {
+                    if (k !== 'default' && !k.match(/^\d{4}-\d{2}$/)) {
+                        const normKey = this.normalizeMonthKey(k, allSettings[k]);
+                        if (normKey && normKey !== k) {
+                            allSettings[normKey] = { ...(allSettings[normKey] || {}), ...allSettings[k] };
+                            delete allSettings[k];
+                            updated = true;
+                        }
+                    }
+                });
+
+                // 3. Aggressively purge "2000" defaults which the user hates
                 if (allSettings['default']) {
                     const d = allSettings['default'];
                     // Fuzzy check for 2000 or 1500 (legacy values)
                     if (Math.abs(d.baseSalary - 2000) < 1 || Math.abs(d.baseSalary - 1500) < 1) {
                         console.log("Purging legacy 2000 default settings during init.");
                         delete allSettings['default'];
-                        this.set(this.KEYS.SETTINGS, allSettings);
+                        updated = true;
                     }
+                }
+
+                if (updated) {
+                    this.set(this.KEYS.SETTINGS, allSettings);
                 }
             } catch (e) {
                 console.error("Settings migration error", e);
@@ -121,28 +188,42 @@ export const Store = {
             this.set(this.KEYS.DAILY_QUOTE, cloudData.quote);
         }
 
-        // 1. Settings (Cloud wins but smartly)
+        // 1. Settings (Cloud wins but smartly with normalization)
         if (cloudData.settings && Object.keys(cloudData.settings).length > 0) {
             const current = this.get(this.KEYS.SETTINGS) || {};
+            const cleanSettings = { ...current };
 
             // CHECK IF CLOUD DATA IS FLAT (Legacy Script)
             if (cloudData.settings.baseSalary !== undefined && !cloudData.settings['default']) {
                 console.warn("Received legacy FLAT settings from cloud. Updating 'default' only.");
-                // It's flat. Do NOT merge to root using `...current` or we corrupt structure.
-                // Just map it to 'default' key if local default is missing or we want to overwrite it.
-                // Or better, ignore it if we have better local data?
-                // User said "conviene salvarli sul cloud", so cloud logic implies truth.
-                // We'll update only the 'default' key.
-                const merged = { ...current };
-                merged['default'] = { ...merged['default'], ...cloudData.settings };
-                this.set(this.KEYS.SETTINGS, merged);
-
+                cleanSettings['default'] = { ...cleanSettings['default'], ...cloudData.settings };
             } else {
-                // IT IS STRUCTURED (New Script)
-                // Proceed with deep merge
-                const merged = { ...current, ...cloudData.settings };
-                this.set(this.KEYS.SETTINGS, merged);
+                // IT IS STRUCTURED: Normalize each month key to YYYY-MM
+                Object.entries(cloudData.settings).forEach(([rawKey, val]) => {
+                    const normKey = this.normalizeMonthKey(rawKey, val);
+                    
+                    // Parse numeric values
+                    const parsedVal = {};
+                    Object.keys(val).forEach(k => {
+                        let num = parseFloat(val[k]);
+                        parsedVal[k] = isNaN(num) ? val[k] : num;
+                    });
+
+                    cleanSettings[normKey] = {
+                        ...(cleanSettings[normKey] || {}),
+                        ...parsedVal
+                    };
+                });
             }
+
+            // Remove legacy un-normalized keys (e.g. raw Date strings with GMT)
+            Object.keys(cleanSettings).forEach(k => {
+                if (k !== 'default' && !k.match(/^\d{4}-\d{2}$/)) {
+                    delete cleanSettings[k];
+                }
+            });
+
+            this.set(this.KEYS.SETTINGS, cleanSettings);
         }
 
         // 2. Contacts (Merge by ID)
