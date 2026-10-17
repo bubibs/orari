@@ -912,13 +912,13 @@ class App {
 
             filtered = reports.filter(r => r.date && r.date.startsWith(selectedValue));
             title = `Report Mensile: ${monthName} ${year}`;
-            filename = `Report_${selectedValue}.pdf`;
+            filename = `Report ${monthName} ${year}.pdf`;
         } else {
             year = selectedValue.split('-')[0];
             monthName = '';
             filtered = reports.filter(r => r.date && r.date.startsWith(year));
             title = `Report Annuale: ${year}`;
-            filename = `Report_Anno_${year}.pdf`;
+            filename = `Report Anno ${year}.pdf`;
         }
 
         // Chronological order
@@ -1175,7 +1175,79 @@ class App {
     }
 
     // --- Send PDF via Native Email / Mail App ---
-    async sendPDFViaEmail(scope = 'month') {
+    sendPDFViaEmail(scope = 'month') {
+        this.showEmailModal(scope);
+    }
+
+    showEmailModal(scope = 'month') {
+        const picker = document.getElementById('export-month') || document.getElementById('salary-month');
+        const selectedValue = picker ? picker.value : new Date().toISOString().slice(0, 7);
+        const parts = selectedValue.split('-');
+        const year = parts[0];
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        const monthsIt = [
+            'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+            'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+        ];
+        const monthName = monthsIt[monthIdx] || parts[1];
+        const subject = scope === 'month' ? `Report ${monthName} ${year}` : `Report Anno ${year}`;
+        const filename = `${subject}.pdf`;
+
+        this.closeEmailModal();
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'email-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => this.closeEmailModal();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ph ph-envelope-simple text-gold" style="font-size:1.6rem;"></i>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Invia ad Amministrazione</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeEmailModal()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:10px; margin-bottom:16px; font-size:0.86rem; line-height:1.5;">
+                    <div><span style="color:#94a3b8;">Destinatario:</span> <strong style="color:#38bdf8;">amministrazione@tecnosistem.com</strong></div>
+                    <div><span style="color:#94a3b8;">Oggetto:</span> <strong style="color:#facc15;">${subject}</strong></div>
+                    <div><span style="color:#94a3b8;">Allegato:</span> <span>${filename}</span></div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button type="button" class="btn btn-primary" style="padding:14px; font-size:0.92rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('share', '${scope}')">
+                        <i class="ph ph-paperclip" style="font-size:1.3rem;"></i>
+                        <span>1. Condividi con Allegato PDF</span>
+                    </button>
+                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 4px 0; text-align:center; line-height:1.3;">
+                        Apre l'app Mail con il <strong>file PDF già allegato</strong>.<br>L'indirizzo viene copiato: tocca <em>"A:"</em> e incolla.
+                    </p>
+
+                    <button type="button" class="btn" style="padding:14px; font-size:0.92rem; font-weight:600; background:#334155; color:white; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('mailto', '${scope}')">
+                        <i class="ph ph-envelope-open" style="font-size:1.3rem;"></i>
+                        <span>2. Apri con Campi Precompilati</span>
+                    </button>
+                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 0 0; text-align:center; line-height:1.3;">
+                        Apre l'app Mail con <strong>Destinatario e Oggetto già compilati</strong>.<br>Il PDF viene scaricato pronto da allegare.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalDiv);
+    }
+
+    closeEmailModal() {
+        const modal = document.getElementById('email-modal-overlay');
+        if (modal) modal.remove();
+    }
+
+    async executeSendEmail(mode, scope = 'month') {
+        this.closeEmailModal();
         const result = this.generatePDFDoc(scope);
         if (!result) return;
 
@@ -1185,49 +1257,48 @@ class App {
         const emailSubject = scope === 'month'
             ? `Report ${monthName} ${year}`
             : `Report Anno ${year}`;
-        const emailBody = scope === 'month'
-            ? `Ciao Simona, ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.\nSandrini Fabio`
-            : `Ciao Simona, ti inoltro il Report dell'anno ${year}, buona giornata.\nSandrini Fabio`;
+        const emailBody = `ciao Simona ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.\r\nSandrini Fabio`;
 
-        // Create actual PDF File object in memory
-        const pdfBlob = doc.output('blob');
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-
-        // Copy recipient to clipboard for convenient paste on iOS
-        try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(emailTo);
-            }
-        } catch (e) {
-            console.warn("Clipboard access:", e);
-        }
-
-        // Check if Web Share API Level 2 (with files) is supported (native on iPhone Safari)
-        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-            try {
-                this.showToast(`Destinatario copiato: ${emailTo}`);
-                await navigator.share({
-                    files: [pdfFile],
-                    title: emailSubject,
-                    text: emailBody
-                });
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.warn("Share sheet fallback:", err);
-                    this.fallbackEmail(emailTo, emailSubject, emailBody, doc, filename);
-                }
-            }
+        if (mode === 'mailto') {
+            // Mode 2: Standard mailto URL scheme
+            // Automatically fills To, Subject and Body in Apple Mail
+            doc.save(filename);
+            const mailtoUrl = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            window.location.href = mailtoUrl;
+            this.showToast('Mail aperta con destinatario e oggetto! Il PDF è nei file.', 'success');
         } else {
-            // Fallback for desktop browsers without file share
-            this.fallbackEmail(emailTo, emailSubject, emailBody, doc, filename);
-        }
-    }
+            // Mode 1: Native Web Share API with File
+            // Automatically attaches the actual PDF document
+            const pdfBlob = doc.output('blob');
+            const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-    fallbackEmail(emailTo, emailSubject, emailBody, doc, filename) {
-        doc.save(filename);
-        const mailtoUrl = `mailto:${encodeURIComponent(emailTo)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        window.location.href = mailtoUrl;
-        this.showToast('PDF scaricato! Puoi allegarlo alla mail appena aperta.', 'info');
+            // Copy recipient to clipboard for convenient paste into "To" field
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(emailTo);
+                }
+            } catch (e) {
+                console.warn("Clipboard access:", e);
+            }
+
+            if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                try {
+                    this.showToast(`Destinatario copiato: ${emailTo}`);
+                    await navigator.share({
+                        files: [pdfFile],
+                        title: emailSubject,
+                        text: `A: ${emailTo}\nOggetto: ${emailSubject}\n\n${emailBody}`
+                    });
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.warn("Share fallback:", err);
+                        this.executeSendEmail('mailto', scope);
+                    }
+                }
+            } else {
+                this.executeSendEmail('mailto', scope);
+            }
+        }
     }
 
     // --- History Page ---
