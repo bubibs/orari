@@ -192,14 +192,16 @@ const Views = {
                     </div>
                 </div>
                 
-                <div style="display:flex; justify-content:flex-end; gap:5px;">
-                     <button class="btn btn-sm" onclick="app.exportPDF('month')" title="PDF Mese Selezionato" style="font-size:0.8rem;">
-                        <i class="ph ph-file-pdf"></i> PDF Mese
+                <div style="display:flex; justify-content:flex-end; gap:6px; flex-wrap:wrap;">
+                     <button class="btn btn-sm" onclick="app.exportPDF('month')" title="Scarica PDF Mese" style="font-size:0.8rem;">
+                        <i class="ph ph-file-pdf"></i> Scarica PDF
+                    </button>
+                    <button class="btn btn-sm" style="background-color: #2563eb; color: white; font-size:0.8rem; font-weight:600;" onclick="app.sendPDFViaEmail('month')" title="Invia PDF ad Amministrazione">
+                        <i class="ph ph-envelope-simple"></i> Invia ad Amministrazione
                     </button>
                     <button class="btn btn-sm" onclick="app.exportPDF('year')" title="PDF Anno Selezionato" style="font-size:0.8rem;">
-                        <i class="ph ph-file-pdf"></i> PDF Anno
+                        <i class="ph ph-calendar"></i> PDF Anno
                     </button>
-                    <!-- CSV Option retained just in case? Or replace? User said "non csv". I'll remove CSV buttons. -->
                 </div>
             </div>
             <h2 class="text-center text-gold mt-2 mb-4">Storico</h2>
@@ -879,42 +881,52 @@ class App {
         }
     }
 
-    // --- Export Logic (PDF) ---
-    exportPDF(scope) {
+    // --- PDF Generation Helper ---
+    generatePDFDoc(scope) {
         const reports = Store.getReports();
         if (reports.length === 0) {
             alert("Nessun dato da esportare.");
-            return;
+            return null;
         }
 
-        const picker = document.getElementById('export-month');
+        const picker = document.getElementById('export-month') || document.getElementById('salary-month');
         const selectedValue = picker ? picker.value : new Date().toISOString().slice(0, 7);
 
         // Scope Logic
         let filtered = [];
         let title = '';
         let filename = '';
+        let monthName = '';
+        let year = '';
+
+        const monthsIt = [
+            'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+            'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+        ];
 
         if (scope === 'month') {
-            // Filter by "YYYY-MM"
-            filtered = reports.filter(r => r.date.startsWith(selectedValue));
-            title = `Report Mensile: ${selectedValue}`;
+            const parts = selectedValue.split('-');
+            year = parts[0];
+            const monthIdx = parseInt(parts[1], 10) - 1;
+            monthName = monthsIt[monthIdx] || parts[1];
+
+            filtered = reports.filter(r => r.date && r.date.startsWith(selectedValue));
+            title = `Report Mensile: ${monthName} ${year}`;
             filename = `Report_${selectedValue}.pdf`;
         } else {
-            // Filter by "YYYY" from the picker
-            const year = selectedValue.split('-')[0];
-            filtered = reports.filter(r => r.date.startsWith(year));
+            year = selectedValue.split('-')[0];
+            monthName = '';
+            filtered = reports.filter(r => r.date && r.date.startsWith(year));
             title = `Report Annuale: ${year}`;
             filename = `Report_Anno_${year}.pdf`;
         }
 
-        // Sort by date (Oldest to Newest for reading flow, or Newest to Oldest?)
-        // Usually reports are read chronologically.
+        // Chronological order
         filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         if (filtered.length === 0) {
             alert(`Nessun report trovato per il periodo: ${title}`);
-            return;
+            return null;
         }
 
         // --- PDF Generation ---
@@ -989,7 +1001,6 @@ class App {
             let strText = '';
 
             if (isFerie) {
-                // If absence is Ferie, full day defaults to 8.0h if rawHours is 0
                 rHours = rawHours > 0 ? rawHours : 8.0;
                 totaleFerie += rHours;
             } else if (isOtherAbsence) {
@@ -1153,7 +1164,70 @@ class App {
         doc.setLineWidth(0.4);
         doc.line(signX, boxY + 23, signX + 48, boxY + 23);
 
+        return { doc, filename, title, monthName, year, selectedValue };
+    }
+
+    // --- Export Logic (PDF) ---
+    exportPDF(scope) {
+        const result = this.generatePDFDoc(scope);
+        if (!result) return;
+        result.doc.save(result.filename);
+    }
+
+    // --- Send PDF via Native Email / Mail App ---
+    async sendPDFViaEmail(scope = 'month') {
+        const result = this.generatePDFDoc(scope);
+        if (!result) return;
+
+        const { doc, filename, monthName, year } = result;
+
+        const emailTo = 'amministrazione@tecnosistem.com';
+        const emailSubject = scope === 'month'
+            ? `Report ${monthName} ${year}`
+            : `Report Anno ${year}`;
+        const emailBody = scope === 'month'
+            ? `Ciao Simona, ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.\nSandrini Fabio`
+            : `Ciao Simona, ti inoltro il Report dell'anno ${year}, buona giornata.\nSandrini Fabio`;
+
+        // Create actual PDF File object in memory
+        const pdfBlob = doc.output('blob');
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+        // Copy recipient to clipboard for convenient paste on iOS
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(emailTo);
+            }
+        } catch (e) {
+            console.warn("Clipboard access:", e);
+        }
+
+        // Check if Web Share API Level 2 (with files) is supported (native on iPhone Safari)
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+            try {
+                this.showToast(`Destinatario copiato: ${emailTo}`);
+                await navigator.share({
+                    files: [pdfFile],
+                    title: emailSubject,
+                    text: emailBody
+                });
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.warn("Share sheet fallback:", err);
+                    this.fallbackEmail(emailTo, emailSubject, emailBody, doc, filename);
+                }
+            }
+        } else {
+            // Fallback for desktop browsers without file share
+            this.fallbackEmail(emailTo, emailSubject, emailBody, doc, filename);
+        }
+    }
+
+    fallbackEmail(emailTo, emailSubject, emailBody, doc, filename) {
         doc.save(filename);
+        const mailtoUrl = `mailto:${encodeURIComponent(emailTo)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        window.location.href = mailtoUrl;
+        this.showToast('PDF scaricato! Puoi allegarlo alla mail appena aperta.', 'info');
     }
 
     // --- History Page ---
