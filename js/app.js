@@ -366,46 +366,115 @@ class App {
         if (hour >= 13) greeting = 'Buon Pomeriggio';
         if (hour >= 18) greeting = 'Buonasera';
 
-        // 2. Stats (Current Month Hours)
-        // Filter reports for current month YYYY-MM
-        const currentMonthKey = now.toISOString().slice(0, 7); // "2025-01"
-        const reports = Store.getReports();
-        const monthReports = reports.filter(r => r.date.startsWith(currentMonthKey));
+        // 2. Local Dates & Reports
+        const localYear = now.getFullYear();
+        const localMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const localDay = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${localYear}-${localMonth}-${localDay}`;
+        const currentMonthKey = `${localYear}-${localMonth}`;
 
+        const reports = Store.getReports();
+        const existingDates = new Set(reports.map(r => r.date).filter(Boolean));
+
+        // Stats (Current Month Hours)
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(currentMonthKey));
         let totalHours = 0;
         let daysWorked = 0;
         monthReports.forEach(r => {
-            // Only count if not strict absence (or count as 0 hours if paid absence? Logic says hours played)
-            // Typically "Total Hours" means worked hours.
-            // If absence, totalHours is usually 0 unless "Permesso" etc.
-            // We trust r.totalHours
             totalHours += parseFloat(r.totalHours) || 0;
             if (!r.absence && r.type !== 'Assenza') daysWorked++;
         });
 
-        // 3. Alert Logic (Missing Report)
-        // Check if report exists for TODAY "YYYY-MM-DD"
-        // And if today is Mon-Fri (1-5)
-        const todayStr = now.toISOString().slice(0, 10);
-        const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
-        const hasReportToday = reports.some(r => r.date === todayStr);
-        const isWorkDay = dayOfWeek >= 1 && dayOfWeek <= 5;
+        // 3. Alert Logic (Missing Report for TODAY + PAST WORK DAYS)
+        const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+        const isTodayWorkDay = (dayOfWeek >= 1 && dayOfWeek <= 5);
+        const isTodayMissing = isTodayWorkDay && !existingDates.has(todayStr);
+
+        // Find missing past workdays (Mon-Fri)
+        // Check backwards from yesterday
+        let earliestDateStr = null;
+        if (reports.length > 0) {
+            const sortedDates = reports.map(r => r.date).filter(Boolean).sort();
+            if (sortedDates.length > 0) earliestDateStr = sortedDates[0];
+        }
+
+        const missingPastDays = [];
+        const daysToCheck = (now.getDate() <= 7) ? 14 : Math.min(30, now.getDate());
+
+        for (let i = 1; i <= daysToCheck; i++) {
+            const checkD = new Date(localYear, now.getMonth(), now.getDate() - i);
+            const cy = checkD.getFullYear();
+            const cm = String(checkD.getMonth() + 1).padStart(2, '0');
+            const cd = String(checkD.getDate()).padStart(2, '0');
+            const dateStrCheck = `${cy}-${cm}-${cd}`;
+
+            // Do not check older than earliest report if outside current month
+            if (earliestDateStr && dateStrCheck < earliestDateStr && i > now.getDate()) {
+                break;
+            }
+
+            const dow = checkD.getDay();
+            // Monday to Friday only
+            if (dow >= 1 && dow <= 5) {
+                if (!existingDates.has(dateStrCheck)) {
+                    const rawWd = checkD.toLocaleDateString('it-IT', { weekday: 'short' });
+                    const wdCap = rawWd.charAt(0).toUpperCase() + rawWd.slice(1);
+                    missingPastDays.push({
+                        date: dateStrCheck,
+                        label: `${wdCap} ${cd}/${cm}`,
+                        fullLabel: checkD.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
+                    });
+                }
+            }
+        }
 
         // Build Alert HTML
         let alertHtml = '';
-        if (isWorkDay && !hasReportToday) {
+        if (isTodayMissing || missingPastDays.length > 0) {
+            let titleText = '';
+            let mainActionBtn = '';
+
+            if (isTodayMissing) {
+                titleText = 'Non hai ancora compilato il report di oggi.';
+                mainActionBtn = `<button type="button" class="alert-action" onclick="event.stopPropagation(); app.navigate('report', { date: '${todayStr}' })">Compila Oggi</button>`;
+            } else {
+                const count = missingPastDays.length;
+                titleText = `Attenzione: manca il report di ${count} giorn${count === 1 ? 'o passato' : 'i passati'}.`;
+                mainActionBtn = `<button type="button" class="alert-action" onclick="event.stopPropagation(); app.navigate('report', { date: '${missingPastDays[0].date}' })">Compila</button>`;
+            }
+
+            let pastDaysHtml = '';
+            if (missingPastDays.length > 0) {
+                const pillsHtml = missingPastDays.map(item => `
+                    <button type="button" class="missing-day-pill" title="Compila report di ${item.fullLabel}" onclick="event.stopPropagation(); app.navigate('report', { date: '${item.date}' })">
+                        <i class="ph ph-calendar-plus"></i>
+                        <span>${item.label}</span>
+                    </button>
+                `).join('');
+
+                pastDaysHtml = `
+                <div class="missing-days-section">
+                    <div class="missing-days-title">
+                        <i class="ph ph-clock-counter-clockwise"></i>
+                        <span>${isTodayMissing ? 'Mancano anche report nei giorni passati:' : 'Giorni passati da compilare:'}</span>
+                    </div>
+                    <div class="missing-days-pills">
+                        ${pillsHtml}
+                    </div>
+                </div>`;
+            }
+
             alertHtml = `
-            <div class="alert-box" onclick="app.navigate('report')">
-                <div class="alert-content">
-                    <i class="ph ph-warning-circle" style="font-size:1.5rem;"></i>
-                    <span>Non hai ancora compilato il report di oggi.</span>
+            <div class="alert-box" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
+                    <div class="alert-content">
+                        <i class="ph ph-warning-circle" style="font-size:1.5rem; flex-shrink:0;"></i>
+                        <span>${titleText}</span>
+                    </div>
+                    ${mainActionBtn}
                 </div>
-                <button class="alert-action">Compila Ora</button>
+                ${pastDaysHtml}
             </div>`;
-        } else if (hasReportToday) {
-            // Optional: Show success? Or keep clean. User asked for "Missing report alert". 
-            // Maybe a subtle "Done" indicator? Let's keep it clean as per "Dashboard".
-            // We can show a small green check in the stats area?
         }
 
         // 4. Quote (Get existing logic)
@@ -523,33 +592,84 @@ class App {
 
     initReportForm(reportToEdit = null) {
         const list = document.getElementById('contacts-list');
-        Store.getContacts().forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.company;
-            list.appendChild(opt);
-        });
+        if (list) {
+            list.innerHTML = '';
+            Store.getContacts().forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.company;
+                list.appendChild(opt);
+            });
+        }
 
         const inputs = ['field-start', 'field-end', 'field-lunch', 'field-type', 'field-date', 'field-absence'];
         inputs.forEach(id => {
             document.getElementById(id)?.addEventListener('change', () => this.calculateHours());
         });
 
-        if (reportToEdit) {
+        // Dedicated listener for absence selection (auto-presets 8h for ferie)
+        const absenceSelect = document.getElementById('field-absence');
+        if (absenceSelect) {
+            absenceSelect.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val === 'ferie') {
+                    const startEl = document.getElementById('field-start');
+                    const endEl = document.getElementById('field-end');
+                    const typeEl = document.getElementById('field-type');
+                    const locEl = document.getElementById('field-location');
+                    if (!startEl.value || !endEl.value) {
+                        startEl.value = '08:00';
+                        endEl.value = '16:00';
+                        document.getElementById('field-lunch').checked = false;
+                    }
+                    if (!typeEl.value) typeEl.value = 'sede';
+                    if (!locEl.value) locEl.value = 'Ferie';
+                }
+                this.calculateHours();
+            });
+        }
+
+        if (reportToEdit && reportToEdit.id) {
             this.editReportId = reportToEdit.id;
             document.getElementById('report-title').innerText = "Modifica Report";
             document.getElementById('field-id').value = reportToEdit.id;
             document.getElementById('field-date').value = reportToEdit.date;
-            document.getElementById('field-type').value = reportToEdit.type;
+            document.getElementById('field-type').value = reportToEdit.type || '';
             document.getElementById('field-absence').value = reportToEdit.absence || '';
-            document.getElementById('field-start').value = reportToEdit.startTime;
-            document.getElementById('field-end').value = reportToEdit.endTime;
-            document.getElementById('field-lunch').checked = reportToEdit.lunchBreak;
-            document.getElementById('field-location').value = reportToEdit.location;
+            document.getElementById('field-start').value = reportToEdit.startTime || '';
+            document.getElementById('field-end').value = reportToEdit.endTime || '';
+            document.getElementById('field-lunch').checked = !!reportToEdit.lunchBreak;
+            document.getElementById('field-location').value = reportToEdit.location || '';
             document.getElementById('field-notes').value = reportToEdit.notes || '';
             this.calculateHours();
         } else {
             this.editReportId = null;
-            document.getElementById('field-date').valueAsDate = new Date();
+            document.getElementById('report-title').innerText = "Nuovo Report";
+            document.getElementById('field-id').value = '';
+
+            let targetDate = '';
+            if (typeof reportToEdit === 'string') {
+                targetDate = reportToEdit;
+            } else if (reportToEdit && reportToEdit.date) {
+                targetDate = reportToEdit.date;
+            }
+
+            if (targetDate) {
+                document.getElementById('field-date').value = targetDate;
+            } else {
+                const now = new Date();
+                const ly = now.getFullYear();
+                const lm = String(now.getMonth() + 1).padStart(2, '0');
+                const ld = String(now.getDate()).padStart(2, '0');
+                document.getElementById('field-date').value = `${ly}-${lm}-${ld}`;
+            }
+
+            document.getElementById('field-type').value = '';
+            document.getElementById('field-absence').value = '';
+            document.getElementById('field-start').value = '';
+            document.getElementById('field-end').value = '';
+            document.getElementById('field-lunch').checked = false;
+            document.getElementById('field-location').value = '';
+            document.getElementById('field-notes').value = '';
             this.calculateHours();
         }
     }
@@ -568,6 +688,7 @@ class App {
         const start = document.getElementById('field-start').value;
         const end = document.getElementById('field-end').value;
         const lunch = document.getElementById('field-lunch').checked;
+        const absenceVal = document.getElementById('field-absence')?.value || '';
 
         if (!start || !end) return;
 
@@ -596,10 +717,15 @@ class App {
         let overtime25 = 0;
         let overtime50 = 0;
 
-        if (isWeekend) {
-            overtime50 = diffHrs;
-        } else {
-            overtime25 = Math.max(0, diffHrs - 8);
+        // No overtime for absences (ferie, malattia, permesso)
+        const isAbsence = (absenceVal !== '');
+
+        if (!isAbsence) {
+            if (isWeekend) {
+                overtime50 = diffHrs;
+            } else {
+                overtime25 = Math.max(0, diffHrs - 8);
+            }
         }
 
         document.getElementById('calc-total').textContent = diffHrs.toFixed(1) + 'h';
@@ -805,31 +931,121 @@ class App {
         doc.text(title, 14, 30);
         doc.text(`Generato il: ${new Date().toLocaleDateString('it-IT')}`, 14, 36);
 
-        // Prepare Table Data
+        // Prepare Table Data & Calculate Hours Breakdown
+        const parseNum = (v) => {
+            if (v === undefined || v === null || v === '') return 0;
+            const n = parseFloat(String(v).replace(',', '.'));
+            return isNaN(n) ? 0 : n;
+        };
+
+        let totaleOrdinarie = 0;
+        let totaleFerie = 0;
+        let totaleOt25 = 0;
+        let totaleOt50 = 0;
+        let totaleAltreAssenze = 0;
+
         const tableBody = filtered.map(r => {
-            const dateStr = r.date.split('-').reverse().join('/');
+            const dateStr = r.date ? r.date.split('-').reverse().join('/') : '';
             const type = r.type ? r.type.toUpperCase() : '';
-            // If absence, type is ABSENCE or show note?
-            // User likes "ASSENZA" label if absent.
             let displayType = type;
-            let displayLoc = r.location;
-
-            // Smart Absence Check (reuse logic ideally, but simplified here)
+            let displayLoc = r.location || '';
             const noteLower = (r.notes || '').toLowerCase();
-            const isSmartAbsence = (!r.absence && (noteLower.includes('ferie') || noteLower.includes('malattia')));
+            const locLower = (r.location || '').toLowerCase();
+            const typeLower = (r.type || '').toLowerCase();
+            const absenceVal = r.absence ? String(r.absence).trim().toLowerCase() : '';
 
-            if (r.absence || displayType === 'ASSENZA' || isSmartAbsence) {
-                displayType = 'ASSENZA';
-                displayLoc = r.notes || '(Vedi Note)'; // Absence reason usually in Note
+            // Detect Ferie vs Other Absences
+            const isFerie = (absenceVal === 'ferie' || 
+                             typeLower === 'ferie' || 
+                             locLower === 'ferie' || 
+                             (!absenceVal && noteLower.includes('ferie')));
+
+            const isOtherAbsence = !isFerie && (
+                absenceVal === 'malattia' || absenceVal === 'permesso' ||
+                typeLower === 'assenza' || r.absence === true || String(r.absence) === 'true' ||
+                noteLower.includes('malattia') || noteLower.includes('permesso') || noteLower.includes('mutua')
+            );
+
+            const isAbsence = isFerie || isOtherAbsence;
+
+            if (isAbsence) {
+                if (isFerie) {
+                    displayType = 'FERIE';
+                    displayLoc = r.notes || r.location || 'Ferie';
+                } else if (absenceVal) {
+                    displayType = absenceVal.toUpperCase();
+                    displayLoc = r.notes || r.location || `(${absenceVal})`;
+                } else {
+                    displayType = 'ASSENZA';
+                    displayLoc = r.notes || r.location || '(Assenza)';
+                }
             }
+
+            const rawHours = parseNum(r.totalHours);
+            let rHours = 0;
+            let rOt25 = 0;
+            let rOt50 = 0;
+            let rOrdinarie = 0;
+            let strText = '';
+
+            if (isFerie) {
+                // If absence is Ferie, full day defaults to 8.0h if rawHours is 0
+                rHours = rawHours > 0 ? rawHours : 8.0;
+                totaleFerie += rHours;
+            } else if (isOtherAbsence) {
+                rHours = rawHours > 0 ? rawHours : 8.0;
+                totaleAltreAssenze += rHours;
+            } else {
+                rHours = rawHours;
+
+                // Check Weekend
+                let isWeekend = false;
+                if (r.date) {
+                    const parts = r.date.split('-').map(Number);
+                    if (parts.length === 3) {
+                        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                        const dow = d.getDay();
+                        isWeekend = (dow === 0 || dow === 6);
+                    }
+                }
+
+                // Overtime calculation
+                const savedOt25 = parseNum(r.overtime25);
+                const savedOt50 = parseNum(r.overtime50);
+
+                if (savedOt25 > 0 || savedOt50 > 0) {
+                    rOt25 = savedOt25;
+                    rOt50 = savedOt50;
+                } else if (rHours > 0) {
+                    if (isWeekend) {
+                        rOt50 = rHours;
+                    } else if (rHours > 8) {
+                        rOt25 = rHours - 8;
+                    }
+                }
+
+                rOrdinarie = Math.max(0, rHours - rOt25 - rOt50);
+
+                totaleOrdinarie += rOrdinarie;
+                totaleOt25 += rOt25;
+                totaleOt50 += rOt50;
+
+                const partsStr = [];
+                if (rOt25 > 0) partsStr.push(`${rOt25.toFixed(1)}h (25%)`);
+                if (rOt50 > 0) partsStr.push(`${rOt50.toFixed(1)}h (50%)`);
+                strText = partsStr.join(' ') || (r.overtime && r.overtime !== '0h' ? r.overtime : '');
+            }
+
+            const hoursDisplay = rHours > 0 ? rHours.toFixed(1) : (r.totalHours || '');
+            const timeDisplay = (r.startTime && r.endTime) ? `${r.startTime}-${r.endTime}` : (isAbsence ? 'Giornata' : '');
 
             return [
                 dateStr,
                 displayType,
                 displayLoc,
-                `${r.startTime}-${r.endTime}`,
-                r.totalHours,
-                r.overtime || '',
+                timeDisplay,
+                hoursDisplay,
+                strText,
                 r.notes || ''
             ];
         });
@@ -844,17 +1060,98 @@ class App {
             alternateRowStyles: { fillColor: [240, 240, 240] }
         });
 
-        // Totals Footer
-        let totalH = 0;
-        filtered.forEach(r => totalH += parseFloat(r.totalHours) || 0);
+        // Totals Calculations
+        const totaleComplessivo = totaleOrdinarie + totaleFerie + totaleOt25 + totaleOt50 + totaleAltreAssenze;
 
-        const finalY = doc.lastAutoTable.finalY + 10;
+        let finalY = doc.lastAutoTable.finalY + 8;
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const boxHeight = totaleAltreAssenze > 0 ? 44 : 38;
+        const requiredSpace = boxHeight + 8;
+
+        if (finalY + requiredSpace > pageHeight - 15) {
+            doc.addPage();
+            finalY = 20;
+        }
+
+        // Totals Box Layout
+        const boxX = 14;
+        const boxY = finalY;
+        const boxWidth = 115;
+
+        // Background Box
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 2, 2, 'FD');
+
+        // Header inside Box
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(22, 163, 74);
+        const periodTitle = scope === 'month' ? 'Riepilogo Ore Mese' : 'Riepilogo Ore Anno';
+        doc.text(periodTitle, boxX + 4, boxY + 6);
+
+        // Overall Total Hours
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Totale Ore:", boxX + 4, boxY + 12.5);
+        doc.text(`${totaleComplessivo.toFixed(1)} h`, boxX + 110, boxY + 12.5, { align: 'right' });
+
+        // Divider Line
+        doc.setDrawColor(226, 232, 240);
+        doc.line(boxX + 4, boxY + 15, boxX + 111, boxY + 15);
+
+        // Breakdown items
+        doc.setFontSize(8.5);
+
+        // 1. Ore Ordinarie
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(51, 65, 85);
+        doc.text("• Ore Ordinarie:", boxX + 6, boxY + 20);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${totaleOrdinarie.toFixed(1)} h`, boxX + 110, boxY + 20, { align: 'right' });
+
+        // 2. Ore di Ferie
+        doc.setFont('helvetica', 'normal');
+        doc.text("• Ore di Ferie:", boxX + 6, boxY + 25);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${totaleFerie.toFixed(1)} h`, boxX + 110, boxY + 25, { align: 'right' });
+
+        // 3. Straordinari al 25%
+        doc.setFont('helvetica', 'normal');
+        doc.text("• Ore Straordinarie al 25%:", boxX + 6, boxY + 30);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${totaleOt25.toFixed(1)} h`, boxX + 110, boxY + 30, { align: 'right' });
+
+        // 4. Straordinari al 50%
+        doc.setFont('helvetica', 'normal');
+        doc.text("• Ore Straordinarie al 50%:", boxX + 6, boxY + 35);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${totaleOt50.toFixed(1)} h`, boxX + 110, boxY + 35, { align: 'right' });
+
+        if (totaleAltreAssenze > 0) {
+            doc.setFont('helvetica', 'normal');
+            doc.text("• Altre Assenze (Malattia/Permessi):", boxX + 6, boxY + 40);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${totaleAltreAssenze.toFixed(1)} h`, boxX + 110, boxY + 40, { align: 'right' });
+        }
+
+        // Signature Area (Right side)
+        const signX = 145;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Firma dipendente:", signX, boxY + 8);
+
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.setTextColor(0);
-        doc.text(`Totale Ore Periodo: ${totalH.toFixed(1)}h`, 14, finalY);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Fabio Sandrini", signX, boxY + 20);
 
-        // Signature area
-        doc.text("Firma: Fabio Sandrini", 150, finalY);
+        doc.setDrawColor(148, 163, 184);
+        doc.setLineWidth(0.4);
+        doc.line(signX, boxY + 23, signX + 48, boxY + 23);
 
         doc.save(filename);
     }
