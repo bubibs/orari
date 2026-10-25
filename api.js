@@ -1,44 +1,64 @@
-```javascript
+import { Auth } from './js/auth.js';
+
 export const API = {
-    ENDPOINT: 'https://script.google.com/macros/s/AKfycbypX8DXc9dVSi9aZJ5ZIiNNLt2k4wJQJMyFep33USsCQixj0zFyfbzIOQNdnJIFoGbJGA/exec',
+    DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycbypX8DXc9dVSi9aZJ5ZIiNNLt2k4wJQJMyFep33USsCQixj0zFyfbzIOQNdnJIFoGbJGA/exec',
+
+    get ENDPOINT() {
+        const user = Auth.getCurrentUser();
+        if (user && user.cloudUrl && user.cloudUrl.trim().startsWith('http')) {
+            return user.cloudUrl.trim();
+        }
+        return this.DEFAULT_ENDPOINT;
+    },
 
     async checkHealth() {
         try {
-            // Simple ping to check connectivity
-            const response = await fetch(this.ENDPOINT + '?action=ping', { method: 'GET', mode: 'no-cors' });
-            return true; // If no network error, we assume online (opaque response with no-cors)
+            const response = await fetch(this.ENDPOINT + '?action=ping');
+            return response.ok;
         } catch (e) {
+            console.warn("Health check failed", e);
             return false;
         }
     },
 
-    async syncReport(report) {
+    async _post(action, data) {
         try {
-            // Using no-cors because Google Apps Script mostly returns opaque responses unless configured with specific headers
-            // However, "no-cors" means we can't read the response. 
-            // If the script is set to return JSONP or JSON with CORS, we can change this.
-            // For now, we assume a standard POST.
+            const user = Auth.getCurrentUser();
+            const payload = (typeof data === 'object' && data !== null) ? { ...data } : { value: data };
+            if (user) {
+                payload.userId = user.id;
+                payload.userName = user.name;
+                payload.userEmail = user.email;
+                payload.isPrimary = !!user.isPrimary;
+            }
 
-            const formData = new FormData();
-            formData.append('action', 'saveReport');
-            formData.append('data', JSON.stringify(report));
-
-            const response = await fetch(this.ENDPOINT, {
+            const response = await fetch(this.ENDPOINT + '?action=' + action, {
                 method: 'POST',
-                body: formData
+                body: JSON.stringify(payload)
             });
-
-            // If we get here, the network request 'succeeded' in reaching the server
-            return { success: true };
+            if (response.ok) return { success: true };
+            return { success: false, error: 'Server ' + response.status };
         } catch (error) {
-            console.error('Sync failed:', error);
-            return { success: false, error };
+            console.error(action + ' failed:', error);
+            return { success: false, error: String(error) };
         }
     },
 
+    saveReport(report) { return this._post('saveReport', report); },
+    deleteReport(id) { return this._post('deleteReport', { id }); },
+    saveContact(contact) { return this._post('saveContact', contact); },
+    deleteContact(id) { return this._post('deleteContact', { id }); },
+    saveSettings(settings) { return this._post('saveSettings', settings); },
+
     async fetchCloudData() {
         try {
-            const response = await fetch(this.ENDPOINT + '?action=getData');
+            const user = Auth.getCurrentUser();
+            let url = this.ENDPOINT + '?action=getData';
+            if (user) {
+                url += `&userId=${encodeURIComponent(user.id)}&userEmail=${encodeURIComponent(user.email || '')}&isPrimary=${user.isPrimary ? '1' : '0'}`;
+            }
+
+            const response = await fetch(url);
             const data = await response.json();
             return data;
         } catch (error) {

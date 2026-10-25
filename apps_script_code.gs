@@ -25,20 +25,18 @@ function doPost(e) {
 
 // --- DO GET ---
 function doGet(e) {
-  // Check if e exists (it might be undefined if run manually from editor)
   if (!e || !e.parameter) {
     return ContentService.createTextOutput("Error: No parameters found. If you are running this in the editor, use 'testDoGet' function instead.").setMimeType(ContentService.MimeType.TEXT);
   }
 
   const action = e.parameter.action;
   if (action === 'ping') return ContentService.createTextOutput("pong");
-  if (action === 'getData') return getData();
+  if (action === 'getData') return getData(e.parameter);
   
   return ContentService.createTextOutput(JSON.stringify({success:false, error:'Unknown action'})).setMimeType(ContentService.MimeType.JSON);
 }
 
 // --- TEST FUNCTION ---
-// Run this function in the editor to test doGet without errors
 function testDoGet() {
   const e = {
     parameter: {
@@ -51,67 +49,90 @@ function testDoGet() {
 
 // --- ACTIONS ---
 
-function getData() {
+function getData(params) {
+  params = params || {};
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userId = params.userId || '';
+  const userEmail = params.userEmail ? params.userEmail.toLowerCase() : '';
+  const isPrimary = params.isPrimary === '1' || !userId;
   
   // 1. Reports
   const sheetReports = getOrCreateSheet(ss, SHEET_REPORTS);
   const dataRange = sheetReports.getDataRange();
   const values = dataRange.getValues();
-  const displayValues = dataRange.getDisplayValues(); // GET WHAT USER SEES
+  const displayValues = dataRange.getDisplayValues();
   
-  const headersReports = values.shift();
-  displayValues.shift();
+  let reports = [];
+  if (values && values.length > 1) {
+    const headersReports = values.shift();
+    displayValues.shift();
 
-  const reports = values.map((row, rowIndex) => {
-    let r = {};
-    headersReports.forEach((h, i) => {
-        let val = row[i];
-        let displayVal = displayValues[rowIndex][i];
-        
-        let key = String(h).toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (!key) key = 'column' + i;
+    reports = values.map((row, rowIndex) => {
+      let r = {};
+      headersReports.forEach((h, i) => {
+          let val = row[i];
+          let displayVal = displayValues[rowIndex][i];
+          
+          let key = String(h).toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (!key) key = 'column' + i;
 
-        if (key === 'date') {
-             if (val instanceof Date) {
-                 r[key] = Utilities.formatDate(val, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
-             } else {
-                 r[key] = displayVal;
-             }
-             return;
-        }
+          if (key === 'date') {
+               if (val instanceof Date) {
+                   r[key] = Utilities.formatDate(val, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
+               } else {
+                   r[key] = displayVal;
+               }
+               return;
+          }
 
-        const isNumeric = ['totalhours', 'overtime', 'overtime25', 'overtime50', 'straordinari', 'straord', 'ore'].some(term => key.includes(term));
+          const isNumeric = ['totalhours', 'overtime', 'overtime25', 'overtime50', 'straordinari', 'straord', 'ore'].some(term => key.includes(term));
 
-        if (isNumeric) {
-             // Use displayVal to avoid TZ issues
-             // Might be "00:30", "0,5", "0.5", "8.50"
-             if (displayVal.includes(':')) {
-                 let parts = displayVal.split(':');
-                 let h = parseInt(parts[0], 10) || 0;
-                 let m = parseInt(parts[1], 10) || 0;
-                 r[key] = parseFloat((h + (m / 60)).toFixed(2));
-             } else {
-                 let n = parseFloat(displayVal.replace(',', '.'));
-                 r[key] = isNaN(n) ? 0 : n;
-             }
-             return;
-        }
+          if (isNumeric) {
+               if (displayVal.includes(':')) {
+                   let parts = displayVal.split(':');
+                   let h = parseInt(parts[0], 10) || 0;
+                   let m = parseInt(parts[1], 10) || 0;
+                   r[key] = parseFloat((h + (m / 60)).toFixed(2));
+               } else {
+                   let n = parseFloat(displayVal.replace(',', '.'));
+                   r[key] = isNaN(n) ? 0 : n;
+               }
+               return;
+          }
 
-        r[key] = val;
+          r[key] = val;
+      });
+      return r;
     });
-    return r;
-  });
+
+    // Filtro Multi-Utente:
+    // Se utente primario (o nessun userId): restituisce tutti i record (inclusi i record legacy).
+    // Se altro utente: restituisce solo i record associati al suo userId o userEmail.
+    if (!isPrimary && userId) {
+      reports = reports.filter(r => {
+        const rUser = String(r.user || r.userid || '').trim();
+        const rEmail = String(r.useremail || '').trim().toLowerCase();
+        return rUser === String(userId) || (userEmail && rEmail === userEmail);
+      });
+    }
+  }
 
   // 2. Contacts
   const sheetContacts = getOrCreateSheet(ss, SHEET_CONTACTS);
   const dataContacts = sheetContacts.getDataRange().getValues();
-  const headersContacts = dataContacts.shift();
-  const contacts = dataContacts.map(row => {
-    let c = {};
-    headersContacts.forEach((h, i) => c[h] = row[i]);
-    return c;
-  });
+  let contacts = [];
+  if (dataContacts && dataContacts.length > 1) {
+    const headersContacts = dataContacts.shift();
+    contacts = dataContacts.map(row => {
+      let c = {};
+      headersContacts.forEach((h, i) => c[h] = row[i]);
+      return c;
+    });
+
+    if (!isPrimary && userId) {
+      contacts = contacts.filter(c => String(c.user || c.userId || '') === String(userId));
+    }
+  }
 
   // 3. Settings (Month Specific)
   const sheetSettings = getOrCreateSheet(ss, SHEET_SETTINGS);
@@ -119,33 +140,34 @@ function getData() {
   const valuesSettings = settingsRange.getValues();
   const displaySettings = settingsRange.getDisplayValues();
   
-  const headersSettings = valuesSettings.shift();
-  displaySettings.shift();
-  
   let settingsMap = {};
-  if (headersSettings && headersSettings.length > 0) {
-      const numericFields = ['baseSalary', 'hourlyRate', 'allowanceReturn', 'allowanceOvernight', 'allowanceForeign', 'taxRate'];
+  if (valuesSettings && valuesSettings.length > 1) {
+    const headersSettings = valuesSettings.shift();
+    displaySettings.shift();
+    
+    if (headersSettings && headersSettings.length > 0) {
+        const numericFields = ['baseSalary', 'hourlyRate', 'allowanceReturn', 'allowanceOvernight', 'allowanceForeign', 'taxRate'];
 
-      valuesSettings.forEach((row, rowIndex) => {
-          let s = {};
-          headersSettings.forEach((h, i) => s[h] = row[i]);
-          
-          if (s.month) {
-             Object.keys(s).forEach(k => {
-                 if (numericFields.includes(k)) {
-                     let dVal = displaySettings[rowIndex][headersSettings.indexOf(k)];
-                     let n = parseFloat(dVal.replace(/[^-0-9,.]/g, '').replace(',', '.'));
-                     s[k] = isNaN(n) ? (parseFloat(s[k]) || 0) : n;
-                 }
-             });
-             settingsMap[s.month] = s;
-          }
-      });
+        valuesSettings.forEach((row, rowIndex) => {
+            let s = {};
+            headersSettings.forEach((h, i) => s[h] = row[i]);
+            
+            if (s.month) {
+               Object.keys(s).forEach(k => {
+                   if (numericFields.includes(k)) {
+                       let dVal = displaySettings[rowIndex][headersSettings.indexOf(k)];
+                       let n = parseFloat(dVal.replace(/[^-0-9,.]/g, '').replace(',', '.'));
+                       s[k] = isNaN(n) ? (parseFloat(s[k]) || 0) : n;
+                   }
+               });
+               settingsMap[s.month] = s;
+            }
+        });
+    }
   }
 
   // AUTO-INJECT DEFAULTS IF MISSING
   if (!settingsMap['default']) {
-      // Create default object
       const defaultSettings = {
           month: 'default',
           baseSalary: 3480.76,
@@ -156,7 +178,6 @@ function getData() {
           taxRate: 27
       };
       
-      // Save to Sheet so it persists
       const sheet = getOrCreateSheet(ss, SHEET_SETTINGS);
       const headers = ['month', 'baseSalary', 'hourlyRate', 'allowanceReturn', 'allowanceOvernight', 'allowanceForeign', 'taxRate'];
       ensureHeaders(sheet, headers);
@@ -171,12 +192,10 @@ function getData() {
           defaultSettings.taxRate
       ];
       sheet.appendRow(row);
-      
-      // Add to map so it returns immediately to the app
       settingsMap['default'] = defaultSettings;
   }
 
-  // 4. Daily Quote (Server Side "Online")
+  // 4. Daily Quote
   const quote = getDailyQuote();
 
   return ContentService.createTextOutput(JSON.stringify({
@@ -189,25 +208,17 @@ function getData() {
 
 function getDailyQuote() {
     try {
-        // Fetch from ZenQuotes (Quote of the Day) - EXTERNAL SERVER
-        // This satisfies the request to use an external source
         const res = UrlFetchApp.fetch("https://zenquotes.io/api/today");
         const data = JSON.parse(res.getContentText());
         
         if (data && data.length > 0) {
             const quote = data[0];
-            
-            // Translate to Italian using Google's Neural Translation
-            // This ensures we have infinite variety but in the correct language
             const itText = LanguageApp.translate(quote.q, 'en', 'it');
-            
             return { text: itText, author: quote.a };
         }
     } catch (e) {
-        // Fallback in case of API downtime
         return { text: "L'unico modo per fare un ottimo lavoro è amare quello che fai.", author: "Steve Jobs" };
     }
-    
     return { text: "Tutto sembra impossibile finché non viene fatto.", author: "Nelson Mandela" };
 }
 
@@ -215,14 +226,13 @@ function saveReport(report) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = getOrCreateSheet(ss, SHEET_REPORTS);
   
-  // Headers: id, date, type, location, starttime, endtime, totalhours, overtime, overtime25, overtime50, absence, lunchbreak, notes, timestamp
-  const headers = ['id', 'date', 'type', 'location', 'starttime', 'endtime', 'totalhours', 'overtime', 'overtime25', 'overtime50', 'absence', 'lunchbreak', 'notes', 'timestamp'];
+  // Headers con supporto Multi-Tenant (user, userEmail)
+  const headers = ['id', 'date', 'type', 'location', 'starttime', 'endtime', 'totalhours', 'overtime', 'overtime25', 'overtime50', 'absence', 'lunchbreak', 'notes', 'timestamp', 'user', 'userEmail'];
   ensureHeaders(sheet, headers);
   
   const data = sheet.getDataRange().getValues();
   let rowIndex = data.findIndex(r => r[0] == report.id);
   
-  // Prepare row
   const row = [
     report.id, 
     report.date, 
@@ -232,12 +242,14 @@ function saveReport(report) {
     report.endTime, 
     report.totalHours, 
     report.overtime,
-    report.overtime25 || 0, // NEW
-    report.overtime50 || 0, // NEW
+    report.overtime25 || 0,
+    report.overtime50 || 0,
     report.absence, 
     report.lunchBreak, 
     report.notes, 
-    new Date()
+    new Date(),
+    report.userId || report.user || '',
+    report.userEmail || ''
   ];
   
   if (rowIndex > -1) {
@@ -266,7 +278,7 @@ function saveContact(contact) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = getOrCreateSheet(ss, SHEET_CONTACTS);
   
-  const headers = ['id', 'company', 'person', 'phone', 'city', 'street', 'number'];
+  const headers = ['id', 'company', 'person', 'phone', 'city', 'street', 'number', 'user'];
   ensureHeaders(sheet, headers);
   
   const data = sheet.getDataRange().getValues();
@@ -279,7 +291,8 @@ function saveContact(contact) {
       contact.phone,
       contact.city || '',
       contact.street || '',
-      contact.number || ''
+      contact.number || '',
+      contact.userId || contact.user || ''
   ];
   
   if (rowIndex > -1) {
@@ -305,7 +318,6 @@ function deleteContact(params) {
 }
 
 function saveSettings(params) {
-    // Expects: { month: "2025-01" (or "default"), baseSalary: 123, ... }
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = getOrCreateSheet(ss, SHEET_SETTINGS);
     
@@ -328,9 +340,9 @@ function saveSettings(params) {
         parseNum(params.allowanceReturn),
         parseNum(params.allowanceOvernight),
         parseNum(params.allowanceForeign),
-        parseNum(params.taxRate || 27)
+        parseNum(params.taxRate)
     ];
-    
+
     if (rowIndex > -1) {
         sheet.getRange(rowIndex + 1, 1, 1, row.length).setValues([row]);
     } else {
@@ -340,8 +352,7 @@ function saveSettings(params) {
     return ContentService.createTextOutput(JSON.stringify({success:true})).setMimeType(ContentService.MimeType.JSON);
 }
 
-
-// --- HELPERS ---
+// --- UTILITIES ---
 
 function getOrCreateSheet(ss, name) {
   let sheet = ss.getSheetByName(name);
@@ -354,15 +365,16 @@ function getOrCreateSheet(ss, name) {
 function ensureHeaders(sheet, headers) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(headers);
-  } else {
-      // Optional: Check if headers match and update if needed?
-      // For now, assuming simple append if empty. 
-      // User might need to manually add columns if sheet exists.
-      // Or we can simple get first row and see if columns exist.
-      const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-      if (currentHeaders.length < headers.length) {
-          // Naive update: just set the headers again to extend
-          sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      }
+    return;
+  }
+  
+  // Se mancano nuove colonne (es. user, userEmail), le aggiunge in coda
+  const currentHeaders = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
+  const missing = [];
+  headers.forEach(h => {
+    if (!currentHeaders.includes(h)) missing.push(h);
+  });
+  if (missing.length > 0) {
+    sheet.getRange(1, currentHeaders.length + 1, 1, missing.length).setValues([missing]);
   }
 }
