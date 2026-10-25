@@ -563,3 +563,237 @@ textarea:focus {
     font-weight: 300;
     text-transform: uppercase;
 }
+
+
+/* --- Fixed Bottom Navigation Bar --- */
+.bottom-nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    height: 64px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-main);
+    font-size: 0.75rem;
+    font-weight: 600;
+    gap: 4px;
+    cursor: pointer;
+    padding: 8px 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item i {
+    font-size: 1.5rem;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
+}
+
+.bottom-nav-item:hover {
+    color: var(--text);
+}
+
+.bottom-nav-item.active {
+    color: var(--primary);
+}
+
+.bottom-nav-item.active i {
+    transform: translateY(-2px);
+    color: var(--primary);
+    filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.45));
+}
+
+/* User Profile Badge in Header */
+.user-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.user-badge:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.user-badge i {
+    font-size: 1.15rem;
+    color: var(--primary);
+}
+
+/* --- Login & Register Styles --- */
+.auth-wrapper {
+    max-width: 420px;
+    margin: 20px auto 40px auto;
+    width: 100%;
+}
+
+.auth-card {
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    text-align: left;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.auth-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.auth-header p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.btn-faceid {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.85), rgba(59, 130, 246, 0.95));
+    border: 1px solid rgba(96, 165, 250, 0.5);
+    color: white;
+    padding: 14px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+    transition: all 0.2s ease;
+    margin-bottom: 20px;
+    width: 100%;
+    cursor: pointer;
+}
+
+.btn-faceid:hover, .btn-faceid:active {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+}
+
+.btn-faceid i {
+    font-size: 1.4rem;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 18px 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-divider:not(:empty)::before {
+    margin-right: .75em;
+}
+
+.auth-divider:not(:empty)::after {
+    margin-left: .75em;
+}
+
+.input-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-password-wrapper input {
+    padding-right: 44px;
+}
+
+.btn-toggle-pwd {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.btn-toggle-pwd:hover {
+    color: var(--text);
+}
+
+.fast-access-section {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fast-access-btn {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.35);
+    color: var(--primary);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fast-access-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: translateY(-1px);
+}
