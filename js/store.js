@@ -1,27 +1,11 @@
-import { Auth } from './auth.js';
-
 export const Store = {
-    // Base Keys
+    // Keys
     KEYS: {
         SETTINGS: 'tecnosistem_settings',
         CONTACTS: 'tecnosistem_contacts',
         REPORTS: 'tecnosistem_reports',
         DAILY_QUOTE: 'tecnosistem_quote',
         QUEUE: 'tecnosistem_sync_queue'
-    },
-
-    // Calcola la chiave di storage specifica per l'utente loggato.
-    // L'utente primario (Fabio Sandrini) mantiene le chiavi originali senza modifiche,
-    // garantendo al 100% il recupero immediato di tutti i dati storici e cloud già memorizzati.
-    // I nuovi utenti ricevono un namespace dedicato e isolato (es. tecnosistem_reports_user_abc).
-    getUserKey(key) {
-        if (key === this.KEYS.DAILY_QUOTE) return key;
-
-        const user = Auth.getCurrentUser();
-        if (!user || user.isPrimary) {
-            return key; // Chiavi originali per Fabio Sandrini
-        }
-        return `${key}_${user.id}`;
     },
 
     // Helper to normalize month key to YYYY-MM (e.g. "Thu Oct 01 2026..." -> "2026-10")
@@ -129,19 +113,17 @@ export const Store = {
     },
 
     init() {
-        const repKey = this.getUserKey(this.KEYS.REPORTS);
-        const conKey = this.getUserKey(this.KEYS.CONTACTS);
-        if (!localStorage.getItem(repKey)) localStorage.setItem(repKey, JSON.stringify([]));
-        if (!localStorage.getItem(conKey)) localStorage.setItem(conKey, JSON.stringify([]));
+        if (!localStorage.getItem(this.KEYS.REPORTS)) this.set(this.KEYS.REPORTS, []);
+        if (!localStorage.getItem(this.KEYS.CONTACTS)) this.set(this.KEYS.CONTACTS, []);
 
         // Settings Migration & Cleanup
-        const setKey = this.getUserKey(this.KEYS.SETTINGS);
-        const settingsRaw = localStorage.getItem(setKey);
+        const settingsRaw = localStorage.getItem(this.KEYS.SETTINGS);
         if (settingsRaw) {
             try {
                 let allSettings = JSON.parse(settingsRaw);
 
                 // 1. Convert old flat format to new structure
+                // Logic: if it has 'baseSalary' AND does not have 'default' or valid month keys, it's old.
                 if (allSettings.baseSalary !== undefined && !allSettings['default']) {
                     console.log("Migrating settings to new format...");
                     allSettings = { 'default': allSettings };
@@ -160,9 +142,10 @@ export const Store = {
                     }
                 });
 
-                // 3. Aggressively purge "2000" defaults
+                // 3. Aggressively purge "2000" defaults which the user hates
                 if (allSettings['default']) {
                     const d = allSettings['default'];
+                    // Fuzzy check for 2000 or 1500 (legacy values)
                     if (Math.abs(d.baseSalary - 2000) < 1 || Math.abs(d.baseSalary - 1500) < 1) {
                         console.log("Purging legacy 2000 default settings during init.");
                         delete allSettings['default'];
@@ -186,83 +169,74 @@ export const Store = {
         DAILY_QUOTE: null
     },
 
-    // Generic Get/Set (Multi-utente automatico)
+    // Generic Get/Set
     get(key) {
-        const userKey = this.getUserKey(key);
-        const data = localStorage.getItem(userKey);
+        const data = localStorage.getItem(key);
         return data ? JSON.parse(data) : (this.DEFAULTS[key.split('_')[1]] || []);
     },
 
     set(key, value) {
-        const userKey = this.getUserKey(key);
-        localStorage.setItem(userKey, JSON.stringify(value));
-        window.dispatchEvent(new CustomEvent('store-update', { detail: { key, userKey, value } }));
+        localStorage.setItem(key, JSON.stringify(value));
+        window.dispatchEvent(new CustomEvent('store-update', { detail: { key, value } }));
     },
 
     mergeCloudData(cloudData) {
         if (!cloudData) return;
-
-        const user = Auth.getCurrentUser();
-        const isPrimary = !user || user.isPrimary;
 
         // 0. Daily Quote (Cloud wins)
         if (cloudData.quote) {
             this.set(this.KEYS.DAILY_QUOTE, cloudData.quote);
         }
 
-        // 1. Settings (Cloud wins per utente primario, o personalizzati)
+        // 1. Settings (Cloud wins but smartly with normalization)
         if (cloudData.settings && Object.keys(cloudData.settings).length > 0) {
-            if (isPrimary) {
-                const current = this.get(this.KEYS.SETTINGS) || {};
-                const cleanSettings = { ...current };
+            const current = this.get(this.KEYS.SETTINGS) || {};
+            const cleanSettings = { ...current };
 
-                if (cloudData.settings.baseSalary !== undefined && !cloudData.settings['default']) {
-                    cleanSettings['default'] = { ...cleanSettings['default'], ...cloudData.settings };
-                } else {
-                    Object.entries(cloudData.settings).forEach(([rawKey, val]) => {
-                        const normKey = this.normalizeMonthKey(rawKey, val);
-                        const parsedVal = {};
-                        Object.keys(val).forEach(k => {
-                            let num = parseFloat(val[k]);
-                            parsedVal[k] = isNaN(num) ? val[k] : num;
-                        });
-                        cleanSettings[normKey] = {
-                            ...(cleanSettings[normKey] || {}),
-                            ...parsedVal
-                        };
+            // CHECK IF CLOUD DATA IS FLAT (Legacy Script)
+            if (cloudData.settings.baseSalary !== undefined && !cloudData.settings['default']) {
+                console.warn("Received legacy FLAT settings from cloud. Updating 'default' only.");
+                cleanSettings['default'] = { ...cleanSettings['default'], ...cloudData.settings };
+            } else {
+                // IT IS STRUCTURED: Normalize each month key to YYYY-MM
+                Object.entries(cloudData.settings).forEach(([rawKey, val]) => {
+                    const normKey = this.normalizeMonthKey(rawKey, val);
+                    
+                    // Parse numeric values
+                    const parsedVal = {};
+                    Object.keys(val).forEach(k => {
+                        let num = parseFloat(val[k]);
+                        parsedVal[k] = isNaN(num) ? val[k] : num;
                     });
-                }
 
-                Object.keys(cleanSettings).forEach(k => {
-                    if (k !== 'default' && !k.match(/^\d{4}-\d{2}$/)) {
-                        delete cleanSettings[k];
-                    }
+                    cleanSettings[normKey] = {
+                        ...(cleanSettings[normKey] || {}),
+                        ...parsedVal
+                    };
                 });
-
-                this.set(this.KEYS.SETTINGS, cleanSettings);
             }
+
+            // Remove legacy un-normalized keys (e.g. raw Date strings with GMT)
+            Object.keys(cleanSettings).forEach(k => {
+                if (k !== 'default' && !k.match(/^\d{4}-\d{2}$/)) {
+                    delete cleanSettings[k];
+                }
+            });
+
+            this.set(this.KEYS.SETTINGS, cleanSettings);
         }
 
-        // 2. Contacts (Merge by ID, filtrati per utente se non primario)
+        // 2. Contacts (Merge by ID)
         if (cloudData.contacts) {
-            let contactsList = cloudData.contacts;
-            if (!isPrimary && user) {
-                // Per gli altri utenti: prendi solo i contatti salvati con il loro userId
-                contactsList = contactsList.filter(c => 
-                    c.userid && String(c.userid) === String(user.id)
-                );
-            }
-
             const local = this.getContacts();
-            const cloud = contactsList.map(c => ({
+            const cloud = cloudData.contacts.map(c => ({
                 id: String(c.id),
                 company: c.company,
                 city: c.city || '',
                 street: c.street || (c.address || ''),
                 number: c.number || '',
                 person: c.person,
-                phone: c.phone,
-                userId: c.userid || c.userId || ''
+                phone: c.phone
             }));
 
             const map = new Map();
@@ -272,29 +246,17 @@ export const Store = {
             this.set(this.KEYS.CONTACTS, Array.from(map.values()));
         }
 
-        // 3. Reports (Merge by ID con partizionamento multi-tenant)
+        // 3. Reports (Merge by ID)
         if (cloudData.reports) {
-            let reportsList = cloudData.reports;
-
-            if (!isPrimary && user) {
-                // Gli altri utenti vedono ESCLUSIVAMENTE i propri report
-                reportsList = reportsList.filter(r => {
-                    const rUserId = r.userid || r.user || r.userId;
-                    const rEmail = r.useremail || r.userEmail;
-                    return (rUserId && String(rUserId) === String(user.id)) ||
-                           (rEmail && String(rEmail).toLowerCase() === String(user.email).toLowerCase());
-                });
-            }
-            // Se isPrimary (Fabio Sandrini): recupera TUTTI i report esistenti e salvati!
-
             const local = this.getReports();
-            const cloud = reportsList.map(r => {
+            const cloud = cloudData.reports.map(r => {
                 const parseNum = (v) => {
                     if (v === undefined || v === null || v === '') return 0;
                     let n = parseFloat(String(v).replace(',', '.'));
                     return isNaN(n) ? 0 : n;
                 };
 
+                // Helper to find value by normalized key OR common aliases
                 const getVal = (aliases) => {
                     for (let a of aliases) {
                         const normA = a.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -317,9 +279,6 @@ export const Store = {
                     absence: r.absence || getVal(['assenza', 'ferie', 'malattia']),
                     lunchBreak: (r.lunchbreak !== undefined ? r.lunchbreak : getVal(['mensa', 'pausa', 'lunch'])) === true || r.lunchbreak === 'true',
                     notes: r.notes || getVal(['note', 'descr', 'descrizione']),
-                    userId: r.userid || r.user || r.userId || '',
-                    userEmail: r.useremail || r.userEmail || '',
-                    userName: r.username || r.userName || '',
                     synced: true
                 };
             });
@@ -341,10 +300,6 @@ export const Store = {
     },
 
     addContact(contact) {
-        const user = Auth.getCurrentUser();
-        if (user) {
-            contact.userId = user.id;
-        }
         const contacts = this.getContacts();
         contact.id = Date.now().toString();
         contacts.push(contact);
@@ -352,10 +307,6 @@ export const Store = {
     },
 
     updateContact(updatedContact) {
-        const user = Auth.getCurrentUser();
-        if (user && !updatedContact.userId) {
-            updatedContact.userId = user.id;
-        }
         const contacts = this.getContacts().map(c => c.id === updatedContact.id ? updatedContact : c);
         this.set(this.KEYS.CONTACTS, contacts);
     },
@@ -371,12 +322,6 @@ export const Store = {
     },
 
     addReport(report) {
-        const user = Auth.getCurrentUser();
-        if (user) {
-            report.userId = user.id;
-            report.userName = user.name;
-            report.userEmail = user.email;
-        }
         const reports = this.getReports();
         report.id = report.id || Date.now().toString();
         report.synced = false;
@@ -385,12 +330,6 @@ export const Store = {
     },
 
     updateReport(updatedReport) {
-        const user = Auth.getCurrentUser();
-        if (user && !updatedReport.userId) {
-            updatedReport.userId = user.id;
-            updatedReport.userName = user.name;
-            updatedReport.userEmail = user.email;
-        }
         const reports = this.getReports().map(r => r.id === updatedReport.id ? updatedReport : r);
         this.set(this.KEYS.REPORTS, reports);
     },

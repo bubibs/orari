@@ -29,7 +29,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css?v=2.0">
+    <link rel="stylesheet" href="css/style.css?v=1.9">
 </head>
 
 <body>
@@ -37,23 +37,18 @@
         <!-- Header -->
         <header class="app-header">
             <div class="header-content">
-                <div class="logo-area" onclick="app.navigate('home')" style="cursor: pointer;">
+                <div class="logo-area">
                     <h1>TECNOSISTEM</h1>
                     <span class="subtitle">The Italian Job</span>
                 </div>
-                <div class="header-actions" style="display:flex; align-items:center; gap:12px;">
+                <div class="header-actions" style="display:flex; align-items:center; gap:15px;">
                     <div id="weather-header"
-                        style="font-size:0.85rem; font-weight:600; color:var(--text); display:flex; align-items:center; gap:5px;">
+                        style="font-size:0.9rem; font-weight:600; color:var(--text); display:flex; align-items:center; gap:5px;">
                         <!-- Weather injected here -->
                     </div>
                     <div id="cloud-status" class="cloud-indicator" title="Sync Status" onclick="app.sync()"
                         style="cursor: pointer;">
                         <i id="cloud-icon" class="ph ph-cloud-check"></i>
-                    </div>
-                    <!-- User Profile & Session Pill -->
-                    <div id="user-header-badge" class="user-badge" onclick="app.toggleUserMenu()" style="display:none;" title="Profilo Utente & Impostazioni">
-                        <i class="ph ph-user-circle"></i>
-                        <span id="user-header-name">Utente</span>
                     </div>
                 </div>
             </div>
@@ -64,36 +59,18 @@
             <!-- Views will be injected here by JS -->
         </main>
 
-        <!-- Bottom Navigation Bar (Home, Storico, Stipendio sempre in primo piano) -->
-        <nav id="bottom-nav" class="bottom-nav-bar" style="display:none;">
-            <button class="bottom-nav-item active" id="bottom-nav-home" onclick="app.navigate('home')">
-                <i class="ph ph-house"></i>
-                <span>Home</span>
-            </button>
-            <button class="bottom-nav-item" id="bottom-nav-history" onclick="app.navigate('history')">
-                <i class="ph ph-clock-counter-clockwise"></i>
-                <span>Storico</span>
-            </button>
-            <button class="bottom-nav-item" id="bottom-nav-salary" onclick="app.navigate('salary')">
-                <i class="ph ph-currency-eur"></i>
-                <span>Stipendio</span>
-            </button>
-        </nav>
-
         <!-- Toast Notification Container -->
         <div id="toast-container"></div>
 
-        <!-- User Profile / Session Modal Container -->
-        <div id="user-modal-container"></div>
-
-        <!-- App Footer Signature (nascosta quando c'è la bottom nav, visibile nei report o profilo) -->
-        <footer class="app-footer" id="app-footer">
+        <!-- App Footer Signature -->
+        <footer class="app-footer">
             Fabio Sandrini
         </footer>
     </div>
 
+
     <!-- Scripts -->
-    <script type="module" src="js/app.js?v=2.0"></script>
+    <script type="module" src="js/app.js?v=1.9"></script>
 </body>
 
 </html>

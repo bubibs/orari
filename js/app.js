@@ -1,7 +1,6 @@
 
 import { Store } from './store.js';
 import { API } from './api.js';
-import { Auth } from './auth.js';
 
 // --- Helper: Generate Time Options ---
 const generateTimeOptions = (selected = '') => {
@@ -257,121 +256,6 @@ const Views = {
                  </form>
             </div>
         </div>
-    `,
-
-    login: () => `
-        <div class="fade-in auth-wrapper">
-            <div class="auth-card">
-                <div class="auth-header">
-                    <div style="font-size:2.4rem; color:var(--primary); margin-bottom:8px;">
-                        <i class="ph ph-shield-check"></i>
-                    </div>
-                    <h2>Accedi ad Orari TS</h2>
-                    <p>Inserisci le tue credenziali o usa Face ID</p>
-                </div>
-
-                <!-- Pulsante Face ID / Biometria -->
-                <button type="button" class="btn btn-faceid" onclick="app.handleFaceIdLogin()" id="btn-faceid-login">
-                    <i class="ph ph-scan-face"></i>
-                    <span>Accedi con Face ID</span>
-                </button>
-
-                <div class="auth-divider">oppure con credenziali</div>
-
-                <form onsubmit="app.handleLoginSubmit(event)">
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username o Email</label>
-                        <input type="text" id="login-identifier" required placeholder="es. fabio oppure email" autocomplete="username" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password</label>
-                        <div class="input-password-wrapper">
-                            <input type="password" id="login-password" required placeholder="Inserisci password" autocomplete="current-password" style="font-size:1rem; padding:12px;">
-                            <button type="button" class="btn-toggle-pwd" onclick="app.togglePasswordVisibility('login-password', this)">
-                                <i class="ph ph-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
-                        <i class="ph ph-sign-in"></i> Accedi
-                    </button>
-                </form>
-
-                <!-- Accesso Rapido Fabio Sandrini -->
-                <div class="fast-access-section">
-                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('fabio', '1234')">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="ph ph-user-check" style="font-size:1.2rem;"></i>
-                            <span>Accesso Rapido Fabio Sandrini</span>
-                        </div>
-                        <i class="ph ph-arrow-right"></i>
-                    </button>
-                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-                        (Password predefinita: <strong>1234</strong>)
-                    </div>
-                </div>
-
-                <div style="text-align:center; margin-top:22px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-                    <span style="font-size:0.85rem; color:var(--text-muted);">Non hai ancora un account?</span><br>
-                    <button type="button" class="btn btn-sm" style="background:none; border:none; color:var(--primary); font-size:0.9rem; font-weight:600; text-decoration:underline; cursor:pointer; padding:6px; margin-top:4px;" onclick="app.navigate('register')">
-                        Crea un nuovo account utente
-                    </button>
-                </div>
-            </div>
-        </div>
-    `,
-
-    register: () => `
-        <div class="fade-in auth-wrapper">
-            <div class="auth-card">
-                <div class="auth-header">
-                    <div style="font-size:2.4rem; color:var(--primary); margin-bottom:8px;">
-                        <i class="ph ph-user-plus"></i>
-                    </div>
-                    <h2>Nuovo Utente</h2>
-                    <p>Registra un profilo personale su Orari TS</p>
-                </div>
-
-                <form onsubmit="app.handleRegisterSubmit(event)">
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Nome e Cognome</label>
-                        <input type="text" id="reg-name" required placeholder="es. Mario Rossi" autocomplete="name" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username</label>
-                        <input type="text" id="reg-username" required placeholder="es. mario.rossi" autocomplete="username" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Email (opzionale)</label>
-                        <input type="email" id="reg-email" placeholder="mario@tecnosistem.com" autocomplete="email" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password</label>
-                        <div class="input-password-wrapper">
-                            <input type="password" id="reg-password" required placeholder="Scegli una password" autocomplete="new-password" style="font-size:1rem; padding:12px;">
-                            <button type="button" class="btn-toggle-pwd" onclick="app.togglePasswordVisibility('reg-password', this)">
-                                <i class="ph ph-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
-                        <i class="ph ph-check"></i> Registrati e Accedi
-                    </button>
-                </form>
-
-                <div style="text-align:center; margin-top:20px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
-                    <button type="button" class="btn btn-sm" style="background:none; border:none; color:var(--text-muted); font-size:0.88rem; cursor:pointer;" onclick="app.navigate('login')">
-                        ← Hai già un account? Torna al Login
-                    </button>
-                </div>
-            </div>
-        </div>
     `
 };
 
@@ -387,17 +271,6 @@ class App {
     }
 
     async init() {
-        await Auth.init();
-        window.auth = Auth;
-
-        const currentUser = Auth.getCurrentUser();
-        this.updateAuthUI(currentUser);
-
-        if (!currentUser) {
-            this.navigate('login');
-            return;
-        }
-
         this.navigate('home');
         this.updateCloudStatus();
 
@@ -408,275 +281,16 @@ class App {
     }
 
     navigate(viewName, params = null) {
-        const currentUser = Auth.getCurrentUser();
-        if (!currentUser && viewName !== 'login' && viewName !== 'register') {
-            this.navigate('login');
-            return;
-        }
-
         if (!Views[viewName]) return;
         this.currentView = viewName;
         this.root.innerHTML = Views[viewName]();
 
-        // Aggiorna la barra di navigazione inferiore fissa
-        this.updateBottomNav(viewName);
-
         // Post-render lifecycle
-        if (viewName === 'home') this.renderHomeDashboard();
+        if (viewName === 'home') this.renderHomeDashboard(); // CHANGED: Load full dashboard
         if (viewName === 'report') this.initReportForm(params);
         if (viewName === 'contacts') this.renderContacts();
         if (viewName === 'history') this.renderHistory();
         if (viewName === 'salary') this.renderSalary(new Date().toISOString().slice(0, 7));
-    }
-
-    updateBottomNav(viewName) {
-        const bottomNav = document.getElementById('bottom-nav');
-        if (!bottomNav) return;
-
-        const currentUser = Auth.getCurrentUser();
-        if (!currentUser || viewName === 'login' || viewName === 'register') {
-            bottomNav.style.display = 'none';
-            return;
-        }
-
-        bottomNav.style.display = 'flex';
-
-        const btnHome = document.getElementById('bottom-nav-home');
-        const btnHistory = document.getElementById('bottom-nav-history');
-        const btnSalary = document.getElementById('bottom-nav-salary');
-
-        if (btnHome) btnHome.classList.toggle('active', viewName === 'home');
-        if (btnHistory) btnHistory.classList.toggle('active', viewName === 'history');
-        if (btnSalary) btnSalary.classList.toggle('active', viewName === 'salary');
-    }
-
-    updateAuthUI(user) {
-        const userBadge = document.getElementById('user-header-badge');
-        const userNameSpan = document.getElementById('user-header-name');
-        const footer = document.getElementById('app-footer');
-
-        if (user) {
-            if (userBadge) {
-                userBadge.style.display = 'flex';
-                if (userNameSpan) userNameSpan.textContent = user.name ? user.name.split(' ')[0] : 'Profilo';
-            }
-            if (footer) {
-                footer.textContent = user.name || 'Tecnosistem';
-            }
-        } else {
-            if (userBadge) userBadge.style.display = 'none';
-            if (footer) footer.textContent = 'Tecnosistem';
-        }
-    }
-
-    togglePasswordVisibility(inputId, btn) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        const isPwd = input.type === 'password';
-        input.type = isPwd ? 'text' : 'password';
-        const icon = btn.querySelector('i');
-        if (icon) {
-            icon.className = isPwd ? 'ph ph-eye-slash' : 'ph ph-eye';
-        }
-    }
-
-    async handleLoginSubmit(event) {
-        event.preventDefault();
-        const identifier = document.getElementById('login-identifier')?.value;
-        const password = document.getElementById('login-password')?.value;
-
-        const res = await Auth.login(identifier, password);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Bentornato, ${res.user.name}!`, 'success');
-        this.sync();
-
-        this.checkPromptFaceId(res.user);
-    }
-
-    async handleRegisterSubmit(event) {
-        event.preventDefault();
-        const name = document.getElementById('reg-name')?.value;
-        const username = document.getElementById('reg-username')?.value;
-        const email = document.getElementById('reg-email')?.value;
-        const password = document.getElementById('reg-password')?.value;
-
-        const res = await Auth.register({ name, username, email, password });
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Benvenuto in Orari TS, ${res.user.name}!`, 'success');
-        this.sync();
-
-        this.checkPromptFaceId(res.user);
-    }
-
-    async handleFastLogin(username, password) {
-        const res = await Auth.login(username, password);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Accesso rapido effettuato. Ciao ${res.user.name}!`, 'success');
-        this.sync();
-
-        this.checkPromptFaceId(res.user);
-    }
-
-    async handleFaceIdLogin() {
-        this.showToast('Verifica Face ID in corso...', 'info');
-        const res = await Auth.loginWithFaceId();
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Accesso Face ID completato! Ciao ${res.user.name}.`, 'success');
-        this.sync();
-    }
-
-    async handleRegisterFaceId() {
-        this.showToast('Attivazione Face ID in corso...', 'info');
-        const res = await Auth.registerFaceId();
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        this.showToast('Face ID registrato con successo su questo dispositivo!', 'success');
-        this.closeUserMenu();
-        this.updateAuthUI(Auth.getCurrentUser());
-    }
-
-    async checkPromptFaceId(user) {
-        if (!user.hasFaceId) {
-            const available = await Auth.isFaceIdAvailable();
-            if (available) {
-                setTimeout(() => {
-                    if (confirm("Vuoi abilitare Face ID per accedere più velocemente la prossima volta?")) {
-                        this.handleRegisterFaceId();
-                    }
-                }, 900);
-            }
-        }
-    }
-
-    handleSaveCloudUrl() {
-        const input = document.getElementById('user-cloud-url');
-        const url = input ? input.value : '';
-        Auth.updateUserSettings({ cloudUrl: url });
-        this.showToast('Impostazione cloud salvata!', 'success');
-        this.closeUserMenu();
-        this.sync();
-    }
-
-    handleLogout() {
-        this.closeUserMenu();
-        Auth.logout();
-        this.updateAuthUI(null);
-        this.navigate('login');
-        this.showToast('Disconnessione effettuata.', 'info');
-    }
-
-    toggleUserMenu() {
-        const container = document.getElementById('user-modal-container');
-        if (!container) return;
-
-        if (document.getElementById('user-profile-modal-overlay')) {
-            this.closeUserMenu();
-            return;
-        }
-
-        const user = Auth.getCurrentUser();
-        if (!user) return;
-
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'user-profile-modal-overlay';
-        modalDiv.className = 'modal-overlay';
-        modalDiv.onclick = () => this.closeUserMenu();
-
-        modalDiv.innerHTML = `
-            <div class="modal-card fade-in" onclick="event.stopPropagation()">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <i class="ph ph-user-circle text-gold" style="font-size:2rem;"></i>
-                        <div style="text-align:left;">
-                            <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">${user.name}</h3>
-                            <span style="font-size:0.8rem; color:var(--text-muted);">${user.email || user.username} ${user.isPrimary ? '★ (Principale)' : ''}</span>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeUserMenu()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                </div>
-
-                <!-- Sezione Face ID -->
-                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:14px; text-align:left;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="ph ph-scan-face text-gold" style="font-size:1.3rem;"></i>
-                            <span style="font-weight:600; font-size:0.92rem;">Face ID / Biometria</span>
-                        </div>
-                        <span style="font-size:0.8rem; padding:2px 8px; border-radius:10px; background:${user.hasFaceId ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}; color:${user.hasFaceId ? '#22c55e' : '#ef4444'}; font-weight:600;">
-                            ${user.hasFaceId ? 'Attivo' : 'Non attivo'}
-                        </span>
-                    </div>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; line-height:1.4;">
-                        ${user.hasFaceId 
-                            ? 'Face ID è abilitato su questo dispositivo. Puoi accedere istantaneamente con il tuo volto.' 
-                            : 'Abilita l\'accesso rapido con Face ID (o Touch ID/Windows Hello) sul tuo dispositivo.'}
-                    </p>
-                    <button type="button" class="btn btn-sm" style="background:#2563eb; color:white; font-size:0.85rem; width:100%; font-weight:600;" onclick="app.handleRegisterFaceId()">
-                        <i class="ph ph-scan-face"></i> ${user.hasFaceId ? 'Riconfigura Face ID' : 'Abilita Face ID Ora'}
-                    </button>
-                </div>
-
-                <!-- Sezione Cloud Database Personale -->
-                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:16px; text-align:left;">
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                        <i class="ph ph-cloud text-gold" style="font-size:1.2rem;"></i>
-                        <span style="font-weight:600; font-size:0.92rem;">Database Cloud Personale</span>
-                    </div>
-                    <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
-                        URL Google Apps Script personale (lascia vuoto per usare il cloud aziendale condiviso).
-                    </p>
-                    <input type="text" id="user-cloud-url" value="${user.cloudUrl || ''}" placeholder="https://script.google.com/..." style="font-size:0.82rem; padding:8px 10px; width:100%; margin-bottom:8px;">
-                    <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; font-size:0.82rem; width:100%;" onclick="app.handleSaveCloudUrl()">
-                        Salva URL Cloud
-                    </button>
-                </div>
-
-                <!-- Pulsante Logout -->
-                <button type="button" class="btn btn-danger" style="background:#ef4444; color:white; width:100%; font-size:0.95rem; font-weight:600; padding:12px;" onclick="app.handleLogout()">
-                    <i class="ph ph-sign-out"></i> Disconnetti Account
-                </button>
-            </div>
-        `;
-
-        container.appendChild(modalDiv);
-    }
-
-    closeUserMenu() {
-        const modal = document.getElementById('user-profile-modal-overlay');
-        if (modal) modal.remove();
     }
 
     // --- Weather Logic ---
@@ -1560,8 +1174,80 @@ class App {
         result.doc.save(result.filename);
     }
 
-    // --- Send PDF via Native Email / Mail App (Apertura Immediata Diretta) ---
-    async sendPDFViaEmail(scope = 'month') {
+    // --- Send PDF via Native Email / Mail App ---
+    sendPDFViaEmail(scope = 'month') {
+        this.showEmailModal(scope);
+    }
+
+    showEmailModal(scope = 'month') {
+        const picker = document.getElementById('export-month') || document.getElementById('salary-month');
+        const selectedValue = picker ? picker.value : new Date().toISOString().slice(0, 7);
+        const parts = selectedValue.split('-');
+        const year = parts[0];
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        const monthsIt = [
+            'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+            'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+        ];
+        const monthName = monthsIt[monthIdx] || parts[1];
+        const subject = scope === 'month' ? `Report ${monthName} ${year}` : `Report Anno ${year}`;
+        const filename = `${subject}.pdf`;
+
+        this.closeEmailModal();
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'email-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => this.closeEmailModal();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ph ph-envelope-simple text-gold" style="font-size:1.6rem;"></i>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Invia ad Amministrazione</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeEmailModal()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:10px; margin-bottom:16px; font-size:0.86rem; line-height:1.5;">
+                    <div><span style="color:#94a3b8;">Destinatario:</span> <strong style="color:#38bdf8;">amministrazione@tecnosistem.com</strong></div>
+                    <div><span style="color:#94a3b8;">Oggetto:</span> <strong style="color:#facc15;">${subject}</strong></div>
+                    <div><span style="color:#94a3b8;">Allegato:</span> <span>${filename}</span></div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button type="button" class="btn btn-primary" style="padding:14px; font-size:0.92rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('share', '${scope}')">
+                        <i class="ph ph-paperclip" style="font-size:1.3rem;"></i>
+                        <span>1. Condividi con Allegato PDF</span>
+                    </button>
+                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 4px 0; text-align:center; line-height:1.3;">
+                        Apre l'app Mail con il <strong>file PDF già allegato</strong>.<br>L'indirizzo viene copiato: tocca <em>"A:"</em> e incolla.
+                    </p>
+
+                    <button type="button" class="btn" style="padding:14px; font-size:0.92rem; font-weight:600; background:#334155; color:white; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('mailto', '${scope}')">
+                        <i class="ph ph-envelope-open" style="font-size:1.3rem;"></i>
+                        <span>2. Apri con Campi Precompilati</span>
+                    </button>
+                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 0 0; text-align:center; line-height:1.3;">
+                        Apre l'app Mail con <strong>Destinatario e Oggetto già compilati</strong>.<br>Il PDF viene scaricato pronto da allegare.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalDiv);
+    }
+
+    closeEmailModal() {
+        const modal = document.getElementById('email-modal-overlay');
+        if (modal) modal.remove();
+    }
+
+    async executeSendEmail(mode, scope = 'month') {
+        this.closeEmailModal();
         const result = this.generatePDFDoc(scope);
         if (!result) return;
 
@@ -1571,51 +1257,45 @@ class App {
         const emailSubject = scope === 'month'
             ? `Report ${monthName} ${year}`
             : `Report Anno ${year}`;
-        
-        const currentUser = Auth.getCurrentUser();
-        const senderName = currentUser ? currentUser.name : 'Sandrini Fabio';
-        const emailBody = `ciao Simona ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.
-${senderName}`;
+        const emailBody = `ciao Simona ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.\r\nSandrini Fabio`;
 
-        const pdfBlob = doc.output('blob');
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+        if (mode === 'mailto') {
+            // Mode 2: Standard mailto URL scheme
+            // Automatically fills To, Subject and Body in Apple Mail
+            doc.save(filename);
+            const mailtoUrl = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            window.location.href = mailtoUrl;
+            this.showToast('Mail aperta con destinatario e oggetto! Il PDF è nei file.', 'success');
+        } else {
+            // Mode 1: Native Web Share API with File
+            // Automatically attaches the actual PDF document
+            const pdfBlob = doc.output('blob');
+            const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-        // Copia destinatario negli appunti per comodità immediata
-        try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(emailTo);
-            }
-        } catch (e) {
-            console.warn("Clipboard access:", e);
-        }
-
-        // Su iPhone/iOS Safari e dispositivi che supportano la condivisione diretta di file:
-        // Apre direttamente il pannello nativo con l'app Mail e il PDF già allegato!
-        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+            // Copy recipient to clipboard for convenient paste into "To" field
             try {
-                this.showToast(`Apertura Mail... (Destinatario copiato: ${emailTo})`, 'success');
-                await navigator.share({
-                    files: [pdfFile],
-                    title: emailSubject,
-                    text: `A: ${emailTo}
-Oggetto: ${emailSubject}
-
-${emailBody}`
-                });
-                return;
-            } catch (err) {
-                if (err.name === 'AbortError') return;
-                console.warn("Share fallback:", err);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(emailTo);
+                }
+            } catch (e) {
+                console.warn("Clipboard access:", e);
             }
-        }
 
-        // Fallback immediato con mailto per PC Desktop / browser senza file sharing:
-        // Scarica subito il PDF e apre immediatamente il client mail con destinatario e oggetto già compilati!
-        doc.save(filename);
-        const mailtoUrl = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        window.location.href = mailtoUrl;
-        this.showToast('Mail aperta con destinatario e oggetto! Il PDF è nei file.', 'success');
-    } else {
+            if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                try {
+                    this.showToast(`Destinatario copiato: ${emailTo}`);
+                    await navigator.share({
+                        files: [pdfFile],
+                        title: emailSubject,
+                        text: `A: ${emailTo}\nOggetto: ${emailSubject}\n\n${emailBody}`
+                    });
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.warn("Share fallback:", err);
+                        this.executeSendEmail('mailto', scope);
+                    }
+                }
+            } else {
                 this.executeSendEmail('mailto', scope);
             }
         }
