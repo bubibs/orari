@@ -3711,7 +3711,7 @@ ${emailBody}`
             }
 
         } catch (err) {
-            botDiv.innerHTML = '<span style="color:#ef4444;">Si è verificato un errore nell\\'elaborazione. Riprova.</span>';
+            botDiv.innerHTML = `<span style="color:#ef4444;">Si è verificato un errore nell'elaborazione. Riprova.</span>`;
         }
 
         chat.scrollTop = chat.scrollHeight;
