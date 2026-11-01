@@ -87,13 +87,24 @@ export const Store = {
         }
 
         // 3. Fallback/Init Defaults
-        const defaults = {
+        const user = Auth.getCurrentUser();
+        const isPrimary = !user || user.isPrimary;
+
+        // Nuovi utenti partono rigorosamente con parametri a 0. L'utente principale mantiene i suoi parametri.
+        const defaults = isPrimary ? {
             baseSalary: 3480.76,
             hourlyRate: 17.23,
             allowanceReturn: 30.00,
             allowanceOvernight: 60.00,
             allowanceForeign: 105.00,
             taxRate: 27
+        } : {
+            baseSalary: 0,
+            hourlyRate: 0,
+            allowanceReturn: 0,
+            allowanceOvernight: 0,
+            allowanceForeign: 0,
+            taxRate: 0
         };
 
         // If settings found, merge with defaults to ensure all keys exist and are numeric

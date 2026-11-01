@@ -1,4 +1,4 @@
-// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync & Face ID) ---
+// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync, Admin & Face ID) ---
 
 export const Auth = {
     KEYS: {
@@ -75,32 +75,41 @@ export const Auth = {
         return result;
     },
 
-    // Inizializza archivio utenti e utente primario predefinito (Fabio Sandrini)
+    // Inizializza archivio utenti e utente primario predefinito (Fabio Sandrini: bubibs@gmail.com / Brescia1-)
     async init() {
         let users = this.getUsers();
-        if (users.length === 0) {
-            // Configurazione dell'utente principale (Fabio Sandrini)
-            // Password predefinita: '1234' (modificabile in qualsiasi momento)
-            const defaultPasswordHash = await this.hashPassword('1234');
-            const primaryUser = {
+        const primaryHash = await this.hashPassword('Brescia1-');
+
+        let primaryUser = users.find(u => u.isPrimary || u.id === 'fabio_sandrini' || u.email === 'bubibs@gmail.com' || u.email === 'amministrazione@tecnosistem.com');
+
+        if (!primaryUser) {
+            primaryUser = {
                 id: 'fabio_sandrini',
                 name: 'Fabio Sandrini',
-                username: 'fabio',
-                email: 'amministrazione@tecnosistem.com',
-                passwordHash: defaultPasswordHash,
+                username: 'bubibs',
+                email: 'bubibs@gmail.com',
+                passwordHash: primaryHash,
                 isPrimary: true,
                 cloudUrl: '',
                 hasFaceId: false,
                 createdAt: new Date().toISOString()
             };
-            users = [primaryUser];
-            localStorage.setItem(this.KEYS.USERS, JSON.stringify(users));
+            users.unshift(primaryUser);
+        } else {
+            // Aggiorna sempre credenziali configurate per l'utente principale
+            primaryUser.id = 'fabio_sandrini';
+            primaryUser.name = 'Fabio Sandrini';
+            primaryUser.username = 'bubibs';
+            primaryUser.email = 'bubibs@gmail.com';
+            primaryUser.passwordHash = primaryHash;
+            primaryUser.isPrimary = true;
         }
+
+        this.saveUsers(users);
 
         // Se nessun utente è attualmente loggato ma c'è già una sessione memorizzata valida
         const current = this.getCurrentUser();
         if (current) {
-            // Aggiorna i dati con l'ultimo record salvato
             const fresh = users.find(u => u.id === current.id);
             if (fresh) {
                 this.setCurrentUser(fresh);
@@ -131,23 +140,29 @@ export const Auth = {
         cloudUsers.forEach(cu => {
             if (!cu) return;
             const uname = String(cu.username || '').trim().toLowerCase();
+            const uemail = String(cu.email || '').trim().toLowerCase();
             const uid = String(cu.id || ('user_' + uname));
-            const existing = map.get(uid) || Array.from(map.values()).find(u => (u.username || '').toLowerCase() === uname);
+            
+            // Non sovrascrivere l'utente primario
+            if (uemail === 'bubibs@gmail.com' || uname === 'bubib' || cu.isprimary === true || cu.isprimary === 'true') {
+                return;
+            }
+
+            const existing = map.get(uid) || Array.from(map.values()).find(u => (u.username || '').toLowerCase() === uname || (u.email && u.email.toLowerCase() === uemail));
             
             if (!existing) {
                 map.set(uid, {
                     id: uid,
                     name: cu.name || uname || 'Utente',
                     username: uname,
-                    email: cu.email || (uname ? `${uname}@tecnosistem.com` : ''),
+                    email: uemail || (uname ? `${uname}@tecnosistem.com` : ''),
                     passwordHash: cu.passwordhash || cu.passwordHash || '',
-                    isPrimary: cu.isprimary === true || cu.isprimary === 'true' || cu.isPrimary === true,
+                    isPrimary: false,
                     cloudUrl: cu.cloudurl || cu.cloudUrl || '',
                     hasFaceId: cu.hasfaceid === true || cu.hasfaceid === 'true' || cu.hasFaceId === true,
                     createdAt: cu.createdat || cu.createdAt || new Date().toISOString()
                 });
             } else {
-                // Aggiorna se mancavano campi
                 if (cu.passwordhash && !existing.passwordHash) existing.passwordHash = cu.passwordhash;
                 if (cu.name && existing.name === existing.username) existing.name = cu.name;
                 if (cu.cloudurl && !existing.cloudUrl) existing.cloudUrl = cu.cloudurl;
@@ -168,7 +183,6 @@ export const Auth = {
 
     setCurrentUser(user) {
         if (user) {
-            // Non memorizzare l'hash della password nella sessione attiva
             const sessionUser = {
                 id: user.id,
                 name: user.name,
@@ -185,7 +199,7 @@ export const Auth = {
         window.dispatchEvent(new CustomEvent('auth-state-changed', { detail: { user } }));
     },
 
-    // Login classico con Username/Email e Password (con verifica locale e fallback Cloud)
+    // Login classico con Username/Email e Password
     async login(identifier, password) {
         const idClean = (identifier || '').trim().toLowerCase();
         if (!idClean) {
@@ -198,7 +212,8 @@ export const Auth = {
         let users = this.getUsers();
         let user = users.find(u => 
             (u.username && u.username.toLowerCase() === idClean) ||
-            (u.email && u.email.toLowerCase() === idClean)
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
 
         // Se non trovato in locale, prova a sincronizzare gli utenti dal Cloud
@@ -218,11 +233,11 @@ export const Auth = {
             }
         }
 
-        // Se è l'utente primario (Fabio) e non era ancora registrato
-        if (!user && (idClean === 'fabio' || idClean === 'amministrazione@tecnosistem.com')) {
+        // Se è l'utente primario (Fabio Sandrini / bubibs@gmail.com)
+        if (!user && (idClean === 'bubibs@gmail.com' || idClean === 'bubib' || idClean === 'fabio')) {
             await this.init();
             users = this.getUsers();
-            user = users.find(u => u.username === 'fabio' || u.id === 'fabio_sandrini');
+            user = users.find(u => u.isPrimary);
         }
 
         if (!user) {
@@ -231,7 +246,7 @@ export const Auth = {
 
         const inputHash = await this.hashPassword(password);
         if (user.passwordHash && user.passwordHash !== inputHash) {
-            return { success: false, error: 'Password errata. Riprova.' };
+            return { success: false, error: 'Password errata. Riprova o usa "Password dimenticata".' };
         }
 
         this.setCurrentUser(user);
@@ -285,6 +300,93 @@ export const Auth = {
         }
 
         return { success: true, user: newUser };
+    },
+
+    // Reimpostazione password dimenticata (Reset Password)
+    async resetPassword(identifier, newPassword) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        if (!idClean) return { success: false, error: 'Inserisci username o email.' };
+        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+
+        let users = this.getUsers();
+        let user = users.find(u => 
+            (u.username && u.username.toLowerCase() === idClean) ||
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+        );
+
+        // Se non trovato in locale, prova a cercare sul Cloud
+        if (!user && window.API && typeof window.API.fetchUsers === 'function') {
+            try {
+                const cloudUsers = await window.API.fetchUsers();
+                if (cloudUsers && cloudUsers.length > 0) {
+                    this.mergeCloudUsers(cloudUsers);
+                    users = this.getUsers();
+                    user = users.find(u => 
+                        (u.username && u.username.toLowerCase() === idClean) ||
+                        (u.email && u.email.toLowerCase() === idClean)
+                    );
+                }
+            } catch (e) {}
+        }
+
+        if (!user) {
+            return { success: false, error: 'Nessun account trovato associato a questa email o username.' };
+        }
+
+        const newHash = await this.hashPassword(newPassword);
+        user.passwordHash = newHash;
+        this.saveUsers(users);
+
+        // Se l'utente resettato è quello attualmente loggato, aggiorna la sessione
+        const curr = this.getCurrentUser();
+        if (curr && curr.id === user.id) {
+            this.setCurrentUser(user);
+        }
+
+        // Sincronizza su Cloud
+        if (window.API && typeof window.API.saveUser === 'function') {
+            try {
+                window.API.saveUser(user);
+            } catch (e) {
+                console.warn('Errore sync password reset su cloud:', e);
+            }
+        }
+
+        return { success: true, user };
+    },
+
+    // Eliminazione utente (riservata all'utente primario / Admin)
+    async deleteUser(userId) {
+        const currentUser = this.getCurrentUser();
+        if (!currentUser || !currentUser.isPrimary) {
+            return { success: false, error: 'Solo l\'utente principale può eliminare altri utenti.' };
+        }
+
+        if (userId === currentUser.id || userId === 'fabio_sandrini') {
+            return { success: false, error: 'Non puoi eliminare l\'utente principale.' };
+        }
+
+        let users = this.getUsers();
+        const target = users.find(u => u.id === userId);
+        if (!target) {
+            return { success: false, error: 'Utente non trovato.' };
+        }
+
+        // Rimuovi localmente
+        users = users.filter(u => u.id !== userId);
+        this.saveUsers(users);
+
+        // Rimuovi dal cloud Google Sheets
+        if (window.API && typeof window.API.deleteUser === 'function') {
+            try {
+                await window.API.deleteUser(userId);
+            } catch (err) {
+                console.warn('Errore cancellazione utente su cloud:', err);
+            }
+        }
+
+        return { success: true };
     },
 
     // Logout
@@ -385,7 +487,6 @@ export const Auth = {
             return { success: false, error: 'Accedi prima per abilitare Face ID.' };
         }
 
-        // Verifica disponibilità WebAuthn
         const available = await this.isFaceIdAvailable();
         if (!available && !window.isSecureContext) {
             return { 
