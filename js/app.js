@@ -1,8 +1,6 @@
-﻿
+
 import { Store } from './store.js';
 import { API } from './api.js';
-import { Auth } from './auth.js';
-import { AI } from './ai.js';
 
 // --- Helper: Generate Time Options ---
 const generateTimeOptions = (selected = '') => {
@@ -27,23 +25,6 @@ const Views = {
                 <div class="text-center" style="padding: 20px 0;">
                     <i class="ph ph-spinner ph-spin text-gold" style="font-size:2rem;"></i>
                 </div>
-            </div>
-
-                        <!-- AI Assistant Quick Card -->
-            <div class="ai-banner-card" onclick="app.toggleAIAssistant()" style="cursor:pointer; margin-bottom:16px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="ai-icon-pulse">
-                        <i class="ph ph-sparkle"></i>
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="font-weight:700; font-size:1rem; color:var(--text); display:flex; align-items:center; gap:6px;">
-                            <span>Assistente AI</span>
-                            <span style="font-size:0.65rem; background:rgba(255,215,0,0.2); color:var(--primary); padding:2px 6px; border-radius:4px; text-transform:uppercase;">Intelligente</span>
-                        </div>
-                        <div style="font-size:0.8rem; color:var(--text-muted);">Analisi ore, stima stipendio o compila con testo</div>
-                    </div>
-                </div>
-                <i class="ph ph-caret-right text-gold" style="font-size:1.3rem;"></i>
             </div>
 
             <div class="nav-grid">
@@ -275,124 +256,6 @@ const Views = {
                  </form>
             </div>
         </div>
-    `,
-
-    login: () => `
-        <div class="fade-in auth-wrapper">
-            <div class="auth-card">
-                <div class="auth-header">
-                    <div style="font-size:2.4rem; color:var(--primary); margin-bottom:8px;">
-                        <i class="ph ph-shield-check"></i>
-                    </div>
-                    <h2>Accedi ad Orari TS</h2>
-                    <p>Inserisci le tue credenziali o usa Face ID</p>
-                </div>
-
-                <!-- Pulsante Face ID / Biometria -->
-                <button type="button" class="btn btn-faceid" onclick="app.handleFaceIdLogin()" id="btn-faceid-login">
-                    <i class="ph ph-scan-face"></i>
-                    <span>Accedi con Face ID</span>
-                </button>
-
-                <div class="auth-divider">oppure con credenziali</div>
-
-                <form onsubmit="app.handleLoginSubmit(event)">
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username o Email</label>
-                        <input type="text" id="login-identifier" required placeholder="es. fabio oppure email" autocomplete="username" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password</label>
-                        <div class="input-password-wrapper">
-                            <input type="password" id="login-password" required placeholder="Inserisci password" autocomplete="current-password" style="font-size:1rem; padding:12px;">
-                            <button type="button" class="btn-toggle-pwd" onclick="app.togglePasswordVisibility('login-password', this)">
-                                <i class="ph ph-eye"></i>
-                            </button>
-                        </div>
-                        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
-                            <button type="button" onclick="app.showForgotPasswordModal()" style="background:none; border:none; color:var(--primary); font-size:0.82rem; cursor:pointer; text-decoration:underline; padding:0;">Hai dimenticato la password?</button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
-                        <i class="ph ph-sign-in"></i> Accedi
-                    </button>
-                </form>
-
-                <!-- Accesso Rapido Fabio Sandrini -->
-                <div class="fast-access-section">
-                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('bubibs@gmail.com', 'Brescia1-')">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="ph ph-user-check" style="font-size:1.2rem;"></i>
-                            <span>Accesso Rapido Fabio Sandrini</span>
-                        </div>
-                        <i class="ph ph-arrow-right"></i>
-                    </button>
-                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-                        (Account: <strong>bubibs@gmail.com</strong>)
-                    </div>
-                </div>
-
-                <div style="text-align:center; margin-top:22px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-                    <span style="font-size:0.85rem; color:var(--text-muted);">Non hai ancora un account?</span><br>
-                    <button type="button" class="btn btn-sm" style="background:none; border:none; color:var(--primary); font-size:0.9rem; font-weight:600; text-decoration:underline; cursor:pointer; padding:6px; margin-top:4px;" onclick="app.navigate('register')">
-                        Crea un nuovo account utente
-                    </button>
-                </div>
-            </div>
-        </div>
-    `,
-
-    register: () => `
-        <div class="fade-in auth-wrapper">
-            <div class="auth-card">
-                <div class="auth-header">
-                    <div style="font-size:2.4rem; color:var(--primary); margin-bottom:8px;">
-                        <i class="ph ph-user-plus"></i>
-                    </div>
-                    <h2>Nuovo Utente</h2>
-                    <p>Registra un profilo personale su Orari TS</p>
-                </div>
-
-                <form onsubmit="app.handleRegisterSubmit(event)">
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Nome e Cognome</label>
-                        <input type="text" id="reg-name" required placeholder="es. Mario Rossi" autocomplete="name" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username</label>
-                        <input type="text" id="reg-username" required placeholder="es. mario.rossi" autocomplete="username" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Email (opzionale)</label>
-                        <input type="email" id="reg-email" placeholder="mario@tecnosistem.com" autocomplete="email" style="font-size:1rem; padding:12px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password</label>
-                        <div class="input-password-wrapper">
-                            <input type="password" id="reg-password" required placeholder="Scegli una password" autocomplete="new-password" style="font-size:1rem; padding:12px;">
-                            <button type="button" class="btn-toggle-pwd" onclick="app.togglePasswordVisibility('reg-password', this)">
-                                <i class="ph ph-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
-                        <i class="ph ph-check"></i> Registrati e Accedi
-                    </button>
-                </form>
-
-                <div style="text-align:center; margin-top:20px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
-                    <button type="button" class="btn btn-sm" style="background:none; border:none; color:var(--text-muted); font-size:0.88rem; cursor:pointer;" onclick="app.navigate('login')">
-                        ← Hai già un account? Torna al Login
-                    </button>
-                </div>
-            </div>
-        </div>
     `
 };
 
@@ -408,17 +271,6 @@ class App {
     }
 
     async init() {
-        await Auth.init();
-        window.auth = Auth;
-
-        const currentUser = Auth.getCurrentUser();
-        this.updateAuthUI(currentUser);
-
-        if (!currentUser) {
-            this.navigate('login');
-            return;
-        }
-
         this.navigate('home');
         this.updateCloudStatus();
 
@@ -429,318 +281,16 @@ class App {
     }
 
     navigate(viewName, params = null) {
-        const currentUser = Auth.getCurrentUser();
-        if (!currentUser && viewName !== 'login' && viewName !== 'register') {
-            this.navigate('login');
-            return;
-        }
-
         if (!Views[viewName]) return;
         this.currentView = viewName;
         this.root.innerHTML = Views[viewName]();
 
-        // Aggiorna la barra di navigazione inferiore fissa
-        this.updateBottomNav(viewName);
-
         // Post-render lifecycle
-        if (viewName === 'home') this.renderHomeDashboard();
+        if (viewName === 'home') this.renderHomeDashboard(); // CHANGED: Load full dashboard
         if (viewName === 'report') this.initReportForm(params);
         if (viewName === 'contacts') this.renderContacts();
         if (viewName === 'history') this.renderHistory();
         if (viewName === 'salary') this.renderSalary(new Date().toISOString().slice(0, 7));
-    }
-
-    updateBottomNav(viewName) {
-        const bottomNav = document.getElementById('bottom-nav');
-        if (!bottomNav) return;
-
-        const currentUser = Auth.getCurrentUser();
-        if (!currentUser || viewName === 'login' || viewName === 'register') {
-            bottomNav.style.display = 'none';
-            return;
-        }
-
-        bottomNav.style.display = 'flex';
-
-        const btnHome = document.getElementById('bottom-nav-home');
-        const btnHistory = document.getElementById('bottom-nav-history');
-        const btnSalary = document.getElementById('bottom-nav-salary');
-
-        if (btnHome) btnHome.classList.toggle('active', viewName === 'home');
-        if (btnHistory) btnHistory.classList.toggle('active', viewName === 'history');
-        if (btnSalary) btnSalary.classList.toggle('active', viewName === 'salary');
-    }
-
-    updateAuthUI(user) {
-        const userBadge = document.getElementById('user-header-badge');
-        const userNameSpan = document.getElementById('user-header-name');
-        const footer = document.getElementById('app-footer');
-
-        if (user) {
-            if (userBadge) {
-                userBadge.style.display = 'flex';
-                if (userNameSpan) userNameSpan.textContent = user.name ? user.name.split(' ')[0] : 'Profilo';
-            }
-            if (footer) {
-                footer.textContent = user.name || 'Tecnosistem';
-            }
-        } else {
-            if (userBadge) userBadge.style.display = 'none';
-            if (footer) footer.textContent = 'Tecnosistem';
-        }
-    }
-
-    togglePasswordVisibility(inputId, btn) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        const isPwd = input.type === 'password';
-        input.type = isPwd ? 'text' : 'password';
-        const icon = btn.querySelector('i');
-        if (icon) {
-            icon.className = isPwd ? 'ph ph-eye-slash' : 'ph ph-eye';
-        }
-    }
-
-    async handleLoginSubmit(event) {
-        event.preventDefault();
-        const identifier = document.getElementById('login-identifier')?.value;
-        const password = document.getElementById('login-password')?.value;
-
-        const res = await Auth.login(identifier, password);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Bentornato, ${res.user.name}!`, 'success');
-        this.sync();
-
-        this.checkPromptFaceId(res.user);
-    }
-
-    async handleRegisterSubmit(event) {
-        event.preventDefault();
-        const name = document.getElementById('reg-name')?.value;
-        const username = document.getElementById('reg-username')?.value;
-        const email = document.getElementById('reg-email')?.value;
-        const password = document.getElementById('reg-password')?.value;
-
-        const res = await Auth.register({ name, username, email, password });
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Benvenuto in Orari TS, ${res.user.name}!`, 'success');
-        this.sync();
-
-        this.checkPromptFaceId(res.user);
-    }
-
-    async handleFastLogin(username, password) {
-        const res = await Auth.login(username, password);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Accesso rapido effettuato. Ciao ${res.user.name}!`, 'success');
-        this.sync();
-
-        this.checkPromptFaceId(res.user);
-    }
-
-    async handleFaceIdLogin() {
-        this.showToast('Verifica Face ID in corso...', 'info');
-        const res = await Auth.loginWithFaceId();
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Accesso Face ID completato! Ciao ${res.user.name}.`, 'success');
-        this.sync();
-    }
-
-    async handleRegisterFaceId() {
-        this.showToast('Attivazione Face ID in corso...', 'info');
-        const res = await Auth.registerFaceId();
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        this.showToast('Face ID registrato con successo su questo dispositivo!', 'success');
-        this.closeUserMenu();
-        this.updateAuthUI(Auth.getCurrentUser());
-    }
-
-    async checkPromptFaceId(user) {
-        if (!user.hasFaceId) {
-            const available = await Auth.isFaceIdAvailable();
-            if (available) {
-                setTimeout(() => {
-                    if (confirm("Vuoi abilitare Face ID per accedere più velocemente la prossima volta?")) {
-                        this.handleRegisterFaceId();
-                    }
-                }, 900);
-            }
-        }
-    }
-
-    handleSaveCloudUrl() {
-        const input = document.getElementById('user-cloud-url');
-        const url = input ? input.value : '';
-        Auth.updateUserSettings({ cloudUrl: url });
-        this.showToast('Impostazione cloud salvata!', 'success');
-        this.closeUserMenu();
-        this.sync();
-    }
-
-    handleLogout() {
-        this.closeUserMenu();
-        Auth.logout();
-        this.updateAuthUI(null);
-        this.navigate('login');
-        this.showToast('Disconnessione effettuata.', 'info');
-    }
-
-    toggleUserMenu() {
-        const container = document.getElementById('user-modal-container');
-        if (!container) return;
-
-        if (document.getElementById('user-profile-modal-overlay')) {
-            this.closeUserMenu();
-            return;
-        }
-
-        const user = Auth.getCurrentUser();
-        if (!user) return;
-
-        const otherUsers = Auth.getUsers().filter(u => !u.isPrimary && u.id !== user.id);
-        let userManagementHtml = '';
-        if (user.isPrimary) {
-            const userRows = otherUsers.length === 0
-                ? '<p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">Nessun altro utente registrato al momento.</p>'
-                : otherUsers.map(u => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
-                        <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
-                            <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || u.username}</div>
-                        </div>
-                        <div style="display:flex; gap:6px; flex-shrink:0;">
-                            <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Reimposta Password">
-                                <i class="ph ph-key"></i> Reset
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Elimina Utente">
-                                <i class="ph ph-trash"></i> Elimina
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-
-            userManagementHtml = `
-                <!-- Sezione Amministrazione Utenti Aziendali (Solo Utente Principale) -->
-                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,215,0,0.3); border-radius:12px; padding:14px; margin-bottom:16px; text-align:left;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="ph ph-users-three text-gold" style="font-size:1.25rem;"></i>
-                            <span style="font-weight:700; font-size:0.92rem; color:var(--primary);">Gestione Utenti Azienda</span>
-                        </div>
-                        <span style="font-size:0.75rem; background:rgba(255,215,0,0.2); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">ADMIN</span>
-                    </div>
-                    <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:10px;">
-                        Cancella colleghi non più presenti in azienda o reimposta la loro password.
-                    </p>
-                    <div style="max-height:160px; overflow-y:auto; padding-right:4px;">
-                        ${userRows}
-                    </div>
-                </div>
-            `;
-        }
-
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'user-profile-modal-overlay';
-        modalDiv.className = 'modal-overlay';
-        modalDiv.onclick = () => this.closeUserMenu();
-
-        modalDiv.innerHTML = `
-            <div class="modal-card fade-in" onclick="event.stopPropagation()">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <i class="ph ph-user-circle text-gold" style="font-size:2rem;"></i>
-                        <div style="text-align:left;">
-                            <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">${user.name}</h3>
-                            <span style="font-size:0.8rem; color:var(--text-muted);">${user.email || user.username} ${user.isPrimary ? '★ (Principale)' : ''}</span>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeUserMenu()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                </div>
-
-                ${userManagementHtml}
-                <!-- Sezione Face ID -->
-                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:14px; text-align:left;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="ph ph-scan-face text-gold" style="font-size:1.3rem;"></i>
-                            <span style="font-weight:600; font-size:0.92rem;">Face ID / Biometria</span>
-                        </div>
-                        <span style="font-size:0.8rem; padding:2px 8px; border-radius:10px; background:${user.hasFaceId ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}; color:${user.hasFaceId ? '#22c55e' : '#ef4444'}; font-weight:600;">
-                            ${user.hasFaceId ? 'Attivo' : 'Non attivo'}
-                        </span>
-                    </div>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; line-height:1.4;">
-                        ${user.hasFaceId 
-                            ? 'Face ID è abilitato su questo dispositivo. Puoi accedere istantaneamente con il tuo volto.' 
-                            : 'Abilita l\'accesso rapido con Face ID (o Touch ID/Windows Hello) sul tuo dispositivo.'}
-                    </p>
-                    <button type="button" class="btn btn-sm" style="background:#2563eb; color:white; font-size:0.85rem; width:100%; font-weight:600;" onclick="app.handleRegisterFaceId()">
-                        <i class="ph ph-scan-face"></i> ${user.hasFaceId ? 'Riconfigura Face ID' : 'Abilita Face ID Ora'}
-                    </button>
-                </div>
-
-                <!-- Sezione Cloud Database Personale -->
-                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:16px; text-align:left;">
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                        <i class="ph ph-cloud text-gold" style="font-size:1.2rem;"></i>
-                        <span style="font-weight:600; font-size:0.92rem;">Database Cloud Personale</span>
-                    </div>
-                    <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
-                        URL Google Apps Script personale (lascia vuoto per usare il cloud aziendale condiviso).
-                    </p>
-                    <input type="text" id="user-cloud-url" value="${user.cloudUrl || ''}" placeholder="https://script.google.com/..." style="font-size:0.82rem; padding:8px 10px; width:100%; margin-bottom:8px;">
-                    <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; font-size:0.82rem; width:100%;" onclick="app.handleSaveCloudUrl()">
-                        Salva URL Cloud
-                    </button>
-                </div>
-
-                <!-- Pulsante Logout -->
-                <button type="button" class="btn btn-danger" style="background:#ef4444; color:white; width:100%; font-size:0.95rem; font-weight:600; padding:12px;" onclick="app.handleLogout()">
-                    <i class="ph ph-sign-out"></i> Disconnetti Account
-                </button>
-            </div>
-        `;
-
-        container.appendChild(modalDiv);
-    }
-
-    closeUserMenu() {
-        const modal = document.getElementById('user-profile-modal-overlay');
-        if (modal) modal.remove();
     }
 
     // --- Weather Logic ---
@@ -938,7 +488,7 @@ class App {
         // RENDER
         container.innerHTML = `
             <div class="dashboard-header fade-in">
-                <div class="dashboard-greeting">${greeting}, ${Auth.getCurrentUser() ? (Auth.getCurrentUser().name ? Auth.getCurrentUser().name.split(' ')[0] : Auth.getCurrentUser().username) : 'Fabio'}</div>
+                <div class="dashboard-greeting">${greeting}, Fabio</div>
                 <div class="dashboard-date">${dateStr}</div>
             </div>
 
@@ -1011,7 +561,7 @@ class App {
     }
 
     showToast(msg, type = 'success') {
-        const container = document.getElementById('toast-container') || document.body;
+        const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.style.borderLeftColor = type === 'success' ? '#22c55e' : '#ef4444';
@@ -1608,7 +1158,7 @@ class App {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(15, 23, 42);
-        const _signUser = Auth.getCurrentUser(); doc.text(_signUser ? _signUser.name : "Fabio Sandrini", signX, boxY + 20);
+        doc.text("Fabio Sandrini", signX, boxY + 20);
 
         doc.setDrawColor(148, 163, 184);
         doc.setLineWidth(0.4);
@@ -1624,8 +1174,80 @@ class App {
         result.doc.save(result.filename);
     }
 
-    // --- Send PDF via Native Email / Mail App (Apertura Immediata Diretta) ---
-    async sendPDFViaEmail(scope = 'month') {
+    // --- Send PDF via Native Email / Mail App ---
+    sendPDFViaEmail(scope = 'month') {
+        this.showEmailModal(scope);
+    }
+
+    showEmailModal(scope = 'month') {
+        const picker = document.getElementById('export-month') || document.getElementById('salary-month');
+        const selectedValue = picker ? picker.value : new Date().toISOString().slice(0, 7);
+        const parts = selectedValue.split('-');
+        const year = parts[0];
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        const monthsIt = [
+            'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+            'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+        ];
+        const monthName = monthsIt[monthIdx] || parts[1];
+        const subject = scope === 'month' ? `Report ${monthName} ${year}` : `Report Anno ${year}`;
+        const filename = `${subject}.pdf`;
+
+        this.closeEmailModal();
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'email-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => this.closeEmailModal();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ph ph-envelope-simple text-gold" style="font-size:1.6rem;"></i>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Invia ad Amministrazione</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeEmailModal()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:10px; margin-bottom:16px; font-size:0.86rem; line-height:1.5;">
+                    <div><span style="color:#94a3b8;">Destinatario:</span> <strong style="color:#38bdf8;">amministrazione@tecnosistem.com</strong></div>
+                    <div><span style="color:#94a3b8;">Oggetto:</span> <strong style="color:#facc15;">${subject}</strong></div>
+                    <div><span style="color:#94a3b8;">Allegato:</span> <span>${filename}</span></div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button type="button" class="btn btn-primary" style="padding:14px; font-size:0.92rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('share', '${scope}')">
+                        <i class="ph ph-paperclip" style="font-size:1.3rem;"></i>
+                        <span>1. Condividi con Allegato PDF</span>
+                    </button>
+                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 4px 0; text-align:center; line-height:1.3;">
+                        Apre l'app Mail con il <strong>file PDF già allegato</strong>.<br>L'indirizzo viene copiato: tocca <em>"A:"</em> e incolla.
+                    </p>
+
+                    <button type="button" class="btn" style="padding:14px; font-size:0.92rem; font-weight:600; background:#334155; color:white; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('mailto', '${scope}')">
+                        <i class="ph ph-envelope-open" style="font-size:1.3rem;"></i>
+                        <span>2. Apri con Campi Precompilati</span>
+                    </button>
+                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 0 0; text-align:center; line-height:1.3;">
+                        Apre l'app Mail con <strong>Destinatario e Oggetto già compilati</strong>.<br>Il PDF viene scaricato pronto da allegare.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalDiv);
+    }
+
+    closeEmailModal() {
+        const modal = document.getElementById('email-modal-overlay');
+        if (modal) modal.remove();
+    }
+
+    async executeSendEmail(mode, scope = 'month') {
+        this.closeEmailModal();
         const result = this.generatePDFDoc(scope);
         if (!result) return;
 
@@ -1635,51 +1257,48 @@ class App {
         const emailSubject = scope === 'month'
             ? `Report ${monthName} ${year}`
             : `Report Anno ${year}`;
-        
-        const currentUser = Auth.getCurrentUser();
-        const senderName = currentUser ? currentUser.name : 'Sandrini Fabio';
-        const emailBody = `ciao Simona ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.
+        const emailBody = `ciao Simona ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.\r\nSandrini Fabio`;
 
-${senderName}`;
+        if (mode === 'mailto') {
+            // Mode 2: Standard mailto URL scheme
+            // Automatically fills To, Subject and Body in Apple Mail
+            doc.save(filename);
+            const mailtoUrl = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            window.location.href = mailtoUrl;
+            this.showToast('Mail aperta con destinatario e oggetto! Il PDF è nei file.', 'success');
+        } else {
+            // Mode 1: Native Web Share API with File
+            // Automatically attaches the actual PDF document
+            const pdfBlob = doc.output('blob');
+            const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-        const pdfBlob = doc.output('blob');
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-
-        // Copia destinatario negli appunti per comodità immediata
-        try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(emailTo);
-            }
-        } catch (e) {
-            console.warn("Clipboard access:", e);
-        }
-
-        // Su iPhone/iOS Safari e dispositivi che supportano la condivisione diretta di file:
-        // Apre direttamente il pannello nativo con l'app Mail e il PDF già allegato!
-        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+            // Copy recipient to clipboard for convenient paste into "To" field
             try {
-                this.showToast(`Apertura Mail... (Destinatario copiato: ${emailTo})`, 'success');
-                await navigator.share({
-                    files: [pdfFile],
-                    title: emailSubject,
-                    text: `A: ${emailTo}
-Oggetto: ${emailSubject}
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(emailTo);
+                }
+            } catch (e) {
+                console.warn("Clipboard access:", e);
+            }
 
-${emailBody}`
-                });
-                return;
-            } catch (err) {
-                if (err.name === 'AbortError') return;
-                console.warn("Share fallback:", err);
+            if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                try {
+                    this.showToast(`Destinatario copiato: ${emailTo}`);
+                    await navigator.share({
+                        files: [pdfFile],
+                        title: emailSubject,
+                        text: `A: ${emailTo}\nOggetto: ${emailSubject}\n\n${emailBody}`
+                    });
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.warn("Share fallback:", err);
+                        this.executeSendEmail('mailto', scope);
+                    }
+                }
+            } else {
+                this.executeSendEmail('mailto', scope);
             }
         }
-
-        // Fallback immediato con mailto per PC Desktop / browser senza file sharing:
-        // Scarica subito il PDF e apre immediatamente il client mail con destinatario e oggetto già compilati!
-        doc.save(filename);
-        const mailtoUrl = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        window.location.href = mailtoUrl;
-        this.showToast('Mail aperta con destinatario e oggetto! Il PDF è nei file.', 'success');
     }
 
     // --- History Page ---
@@ -2090,290 +1709,6 @@ ${emailBody}`
             </div>
         `;
     }
-
-
-    // --- Assistente AI Tecnosistem ---
-    toggleAIAssistant() {
-        const existing = document.getElementById('ai-modal-overlay');
-        if (existing) {
-            this.closeAIAssistant();
-            return;
-        }
-
-        const user = Auth.getCurrentUser();
-        const userName = user ? user.name.split(' ')[0] : 'Fabio';
-
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'ai-modal-overlay';
-        modalDiv.className = 'modal-overlay';
-        modalDiv.onclick = () => this.closeAIAssistant();
-
-        modalDiv.innerHTML = `
-            <div class="modal-card fade-in ai-modal-card" onclick="event.stopPropagation()">
-                <!-- Header Chat AI -->
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:14px; margin-bottom:12px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="ai-icon-pulse" style="width:36px; height:36px; font-size:1.2rem;">
-                            <i class="ph ph-sparkle"></i>
-                        </div>
-                        <div style="text-align:left;">
-                            <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Assistente AI</h3>
-                            <span style="font-size:0.75rem; color:var(--primary);">Tecnosistem Intelligence</span>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeAIAssistant()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                </div>
-
-                <!-- Chips Domande Rapide -->
-                <div class="ai-chips-scroll" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px;">
-                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Come recupero i miei dati dal database?')">☁️ Recupero dati Cloud</button>
-                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Come funziona l''accesso per altri utenti?')">👥 Altri Utenti & Login</button>
-                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Riepilogo ore questo mese')">📊 Riepilogo ore</button>
-                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('A quanto ammonta il mio stipendio netto?')">💰 Stima stipendio</button>
-                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Ci sono giorni lavorativi mancanti?')">⚠️ Giorni mancanti</button>
-                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Tariffe indennità trasferte')">🚗 Diarie e tariffe</button>
-                </div>
-
-                <!-- Chat Messages Container -->
-                <div id="ai-chat-messages" class="ai-chat-body" style="max-height:360px; min-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 2px; margin-bottom:12px;">
-                    <div class="ai-bubble ai-bubble-bot">
-                        Ciao <strong>${userName}</strong>! 👋 Sono il tuo assistente virtuale per Orari TS.<br><br>
-                        Posso analizzare le tue ore lavorate, calcolare gli straordinari e lo stipendio, verificare se mancano giorni o compilare un report con testo libero!<br><br>
-                        <em>Tocca uno dei suggerimenti in alto o scrivi una domanda qui sotto:</em>
-                    </div>
-                </div>
-
-                <!-- Form Invio Domanda -->
-                <form onsubmit="app.handleAISubmit(event)" style="display:flex; gap:8px;">
-                    <input type="text" id="ai-user-input" placeholder="Chiedi all'AI (es. Quante ore ho fatto?)" autocomplete="off" style="flex:1; padding:10px 14px; font-size:0.92rem; border-radius:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:white;">
-                    <button type="submit" class="btn btn-primary btn-icon-only" style="width:46px; height:44px; padding:0; border-radius:10px; flex-shrink:0;">
-                        <i class="ph ph-paper-plane-right" style="font-size:1.2rem;"></i>
-                    </button>
-                </form>
-
-                <!-- Footer Opzionale Chiave API -->
-                <div style="margin-top:10px; text-align:center;">
-                    <details style="font-size:0.75rem; color:var(--text-muted); cursor:pointer;">
-                        <summary>⚙️ Configurazione Chiave API (Opzionale Gemini)</summary>
-                        <div style="margin-top:8px; display:flex; gap:6px;">
-                            <input type="password" id="ai-api-key-input" placeholder="Incolla chiave Google Gemini API" value="${AI.getApiKey()}" style="font-size:0.75rem; padding:6px; flex:1; border-radius:6px; border:1px solid #444; background:#222; color:white;">
-                            <button type="button" class="btn btn-sm" style="font-size:0.75rem; padding:6px 10px; background:rgba(255,255,255,0.15);" onclick="app.saveAIApiKey()">Salva</button>
-                        </div>
-                    </details>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modalDiv);
-        const input = document.getElementById('ai-user-input');
-        if (input) input.focus();
-    }
-
-    closeAIAssistant() {
-        const modal = document.getElementById('ai-modal-overlay');
-        if (modal) modal.remove();
-    }
-
-    saveAIApiKey() {
-        const input = document.getElementById('ai-api-key-input');
-        if (input) {
-            AI.setApiKey(input.value);
-            this.showToast('Chiave API salvata!', 'success');
-        }
-    }
-
-    handleAISubmit(event) {
-        event.preventDefault();
-        const input = document.getElementById('ai-user-input');
-        if (!input) return;
-        const text = input.value.trim();
-        if (!text) return;
-        input.value = '';
-        this.sendAIMessage(text);
-    }
-
-    async sendAIMessage(text) {
-        const chat = document.getElementById('ai-chat-messages');
-        if (!chat) return;
-
-        // Bubble utente
-        const userDiv = document.createElement('div');
-        userDiv.className = 'ai-bubble ai-bubble-user';
-        userDiv.textContent = text;
-        chat.appendChild(userDiv);
-
-        // Indicatore di digitazione / thinking
-        const botDiv = document.createElement('div');
-        botDiv.className = 'ai-bubble ai-bubble-bot';
-        botDiv.innerHTML = '<i class="ph ph-spinner ph-spin text-gold"></i> Elaborazione in corso...';
-        chat.appendChild(botDiv);
-        chat.scrollTop = chat.scrollHeight;
-
-        try {
-            const res = await AI.ask(text, Store, Auth);
-            
-            // Format risposta con markdown semplice
-            let formatted = (res.text || '')
-                .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')
-                .replace(/\\*(.*?)\\*/g, '<em>$1</em>')
-                .replace(/\\n/g, '<br>');
-
-            botDiv.innerHTML = formatted;
-
-            // Se l'AI propone un'azione rapida
-            if (res.action) {
-                const actionBtn = document.createElement('button');
-                actionBtn.className = 'btn btn-primary btn-sm';
-                actionBtn.style.marginTop = '10px';
-                actionBtn.style.display = 'inline-flex';
-                actionBtn.style.width = 'auto';
-                actionBtn.style.padding = '8px 14px';
-                actionBtn.style.fontSize = '0.85rem';
-                actionBtn.innerHTML = res.action.label;
-                actionBtn.onclick = () => this.handleAIAction(res.action);
-                botDiv.appendChild(document.createElement('br'));
-                botDiv.appendChild(actionBtn);
-            }
-
-        } catch (err) {
-            botDiv.innerHTML = `<span style="color:#ef4444;">Si è verificato un errore nell'elaborazione. Riprova.</span>`;
-        }
-
-        chat.scrollTop = chat.scrollHeight;
-    }
-
-    async handleAIAction(action) {
-        if (action.type === 'navigate') {
-            this.closeAIAssistant();
-            this.navigate(action.view);
-        } else if (action.type === 'save_report') {
-            const report = {
-                ...action.payload,
-                id: Date.now().toString(),
-                synced: false
-            };
-            Store.addReport(report);
-            this.showToast('Report inserito con successo!', 'success');
-            this.closeAIAssistant();
-            this.navigate('history');
-            this.sync();
-        }
-    }
-
-    // --- Metodi Gestione Password & Utenti ---
-    showForgotPasswordModal() {
-        const container = document.getElementById('user-modal-container') || document.body;
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'forgot-password-modal-overlay';
-        modalDiv.className = 'modal-overlay';
-        modalDiv.onclick = () => modalDiv.remove();
-
-        modalDiv.innerHTML = `
-            <div class="modal-card fade-in" onclick="event.stopPropagation()">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <i class="ph ph-key text-gold" style="font-size:1.6rem;"></i>
-                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Reimposta Password</h3>
-                    </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                </div>
-                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:16px; text-align:left;">
-                    Inserisci la tua email o username registrato e imposta una nuova password.
-                </p>
-                <form onsubmit="app.handleResetPasswordSubmit(event)">
-                    <div class="form-group" style="text-align:left;">
-                        <label style="font-size:0.85rem; color:var(--text-muted);">Email o Username</label>
-                        <input type="text" id="reset-identifier" required placeholder="es. bubibs@gmail.com oppure username" style="font-size:0.95rem; padding:10px;">
-                    </div>
-                    <div class="form-group" style="text-align:left;">
-                        <label style="font-size:0.85rem; color:var(--text-muted);">Nuova Password</label>
-                        <input type="password" id="reset-password-1" required placeholder="Inserisci nuova password" style="font-size:0.95rem; padding:10px;">
-                    </div>
-                    <div class="form-group" style="text-align:left;">
-                        <label style="font-size:0.85rem; color:var(--text-muted);">Conferma Nuova Password</label>
-                        <input type="password" id="reset-password-2" required placeholder="Ripeti la nuova password" style="font-size:0.95rem; padding:10px;">
-                    </div>
-                    <div style="display:flex; gap:10px; margin-top:20px;">
-                        <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
-                        <button type="submit" class="btn btn-primary" style="flex:1;">Salva Password</button>
-                    </div>
-                </form>
-            </div>
-        `;
-        container.appendChild(modalDiv);
-    }
-
-    async handleResetPasswordSubmit(e) {
-        e.preventDefault();
-        const id = document.getElementById('reset-identifier')?.value;
-        const p1 = document.getElementById('reset-password-1')?.value;
-        const p2 = document.getElementById('reset-password-2')?.value;
-
-        if (!p1 || p1.length < 3) {
-            this.showToast('La password deve contenere almeno 3 caratteri.', 'error');
-            return;
-        }
-
-        if (p1 !== p2) {
-            this.showToast('Le due password non coincidono!', 'error');
-            return;
-        }
-
-        const res = await Auth.resetPassword(id, p1);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        document.getElementById('forgot-password-modal-overlay')?.remove();
-        this.showToast('Password reimpostata con successo!', 'success');
-
-        const loginInput = document.getElementById('login-identifier');
-        const pwdInput = document.getElementById('login-password');
-        if (loginInput) loginInput.value = res.user.email || res.user.username;
-        if (pwdInput) {
-            pwdInput.value = p1;
-            pwdInput.focus();
-        }
-    }
-
-    async confirmDeleteUser(userId, userName) {
-        if (!confirm(`Sei sicuro di voler eliminare definitivamente l'utente "${userName}"?\n\nNon potrà più accedere con questo account.`)) {
-            return;
-        }
-
-        const res = await Auth.deleteUser(userId);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        this.showToast(`Utente "${userName}" eliminato con successo.`, 'success');
-        this.closeUserMenu();
-        this.toggleUserMenu();
-    }
-
-    async adminResetUserPassword(userId, userName) {
-        const newPwd = prompt(`Inserisci la nuova password per "${userName}":`, "Brescia1-");
-        if (!newPwd) return;
-
-        const users = Auth.getUsers();
-        const target = users.find(u => u.id === userId);
-        if (!target) return;
-
-        const res = await Auth.resetPassword(target.email || target.username, newPwd);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        this.showToast(`Password di "${userName}" aggiornata con successo!`, 'success');
-    }
-
 }
 
 window.app = new App();
