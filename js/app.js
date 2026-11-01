@@ -310,6 +310,9 @@ const Views = {
                                 <i class="ph ph-eye"></i>
                             </button>
                         </div>
+                        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                            <button type="button" onclick="app.showForgotPasswordModal()" style="background:none; border:none; color:var(--primary); font-size:0.82rem; cursor:pointer; text-decoration:underline; padding:0;">Hai dimenticato la password?</button>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
@@ -319,7 +322,7 @@ const Views = {
 
                 <!-- Accesso Rapido Fabio Sandrini -->
                 <div class="fast-access-section">
-                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('fabio', '1234')">
+                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('bubibs@gmail.com', 'Brescia1-')">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <i class="ph ph-user-check" style="font-size:1.2rem;"></i>
                             <span>Accesso Rapido Fabio Sandrini</span>
@@ -327,7 +330,7 @@ const Views = {
                         <i class="ph ph-arrow-right"></i>
                     </button>
                     <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-                        (Password predefinita: <strong>1234</strong>)
+                        (Account: <strong>bubibs@gmail.com</strong>)
                     </div>
                 </div>
 
@@ -626,6 +629,48 @@ class App {
         const user = Auth.getCurrentUser();
         if (!user) return;
 
+        const otherUsers = Auth.getUsers().filter(u => !u.isPrimary && u.id !== user.id);
+        let userManagementHtml = '';
+        if (user.isPrimary) {
+            const userRows = otherUsers.length === 0
+                ? '<p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">Nessun altro utente registrato al momento.</p>'
+                : otherUsers.map(u => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
+                            <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || u.username}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Reimposta Password">
+                                <i class="ph ph-key"></i> Reset
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Elimina Utente">
+                                <i class="ph ph-trash"></i> Elimina
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            userManagementHtml = `
+                <!-- Sezione Amministrazione Utenti Aziendali (Solo Utente Principale) -->
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,215,0,0.3); border-radius:12px; padding:14px; margin-bottom:16px; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="ph ph-users-three text-gold" style="font-size:1.25rem;"></i>
+                            <span style="font-weight:700; font-size:0.92rem; color:var(--primary);">Gestione Utenti Azienda</span>
+                        </div>
+                        <span style="font-size:0.75rem; background:rgba(255,215,0,0.2); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">ADMIN</span>
+                    </div>
+                    <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:10px;">
+                        Cancella colleghi non più presenti in azienda o reimposta la loro password.
+                    </p>
+                    <div style="max-height:160px; overflow-y:auto; padding-right:4px;">
+                        ${userRows}
+                    </div>
+                </div>
+            `;
+        }
+
         const modalDiv = document.createElement('div');
         modalDiv.id = 'user-profile-modal-overlay';
         modalDiv.className = 'modal-overlay';
@@ -646,6 +691,7 @@ class App {
                     </button>
                 </div>
 
+                ${userManagementHtml}
                 <!-- Sezione Face ID -->
                 <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:14px; text-align:left;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -2216,6 +2262,119 @@ ${emailBody}`
         }
     }
 
+    // --- Metodi Gestione Password & Utenti ---
+    showForgotPasswordModal() {
+        const container = document.getElementById('user-modal-container') || document.body;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'forgot-password-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => modalDiv.remove();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ph ph-key text-gold" style="font-size:1.6rem;"></i>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Reimposta Password</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:16px; text-align:left;">
+                    Inserisci la tua email o username registrato e imposta una nuova password.
+                </p>
+                <form onsubmit="app.handleResetPasswordSubmit(event)">
+                    <div class="form-group" style="text-align:left;">
+                        <label style="font-size:0.85rem; color:var(--text-muted);">Email o Username</label>
+                        <input type="text" id="reset-identifier" required placeholder="es. bubibs@gmail.com oppure username" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <div class="form-group" style="text-align:left;">
+                        <label style="font-size:0.85rem; color:var(--text-muted);">Nuova Password</label>
+                        <input type="password" id="reset-password-1" required placeholder="Inserisci nuova password" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <div class="form-group" style="text-align:left;">
+                        <label style="font-size:0.85rem; color:var(--text-muted);">Conferma Nuova Password</label>
+                        <input type="password" id="reset-password-2" required placeholder="Ripeti la nuova password" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
+                        <button type="submit" class="btn btn-primary" style="flex:1;">Salva Password</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
+    }
+
+    async handleResetPasswordSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('reset-identifier')?.value;
+        const p1 = document.getElementById('reset-password-1')?.value;
+        const p2 = document.getElementById('reset-password-2')?.value;
+
+        if (!p1 || p1.length < 3) {
+            this.showToast('La password deve contenere almeno 3 caratteri.', 'error');
+            return;
+        }
+
+        if (p1 !== p2) {
+            this.showToast('Le due password non coincidono!', 'error');
+            return;
+        }
+
+        const res = await Auth.resetPassword(id, p1);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        document.getElementById('forgot-password-modal-overlay')?.remove();
+        this.showToast('Password reimpostata con successo!', 'success');
+
+        const loginInput = document.getElementById('login-identifier');
+        const pwdInput = document.getElementById('login-password');
+        if (loginInput) loginInput.value = res.user.email || res.user.username;
+        if (pwdInput) {
+            pwdInput.value = p1;
+            pwdInput.focus();
+        }
+    }
+
+    async confirmDeleteUser(userId, userName) {
+        if (!confirm(`Sei sicuro di voler eliminare definitivamente l'utente "${userName}"?\n\nNon potrà più accedere con questo account.`)) {
+            return;
+        }
+
+        const res = await Auth.deleteUser(userId);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        this.showToast(`Utente "${userName}" eliminato con successo.`, 'success');
+        this.closeUserMenu();
+        this.toggleUserMenu();
+    }
+
+    async adminResetUserPassword(userId, userName) {
+        const newPwd = prompt(`Inserisci la nuova password per "${userName}":`, "Brescia1-");
+        if (!newPwd) return;
+
+        const users = Auth.getUsers();
+        const target = users.find(u => u.id === userId);
+        if (!target) return;
+
+        const res = await Auth.resetPassword(target.email || target.username, newPwd);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        this.showToast(`Password di "${userName}" aggiornata con successo!`, 'success');
+    }
+
 }
+
 window.app = new App();
 window.Store = Store;

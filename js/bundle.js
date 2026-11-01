@@ -1,11 +1,11 @@
-﻿// TECNOSISTEM ORARI TS - STANDALONE BUNDLE (v2.2)
+// TECNOSISTEM ORARI TS - STANDALONE BUNDLE (v2.3)
 // Compatibile sia con protocollo http/https che con file:/// locale senza errori CORS
 
 (function() {
     'use strict';
 
     // === MODULE: AUTH ===
-// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync & Face ID) ---
+// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync, Admin & Face ID) ---
 
 const Auth = {
     KEYS: {
@@ -82,32 +82,41 @@ const Auth = {
         return result;
     },
 
-    // Inizializza archivio utenti e utente primario predefinito (Fabio Sandrini)
+    // Inizializza archivio utenti e utente primario predefinito (Fabio Sandrini: bubibs@gmail.com / Brescia1-)
     async init() {
         let users = this.getUsers();
-        if (users.length === 0) {
-            // Configurazione dell'utente principale (Fabio Sandrini)
-            // Password predefinita: '1234' (modificabile in qualsiasi momento)
-            const defaultPasswordHash = await this.hashPassword('1234');
-            const primaryUser = {
+        const primaryHash = await this.hashPassword('Brescia1-');
+
+        let primaryUser = users.find(u => u.isPrimary || u.id === 'fabio_sandrini' || u.email === 'bubibs@gmail.com' || u.email === 'amministrazione@tecnosistem.com');
+
+        if (!primaryUser) {
+            primaryUser = {
                 id: 'fabio_sandrini',
                 name: 'Fabio Sandrini',
-                username: 'fabio',
-                email: 'amministrazione@tecnosistem.com',
-                passwordHash: defaultPasswordHash,
+                username: 'bubib',
+                email: 'bubibs@gmail.com',
+                passwordHash: primaryHash,
                 isPrimary: true,
                 cloudUrl: '',
                 hasFaceId: false,
                 createdAt: new Date().toISOString()
             };
-            users = [primaryUser];
-            localStorage.setItem(this.KEYS.USERS, JSON.stringify(users));
+            users.unshift(primaryUser);
+        } else {
+            // Aggiorna sempre credenziali configurate per l'utente principale
+            primaryUser.id = 'fabio_sandrini';
+            primaryUser.name = 'Fabio Sandrini';
+            primaryUser.username = primaryUser.username || 'bubib';
+            primaryUser.email = 'bubibs@gmail.com';
+            primaryUser.passwordHash = primaryHash;
+            primaryUser.isPrimary = true;
         }
+
+        this.saveUsers(users);
 
         // Se nessun utente è attualmente loggato ma c'è già una sessione memorizzata valida
         const current = this.getCurrentUser();
         if (current) {
-            // Aggiorna i dati con l'ultimo record salvato
             const fresh = users.find(u => u.id === current.id);
             if (fresh) {
                 this.setCurrentUser(fresh);
@@ -138,23 +147,29 @@ const Auth = {
         cloudUsers.forEach(cu => {
             if (!cu) return;
             const uname = String(cu.username || '').trim().toLowerCase();
+            const uemail = String(cu.email || '').trim().toLowerCase();
             const uid = String(cu.id || ('user_' + uname));
-            const existing = map.get(uid) || Array.from(map.values()).find(u => (u.username || '').toLowerCase() === uname);
+            
+            // Non sovrascrivere l'utente primario
+            if (uemail === 'bubibs@gmail.com' || uname === 'bubib' || cu.isprimary === true || cu.isprimary === 'true') {
+                return;
+            }
+
+            const existing = map.get(uid) || Array.from(map.values()).find(u => (u.username || '').toLowerCase() === uname || (u.email && u.email.toLowerCase() === uemail));
             
             if (!existing) {
                 map.set(uid, {
                     id: uid,
                     name: cu.name || uname || 'Utente',
                     username: uname,
-                    email: cu.email || (uname ? `${uname}@tecnosistem.com` : ''),
+                    email: uemail || (uname ? `${uname}@tecnosistem.com` : ''),
                     passwordHash: cu.passwordhash || cu.passwordHash || '',
-                    isPrimary: cu.isprimary === true || cu.isprimary === 'true' || cu.isPrimary === true,
+                    isPrimary: false,
                     cloudUrl: cu.cloudurl || cu.cloudUrl || '',
                     hasFaceId: cu.hasfaceid === true || cu.hasfaceid === 'true' || cu.hasFaceId === true,
                     createdAt: cu.createdat || cu.createdAt || new Date().toISOString()
                 });
             } else {
-                // Aggiorna se mancavano campi
                 if (cu.passwordhash && !existing.passwordHash) existing.passwordHash = cu.passwordhash;
                 if (cu.name && existing.name === existing.username) existing.name = cu.name;
                 if (cu.cloudurl && !existing.cloudUrl) existing.cloudUrl = cu.cloudurl;
@@ -175,7 +190,6 @@ const Auth = {
 
     setCurrentUser(user) {
         if (user) {
-            // Non memorizzare l'hash della password nella sessione attiva
             const sessionUser = {
                 id: user.id,
                 name: user.name,
@@ -192,7 +206,7 @@ const Auth = {
         window.dispatchEvent(new CustomEvent('auth-state-changed', { detail: { user } }));
     },
 
-    // Login classico con Username/Email e Password (con verifica locale e fallback Cloud)
+    // Login classico con Username/Email e Password
     async login(identifier, password) {
         const idClean = (identifier || '').trim().toLowerCase();
         if (!idClean) {
@@ -205,7 +219,8 @@ const Auth = {
         let users = this.getUsers();
         let user = users.find(u => 
             (u.username && u.username.toLowerCase() === idClean) ||
-            (u.email && u.email.toLowerCase() === idClean)
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
 
         // Se non trovato in locale, prova a sincronizzare gli utenti dal Cloud
@@ -225,11 +240,11 @@ const Auth = {
             }
         }
 
-        // Se è l'utente primario (Fabio) e non era ancora registrato
-        if (!user && (idClean === 'fabio' || idClean === 'amministrazione@tecnosistem.com')) {
+        // Se è l'utente primario (Fabio Sandrini / bubibs@gmail.com)
+        if (!user && (idClean === 'bubibs@gmail.com' || idClean === 'bubib' || idClean === 'fabio')) {
             await this.init();
             users = this.getUsers();
-            user = users.find(u => u.username === 'fabio' || u.id === 'fabio_sandrini');
+            user = users.find(u => u.isPrimary);
         }
 
         if (!user) {
@@ -238,7 +253,7 @@ const Auth = {
 
         const inputHash = await this.hashPassword(password);
         if (user.passwordHash && user.passwordHash !== inputHash) {
-            return { success: false, error: 'Password errata. Riprova.' };
+            return { success: false, error: 'Password errata. Riprova o usa "Password dimenticata".' };
         }
 
         this.setCurrentUser(user);
@@ -292,6 +307,93 @@ const Auth = {
         }
 
         return { success: true, user: newUser };
+    },
+
+    // Reimpostazione password dimenticata (Reset Password)
+    async resetPassword(identifier, newPassword) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        if (!idClean) return { success: false, error: 'Inserisci username o email.' };
+        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+
+        let users = this.getUsers();
+        let user = users.find(u => 
+            (u.username && u.username.toLowerCase() === idClean) ||
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+        );
+
+        // Se non trovato in locale, prova a cercare sul Cloud
+        if (!user && window.API && typeof window.API.fetchUsers === 'function') {
+            try {
+                const cloudUsers = await window.API.fetchUsers();
+                if (cloudUsers && cloudUsers.length > 0) {
+                    this.mergeCloudUsers(cloudUsers);
+                    users = this.getUsers();
+                    user = users.find(u => 
+                        (u.username && u.username.toLowerCase() === idClean) ||
+                        (u.email && u.email.toLowerCase() === idClean)
+                    );
+                }
+            } catch (e) {}
+        }
+
+        if (!user) {
+            return { success: false, error: 'Nessun account trovato associato a questa email o username.' };
+        }
+
+        const newHash = await this.hashPassword(newPassword);
+        user.passwordHash = newHash;
+        this.saveUsers(users);
+
+        // Se l'utente resettato è quello attualmente loggato, aggiorna la sessione
+        const curr = this.getCurrentUser();
+        if (curr && curr.id === user.id) {
+            this.setCurrentUser(user);
+        }
+
+        // Sincronizza su Cloud
+        if (window.API && typeof window.API.saveUser === 'function') {
+            try {
+                window.API.saveUser(user);
+            } catch (e) {
+                console.warn('Errore sync password reset su cloud:', e);
+            }
+        }
+
+        return { success: true, user };
+    },
+
+    // Eliminazione utente (riservata all'utente primario / Admin)
+    async deleteUser(userId) {
+        const currentUser = this.getCurrentUser();
+        if (!currentUser || !currentUser.isPrimary) {
+            return { success: false, error: 'Solo l\'utente principale può eliminare altri utenti.' };
+        }
+
+        if (userId === currentUser.id || userId === 'fabio_sandrini') {
+            return { success: false, error: 'Non puoi eliminare l\'utente principale.' };
+        }
+
+        let users = this.getUsers();
+        const target = users.find(u => u.id === userId);
+        if (!target) {
+            return { success: false, error: 'Utente non trovato.' };
+        }
+
+        // Rimuovi localmente
+        users = users.filter(u => u.id !== userId);
+        this.saveUsers(users);
+
+        // Rimuovi dal cloud Google Sheets
+        if (window.API && typeof window.API.deleteUser === 'function') {
+            try {
+                await window.API.deleteUser(userId);
+            } catch (err) {
+                console.warn('Errore cancellazione utente su cloud:', err);
+            }
+        }
+
+        return { success: true };
     },
 
     // Logout
@@ -392,7 +494,6 @@ const Auth = {
             return { success: false, error: 'Accedi prima per abilitare Face ID.' };
         }
 
-        // Verifica disponibilità WebAuthn
         const available = await this.isFaceIdAvailable();
         if (!available && !window.isSecureContext) {
             return { 
@@ -542,7 +643,6 @@ const Auth = {
     }
 };
 
-
     // === MODULE: API ===
 
 const API = {
@@ -601,6 +701,7 @@ const API = {
 
     // --- Gestione Utenti Cloud ---
     saveUser(user) { return this._post('saveUser', user); },
+    deleteUser(id) { return this._post('deleteUser', { id }); },
 
     async fetchUsers() {
         try {
@@ -630,7 +731,6 @@ const API = {
         }
     }
 };
-
 
     // === MODULE: STORE ===
 
@@ -1039,7 +1139,6 @@ const Store = {
         this.set(this.KEYS.REPORTS, reports);
     }
 };
-
 
     // === MODULE: AI ASSISTANT ===
 // --- Assistente AI Intelligente per Orari TS ---
@@ -1519,9 +1618,8 @@ Rispondi sempre in italiano, in modo cordiale, chiaro e professionale. Se l'uten
     }
 };
 
-
     // === MODULE: APP & UI ===
-
+﻿
 
 // --- Helper: Generate Time Options ---
 const generateTimeOptions = (selected = '') => {
@@ -1829,6 +1927,9 @@ const Views = {
                                 <i class="ph ph-eye"></i>
                             </button>
                         </div>
+                        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                            <button type="button" onclick="app.showForgotPasswordModal()" style="background:none; border:none; color:var(--primary); font-size:0.82rem; cursor:pointer; text-decoration:underline; padding:0;">Hai dimenticato la password?</button>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
@@ -1838,7 +1939,7 @@ const Views = {
 
                 <!-- Accesso Rapido Fabio Sandrini -->
                 <div class="fast-access-section">
-                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('fabio', '1234')">
+                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('bubibs@gmail.com', 'Brescia1-')">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <i class="ph ph-user-check" style="font-size:1.2rem;"></i>
                             <span>Accesso Rapido Fabio Sandrini</span>
@@ -1846,7 +1947,7 @@ const Views = {
                         <i class="ph ph-arrow-right"></i>
                     </button>
                     <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-                        (Password predefinita: <strong>1234</strong>)
+                        (Account: <strong>bubibs@gmail.com</strong>)
                     </div>
                 </div>
 
@@ -2145,6 +2246,48 @@ class App {
         const user = Auth.getCurrentUser();
         if (!user) return;
 
+        const otherUsers = Auth.getUsers().filter(u => !u.isPrimary && u.id !== user.id);
+        let userManagementHtml = '';
+        if (user.isPrimary) {
+            const userRows = otherUsers.length === 0
+                ? '<p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">Nessun altro utente registrato al momento.</p>'
+                : otherUsers.map(u => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
+                            <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || u.username}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Reimposta Password">
+                                <i class="ph ph-key"></i> Reset
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Elimina Utente">
+                                <i class="ph ph-trash"></i> Elimina
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            userManagementHtml = `
+                <!-- Sezione Amministrazione Utenti Aziendali (Solo Utente Principale) -->
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,215,0,0.3); border-radius:12px; padding:14px; margin-bottom:16px; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="ph ph-users-three text-gold" style="font-size:1.25rem;"></i>
+                            <span style="font-weight:700; font-size:0.92rem; color:var(--primary);">Gestione Utenti Azienda</span>
+                        </div>
+                        <span style="font-size:0.75rem; background:rgba(255,215,0,0.2); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">ADMIN</span>
+                    </div>
+                    <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:10px;">
+                        Cancella colleghi non più presenti in azienda o reimposta la loro password.
+                    </p>
+                    <div style="max-height:160px; overflow-y:auto; padding-right:4px;">
+                        ${userRows}
+                    </div>
+                </div>
+            `;
+        }
+
         const modalDiv = document.createElement('div');
         modalDiv.id = 'user-profile-modal-overlay';
         modalDiv.className = 'modal-overlay';
@@ -2165,6 +2308,7 @@ class App {
                     </button>
                 </div>
 
+                ${userManagementHtml}
                 <!-- Sezione Face ID -->
                 <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:14px; text-align:left;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -3733,6 +3877,118 @@ ${emailBody}`
             this.navigate('history');
             this.sync();
         }
+    }
+
+    // --- Metodi Gestione Password & Utenti ---
+    showForgotPasswordModal() {
+        const container = document.getElementById('user-modal-container') || document.body;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'forgot-password-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => modalDiv.remove();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ph ph-key text-gold" style="font-size:1.6rem;"></i>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Reimposta Password</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:16px; text-align:left;">
+                    Inserisci la tua email o username registrato e imposta una nuova password.
+                </p>
+                <form onsubmit="app.handleResetPasswordSubmit(event)">
+                    <div class="form-group" style="text-align:left;">
+                        <label style="font-size:0.85rem; color:var(--text-muted);">Email o Username</label>
+                        <input type="text" id="reset-identifier" required placeholder="es. bubibs@gmail.com oppure username" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <div class="form-group" style="text-align:left;">
+                        <label style="font-size:0.85rem; color:var(--text-muted);">Nuova Password</label>
+                        <input type="password" id="reset-password-1" required placeholder="Inserisci nuova password" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <div class="form-group" style="text-align:left;">
+                        <label style="font-size:0.85rem; color:var(--text-muted);">Conferma Nuova Password</label>
+                        <input type="password" id="reset-password-2" required placeholder="Ripeti la nuova password" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
+                        <button type="submit" class="btn btn-primary" style="flex:1;">Salva Password</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
+    }
+
+    async handleResetPasswordSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('reset-identifier')?.value;
+        const p1 = document.getElementById('reset-password-1')?.value;
+        const p2 = document.getElementById('reset-password-2')?.value;
+
+        if (!p1 || p1.length < 3) {
+            this.showToast('La password deve contenere almeno 3 caratteri.', 'error');
+            return;
+        }
+
+        if (p1 !== p2) {
+            this.showToast('Le due password non coincidono!', 'error');
+            return;
+        }
+
+        const res = await Auth.resetPassword(id, p1);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        document.getElementById('forgot-password-modal-overlay')?.remove();
+        this.showToast('Password reimpostata con successo!', 'success');
+
+        const loginInput = document.getElementById('login-identifier');
+        const pwdInput = document.getElementById('login-password');
+        if (loginInput) loginInput.value = res.user.email || res.user.username;
+        if (pwdInput) {
+            pwdInput.value = p1;
+            pwdInput.focus();
+        }
+    }
+
+    async confirmDeleteUser(userId, userName) {
+        if (!confirm(`Sei sicuro di voler eliminare definitivamente l'utente "${userName}"?\n\nNon potrà più accedere con questo account.`)) {
+            return;
+        }
+
+        const res = await Auth.deleteUser(userId);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        this.showToast(`Utente "${userName}" eliminato con successo.`, 'success');
+        this.closeUserMenu();
+        this.toggleUserMenu();
+    }
+
+    async adminResetUserPassword(userId, userName) {
+        const newPwd = prompt(`Inserisci la nuova password per "${userName}":`, "Brescia1-");
+        if (!newPwd) return;
+
+        const users = Auth.getUsers();
+        const target = users.find(u => u.id === userId);
+        if (!target) return;
+
+        const res = await Auth.resetPassword(target.email || target.username, newPwd);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        this.showToast(`Password di "${userName}" aggiornata con successo!`, 'success');
     }
 
 }
