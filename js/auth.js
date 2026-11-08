@@ -1,10 +1,10 @@
-// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync, Admin & Face ID) ---
+// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync, Admin & OTP Reset) ---
 
 export const Auth = {
     KEYS: {
         USERS: 'tecnosistem_users',
         CURRENT_USER: 'tecnosistem_current_user',
-        FACEID_PREFIX: 'tecnosistem_faceid_'
+        RESET_REQUESTS: 'tecnosistem_reset_requests'
     },
 
     // Helper per hashing password tramite Web Crypto API con Fallback puro JS (100% offline e file:///)
@@ -23,6 +23,7 @@ export const Auth = {
         return this._sha256Pure(password);
     },
 
+    // Implementazione pura JS di SHA-256 (compatibile al 100% con protocollo file:///)
     _sha256Pure(ascii) {
         function rightRotate(value, amount) {
             return (value >>> amount) | (value << (32 - amount));
@@ -45,7 +46,6 @@ export const Auth = {
             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
         ];
-        var compositeHash = hash.slice();
         words[asciiBitLength >> 5] |= 0x80 << (24 - asciiBitLength % 32);
         words[(((asciiBitLength + 64) >> 9) << 4) + 15] = asciiBitLength;
         for (i = 0; i < words[lengthProperty]; i += 16) {
@@ -88,26 +88,27 @@ export const Auth = {
                 name: 'Fabio Sandrini',
                 username: 'bubibs',
                 email: 'bubibs@gmail.com',
+                phone: '3331234567',
                 passwordHash: primaryHash,
                 isPrimary: true,
                 cloudUrl: '',
-                hasFaceId: false,
                 createdAt: new Date().toISOString()
             };
             users.unshift(primaryUser);
         } else {
-            // Aggiorna sempre credenziali configurate per l'utente principale
+            // Aggiorna credenziali per l'utente principale
             primaryUser.id = 'fabio_sandrini';
             primaryUser.name = 'Fabio Sandrini';
             primaryUser.username = 'bubibs';
             primaryUser.email = 'bubibs@gmail.com';
+            if (!primaryUser.phone) primaryUser.phone = '3331234567';
             primaryUser.passwordHash = primaryHash;
             primaryUser.isPrimary = true;
         }
 
         this.saveUsers(users);
 
-        // Se nessun utente è attualmente loggato ma c'è già una sessione memorizzata valida
+        // Se c'è già una sessione memorizzata valida
         const current = this.getCurrentUser();
         if (current) {
             const fresh = users.find(u => u.id === current.id);
@@ -144,7 +145,7 @@ export const Auth = {
             const uid = String(cu.id || ('user_' + uname));
             
             // Non sovrascrivere l'utente primario
-            if (uemail === 'bubibs@gmail.com' || uname === 'bubib' || cu.isprimary === true || cu.isprimary === 'true') {
+            if (uemail === 'bubibs@gmail.com' || uname === 'bubibs' || uname === 'bubib' || cu.isprimary === true || cu.isprimary === 'true') {
                 return;
             }
 
@@ -156,20 +157,24 @@ export const Auth = {
                     name: cu.name || uname || 'Utente',
                     username: uname,
                     email: uemail || (uname ? `${uname}@tecnosistem.com` : ''),
+                    phone: cu.phone || '',
                     passwordHash: cu.passwordhash || cu.passwordHash || '',
                     isPrimary: false,
                     cloudUrl: cu.cloudurl || cu.cloudUrl || '',
-                    hasFaceId: cu.hasfaceid === true || cu.hasfaceid === 'true' || cu.hasFaceId === true,
                     createdAt: cu.createdat || cu.createdAt || new Date().toISOString()
                 });
             } else {
-                if (cu.passwordhash && !existing.passwordHash) existing.passwordHash = cu.passwordhash;
-                if (cu.name && existing.name === existing.username) existing.name = cu.name;
-                if (cu.cloudurl && !existing.cloudUrl) existing.cloudUrl = cu.cloudurl;
+                // Aggiorna dati se non primario
+                if (!existing.isPrimary) {
+                    if (cu.name) existing.name = cu.name;
+                    if (cu.phone) existing.phone = cu.phone;
+                    if (cu.passwordhash || cu.passwordHash) existing.passwordHash = cu.passwordhash || cu.passwordHash;
+                }
             }
         });
 
-        this.saveUsers(Array.from(map.values()));
+        const merged = Array.from(map.values());
+        this.saveUsers(merged);
     },
 
     getCurrentUser() {
@@ -183,20 +188,10 @@ export const Auth = {
 
     setCurrentUser(user) {
         if (user) {
-            const sessionUser = {
-                id: user.id,
-                name: user.name,
-                username: user.username,
-                email: user.email,
-                isPrimary: !!user.isPrimary,
-                cloudUrl: user.cloudUrl || '',
-                hasFaceId: !!user.hasFaceId
-            };
-            localStorage.setItem(this.KEYS.CURRENT_USER, JSON.stringify(sessionUser));
+            localStorage.setItem(this.KEYS.CURRENT_USER, JSON.stringify(user));
         } else {
             localStorage.removeItem(this.KEYS.CURRENT_USER);
         }
-        window.dispatchEvent(new CustomEvent('auth-state-changed', { detail: { user } }));
     },
 
     // Login classico con Username/Email e Password
@@ -213,7 +208,7 @@ export const Auth = {
         let user = users.find(u => 
             (u.username && u.username.toLowerCase() === idClean) ||
             (u.email && u.email.toLowerCase() === idClean) ||
-            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
 
         // Se non trovato in locale, prova a sincronizzare gli utenti dal Cloud
@@ -234,7 +229,7 @@ export const Auth = {
         }
 
         // Se è l'utente primario (Fabio Sandrini / bubibs@gmail.com)
-        if (!user && (idClean === 'bubibs@gmail.com' || idClean === 'bubib' || idClean === 'fabio')) {
+        if (!user && (idClean === 'bubibs@gmail.com' || idClean === 'bubibs' || idClean === 'bubib' || idClean === 'fabio')) {
             await this.init();
             users = this.getUsers();
             user = users.find(u => u.isPrimary);
@@ -253,17 +248,20 @@ export const Auth = {
         return { success: true, user };
     },
 
-    // Registrazione nuovo utente (colleghi/altri utenti)
-    async register({ name, username, email, password }) {
+    // Registrazione nuovo utente con Cellulare
+    async register({ name, username, email, phone = '', password }) {
         const cleanName = (name || '').trim();
         const cleanUsername = (username || '').trim().toLowerCase().replace(/\s+/g, '');
         const cleanEmail = (email || '').trim().toLowerCase();
+        const cleanPhone = (phone || '').trim().replace(/[^0-9+]/g, '');
 
         if (!cleanName) return { success: false, error: 'Inserisci nome e cognome.' };
-        if (!cleanUsername) return { success: false, error: 'Scegli uno username.' };
+        if (!cleanUsername || cleanUsername.length < 3) return { success: false, error: 'Lo username deve avere almeno 3 caratteri.' };
         if (!password || password.length < 3) return { success: false, error: 'La password deve avere almeno 3 caratteri.' };
 
-        const users = this.getUsers();
+        let users = this.getUsers();
+
+        // Controllo duplicati
         const exists = users.some(u => 
             (u.username && u.username.toLowerCase() === cleanUsername) ||
             (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
@@ -279,10 +277,10 @@ export const Auth = {
             name: cleanName,
             username: cleanUsername,
             email: cleanEmail || `${cleanUsername}@tecnosistem.com`,
+            phone: cleanPhone,
             passwordHash: passwordHash,
             isPrimary: false,
             cloudUrl: '',
-            hasFaceId: false,
             createdAt: new Date().toISOString()
         };
 
@@ -302,20 +300,103 @@ export const Auth = {
         return { success: true, user: newUser };
     },
 
-    // Reimpostazione password dimenticata (Reset Password)
-    async resetPassword(identifier, newPassword) {
+    // Autenticazione con Account Google
+    async loginWithGoogle(googleData) {
+        if (!googleData || !googleData.email) {
+            return { success: false, error: 'Dati account Google mancanti o non validi.' };
+        }
+
+        const emailClean = googleData.email.trim().toLowerCase();
+        let users = this.getUsers();
+
+        // Se l'email corrisponde a bubibs@gmail.com, associa all'account Primario (Fabio Sandrini)
+        if (emailClean === 'bubibs@gmail.com') {
+            let primary = users.find(u => u.isPrimary || u.email === 'bubibs@gmail.com');
+            if (primary) {
+                primary.username = 'bubibs';
+                primary.email = 'bubibs@gmail.com';
+                primary.googleAuth = true;
+                this.saveUsers(users);
+                this.setCurrentUser(primary);
+                return { success: true, user: primary, isNew: false };
+            }
+        }
+
+        // Cerca se l'utente esiste già per email
+        let user = users.find(u => u.email && u.email.toLowerCase() === emailClean);
+
+        // Se non trovato in locale, cerca sul cloud
+        if (!user && window.API && typeof window.API.fetchUsers === 'function') {
+            try {
+                const cloudUsers = await window.API.fetchUsers();
+                if (cloudUsers && cloudUsers.length > 0) {
+                    this.mergeCloudUsers(cloudUsers);
+                    users = this.getUsers();
+                    user = users.find(u => u.email && u.email.toLowerCase() === emailClean);
+                }
+            } catch (e) {}
+        }
+
+        let isNew = false;
+        if (!user) {
+            // Registrazione automatica nuovo utente Google
+            const username = emailClean.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '') || ('user_' + Date.now());
+            user = {
+                id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                name: googleData.name || emailClean.split('@')[0],
+                username: username,
+                email: emailClean,
+                phone: googleData.phone || '',
+                role: 'user',
+                isPrimary: false,
+                googleAuth: true,
+                createdAt: new Date().toISOString()
+            };
+            users.push(user);
+            this.saveUsers(users);
+            isNew = true;
+
+            // Sincronizza nuovo utente su Cloud Google Sheets
+            if (window.API && typeof window.API.saveUser === 'function') {
+                try {
+                    window.API.saveUser(user);
+                } catch (e) {}
+            }
+        }
+
+        this.setCurrentUser(user);
+        return { success: true, user, isNew };
+    },
+
+    // --- Gestione Codici di Sblocco Password Dinamici (OTP & WhatsApp/SMS) ---
+
+    getPendingResetRequests() {
+        try {
+            const raw = localStorage.getItem(this.KEYS.RESET_REQUESTS);
+            const list = raw ? JSON.parse(raw) : [];
+            const now = Date.now();
+            return list.filter(r => r.expiresAt > now);
+        } catch (e) {
+            return [];
+        }
+    },
+
+    savePendingResetRequests(list) {
+        localStorage.setItem(this.KEYS.RESET_REQUESTS, JSON.stringify(list));
+    },
+
+    // 1. Richiesta Codice di Sblocco Temporaneo (Genera OTP 6 cifre valido 15 min)
+    async requestPasswordReset(identifier) {
         const idClean = (identifier || '').trim().toLowerCase();
         if (!idClean) return { success: false, error: 'Inserisci username o email.' };
-        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
 
         let users = this.getUsers();
         let user = users.find(u => 
             (u.username && u.username.toLowerCase() === idClean) ||
             (u.email && u.email.toLowerCase() === idClean) ||
-            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
 
-        // Se non trovato in locale, prova a cercare sul Cloud
         if (!user && window.API && typeof window.API.fetchUsers === 'function') {
             try {
                 const cloudUsers = await window.API.fetchUsers();
@@ -334,15 +415,76 @@ export const Auth = {
             return { success: false, error: 'Nessun account trovato associato a questa email o username.' };
         }
 
+        // Genera codice numerico casuale a 6 cifre
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        const expiresAt = Date.now() + (15 * 60 * 1000); // 15 minuti di validità
+
+        const reqList = this.getPendingResetRequests().filter(r => r.userId !== user.id);
+        const newReq = {
+            userId: user.id,
+            userName: user.name || user.username,
+            userEmail: user.email || '',
+            userPhone: user.phone || '',
+            code: code,
+            expiresAt: expiresAt,
+            createdAt: new Date().toISOString()
+        };
+        reqList.push(newReq);
+        this.savePendingResetRequests(reqList);
+
+        return {
+            success: true,
+            user,
+            code,
+            phone: user.phone || '',
+            expiresInMinutes: 15
+        };
+    },
+
+    // 2. Verifica Codice OTP e reimposta la password
+    async completePasswordReset(identifier, otpCode, newPassword) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        const codeClean = (otpCode || '').trim();
+
+        if (!idClean) return { success: false, error: 'Inserisci email o username.' };
+        if (!codeClean) return { success: false, error: 'Inserisci il codice temporaneo di sblocco.' };
+        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+
+        const users = this.getUsers();
+        const user = users.find(u => 
+            (u.username && u.username.toLowerCase() === idClean) ||
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+        );
+
+        if (!user) {
+            return { success: false, error: 'Account utente non trovato.' };
+        }
+
+        const reqList = this.getPendingResetRequests();
+        const activeReq = reqList.find(r => r.userId === user.id);
+
+        if (!activeReq) {
+            return { 
+                success: false, 
+                error: 'Nessuna richiesta di sblocco attiva trovata o codice scaduto. Richiedi un nuovo codice.' 
+            };
+        }
+
+        if (activeReq.code !== codeClean) {
+            return { 
+                success: false, 
+                error: 'Codice di verifica non corretto. Inserisci il codice a 6 cifre esatto fornito o ricevuto su WhatsApp.' 
+            };
+        }
+
+        // Codice valido: aggiorna password
         const newHash = await this.hashPassword(newPassword);
         user.passwordHash = newHash;
         this.saveUsers(users);
 
-        // Se l'utente resettato è quello attualmente loggato, aggiorna la sessione
-        const curr = this.getCurrentUser();
-        if (curr && curr.id === user.id) {
-            this.setCurrentUser(user);
-        }
+        // Cancella la richiesta usata
+        this.savePendingResetRequests(reqList.filter(r => r.userId !== user.id));
 
         // Sincronizza su Cloud
         if (window.API && typeof window.API.saveUser === 'function') {
@@ -356,6 +498,34 @@ export const Auth = {
         return { success: true, user };
     },
 
+    // Reimpostazione password diretta da parte dell'Admin
+    async resetPassword(identifier, newPassword) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        if (!idClean) return { success: false, error: 'Inserisci username o email.' };
+        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+
+        let users = this.getUsers();
+        let user = users.find(u => 
+            (u.username && u.username.toLowerCase() === idClean) ||
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+        );
+
+        if (!user) {
+            return { success: false, error: 'Account non trovato.' };
+        }
+
+        const newHash = await this.hashPassword(newPassword);
+        user.passwordHash = newHash;
+        this.saveUsers(users);
+
+        if (window.API && typeof window.API.saveUser === 'function') {
+            try { window.API.saveUser(user); } catch (e) {}
+        }
+
+        return { success: true, user };
+    },
+
     // Eliminazione utente (riservata all'utente primario / Admin)
     async deleteUser(userId) {
         const currentUser = this.getCurrentUser();
@@ -363,21 +533,19 @@ export const Auth = {
             return { success: false, error: 'Solo l\'utente principale può eliminare altri utenti.' };
         }
 
-        if (userId === currentUser.id || userId === 'fabio_sandrini') {
-            return { success: false, error: 'Non puoi eliminare l\'utente principale.' };
-        }
-
         let users = this.getUsers();
         const target = users.find(u => u.id === userId);
         if (!target) {
             return { success: false, error: 'Utente non trovato.' };
         }
+        if (target.isPrimary) {
+            return { success: false, error: 'Non è possibile eliminare l\'utente principale.' };
+        }
 
-        // Rimuovi localmente
         users = users.filter(u => u.id !== userId);
         this.saveUsers(users);
 
-        // Rimuovi dal cloud Google Sheets
+        // Elimina anche da Google Sheets sul Cloud
         if (window.API && typeof window.API.deleteUser === 'function') {
             try {
                 await window.API.deleteUser(userId);
@@ -412,7 +580,6 @@ export const Auth = {
         user.passwordHash = await this.hashPassword(newPassword);
         this.saveUsers(users);
 
-        // Sincronizza password aggiornata sul cloud
         if (window.API && typeof window.API.saveUser === 'function') {
             try { window.API.saveUser(user); } catch (e) {}
         }
@@ -420,7 +587,7 @@ export const Auth = {
         return { success: true };
     },
 
-    // Aggiorna impostazioni utente (es. Cloud URL personale)
+    // Aggiorna impostazioni utente
     updateUserSettings(settings = {}) {
         const current = this.getCurrentUser();
         if (!current) return false;
@@ -435,203 +602,17 @@ export const Auth = {
         if (settings.name !== undefined && settings.name.trim()) {
             user.name = settings.name.trim();
         }
+        if (settings.phone !== undefined) {
+            user.phone = settings.phone.trim();
+        }
 
         this.saveUsers(users);
         this.setCurrentUser(user);
 
-        // Sincronizza profilo aggiornato sul cloud
         if (window.API && typeof window.API.saveUser === 'function') {
             try { window.API.saveUser(user); } catch (e) {}
         }
 
         return true;
-    },
-
-    // --- Face ID / Biometria (WebAuthn Platform Authenticator) ---
-
-    // Verifica supporto Face ID / Touch ID / Windows Hello nel browser
-    async isFaceIdAvailable() {
-        try {
-            if (!window.PublicKeyCredential) return false;
-            if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable !== 'function') return false;
-            return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        } catch (e) {
-            console.warn('Verifica Face ID non supportata:', e);
-            return false;
-        }
-    },
-
-    // Helpers per conversione buffer <-> Base64
-    _bufferToBase64(buffer) {
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
-    },
-
-    _base64ToBuffer(base64) {
-        const binary = window.atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-        return bytes.buffer;
-    },
-
-    // Registra / Abilita Face ID per l'utente attualmente loggato
-    async registerFaceId() {
-        const current = this.getCurrentUser();
-        if (!current) {
-            return { success: false, error: 'Accedi prima per abilitare Face ID.' };
-        }
-
-        const available = await this.isFaceIdAvailable();
-        if (!available && !window.isSecureContext) {
-            return { 
-                success: false, 
-                error: 'Face ID richiede un ambiente sicuro (HTTPS o Localhost/PWA installata).' 
-            };
-        }
-
-        try {
-            const challenge = new Uint8Array(32);
-            crypto.getRandomValues(challenge);
-
-            const userIdBytes = new TextEncoder().encode(current.id);
-
-            const creationOptions = {
-                publicKey: {
-                    challenge: challenge,
-                    rp: {
-                        name: 'Tecnosistem Orari'
-                    },
-                    user: {
-                        id: userIdBytes,
-                        name: current.username || current.email,
-                        displayName: current.name || 'Utente Tecnosistem'
-                    },
-                    pubKeyCredParams: [
-                        { alg: -7, type: 'public-key' },  // ES256
-                        { alg: -257, type: 'public-key' } // RS256
-                    ],
-                    authenticatorSelection: {
-                        authenticatorAttachment: 'platform',
-                        userVerification: 'required',
-                        requireResidentKey: false
-                    },
-                    timeout: 60000,
-                    attestation: 'none'
-                }
-            };
-
-            const credential = await navigator.credentials.create(creationOptions);
-            if (!credential) {
-                return { success: false, error: 'Registrazione biometrica annullata.' };
-            }
-
-            const credIdBase64 = this._bufferToBase64(credential.rawId);
-
-            localStorage.setItem(this.KEYS.FACEID_PREFIX + current.id, credIdBase64);
-            localStorage.setItem(this.KEYS.FACEID_PREFIX + 'last_user', current.id);
-
-            const users = this.getUsers();
-            const user = users.find(u => u.id === current.id);
-            if (user) {
-                user.hasFaceId = true;
-                this.saveUsers(users);
-                this.setCurrentUser(user);
-                if (window.API && typeof window.API.saveUser === 'function') {
-                    try { window.API.saveUser(user); } catch (e) {}
-                }
-            }
-
-            return { success: true };
-        } catch (err) {
-            console.error('Errore WebAuthn registerFaceId:', err);
-            if (err.name === 'NotAllowedError') {
-                return { success: false, error: 'Autorizzazione Face ID rifiutata o annullata.' };
-            }
-            return { success: false, error: 'Errore Face ID: ' + (err.message || err.name) };
-        }
-    },
-
-    // Accedi tramite Face ID
-    async loginWithFaceId() {
-        const lastUserId = localStorage.getItem(this.KEYS.FACEID_PREFIX + 'last_user');
-        const users = this.getUsers();
-        
-        let targetUser = null;
-        if (lastUserId) {
-            targetUser = users.find(u => u.id === lastUserId);
-        }
-        if (!targetUser) {
-            targetUser = users.find(u => u.hasFaceId) || users.find(u => u.isPrimary);
-        }
-
-        if (!targetUser) {
-            return { 
-                success: false, 
-                error: 'Nessun utente configurato con Face ID. Effettua prima l\'accesso con password e abilita Face ID.' 
-            };
-        }
-
-        const credIdBase64 = localStorage.getItem(this.KEYS.FACEID_PREFIX + targetUser.id);
-        if (!credIdBase64) {
-            return { 
-                success: false, 
-                error: `Face ID non ancora registrato per ${targetUser.name}. Accedi con password e tocca "Abilita Face ID".` 
-            };
-        }
-
-        try {
-            const challenge = new Uint8Array(32);
-            crypto.getRandomValues(challenge);
-
-            const credBuffer = this._base64ToBuffer(credIdBase64);
-
-            const requestOptions = {
-                publicKey: {
-                    challenge: challenge,
-                    allowCredentials: [{
-                        id: credBuffer,
-                        type: 'public-key'
-                    }],
-                    userVerification: 'required',
-                    timeout: 60000
-                }
-            };
-
-            const assertion = await navigator.credentials.get(requestOptions);
-            if (!assertion) {
-                return { success: false, error: 'Verifica Face ID non completata.' };
-            }
-
-            this.setCurrentUser(targetUser);
-            localStorage.setItem(this.KEYS.FACEID_PREFIX + 'last_user', targetUser.id);
-            return { success: true, user: targetUser };
-        } catch (err) {
-            console.error('Errore WebAuthn loginWithFaceId:', err);
-            if (err.name === 'NotAllowedError') {
-                return { success: false, error: 'Face ID annullato o non riconosciuto.' };
-            }
-            return { success: false, error: 'Errore verifica Face ID: ' + (err.message || err.name) };
-        }
-    },
-
-    // Rimuove Face ID per l'utente corrente
-    disableFaceId() {
-        const current = this.getCurrentUser();
-        if (!current) return;
-
-        localStorage.removeItem(this.KEYS.FACEID_PREFIX + current.id);
-        const users = this.getUsers();
-        const user = users.find(u => u.id === current.id);
-        if (user) {
-            user.hasFaceId = false;
-            this.saveUsers(users);
-            this.setCurrentUser(user);
-        }
     }
 };

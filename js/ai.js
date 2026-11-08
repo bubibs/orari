@@ -69,9 +69,85 @@ export const AI = {
         return localResult;
     },
 
+    // Estrazione del mese target dalla richiesta in linguaggio naturale (es. "ore lavorate ad ottobre")
+    extractMonthFromQuery(q, fallbackMonth) {
+        if (!q) return fallbackMonth || new Date().toISOString().slice(0, 7);
+        const lower = q.toLowerCase();
+
+        // Dizionario mesi italiani
+        const monthsMap = {
+            'gennaio': '01', 'gen': '01',
+            'febbraio': '02', 'feb': '02',
+            'marzo': '03', 'mar': '03',
+            'aprile': '04', 'apr': '04',
+            'maggio': '05', 'mag': '05',
+            'giugno': '06', 'giu': '06',
+            'luglio': '07', 'lug': '07',
+            'agosto': '08', 'ago': '08',
+            'settembre': '09', 'set': '09',
+            'ottobre': '10', 'ott': '10',
+            'novembre': '11', 'nov': '11',
+            'dicembre': '12', 'dic': '12'
+        };
+
+        const now = new Date();
+        const currentYear = fallbackMonth ? fallbackMonth.split('-')[0] : String(now.getFullYear());
+        const currentMonthNum = fallbackMonth ? parseInt(fallbackMonth.split('-')[1], 10) : (now.getMonth() + 1);
+
+        // Controllo anno esplicito a 4 cifre nel testo (es. 2024, 2025, 2026, 2027)
+        const yearMatch = lower.match(/\b(202\d)\b/);
+        const targetYear = yearMatch ? yearMatch[1] : currentYear;
+
+        // Gestione "mese scorso" / "scorso mese" / "mese passato"
+        if (lower.includes('mese scorso') || lower.includes('scorso mese') || lower.includes('mese passato')) {
+            let y = parseInt(targetYear, 10);
+            let m = currentMonthNum - 1;
+            if (m < 1) {
+                m = 12;
+                y--;
+            }
+            return `${y}-${String(m).padStart(2, '0')}`;
+        }
+
+        // Gestione "questo mese" / "mese corrente"
+        if (lower.includes('questo mese') || lower.includes('mese corrente') || lower.includes('in corso')) {
+            return fallbackMonth;
+        }
+
+        // Cerca il nome del mese nel testo
+        for (const [name, num] of Object.entries(monthsMap)) {
+            const regex = new RegExp(`\\b${name}\\b`, 'i');
+            if (regex.test(lower)) {
+                return `${targetYear}-${num}`;
+            }
+        }
+
+        // Controllo formati YYYY-MM o MM/YYYY numerici
+        const isoMatch = lower.match(/\b(202\d)[-/](0[1-9]|1[0-2])\b/);
+        if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}`;
+
+        const revMatch = lower.match(/\b(0[1-9]|1[0-2])[-/](202\d)\b/);
+        if (revMatch) return `${revMatch[2]}-${revMatch[1]}`;
+
+        return fallbackMonth;
+    },
+
+    // Formatta "YYYY-MM" in etichetta leggibile italiana (es. "Ottobre 2026")
+    getMonthLabel(monthStr) {
+        if (!monthStr || !monthStr.includes('-')) return monthStr || 'Mese Corrente';
+        const [y, m] = monthStr.split('-');
+        const names = {
+            '01': 'Gennaio', '02': 'Febbraio', '03': 'Marzo', '04': 'Aprile',
+            '05': 'Maggio', '06': 'Giugno', '07': 'Luglio', '08': 'Agosto',
+            '09': 'Settembre', '10': 'Ottobre', '11': 'Novembre', '12': 'Dicembre'
+        };
+        return `${names[m] || m} ${y}`;
+    },
+
     // Riconoscimento Intent ed elaborazione dati locali
     processLocalIntent(q, reports, settings, currentMonth, user) {
-        const userName = user ? (user.name ? user.name.split(' ')[0] : user.username) : 'Fabio';
+        const targetMonth = this.extractMonthFromQuery(q, currentMonth);
+        const userName = user ? (user.username || (user.name ? user.name.split(' ')[0] : 'bubibs')) : 'bubibs';
 
         // 1. INTENT: Recupero Dati e Sincronizzazione Cloud
         if (q.includes('recuper') || q.includes('cloud') || q.includes('database') || q.includes('sincronizz') || q.includes('salvati') || q.includes('persi')) {
@@ -99,9 +175,9 @@ export const AI = {
             return {
                 text: `👥 **Accesso e Gestione Utenti Multi-Dispositivo:**\n\n` +
                       `• **Utente Attuale:** ${user ? user.name : 'Non autenticato'} (${user ? (user.email || user.username) : ''})\n` +
-                      `• **Stato Biometria / Face ID:** ${user && user.hasFaceId ? '✅ Attivo' : '❌ Non attivo'}\n\n` +
+                      `` +
                       `**Come funziona per te e i colleghi:**\n` +
-                      `• **Utente Principale (Fabio Sandrini):** Recupera tutti i dati storici dal cloud con login rapido (password predefinita: *1234*).\n` +
+                      `• **Utente Principale (Fabio Sandrini):** Recupera tutti i dati storici dal cloud con login rapido (account: bubibs / bubibs@gmail.com).\n` +
                       `• **Altri Utenti:** Possono cliccare su *"Crea un nuovo account utente"* nella schermata di login. L'account viene salvato sia in locale che sul database Cloud di Tecnosistem, così possono salvare lì i propri orari e ritrovarli su qualsiasi dispositivo!\n` +
                       `• **Face ID:** Puoi abilitare Face ID dal menu profilo per accedere in un secondo senza digitare la password.`,
                 action: {
@@ -137,17 +213,47 @@ export const AI = {
 
         // 4. INTENT: Giorni mancanti / Controllo anomalie
         if (q.includes('mancant') || q.includes('buchi') || q.includes('vuot') || q.includes('dimenticat') || q.includes('anomali')) {
-            return this.checkMissingDays(reports, currentMonth);
+            return this.checkMissingDays(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Ferie e Vacanze (prioritario rispetto a "ore")
+        if (q.includes('ferie') || q.includes('vacanz')) {
+            return this.calculateFerieSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Malattia e Infortunio
+        if (q.includes('malattia') || q.includes('infortun')) {
+            return this.calculateMalattiaSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Permessi e ROL
+        if (q.includes('permess') || q.includes('rol')) {
+            return this.calculatePermessiSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Assenze generiche
+        if (q.includes('assenz') && !q.includes('senza')) {
+            return this.calculateFerieSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Straordinari
+        if (q.includes('straordinar') || q.includes('ore extra') || q.includes('maggiorat')) {
+            return this.calculateStraordinariSummary(reports, settings, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Trasferte e Diarie
+        if (q.includes('trasfert') || q.includes('diaria') || q.includes('pernott') || q.includes('estero')) {
+            return this.calculateTrasferteSummary(reports, settings, targetMonth);
         }
 
         // 5. INTENT: Calcolo / Stima Stipendio
         if (q.includes('stipendio') || q.includes('paga') || q.includes('netto') || q.includes('lordo') || q.includes('quanto prendo') || q.includes('guadagn')) {
-            return this.calculateSalarySummary(reports, settings, currentMonth);
+            return this.calculateSalarySummary(reports, settings, targetMonth);
         }
 
         // 6. INTENT: Riepilogo Ore e Straordinari
         if (q.includes('ore') || q.includes('straordinar') || q.includes('riepilogo') || q.includes('totale') || q.includes('lavorat')) {
-            return this.calculateHoursSummary(reports, currentMonth);
+            return this.calculateHoursSummary(reports, targetMonth);
         }
 
         // 7. INTENT: Compilazione Rapida Report con testo naturale
@@ -199,35 +305,331 @@ export const AI = {
         };
     },
 
-    // Calcolo riepilogo ore
+    // 1. Calcolo specifico Ore di Ferie
+    calculateFerieSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+        
+        const ferieReports = monthReports.filter(r => 
+            (r.absence && r.absence.toLowerCase() === 'ferie') ||
+            (r.notes && r.notes.toLowerCase().includes('ferie')) ||
+            (r.type && r.type.toLowerCase().includes('ferie'))
+        );
+
+        let totalHours = 0;
+        const details = [];
+
+        ferieReports.forEach(r => {
+            const h = parseFloat(r.totalHours) || 8;
+            totalHours += h;
+            const d = r.date.split('-').reverse().join('/');
+            details.push(`• 📅 **${d}**: ${h} ore di ferie${r.notes ? ` (*${r.notes}*)` : ''}`);
+        });
+
+        if (ferieReports.length === 0) {
+            return {
+                text: `🏖️ **Ore di Ferie per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano registrate ore o giornate di ferie.\n\n` +
+                      `Tutte le attività registrate per questo mese sono di lavoro effettivo o trasferte.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `🏖️ **Riepilogo Ore di Ferie per ${monthLabel}:**\n\n` +
+                  `Nel mese di **${monthLabel}** hai usufruito di **${totalHours} ore di ferie** (${ferieReports.length} giornat${ferieReports.length === 1 ? 'a' : 'e'}):\n\n` +
+                  details.join('\n') + `\n\n` +
+                  `Totale ferie godute: **${totalHours} ore** (**${ferieReports.length} giorni**).`,
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // 2. Calcolo specifico Ore di Malattia / Infortunio
+    calculateMalattiaSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+        
+        const malattiaReports = monthReports.filter(r => 
+            (r.absence && (r.absence.toLowerCase() === 'malattia' || r.absence.toLowerCase() === 'infortunio')) ||
+            (r.notes && (r.notes.toLowerCase().includes('malattia') || r.notes.toLowerCase().includes('infortunio')))
+        );
+
+        let totalHours = 0;
+        const details = [];
+
+        malattiaReports.forEach(r => {
+            const h = parseFloat(r.totalHours) || 8;
+            totalHours += h;
+            const d = r.date.split('-').reverse().join('/');
+            details.push(`• 🩺 **${d}**: ${h} ore (Malattia/Infortunio)${r.notes ? ` (*${r.notes}*)` : ''}`);
+        });
+
+        if (malattiaReports.length === 0) {
+            return {
+                text: `🩺 **Ore di Malattia per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano registrati giorni di assenza per malattia.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `🩺 **Riepilogo Malattia per ${monthLabel}:**\n\n` +
+                  `Nel mese di **${monthLabel}** hai registrato **${totalHours} ore di malattia** (${malattiaReports.length} giornat${malattiaReports.length === 1 ? 'a' : 'e'}):\n\n` +
+                  details.join('\n'),
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // 3. Calcolo specifico Permessi / ROL
+    calculatePermessiSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+        
+        const permessiReports = monthReports.filter(r => 
+            (r.absence && (r.absence.toLowerCase() === 'permesso' || r.absence.toLowerCase() === 'rol')) ||
+            (r.notes && (r.notes.toLowerCase().includes('permesso') || r.notes.toLowerCase().includes('rol')))
+        );
+
+        let totalHours = 0;
+        const details = [];
+
+        permessiReports.forEach(r => {
+            const h = parseFloat(r.totalHours) || 0;
+            totalHours += h;
+            const d = r.date.split('-').reverse().join('/');
+            details.push(`• ⏱️ **${d}**: ${h} ore (Permesso/ROL)${r.notes ? ` (*${r.notes}*)` : ''}`);
+        });
+
+        if (permessiReports.length === 0) {
+            return {
+                text: `⏱️ **Permessi e ROL per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano permessi registrati.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `⏱️ **Riepilogo Permessi per ${monthLabel}:**\n\n` +
+                  `Nel mese di **${monthLabel}** hai registrato **${totalHours} ore di permesso/ROL**:\n\n` +
+                  details.join('\n'),
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // 4. Calcolo specifico Straordinari
+    calculateStraordinariSummary(reports, settings, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+
+        let ot25Total = 0;
+        let ot50Total = 0;
+        let otTotal = 0;
+        const details = [];
+
+        monthReports.forEach(r => {
+            const ot25 = parseFloat(r.overtime25) || 0;
+            const ot50 = parseFloat(r.overtime50) || 0;
+            const otLeg = parseFloat(r.overtime) || 0;
+            const tot = (ot25 + ot50) > 0 ? (ot25 + ot50) : otLeg;
+
+            if (tot > 0) {
+                ot25Total += ot25;
+                ot50Total += ot50;
+                otTotal += tot;
+                const d = r.date.split('-').reverse().join('/');
+                const sub = [];
+                if (ot25 > 0) sub.push(`${ot25}h al 25%`);
+                if (ot50 > 0) sub.push(`${ot50}h al 50%`);
+                details.push(`• 📈 **${d}**: ${tot}h straordinario (${sub.length > 0 ? sub.join(', ') : 'ordinario'}) presso *${r.location || 'Sede'}*`);
+            }
+        });
+
+        const hourly = parseFloat(settings.hourlyRate) || 17.23;
+        const estimatedComp = (ot25Total * (hourly * 1.25)) + (ot50Total * (hourly * 1.50));
+
+        if (otTotal === 0) {
+            return {
+                text: `📈 **Straordinari per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano ore di straordinario registrate.\n` +
+                      `Tutte le attività risultano svolte nell'orario ordinario.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `📈 **Dettaglio Straordinari per ${monthLabel}:**\n\n` +
+                  `• **Totale Straordinari:** **${otTotal.toFixed(1)} ore**\n` +
+                  (ot25Total > 0 ? `  - Straordinario 25%: ${ot25Total.toFixed(1)} ore\n` : '') +
+                  (ot50Total > 0 ? `  - Straordinario 50% / Festivo: ${ot50Total.toFixed(1)} ore\n` : '') +
+                  (estimatedComp > 0 ? `• **Compenso Lordo Stimato:** € ${estimatedComp.toFixed(2)}\n` : '') +
+                  `\n**Giornate con Straordinario:**\n` +
+                  details.join('\n'),
+            action: {
+                label: '💶 Controlla nello Stipendio',
+                type: 'navigate',
+                view: 'salary'
+            }
+        };
+    },
+
+    // 5. Calcolo specifico Trasferte
+    calculateTrasferteSummary(reports, settings, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+
+        const trasferte = monthReports.filter(r => r.type && r.type !== 'sede');
+        let rientro = 0;
+        let notte = 0;
+        let estero = 0;
+        const details = [];
+
+        trasferte.forEach(r => {
+            const d = r.date.split('-').reverse().join('/');
+            let label = 'Trasferta con Rientro';
+            if (r.type === 'trasferta_rientro') { rientro++; label = '🚗 Rientro in giornata'; }
+            else if (r.type === 'trasferta_notte') { notte++; label = '🏨 Con Pernottamento'; }
+            else if (r.type === 'trasferta_estero') { estero++; label = '✈️ Estero'; }
+            details.push(`• **${d}**: ${label} presso *${r.location || 'Cliente'}* (${r.totalHours || 0}h)`);
+        });
+
+        const rRate = settings.allowanceReturn !== undefined ? settings.allowanceReturn : 30;
+        const nRate = settings.allowanceOvernight !== undefined ? settings.allowanceOvernight : 60;
+        const eRate = settings.allowanceForeign !== undefined ? settings.allowanceForeign : 105;
+        const totDiaria = (rientro * rRate) + (notte * nRate) + (estero * eRate);
+
+        if (trasferte.length === 0) {
+            return {
+                text: `🚗 **Trasferte per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano giornate di trasferta registrate.\n` +
+                      `Tutte le attività risultano svolte in sede.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `🚗 **Riepilogo Trasferte per ${monthLabel}:**\n\n` +
+                  `• **Giorni Totali in Trasferta:** **${trasferte.length} giornate**\n` +
+                  (rientro > 0 ? `  - Con Rientro in giornata (€ ${rRate}/giorno): ${rientro} giorni\n` : '') +
+                  (notte > 0 ? `  - Con Pernottamento (€ ${nRate}/giorno): ${notte} giorni\n` : '') +
+                  (estero > 0 ? `  - Estero (€ ${eRate}/giorno): ${estero} giorni\n` : '') +
+                  (totDiaria > 0 ? `• **Totale Indennità Trasferta:** € ${totDiaria.toFixed(2)}\n` : '') +
+                  `\n**Elenco Interventi Fuori Sede:**\n` +
+                  details.join('\n'),
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // Calcolo riepilogo ore per il mese specificato
     calculateHoursSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
         const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
         let totalHours = 0;
         let totalOt = 0;
+        let totalOt25 = 0;
+        let totalOt50 = 0;
         let daysWorked = 0;
         let absences = 0;
+        let returnTransfers = 0;
+        let overnightTransfers = 0;
+        let foreignTransfers = 0;
 
         monthReports.forEach(r => {
             const h = parseFloat(r.totalHours) || 0;
-            const ot = parseFloat(r.overtime) || (parseFloat(r.overtime25 || 0) + parseFloat(r.overtime50 || 0));
+            const ot25 = parseFloat(r.overtime25) || 0;
+            const ot50 = parseFloat(r.overtime50) || 0;
+            const otLegacy = parseFloat(r.overtime) || 0;
+            const ot = (ot25 + ot50) > 0 ? (ot25 + ot50) : otLegacy;
             totalHours += h;
             totalOt += ot;
+            totalOt25 += ot25;
+            totalOt50 += ot50;
+
             if (r.absence) {
                 absences++;
             } else if (h > 0) {
                 daysWorked++;
             }
+
+            if (r.type === 'trasferta_rientro') returnTransfers++;
+            if (r.type === 'trasferta_notte') overnightTransfers++;
+            if (r.type === 'trasferta_estero') foreignTransfers++;
         });
 
+        if (monthReports.length === 0) {
+            return {
+                text: `📊 **Riepilogo Orari per ${monthLabel}:**
+
+` +
+                      `Non risultano report o ore registrate per **${monthLabel}** nell'archivio locale.
+
+` +
+                      `💡 *Suggerimento:* Se hai già inserito i dati per questo mese da un altro dispositivo, premi l'icona della nuvoletta ☁️ in alto a destra per sincronizzare subito dal Cloud!`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        const transfersCount = returnTransfers + overnightTransfers + foreignTransfers;
+
         return {
-            text: `📊 **Riepilogo Orari Mese Corrente (${monthStr}):**\n\n` +
-                  `• **Giorni Lavorati:** ${daysWorked} giorni\n` +
-                  `• **Ore Totali Registrate:** ${totalHours.toFixed(1)} ore\n` +
-                  `• **Straordinari Totali:** ${totalOt.toFixed(1)} ore\n` +
-                  `• **Giorni di Assenza/Ferie:** ${absences} giorni\n\n` +
-                  (totalOt > 0 ? `Hai registrato ${totalOt.toFixed(1)} ore di straordinario.` : `Tutte le ore registrate sono ordinarie.`),
+            text: `📊 **Riepilogo Ore per ${monthLabel}:**
+
+` +
+                  `• **Giorni Lavorati:** ${daysWorked} giorni
+` +
+                  `• **Ore Totali Registrate:** ${totalHours.toFixed(1)} ore
+` +
+                  `• **Straordinari Totali:** ${totalOt.toFixed(1)} ore` + (totalOt > 0 ? ` (${totalOt25.toFixed(1)}h al 25%, ${totalOt50.toFixed(1)}h al 50%)` : '') + `
+` +
+                  (transfersCount > 0 ? `• **Trasferte Effettuate:** ${transfersCount} (Rientro: ${returnTransfers}, Notte: ${overnightTransfers}, Estero: ${foreignTransfers})
+` : '') +
+                  `• **Giorni Assenza / Ferie:** ${absences} giorni
+
+` +
+                  (totalOt > 0 
+                    ? `Hai registrato **${totalOt.toFixed(1)} ore** di straordinario per il mese di **${monthLabel}**.` 
+                    : `Tutte le ore registrate per **${monthLabel}** sono ordinarie.`),
             action: {
-                label: '⏱️ Apri Storico Completo',
+                label: '⏱️ Apri Storico ' + monthLabel,
                 type: 'navigate',
                 view: 'history'
             }

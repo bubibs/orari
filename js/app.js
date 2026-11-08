@@ -1,6 +1,8 @@
-
+﻿
 import { Store } from './store.js';
 import { API } from './api.js';
+import { Auth } from './auth.js';
+import { AI } from './ai.js';
 
 // --- Helper: Generate Time Options ---
 const generateTimeOptions = (selected = '') => {
@@ -26,6 +28,8 @@ const Views = {
                     <i class="ph ph-spinner ph-spin text-gold" style="font-size:2rem;"></i>
                 </div>
             </div>
+
+                        
 
             <div class="nav-grid">
                 <button class="btn btn-nav" onclick="app.navigate('report')">
@@ -256,6 +260,140 @@ const Views = {
                  </form>
             </div>
         </div>
+    `,
+
+    login: () => `
+        <div class="fade-in auth-wrapper">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div style="font-size:2.4rem; color:var(--primary); margin-bottom:8px;">
+                        <i class="ph ph-shield-check"></i>
+                    </div>
+                    <h2>Accedi ad Orari TS</h2>
+                    <p>Inserisci le tue credenziali aziendali</p>
+                </div>
+
+                                <!-- Pulsante Accesso con Google -->
+                <div style="margin-bottom:14px;">
+                    <button type="button" class="btn btn-google" onclick="app.handleGoogleLogin()" id="btn-google-login">
+                        <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink:0;">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Accedi con Google</span>
+                    </button>
+                </div>
+
+                <div class="auth-divider">oppure con credenziali</div>
+
+                <form onsubmit="app.handleLoginSubmit(event)">
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username o Email</label>
+                        <input type="text" id="login-identifier" required placeholder="es. bubibs oppure email" autocomplete="username" style="font-size:1rem; padding:12px;">
+                    </div>
+
+
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password</label>
+                        <div class="input-password-wrapper">
+                            <input type="password" id="login-password" required placeholder="Inserisci password" autocomplete="current-password" style="font-size:1rem; padding:12px;">
+                            <button type="button" class="btn-toggle-pwd" onclick="app.togglePasswordVisibility('login-password', this)">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                            <button type="button" onclick="app.showForgotPasswordModal()" style="background:none; border:none; color:var(--primary); font-size:0.82rem; cursor:pointer; text-decoration:underline; padding:0;">Hai dimenticato la password?</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
+                        <i class="ph ph-sign-in"></i> Accedi
+                    </button>
+                </form>
+
+                <!-- Accesso Rapido Fabio Sandrini -->
+                <div class="fast-access-section">
+                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('bubibs@gmail.com', 'Brescia1-')">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="ph ph-user-check" style="font-size:1.2rem;"></i>
+                            <span>Accesso Rapido Fabio Sandrini</span>
+                        </div>
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
+                        (Account: <strong>bubibs@gmail.com</strong>)
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin-top:22px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
+                    <span style="font-size:0.85rem; color:var(--text-muted);">Non hai ancora un account?</span><br>
+                    <button type="button" class="btn btn-sm" style="background:none; border:none; color:var(--primary); font-size:0.9rem; font-weight:600; text-decoration:underline; cursor:pointer; padding:6px; margin-top:4px;" onclick="app.navigate('register')">
+                        Crea un nuovo account utente
+                    </button>
+                </div>
+            </div>
+        </div>
+    `,
+
+    register: () => `
+        <div class="fade-in auth-wrapper">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div style="font-size:2.4rem; color:var(--primary); margin-bottom:8px;">
+                        <i class="ph ph-user-plus"></i>
+                    </div>
+                    <h2>Nuovo Utente</h2>
+                    <p>Registra un profilo personale su Orari TS</p>
+                </div>
+
+                <form onsubmit="app.handleRegisterSubmit(event)">
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Nome e Cognome</label>
+                        <input type="text" id="reg-name" required placeholder="es. Mario Rossi" autocomplete="name" style="font-size:1rem; padding:12px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username</label>
+                        <input type="text" id="reg-username" required placeholder="es. mario.rossi" autocomplete="username" style="font-size:1rem; padding:12px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Email (opzionale)</label>
+                        <input type="email" id="reg-email" placeholder="mario@tecnosistem.com" autocomplete="email" style="font-size:1rem; padding:12px;">
+                    </div>
+
+                                        <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Numero di Cellulare (WhatsApp)</label>
+                        <input type="tel" id="reg-phone" placeholder="es. 3331234567" autocomplete="tel" style="font-size:1rem; padding:12px;">
+                        <small style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:3px;">
+                            📱 Utilizzato per inviarti il codice temporaneo di sicurezza se dimentichi la password.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password</label>
+                        <div class="input-password-wrapper">
+                            <input type="password" id="reg-password" required placeholder="Scegli una password" autocomplete="new-password" style="font-size:1rem; padding:12px;">
+                            <button type="button" class="btn-toggle-pwd" onclick="app.togglePasswordVisibility('reg-password', this)">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top:16px; padding:14px; font-size:1rem;">
+                        <i class="ph ph-check"></i> Registrati e Accedi
+                    </button>
+                </form>
+
+                <div style="text-align:center; margin-top:20px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
+                    <button type="button" class="btn btn-sm" style="background:none; border:none; color:var(--text-muted); font-size:0.88rem; cursor:pointer;" onclick="app.navigate('login')">
+                        ← Hai già un account? Torna al Login
+                    </button>
+                </div>
+            </div>
+        </div>
     `
 };
 
@@ -271,6 +409,17 @@ class App {
     }
 
     async init() {
+        await Auth.init();
+        window.auth = Auth;
+
+        const currentUser = Auth.getCurrentUser();
+        this.updateAuthUI(currentUser);
+
+        if (!currentUser) {
+            this.navigate('login');
+            return;
+        }
+
         this.navigate('home');
         this.updateCloudStatus();
 
@@ -281,16 +430,280 @@ class App {
     }
 
     navigate(viewName, params = null) {
+        const currentUser = Auth.getCurrentUser();
+        if (!currentUser && viewName !== 'login' && viewName !== 'register') {
+            this.navigate('login');
+            return;
+        }
+
         if (!Views[viewName]) return;
         this.currentView = viewName;
         this.root.innerHTML = Views[viewName]();
 
+        // Aggiorna la barra di navigazione inferiore fissa
+        this.updateBottomNav(viewName);
+
         // Post-render lifecycle
-        if (viewName === 'home') this.renderHomeDashboard(); // CHANGED: Load full dashboard
+        if (viewName === 'home') this.renderHomeDashboard();
         if (viewName === 'report') this.initReportForm(params);
         if (viewName === 'contacts') this.renderContacts();
         if (viewName === 'history') this.renderHistory();
         if (viewName === 'salary') this.renderSalary(new Date().toISOString().slice(0, 7));
+    }
+
+    updateBottomNav(viewName) {
+        const bottomNav = document.getElementById('bottom-nav');
+        if (!bottomNav) return;
+
+        const currentUser = Auth.getCurrentUser();
+        if (!currentUser || viewName === 'login' || viewName === 'register') {
+            bottomNav.style.display = 'none';
+            return;
+        }
+
+        bottomNav.style.display = 'flex';
+
+        const btnHome = document.getElementById('bottom-nav-home');
+        const btnHistory = document.getElementById('bottom-nav-history');
+        const btnSalary = document.getElementById('bottom-nav-salary');
+
+        if (btnHome) btnHome.classList.toggle('active', viewName === 'home');
+        if (btnHistory) btnHistory.classList.toggle('active', viewName === 'history');
+        if (btnSalary) btnSalary.classList.toggle('active', viewName === 'salary');
+    }
+
+    updateAuthUI(user) {
+        const userBadge = document.getElementById('user-header-badge');
+        const userNameSpan = document.getElementById('user-header-name');
+        const footer = document.getElementById('app-footer');
+
+        if (user) {
+            if (userBadge) {
+                userBadge.style.display = 'flex';
+                if (userNameSpan) userNameSpan.textContent = user.username || (user.name ? user.name.split(' ')[0] : 'bubibs');
+                userBadge.title = `${user.name || user.username} (${user.email || user.username})`;
+            }
+            if (footer) {
+                footer.textContent = user.isPrimary ? 'Fabio Sandrini' : (user.name || 'Tecnosistem');
+            }
+        } else {
+            if (userBadge) userBadge.style.display = 'none';
+            if (footer) footer.textContent = 'Tecnosistem';
+        }
+    }
+
+    togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPwd = input.type === 'password';
+        input.type = isPwd ? 'text' : 'password';
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = isPwd ? 'ph ph-eye-slash' : 'ph ph-eye';
+        }
+    }
+
+    async handleLoginSubmit(event) {
+        event.preventDefault();
+        const identifier = document.getElementById('login-identifier')?.value;
+        const password = document.getElementById('login-password')?.value;
+
+        const res = await Auth.login(identifier, password);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        Store.init();
+        this.updateAuthUI(res.user);
+        this.navigate('home');
+        this.showToast(`Bentornato, ${res.user.name}!`, 'success');
+        this.sync();
+
+        
+    }
+
+    async handleRegisterSubmit(event) {
+        event.preventDefault();
+        const name = document.getElementById('reg-name')?.value;
+        const username = document.getElementById('reg-username')?.value;
+        const email = document.getElementById('reg-email')?.value;
+        const phone = document.getElementById('reg-phone')?.value;
+        const password = document.getElementById('reg-password')?.value;
+
+        const res = await Auth.register({ name, username, email, phone, password });
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        Store.init();
+        this.updateAuthUI(res.user);
+        this.navigate('home');
+        this.showToast(`Benvenuto in Orari TS, ${res.user.name}!`, 'success');
+        this.sync();
+
+        // Per nuovi utenti, avvia la configurazione guidata parametri stipendio (default 0)
+        this.showSalaryOnboardingModal(res.user);
+    }
+
+    async handleFastLogin(username, password) {
+        const res = await Auth.login(username, password);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        Store.init();
+        this.updateAuthUI(res.user);
+        this.navigate('home');
+        this.showToast(`Accesso rapido effettuato. Ciao ${res.user.name}!`, 'success');
+        this.sync();
+
+        
+    }
+
+    handleSaveCloudUrl() {
+        const input = document.getElementById('user-cloud-url');
+        const url = input ? input.value : '';
+        Auth.updateUserSettings({ cloudUrl: url });
+        this.showToast('Impostazione cloud salvata!', 'success');
+        this.closeUserMenu();
+        this.sync();
+    }
+
+    handleLogout() {
+        this.closeUserMenu();
+        Auth.logout();
+        this.updateAuthUI(null);
+        this.navigate('login');
+        this.showToast('Disconnessione effettuata.', 'info');
+    }
+
+    toggleUserMenu() {
+        const container = document.getElementById('user-modal-container');
+        if (!container) return;
+
+        if (document.getElementById('user-profile-modal-overlay')) {
+            this.closeUserMenu();
+            return;
+        }
+
+        const user = Auth.getCurrentUser();
+        if (!user) return;
+
+        const otherUsers = Auth.getUsers().filter(u => !u.isPrimary && u.id !== user.id);
+        let userManagementHtml = '';
+        if (user.isPrimary) {
+            const userRows = otherUsers.length === 0
+                ? '<p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">Nessun altro utente registrato al momento.</p>'
+                : otherUsers.map(u => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
+                            <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || u.username}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Reimposta Password">
+                                <i class="ph ph-key"></i> Reset
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Elimina Utente">
+                                <i class="ph ph-trash"></i> Elimina
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            userManagementHtml = `
+                <!-- Sezione Amministrazione Utenti Aziendali (Solo Utente Principale) -->
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,215,0,0.3); border-radius:12px; padding:14px; margin-bottom:16px; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="ph ph-users-three text-gold" style="font-size:1.25rem;"></i>
+                            <span style="font-weight:700; font-size:0.92rem; color:var(--primary);">Gestione Utenti Azienda</span>
+                        </div>
+                        <span style="font-size:0.75rem; background:rgba(255,215,0,0.2); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">ADMIN</span>
+                    </div>
+                    <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:10px;">
+                        Cancella colleghi non più presenti in azienda o reimposta la loro password.
+                    </p>
+                    <div style="max-height:160px; overflow-y:auto; padding-right:4px;">
+                        ${userRows}
+                    </div>
+                </div>
+            `;
+        }
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'user-profile-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => this.closeUserMenu();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="ph ph-user-circle text-gold" style="font-size:2rem;"></i>
+                        <div style="text-align:left;">
+                            <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">${user.name}</h3>
+                            <span style="font-size:0.8rem; color:var(--text-muted);">${user.email || user.username} ${user.isPrimary ? '★ (Principale)' : ''}</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeUserMenu()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                ${userManagementHtml}
+                <!-- Sezione Face ID -->
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:14px; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="ph ph-scan-face text-gold" style="font-size:1.3rem;"></i>
+                            <span style="font-weight:600; font-size:0.92rem;">Face ID / Biometria</span>
+                        </div>
+                        <span style="font-size:0.8rem; padding:2px 8px; border-radius:10px; background:${user.hasFaceId ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}; color:${user.hasFaceId ? '#22c55e' : '#ef4444'}; font-weight:600;">
+                            ${user.hasFaceId ? 'Attivo' : 'Non attivo'}
+                        </span>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; line-height:1.4;">
+                        ${user.hasFaceId 
+                            ? 'Face ID è abilitato su questo dispositivo. Puoi accedere istantaneamente con il tuo volto.' 
+                            : 'Abilita l\'accesso rapido con Face ID (o Touch ID/Windows Hello) sul tuo dispositivo.'}
+                    </p>
+                    <button type="button" class="btn btn-sm" style="background:#2563eb; color:white; font-size:0.85rem; width:100%; font-weight:600;" onclick="app.handleRegisterFaceId()">
+                        <i class="ph ph-scan-face"></i> ${user.hasFaceId ? 'Riconfigura Face ID' : 'Abilita Face ID Ora'}
+                    </button>
+                </div>
+
+                <!-- Sezione Cloud Database Personale -->
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:16px; text-align:left;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                        <i class="ph ph-cloud text-gold" style="font-size:1.2rem;"></i>
+                        <span style="font-weight:600; font-size:0.92rem;">Database Cloud Personale</span>
+                    </div>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+                        URL Google Apps Script personale (lascia vuoto per usare il cloud aziendale condiviso).
+                    </p>
+                    <input type="text" id="user-cloud-url" value="${user.cloudUrl || ''}" placeholder="https://script.google.com/..." style="font-size:0.82rem; padding:8px 10px; width:100%; margin-bottom:8px;">
+                    <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; font-size:0.82rem; width:100%;" onclick="app.handleSaveCloudUrl()">
+                        Salva URL Cloud
+                    </button>
+                </div>
+
+                <!-- Pulsante Logout -->
+                <button type="button" class="btn btn-danger" style="background:#ef4444; color:white; width:100%; font-size:0.95rem; font-weight:600; padding:12px;" onclick="app.handleLogout()">
+                    <i class="ph ph-sign-out"></i> Disconnetti Account
+                </button>
+            </div>
+        `;
+
+        container.appendChild(modalDiv);
+    }
+
+    closeUserMenu() {
+        const modal = document.getElementById('user-profile-modal-overlay');
+        if (modal) modal.remove();
     }
 
     // --- Weather Logic ---
@@ -488,7 +901,7 @@ class App {
         // RENDER
         container.innerHTML = `
             <div class="dashboard-header fade-in">
-                <div class="dashboard-greeting">${greeting}, Fabio</div>
+                <div class="dashboard-greeting">${greeting}, ${Auth.getCurrentUser() ? (Auth.getCurrentUser().name ? Auth.getCurrentUser().name.split(' ')[0] : Auth.getCurrentUser().username) : 'Fabio'}</div>
                 <div class="dashboard-date">${dateStr}</div>
             </div>
 
@@ -561,7 +974,7 @@ class App {
     }
 
     showToast(msg, type = 'success') {
-        const container = document.getElementById('toast-container');
+        const container = document.getElementById('toast-container') || document.body;
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.style.borderLeftColor = type === 'success' ? '#22c55e' : '#ef4444';
@@ -1158,7 +1571,7 @@ class App {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(15, 23, 42);
-        doc.text("Fabio Sandrini", signX, boxY + 20);
+        const _signUser = Auth.getCurrentUser(); doc.text(_signUser ? _signUser.name : "Fabio Sandrini", signX, boxY + 20);
 
         doc.setDrawColor(148, 163, 184);
         doc.setLineWidth(0.4);
@@ -1174,80 +1587,8 @@ class App {
         result.doc.save(result.filename);
     }
 
-    // --- Send PDF via Native Email / Mail App ---
-    sendPDFViaEmail(scope = 'month') {
-        this.showEmailModal(scope);
-    }
-
-    showEmailModal(scope = 'month') {
-        const picker = document.getElementById('export-month') || document.getElementById('salary-month');
-        const selectedValue = picker ? picker.value : new Date().toISOString().slice(0, 7);
-        const parts = selectedValue.split('-');
-        const year = parts[0];
-        const monthIdx = parseInt(parts[1], 10) - 1;
-        const monthsIt = [
-            'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-            'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-        ];
-        const monthName = monthsIt[monthIdx] || parts[1];
-        const subject = scope === 'month' ? `Report ${monthName} ${year}` : `Report Anno ${year}`;
-        const filename = `${subject}.pdf`;
-
-        this.closeEmailModal();
-
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'email-modal-overlay';
-        modalDiv.className = 'modal-overlay';
-        modalDiv.onclick = () => this.closeEmailModal();
-
-        modalDiv.innerHTML = `
-            <div class="modal-card fade-in" onclick="event.stopPropagation()">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <i class="ph ph-envelope-simple text-gold" style="font-size:1.6rem;"></i>
-                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Invia ad Amministrazione</h3>
-                    </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeEmailModal()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                </div>
-
-                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:10px; margin-bottom:16px; font-size:0.86rem; line-height:1.5;">
-                    <div><span style="color:#94a3b8;">Destinatario:</span> <strong style="color:#38bdf8;">amministrazione@tecnosistem.com</strong></div>
-                    <div><span style="color:#94a3b8;">Oggetto:</span> <strong style="color:#facc15;">${subject}</strong></div>
-                    <div><span style="color:#94a3b8;">Allegato:</span> <span>${filename}</span></div>
-                </div>
-
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <button type="button" class="btn btn-primary" style="padding:14px; font-size:0.92rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('share', '${scope}')">
-                        <i class="ph ph-paperclip" style="font-size:1.3rem;"></i>
-                        <span>1. Condividi con Allegato PDF</span>
-                    </button>
-                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 4px 0; text-align:center; line-height:1.3;">
-                        Apre l'app Mail con il <strong>file PDF già allegato</strong>.<br>L'indirizzo viene copiato: tocca <em>"A:"</em> e incolla.
-                    </p>
-
-                    <button type="button" class="btn" style="padding:14px; font-size:0.92rem; font-weight:600; background:#334155; color:white; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;" onclick="app.executeSendEmail('mailto', '${scope}')">
-                        <i class="ph ph-envelope-open" style="font-size:1.3rem;"></i>
-                        <span>2. Apri con Campi Precompilati</span>
-                    </button>
-                    <p style="font-size:0.78rem; color:#94a3b8; margin:-4px 0 0 0; text-align:center; line-height:1.3;">
-                        Apre l'app Mail con <strong>Destinatario e Oggetto già compilati</strong>.<br>Il PDF viene scaricato pronto da allegare.
-                    </p>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modalDiv);
-    }
-
-    closeEmailModal() {
-        const modal = document.getElementById('email-modal-overlay');
-        if (modal) modal.remove();
-    }
-
-    async executeSendEmail(mode, scope = 'month') {
-        this.closeEmailModal();
+    // --- Send PDF via Native Email / Mail App (Apertura Immediata Diretta) ---
+    async sendPDFViaEmail(scope = 'month') {
         const result = this.generatePDFDoc(scope);
         if (!result) return;
 
@@ -1257,48 +1598,51 @@ class App {
         const emailSubject = scope === 'month'
             ? `Report ${monthName} ${year}`
             : `Report Anno ${year}`;
-        const emailBody = `ciao Simona ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.\r\nSandrini Fabio`;
+        
+        const currentUser = Auth.getCurrentUser();
+        const senderName = currentUser ? currentUser.name : 'Sandrini Fabio';
+        const emailBody = `ciao Simona ti inoltro il Report del mese di ${monthName} ${year}, buona giornata.
 
-        if (mode === 'mailto') {
-            // Mode 2: Standard mailto URL scheme
-            // Automatically fills To, Subject and Body in Apple Mail
-            doc.save(filename);
-            const mailtoUrl = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-            window.location.href = mailtoUrl;
-            this.showToast('Mail aperta con destinatario e oggetto! Il PDF è nei file.', 'success');
-        } else {
-            // Mode 1: Native Web Share API with File
-            // Automatically attaches the actual PDF document
-            const pdfBlob = doc.output('blob');
-            const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+${senderName}`;
 
-            // Copy recipient to clipboard for convenient paste into "To" field
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(emailTo);
-                }
-            } catch (e) {
-                console.warn("Clipboard access:", e);
+        const pdfBlob = doc.output('blob');
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+        // Copia destinatario negli appunti per comodità immediata
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(emailTo);
             }
+        } catch (e) {
+            console.warn("Clipboard access:", e);
+        }
 
-            if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-                try {
-                    this.showToast(`Destinatario copiato: ${emailTo}`);
-                    await navigator.share({
-                        files: [pdfFile],
-                        title: emailSubject,
-                        text: `A: ${emailTo}\nOggetto: ${emailSubject}\n\n${emailBody}`
-                    });
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        console.warn("Share fallback:", err);
-                        this.executeSendEmail('mailto', scope);
-                    }
-                }
-            } else {
-                this.executeSendEmail('mailto', scope);
+        // Su iPhone/iOS Safari e dispositivi che supportano la condivisione diretta di file:
+        // Apre direttamente il pannello nativo con l'app Mail e il PDF già allegato!
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+            try {
+                this.showToast(`Apertura Mail... (Destinatario copiato: ${emailTo})`, 'success');
+                await navigator.share({
+                    files: [pdfFile],
+                    title: emailSubject,
+                    text: `A: ${emailTo}
+Oggetto: ${emailSubject}
+
+${emailBody}`
+                });
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+                console.warn("Share fallback:", err);
             }
         }
+
+        // Fallback immediato con mailto per PC Desktop / browser senza file sharing:
+        // Scarica subito il PDF e apre immediatamente il client mail con destinatario e oggetto già compilati!
+        doc.save(filename);
+        const mailtoUrl = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        window.location.href = mailtoUrl;
+        this.showToast('Mail aperta con destinatario e oggetto! Il PDF è nei file.', 'success');
     }
 
     // --- History Page ---
@@ -1709,6 +2053,543 @@ class App {
             </div>
         `;
     }
+
+
+    // --- Assistente AI Tecnosistem ---
+    toggleAIAssistant() {
+        const existing = document.getElementById('ai-modal-overlay');
+        if (existing) {
+            this.closeAIAssistant();
+            return;
+        }
+
+        const user = Auth.getCurrentUser();
+        const userName = user ? user.name.split(' ')[0] : 'Fabio';
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'ai-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => this.closeAIAssistant();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in ai-modal-card" onclick="event.stopPropagation()">
+                <!-- Header Chat AI -->
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:14px; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="ai-icon-pulse" style="width:36px; height:36px; font-size:1.2rem;">
+                            <i class="ph ph-sparkle"></i>
+                        </div>
+                        <div style="text-align:left;">
+                            <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Assistente AI</h3>
+                            <span style="font-size:0.75rem; color:var(--primary);">Tecnosistem Intelligence</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeAIAssistant()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <!-- Chips Domande Rapide -->
+                <div class="ai-chips-scroll" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px;">
+                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Come recupero i miei dati dal database?')">☁️ Recupero dati Cloud</button>
+                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Come funziona l''accesso per altri utenti?')">👥 Altri Utenti & Login</button>
+                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Riepilogo ore questo mese')">📊 Riepilogo ore</button>
+                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('A quanto ammonta il mio stipendio netto?')">💰 Stima stipendio</button>
+                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Ci sono giorni lavorativi mancanti?')">⚠️ Giorni mancanti</button>
+                    <button type="button" class="ai-chip" onclick="app.sendAIMessage('Tariffe indennità trasferte')">🚗 Diarie e tariffe</button>
+                </div>
+
+                <!-- Chat Messages Container -->
+                <div id="ai-chat-messages" class="ai-chat-body" style="max-height:360px; min-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 2px; margin-bottom:12px;">
+                    <div class="ai-bubble ai-bubble-bot">
+                        Ciao <strong>${userName}</strong>! 👋 Sono il tuo assistente virtuale per Orari TS.<br><br>
+                        Posso analizzare le tue ore lavorate, calcolare gli straordinari e lo stipendio, verificare se mancano giorni o compilare un report con testo libero!<br><br>
+                        <em>Tocca uno dei suggerimenti in alto o scrivi una domanda qui sotto:</em>
+                    </div>
+                </div>
+
+                <!-- Form Invio Domanda -->
+                <form onsubmit="app.handleAISubmit(event)" style="display:flex; gap:8px;">
+                    <input type="text" id="ai-user-input" placeholder="Chiedi all'AI (es. Quante ore ho fatto?)" autocomplete="off" style="flex:1; padding:10px 14px; font-size:0.92rem; border-radius:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:white;">
+                    <button type="submit" class="btn btn-primary btn-icon-only" style="width:46px; height:44px; padding:0; border-radius:10px; flex-shrink:0;">
+                        <i class="ph ph-paper-plane-right" style="font-size:1.2rem;"></i>
+                    </button>
+                </form>
+
+                <!-- Footer Opzionale Chiave API -->
+                <div style="margin-top:10px; text-align:center;">
+                    <details style="font-size:0.75rem; color:var(--text-muted); cursor:pointer;">
+                        <summary>⚙️ Configurazione Chiave API (Opzionale Gemini)</summary>
+                        <div style="margin-top:8px; display:flex; gap:6px;">
+                            <input type="password" id="ai-api-key-input" placeholder="Incolla chiave Google Gemini API" value="${AI.getApiKey()}" style="font-size:0.75rem; padding:6px; flex:1; border-radius:6px; border:1px solid #444; background:#222; color:white;">
+                            <button type="button" class="btn btn-sm" style="font-size:0.75rem; padding:6px 10px; background:rgba(255,255,255,0.15);" onclick="app.saveAIApiKey()">Salva</button>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalDiv);
+        const input = document.getElementById('ai-user-input');
+        if (input) input.focus();
+    }
+
+    closeAIAssistant() {
+        const modal = document.getElementById('ai-modal-overlay');
+        if (modal) modal.remove();
+    }
+
+    saveAIApiKey() {
+        const input = document.getElementById('ai-api-key-input');
+        if (input) {
+            AI.setApiKey(input.value);
+            this.showToast('Chiave API salvata!', 'success');
+        }
+    }
+
+    handleAISubmit(event) {
+        event.preventDefault();
+        const input = document.getElementById('ai-user-input');
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        this.sendAIMessage(text);
+    }
+
+    async sendAIMessage(text) {
+        const chat = document.getElementById('ai-chat-messages');
+        if (!chat) return;
+
+        // Bubble utente
+        const userDiv = document.createElement('div');
+        userDiv.className = 'ai-bubble ai-bubble-user';
+        userDiv.textContent = text;
+        chat.appendChild(userDiv);
+
+        // Indicatore di digitazione / thinking
+        const botDiv = document.createElement('div');
+        botDiv.className = 'ai-bubble ai-bubble-bot';
+        botDiv.innerHTML = '<i class="ph ph-spinner ph-spin text-gold"></i> Elaborazione in corso...';
+        chat.appendChild(botDiv);
+        chat.scrollTop = chat.scrollHeight;
+
+        try {
+            const res = await AI.ask(text, Store, Auth);
+            
+            // Format risposta con markdown pulito e sicuro
+            let rawText = res.text || '';
+            let formatted = rawText
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\*\*(.+?)\*\*/gs, '<strong>$1</strong>')
+                .replace(/\*([^\*\n]+?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+
+            botDiv.innerHTML = formatted;
+
+            // Se l'AI propone un'azione rapida
+            if (res.action) {
+                const actionBtn = document.createElement('button');
+                actionBtn.className = 'btn btn-primary btn-sm';
+                actionBtn.style.marginTop = '10px';
+                actionBtn.style.display = 'inline-flex';
+                actionBtn.style.width = 'auto';
+                actionBtn.style.padding = '8px 14px';
+                actionBtn.style.fontSize = '0.85rem';
+                actionBtn.innerHTML = res.action.label;
+                actionBtn.onclick = () => this.handleAIAction(res.action);
+                botDiv.appendChild(document.createElement('br'));
+                botDiv.appendChild(actionBtn);
+            }
+
+        } catch (err) {
+            botDiv.innerHTML = `<span style="color:#ef4444;">Si è verificato un errore nell'elaborazione. Riprova.</span>`;
+        }
+
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    async handleAIAction(action) {
+        if (action.type === 'navigate') {
+            this.closeAIAssistant();
+            this.navigate(action.view);
+        } else if (action.type === 'save_report') {
+            const report = {
+                ...action.payload,
+                id: Date.now().toString(),
+                synced: false
+            };
+            Store.addReport(report);
+            this.showToast('Report inserito con successo!', 'success');
+            this.closeAIAssistant();
+            this.navigate('history');
+            this.sync();
+        }
+    }
+
+    // --- Metodi Gestione Password & Utenti ---
+    // --- Metodi Gestione Password con Codice OTP Temporaneo & WhatsApp ---
+
+    showForgotPasswordModal() {
+        const container = document.getElementById('user-modal-container') || document.body;
+        document.getElementById('forgot-password-modal-overlay')?.remove();
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'forgot-password-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => modalDiv.remove();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" id="forgot-modal-content" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ph ph-shield-warning text-gold" style="font-size:1.6rem;"></i>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Recupero Password Sicuro</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:16px; text-align:left;">
+                    Inserisci la tua email o username registrato. Verrà generato un <strong>codice di sblocco temporaneo univoco</strong> (OTP valido 15 minuti) da confermare prima di impostare la nuova password.
+                </p>
+                <form onsubmit="app.handleRequestResetOtp(event)">
+                    <div class="form-group" style="text-align:left;">
+                        <label style="font-size:0.85rem; color:var(--text-muted);">Email o Username</label>
+                        <input type="text" id="reset-req-identifier" required placeholder="es. mario.rossi oppure email" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:18px;">
+                        <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
+                        <button type="submit" class="btn btn-primary" style="flex:1.4;">
+                            <i class="ph ph-paper-plane-right"></i> Richiedi Codice OTP
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
+    }
+
+    async handleRequestResetOtp(e) {
+        e.preventDefault();
+        const identifier = document.getElementById('reset-req-identifier')?.value;
+        if (!identifier) return;
+
+        const res = await Auth.requestPasswordReset(identifier);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        const modalContent = document.getElementById('forgot-modal-content');
+        if (!modalContent) return;
+
+        const adminPhone = '3331234567'; // Cellulare aziendale Fabio Sandrini
+        const waText = encodeURIComponent(`Ciao Fabio, sono ${res.user.name || res.user.username} (${res.user.email || ''}). Ho richiesto il codice di sblocco temporaneo per Orari TS. Il mio codice di verifica OTP generato è: ${res.code}`);
+        const waLink = `https://api.whatsapp.com/send?text=${waText}`;
+
+        modalContent.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="ph ph-lock-key-open text-gold" style="font-size:1.6rem;"></i>
+                    <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Verifica Codice di Sblocco</h3>
+                </div>
+                <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+
+            <div style="background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); border-radius:10px; padding:10px 12px; margin-bottom:14px; text-align:left;">
+                <div style="font-weight:700; font-size:0.86rem; color:#22c55e; margin-bottom:3px;">
+                    ✅ Codice temporaneo generato per ${res.user.name || res.user.username}!
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.4;">
+                    Il codice a 6 cifre scade tra <strong>15 minuti</strong> ed è stato notificato all'amministratore (Fabio Sandrini).
+                </div>
+            </div>
+
+            <!-- Pulsante WhatsApp Diretto per inviare richiesta / codice a Fabio -->
+            <a href="${waLink}" target="_blank" class="btn" style="background:#22c55e; color:white; font-size:0.88rem; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px; text-decoration:none; font-weight:600; border-radius:10px; box-shadow:0 2px 8px rgba(34,197,94,0.3);">
+                <i class="ph ph-whatsapp-logo" style="font-size:1.25rem;"></i>
+                <span>Comunica / Ricevi Sblocco su WhatsApp</span>
+            </a>
+
+            <form onsubmit="app.handleCompleteResetOtp(event, '${encodeURIComponent(identifier)}')">
+                <div class="form-group" style="text-align:left; margin-bottom:10px;">
+                    <label style="font-size:0.82rem; color:var(--text-muted);">Codice Temporaneo Ricevuto (OTP a 6 Cifre)</label>
+                    <input type="text" id="reset-otp-input" required placeholder="es. ${res.code}" style="font-size:1.1rem; padding:10px; font-weight:700; letter-spacing:2px; text-align:center;">
+                </div>
+                <div class="form-group" style="text-align:left; margin-bottom:10px;">
+                    <label style="font-size:0.82rem; color:var(--text-muted);">Nuova Password</label>
+                    <input type="password" id="reset-new-pwd-1" required placeholder="Inserisci nuova password" style="font-size:0.95rem; padding:10px;">
+                </div>
+                <div class="form-group" style="text-align:left; margin-bottom:14px;">
+                    <label style="font-size:0.82rem; color:var(--text-muted);">Conferma Nuova Password</label>
+                    <input type="password" id="reset-new-pwd-2" required placeholder="Ripeti nuova password" style="font-size:0.95rem; padding:10px;">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1.4;">
+                        <i class="ph ph-check-circle"></i> Salva Password
+                    </button>
+                </div>
+            </form>
+        `;
+    }
+
+    async handleCompleteResetOtp(e, encId) {
+        e.preventDefault();
+        const identifier = decodeURIComponent(encId);
+        const otpCode = document.getElementById('reset-otp-input')?.value;
+        const p1 = document.getElementById('reset-new-pwd-1')?.value;
+        const p2 = document.getElementById('reset-new-pwd-2')?.value;
+
+        if (!otpCode || otpCode.trim().length !== 6) {
+            this.showToast('Inserisci il codice temporaneo OTP a 6 cifre.', 'error');
+            return;
+        }
+
+        if (!p1 || p1.length < 3) {
+            this.showToast('La nuova password deve contenere almeno 3 caratteri.', 'error');
+            return;
+        }
+
+        if (p1 !== p2) {
+            this.showToast('Le due password non coincidono!', 'error');
+            return;
+        }
+
+        const res = await Auth.completePasswordReset(identifier, otpCode, p1);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        document.getElementById('forgot-password-modal-overlay')?.remove();
+        this.showToast('Password reimpostata con successo! Ora puoi accedere.', 'success');
+
+        const loginInput = document.getElementById('login-identifier');
+        const pwdInput = document.getElementById('login-password');
+        if (loginInput) loginInput.value = res.user.email || res.user.username;
+        if (pwdInput) {
+            pwdInput.value = p1;
+            pwdInput.focus();
+        }
+    }
+
+    // --- Metodi Accesso Google & Onboarding Parametri Stipendio ---
+
+    handleGoogleLogin() {
+        document.getElementById('google-login-modal-overlay')?.remove();
+        const container = document.getElementById('user-modal-container') || document.body;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'google-login-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => modalDiv.remove();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" style="max-width:400px; text-align:left;" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Accedi con Google</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('google-login-modal-overlay').remove()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
+                    Seleziona il tuo account Google per accedere istantaneamente ad <strong>Orari TS</strong>:
+                </p>
+
+                <!-- Scheda 1-Click Fabio Sandrini -->
+                <button type="button" class="google-account-pill" onclick="app.submitGoogleLogin('bubibs@gmail.com', 'Fabio Sandrini')">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="google-avatar-circle">FS</div>
+                        <div>
+                            <div style="font-weight:700; font-size:0.9rem; color:var(--text);">Fabio Sandrini</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">bubibs@gmail.com (Amministratore)</div>
+                        </div>
+                    </div>
+                    <i class="ph ph-caret-right text-gold"></i>
+                </button>
+
+                <div class="auth-divider" style="margin:14px 0 10px 0;">oppure inserisci account Google</div>
+
+                <form onsubmit="app.handleCustomGoogleLogin(event)">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label style="font-size:0.8rem; color:var(--text-muted);">Email Google (Gmail o Workspace)</label>
+                        <input type="email" id="custom-google-email" required placeholder="mario.rossi@gmail.com" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; padding:11px; font-size:0.92rem;">
+                        <i class="ph ph-sign-in"></i> Accedi con questo Account
+                    </button>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
+    }
+
+    async submitGoogleLogin(email, name = '') {
+        document.getElementById('google-login-modal-overlay')?.remove();
+        this.showToast('Accesso Google in corso...', 'info');
+
+        const res = await Auth.loginWithGoogle({ email, name });
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        Store.init();
+        this.updateAuthUI(res.user);
+        this.navigate('home');
+        this.showToast(`Accesso con Google completato! Ciao ${res.user.name || res.user.username}.`, 'success');
+        this.sync();
+
+        if (res.isNew) {
+            this.showSalaryOnboardingModal(res.user);
+        }
+    }
+
+    handleCustomGoogleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('custom-google-email')?.value;
+        if (!email) return;
+        this.submitGoogleLogin(email);
+    }
+
+    // Configurazione guidata parametri stipendio per nuovi utenti (default 0)
+    showSalaryOnboardingModal(user) {
+        if (!user || user.isPrimary) return;
+
+        document.getElementById('salary-onboarding-modal-overlay')?.remove();
+        const container = document.getElementById('user-modal-container') || document.body;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'salary-onboarding-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" style="max-width:440px;" onclick="event.stopPropagation()">
+                <div style="text-align:center; margin-bottom:14px;">
+                    <div style="font-size:2.2rem; color:var(--primary); margin-bottom:6px;">
+                        <i class="ph ph-currency-eur"></i>
+                    </div>
+                    <h3 style="margin:0; font-size:1.2rem; color:var(--text); font-weight:700;">Configurazione Stipendio</h3>
+                    <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">
+                        Benvenuto <strong>${user.name || user.username}</strong>! I tuoi parametri di calcolo sono attualmente impostati a <strong>0.00 €</strong>. Puoi configurarli ora o modificarli in seguito dalla sezione Stipendio.
+                    </p>
+                </div>
+
+                <form onsubmit="app.handleSaveOnboardingSalary(event)">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left;">
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Paga Base Mensile (€)</label>
+                            <input type="number" id="onb-base-salary" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Paga Oraria Base (€/h)</label>
+                            <input type="number" id="onb-hourly-rate" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Diaria Rientro (€)</label>
+                            <input type="number" id="onb-allowance-return" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Diaria Notte (€)</label>
+                            <input type="number" id="onb-allowance-overnight" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Diaria Estero (€)</label>
+                            <input type="number" id="onb-allowance-foreign" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Aliquota Tasse (%)</label>
+                            <input type="number" id="onb-tax-rate" step="0.1" placeholder="0" value="0" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+                        <button type="submit" class="btn btn-primary" style="padding:11px; font-size:0.95rem;">
+                            <i class="ph ph-check-circle"></i> Salva Parametri Personali
+                        </button>
+                        <button type="button" class="btn" style="background:rgba(255,255,255,0.08); font-size:0.85rem; padding:9px;" onclick="document.getElementById('salary-onboarding-modal-overlay').remove()">
+                            Salta per ora (lascia a 0.00 €)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
+    }
+
+    handleSaveOnboardingSalary(e) {
+        e.preventDefault();
+        const baseSalary = parseFloat(document.getElementById('onb-base-salary')?.value) || 0;
+        const hourlyRate = parseFloat(document.getElementById('onb-hourly-rate')?.value) || 0;
+        const allowanceReturn = parseFloat(document.getElementById('onb-allowance-return')?.value) || 0;
+        const allowanceOvernight = parseFloat(document.getElementById('onb-allowance-overnight')?.value) || 0;
+        const allowanceForeign = parseFloat(document.getElementById('onb-allowance-foreign')?.value) || 0;
+        const taxRate = parseFloat(document.getElementById('onb-tax-rate')?.value) || 0;
+
+        const newSettings = {
+            baseSalary,
+            hourlyRate,
+            allowanceReturn,
+            allowanceOvernight,
+            allowanceForeign,
+            taxRate
+        };
+
+        Store.saveSettings(newSettings, 'default');
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        Store.saveSettings(newSettings, currentMonth);
+
+        document.getElementById('salary-onboarding-modal-overlay')?.remove();
+        this.showToast('Parametri stipendio configurati con successo!', 'success');
+        this.sync();
+    }
+
+    async confirmDeleteUser(userId, userName) {
+        if (!confirm(`Sei sicuro di voler eliminare definitivamente l'utente "${userName}"?\n\nNon potrà più accedere con questo account.`)) {
+            return;
+        }
+
+        const res = await Auth.deleteUser(userId);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        this.showToast(`Utente "${userName}" eliminato con successo.`, 'success');
+        this.closeUserMenu();
+        this.toggleUserMenu();
+    }
+
+    async adminResetUserPassword(userId, userName) {
+        const newPwd = prompt(`Inserisci la nuova password per "${userName}":`, "Brescia1-");
+        if (!newPwd) return;
+
+        const users = Auth.getUsers();
+        const target = users.find(u => u.id === userId);
+        if (!target) return;
+
+        const res = await Auth.resetPassword(target.email || target.username, newPwd);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        this.showToast(`Password di "${userName}" aggiornata con successo!`, 'success');
+    }
+
 }
 
 window.app = new App();

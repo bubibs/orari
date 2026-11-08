@@ -1,17 +1,16 @@
-// TECNOSISTEM ORARI TS - STANDALONE BUNDLE (v2.3)
+// TECNOSISTEM ORARI TS - STANDALONE BUNDLE (v2.5)
 // Compatibile sia con protocollo http/https che con file:/// locale senza errori CORS
 
 (function() {
     'use strict';
 
     // === MODULE: AUTH ===
-// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync, Admin & Face ID) ---
-
+// --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync, Admin & OTP Reset) ---
 const Auth = {
     KEYS: {
         USERS: 'tecnosistem_users',
         CURRENT_USER: 'tecnosistem_current_user',
-        FACEID_PREFIX: 'tecnosistem_faceid_'
+        RESET_REQUESTS: 'tecnosistem_reset_requests'
     },
 
     // Helper per hashing password tramite Web Crypto API con Fallback puro JS (100% offline e file:///)
@@ -30,6 +29,7 @@ const Auth = {
         return this._sha256Pure(password);
     },
 
+    // Implementazione pura JS di SHA-256 (compatibile al 100% con protocollo file:///)
     _sha256Pure(ascii) {
         function rightRotate(value, amount) {
             return (value >>> amount) | (value << (32 - amount));
@@ -52,7 +52,6 @@ const Auth = {
             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
         ];
-        var compositeHash = hash.slice();
         words[asciiBitLength >> 5] |= 0x80 << (24 - asciiBitLength % 32);
         words[(((asciiBitLength + 64) >> 9) << 4) + 15] = asciiBitLength;
         for (i = 0; i < words[lengthProperty]; i += 16) {
@@ -93,28 +92,29 @@ const Auth = {
             primaryUser = {
                 id: 'fabio_sandrini',
                 name: 'Fabio Sandrini',
-                username: 'bubib',
+                username: 'bubibs',
                 email: 'bubibs@gmail.com',
+                phone: '3331234567',
                 passwordHash: primaryHash,
                 isPrimary: true,
                 cloudUrl: '',
-                hasFaceId: false,
                 createdAt: new Date().toISOString()
             };
             users.unshift(primaryUser);
         } else {
-            // Aggiorna sempre credenziali configurate per l'utente principale
+            // Aggiorna credenziali per l'utente principale
             primaryUser.id = 'fabio_sandrini';
             primaryUser.name = 'Fabio Sandrini';
-            primaryUser.username = primaryUser.username || 'bubib';
+            primaryUser.username = 'bubibs';
             primaryUser.email = 'bubibs@gmail.com';
+            if (!primaryUser.phone) primaryUser.phone = '3331234567';
             primaryUser.passwordHash = primaryHash;
             primaryUser.isPrimary = true;
         }
 
         this.saveUsers(users);
 
-        // Se nessun utente è attualmente loggato ma c'è già una sessione memorizzata valida
+        // Se c'è già una sessione memorizzata valida
         const current = this.getCurrentUser();
         if (current) {
             const fresh = users.find(u => u.id === current.id);
@@ -151,7 +151,7 @@ const Auth = {
             const uid = String(cu.id || ('user_' + uname));
             
             // Non sovrascrivere l'utente primario
-            if (uemail === 'bubibs@gmail.com' || uname === 'bubib' || cu.isprimary === true || cu.isprimary === 'true') {
+            if (uemail === 'bubibs@gmail.com' || uname === 'bubibs' || uname === 'bubib' || cu.isprimary === true || cu.isprimary === 'true') {
                 return;
             }
 
@@ -163,20 +163,24 @@ const Auth = {
                     name: cu.name || uname || 'Utente',
                     username: uname,
                     email: uemail || (uname ? `${uname}@tecnosistem.com` : ''),
+                    phone: cu.phone || '',
                     passwordHash: cu.passwordhash || cu.passwordHash || '',
                     isPrimary: false,
                     cloudUrl: cu.cloudurl || cu.cloudUrl || '',
-                    hasFaceId: cu.hasfaceid === true || cu.hasfaceid === 'true' || cu.hasFaceId === true,
                     createdAt: cu.createdat || cu.createdAt || new Date().toISOString()
                 });
             } else {
-                if (cu.passwordhash && !existing.passwordHash) existing.passwordHash = cu.passwordhash;
-                if (cu.name && existing.name === existing.username) existing.name = cu.name;
-                if (cu.cloudurl && !existing.cloudUrl) existing.cloudUrl = cu.cloudurl;
+                // Aggiorna dati se non primario
+                if (!existing.isPrimary) {
+                    if (cu.name) existing.name = cu.name;
+                    if (cu.phone) existing.phone = cu.phone;
+                    if (cu.passwordhash || cu.passwordHash) existing.passwordHash = cu.passwordhash || cu.passwordHash;
+                }
             }
         });
 
-        this.saveUsers(Array.from(map.values()));
+        const merged = Array.from(map.values());
+        this.saveUsers(merged);
     },
 
     getCurrentUser() {
@@ -190,20 +194,10 @@ const Auth = {
 
     setCurrentUser(user) {
         if (user) {
-            const sessionUser = {
-                id: user.id,
-                name: user.name,
-                username: user.username,
-                email: user.email,
-                isPrimary: !!user.isPrimary,
-                cloudUrl: user.cloudUrl || '',
-                hasFaceId: !!user.hasFaceId
-            };
-            localStorage.setItem(this.KEYS.CURRENT_USER, JSON.stringify(sessionUser));
+            localStorage.setItem(this.KEYS.CURRENT_USER, JSON.stringify(user));
         } else {
             localStorage.removeItem(this.KEYS.CURRENT_USER);
         }
-        window.dispatchEvent(new CustomEvent('auth-state-changed', { detail: { user } }));
     },
 
     // Login classico con Username/Email e Password
@@ -220,7 +214,7 @@ const Auth = {
         let user = users.find(u => 
             (u.username && u.username.toLowerCase() === idClean) ||
             (u.email && u.email.toLowerCase() === idClean) ||
-            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
 
         // Se non trovato in locale, prova a sincronizzare gli utenti dal Cloud
@@ -241,7 +235,7 @@ const Auth = {
         }
 
         // Se è l'utente primario (Fabio Sandrini / bubibs@gmail.com)
-        if (!user && (idClean === 'bubibs@gmail.com' || idClean === 'bubib' || idClean === 'fabio')) {
+        if (!user && (idClean === 'bubibs@gmail.com' || idClean === 'bubibs' || idClean === 'bubib' || idClean === 'fabio')) {
             await this.init();
             users = this.getUsers();
             user = users.find(u => u.isPrimary);
@@ -260,17 +254,20 @@ const Auth = {
         return { success: true, user };
     },
 
-    // Registrazione nuovo utente (colleghi/altri utenti)
-    async register({ name, username, email, password }) {
+    // Registrazione nuovo utente con Cellulare
+    async register({ name, username, email, phone = '', password }) {
         const cleanName = (name || '').trim();
         const cleanUsername = (username || '').trim().toLowerCase().replace(/\s+/g, '');
         const cleanEmail = (email || '').trim().toLowerCase();
+        const cleanPhone = (phone || '').trim().replace(/[^0-9+]/g, '');
 
         if (!cleanName) return { success: false, error: 'Inserisci nome e cognome.' };
-        if (!cleanUsername) return { success: false, error: 'Scegli uno username.' };
+        if (!cleanUsername || cleanUsername.length < 3) return { success: false, error: 'Lo username deve avere almeno 3 caratteri.' };
         if (!password || password.length < 3) return { success: false, error: 'La password deve avere almeno 3 caratteri.' };
 
-        const users = this.getUsers();
+        let users = this.getUsers();
+
+        // Controllo duplicati
         const exists = users.some(u => 
             (u.username && u.username.toLowerCase() === cleanUsername) ||
             (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
@@ -286,10 +283,10 @@ const Auth = {
             name: cleanName,
             username: cleanUsername,
             email: cleanEmail || `${cleanUsername}@tecnosistem.com`,
+            phone: cleanPhone,
             passwordHash: passwordHash,
             isPrimary: false,
             cloudUrl: '',
-            hasFaceId: false,
             createdAt: new Date().toISOString()
         };
 
@@ -309,20 +306,103 @@ const Auth = {
         return { success: true, user: newUser };
     },
 
-    // Reimpostazione password dimenticata (Reset Password)
-    async resetPassword(identifier, newPassword) {
+    // Autenticazione con Account Google
+    async loginWithGoogle(googleData) {
+        if (!googleData || !googleData.email) {
+            return { success: false, error: 'Dati account Google mancanti o non validi.' };
+        }
+
+        const emailClean = googleData.email.trim().toLowerCase();
+        let users = this.getUsers();
+
+        // Se l'email corrisponde a bubibs@gmail.com, associa all'account Primario (Fabio Sandrini)
+        if (emailClean === 'bubibs@gmail.com') {
+            let primary = users.find(u => u.isPrimary || u.email === 'bubibs@gmail.com');
+            if (primary) {
+                primary.username = 'bubibs';
+                primary.email = 'bubibs@gmail.com';
+                primary.googleAuth = true;
+                this.saveUsers(users);
+                this.setCurrentUser(primary);
+                return { success: true, user: primary, isNew: false };
+            }
+        }
+
+        // Cerca se l'utente esiste già per email
+        let user = users.find(u => u.email && u.email.toLowerCase() === emailClean);
+
+        // Se non trovato in locale, cerca sul cloud
+        if (!user && window.API && typeof window.API.fetchUsers === 'function') {
+            try {
+                const cloudUsers = await window.API.fetchUsers();
+                if (cloudUsers && cloudUsers.length > 0) {
+                    this.mergeCloudUsers(cloudUsers);
+                    users = this.getUsers();
+                    user = users.find(u => u.email && u.email.toLowerCase() === emailClean);
+                }
+            } catch (e) {}
+        }
+
+        let isNew = false;
+        if (!user) {
+            // Registrazione automatica nuovo utente Google
+            const username = emailClean.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '') || ('user_' + Date.now());
+            user = {
+                id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                name: googleData.name || emailClean.split('@')[0],
+                username: username,
+                email: emailClean,
+                phone: googleData.phone || '',
+                role: 'user',
+                isPrimary: false,
+                googleAuth: true,
+                createdAt: new Date().toISOString()
+            };
+            users.push(user);
+            this.saveUsers(users);
+            isNew = true;
+
+            // Sincronizza nuovo utente su Cloud Google Sheets
+            if (window.API && typeof window.API.saveUser === 'function') {
+                try {
+                    window.API.saveUser(user);
+                } catch (e) {}
+            }
+        }
+
+        this.setCurrentUser(user);
+        return { success: true, user, isNew };
+    },
+
+    // --- Gestione Codici di Sblocco Password Dinamici (OTP & WhatsApp/SMS) ---
+
+    getPendingResetRequests() {
+        try {
+            const raw = localStorage.getItem(this.KEYS.RESET_REQUESTS);
+            const list = raw ? JSON.parse(raw) : [];
+            const now = Date.now();
+            return list.filter(r => r.expiresAt > now);
+        } catch (e) {
+            return [];
+        }
+    },
+
+    savePendingResetRequests(list) {
+        localStorage.setItem(this.KEYS.RESET_REQUESTS, JSON.stringify(list));
+    },
+
+    // 1. Richiesta Codice di Sblocco Temporaneo (Genera OTP 6 cifre valido 15 min)
+    async requestPasswordReset(identifier) {
         const idClean = (identifier || '').trim().toLowerCase();
         if (!idClean) return { success: false, error: 'Inserisci username o email.' };
-        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
 
         let users = this.getUsers();
         let user = users.find(u => 
             (u.username && u.username.toLowerCase() === idClean) ||
             (u.email && u.email.toLowerCase() === idClean) ||
-            (u.isPrimary && (idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
 
-        // Se non trovato in locale, prova a cercare sul Cloud
         if (!user && window.API && typeof window.API.fetchUsers === 'function') {
             try {
                 const cloudUsers = await window.API.fetchUsers();
@@ -341,15 +421,76 @@ const Auth = {
             return { success: false, error: 'Nessun account trovato associato a questa email o username.' };
         }
 
+        // Genera codice numerico casuale a 6 cifre
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        const expiresAt = Date.now() + (15 * 60 * 1000); // 15 minuti di validità
+
+        const reqList = this.getPendingResetRequests().filter(r => r.userId !== user.id);
+        const newReq = {
+            userId: user.id,
+            userName: user.name || user.username,
+            userEmail: user.email || '',
+            userPhone: user.phone || '',
+            code: code,
+            expiresAt: expiresAt,
+            createdAt: new Date().toISOString()
+        };
+        reqList.push(newReq);
+        this.savePendingResetRequests(reqList);
+
+        return {
+            success: true,
+            user,
+            code,
+            phone: user.phone || '',
+            expiresInMinutes: 15
+        };
+    },
+
+    // 2. Verifica Codice OTP e reimposta la password
+    async completePasswordReset(identifier, otpCode, newPassword) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        const codeClean = (otpCode || '').trim();
+
+        if (!idClean) return { success: false, error: 'Inserisci email o username.' };
+        if (!codeClean) return { success: false, error: 'Inserisci il codice temporaneo di sblocco.' };
+        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+
+        const users = this.getUsers();
+        const user = users.find(u => 
+            (u.username && u.username.toLowerCase() === idClean) ||
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+        );
+
+        if (!user) {
+            return { success: false, error: 'Account utente non trovato.' };
+        }
+
+        const reqList = this.getPendingResetRequests();
+        const activeReq = reqList.find(r => r.userId === user.id);
+
+        if (!activeReq) {
+            return { 
+                success: false, 
+                error: 'Nessuna richiesta di sblocco attiva trovata o codice scaduto. Richiedi un nuovo codice.' 
+            };
+        }
+
+        if (activeReq.code !== codeClean) {
+            return { 
+                success: false, 
+                error: 'Codice di verifica non corretto. Inserisci il codice a 6 cifre esatto fornito o ricevuto su WhatsApp.' 
+            };
+        }
+
+        // Codice valido: aggiorna password
         const newHash = await this.hashPassword(newPassword);
         user.passwordHash = newHash;
         this.saveUsers(users);
 
-        // Se l'utente resettato è quello attualmente loggato, aggiorna la sessione
-        const curr = this.getCurrentUser();
-        if (curr && curr.id === user.id) {
-            this.setCurrentUser(user);
-        }
+        // Cancella la richiesta usata
+        this.savePendingResetRequests(reqList.filter(r => r.userId !== user.id));
 
         // Sincronizza su Cloud
         if (window.API && typeof window.API.saveUser === 'function') {
@@ -363,6 +504,34 @@ const Auth = {
         return { success: true, user };
     },
 
+    // Reimpostazione password diretta da parte dell'Admin
+    async resetPassword(identifier, newPassword) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        if (!idClean) return { success: false, error: 'Inserisci username o email.' };
+        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+
+        let users = this.getUsers();
+        let user = users.find(u => 
+            (u.username && u.username.toLowerCase() === idClean) ||
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+        );
+
+        if (!user) {
+            return { success: false, error: 'Account non trovato.' };
+        }
+
+        const newHash = await this.hashPassword(newPassword);
+        user.passwordHash = newHash;
+        this.saveUsers(users);
+
+        if (window.API && typeof window.API.saveUser === 'function') {
+            try { window.API.saveUser(user); } catch (e) {}
+        }
+
+        return { success: true, user };
+    },
+
     // Eliminazione utente (riservata all'utente primario / Admin)
     async deleteUser(userId) {
         const currentUser = this.getCurrentUser();
@@ -370,21 +539,19 @@ const Auth = {
             return { success: false, error: 'Solo l\'utente principale può eliminare altri utenti.' };
         }
 
-        if (userId === currentUser.id || userId === 'fabio_sandrini') {
-            return { success: false, error: 'Non puoi eliminare l\'utente principale.' };
-        }
-
         let users = this.getUsers();
         const target = users.find(u => u.id === userId);
         if (!target) {
             return { success: false, error: 'Utente non trovato.' };
         }
+        if (target.isPrimary) {
+            return { success: false, error: 'Non è possibile eliminare l\'utente principale.' };
+        }
 
-        // Rimuovi localmente
         users = users.filter(u => u.id !== userId);
         this.saveUsers(users);
 
-        // Rimuovi dal cloud Google Sheets
+        // Elimina anche da Google Sheets sul Cloud
         if (window.API && typeof window.API.deleteUser === 'function') {
             try {
                 await window.API.deleteUser(userId);
@@ -419,7 +586,6 @@ const Auth = {
         user.passwordHash = await this.hashPassword(newPassword);
         this.saveUsers(users);
 
-        // Sincronizza password aggiornata sul cloud
         if (window.API && typeof window.API.saveUser === 'function') {
             try { window.API.saveUser(user); } catch (e) {}
         }
@@ -427,7 +593,7 @@ const Auth = {
         return { success: true };
     },
 
-    // Aggiorna impostazioni utente (es. Cloud URL personale)
+    // Aggiorna impostazioni utente
     updateUserSettings(settings = {}) {
         const current = this.getCurrentUser();
         if (!current) return false;
@@ -442,209 +608,22 @@ const Auth = {
         if (settings.name !== undefined && settings.name.trim()) {
             user.name = settings.name.trim();
         }
+        if (settings.phone !== undefined) {
+            user.phone = settings.phone.trim();
+        }
 
         this.saveUsers(users);
         this.setCurrentUser(user);
 
-        // Sincronizza profilo aggiornato sul cloud
         if (window.API && typeof window.API.saveUser === 'function') {
             try { window.API.saveUser(user); } catch (e) {}
         }
 
         return true;
-    },
-
-    // --- Face ID / Biometria (WebAuthn Platform Authenticator) ---
-
-    // Verifica supporto Face ID / Touch ID / Windows Hello nel browser
-    async isFaceIdAvailable() {
-        try {
-            if (!window.PublicKeyCredential) return false;
-            if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable !== 'function') return false;
-            return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        } catch (e) {
-            console.warn('Verifica Face ID non supportata:', e);
-            return false;
-        }
-    },
-
-    // Helpers per conversione buffer <-> Base64
-    _bufferToBase64(buffer) {
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
-    },
-
-    _base64ToBuffer(base64) {
-        const binary = window.atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-        return bytes.buffer;
-    },
-
-    // Registra / Abilita Face ID per l'utente attualmente loggato
-    async registerFaceId() {
-        const current = this.getCurrentUser();
-        if (!current) {
-            return { success: false, error: 'Accedi prima per abilitare Face ID.' };
-        }
-
-        const available = await this.isFaceIdAvailable();
-        if (!available && !window.isSecureContext) {
-            return { 
-                success: false, 
-                error: 'Face ID richiede un ambiente sicuro (HTTPS o Localhost/PWA installata).' 
-            };
-        }
-
-        try {
-            const challenge = new Uint8Array(32);
-            crypto.getRandomValues(challenge);
-
-            const userIdBytes = new TextEncoder().encode(current.id);
-
-            const creationOptions = {
-                publicKey: {
-                    challenge: challenge,
-                    rp: {
-                        name: 'Tecnosistem Orari'
-                    },
-                    user: {
-                        id: userIdBytes,
-                        name: current.username || current.email,
-                        displayName: current.name || 'Utente Tecnosistem'
-                    },
-                    pubKeyCredParams: [
-                        { alg: -7, type: 'public-key' },  // ES256
-                        { alg: -257, type: 'public-key' } // RS256
-                    ],
-                    authenticatorSelection: {
-                        authenticatorAttachment: 'platform',
-                        userVerification: 'required',
-                        requireResidentKey: false
-                    },
-                    timeout: 60000,
-                    attestation: 'none'
-                }
-            };
-
-            const credential = await navigator.credentials.create(creationOptions);
-            if (!credential) {
-                return { success: false, error: 'Registrazione biometrica annullata.' };
-            }
-
-            const credIdBase64 = this._bufferToBase64(credential.rawId);
-
-            localStorage.setItem(this.KEYS.FACEID_PREFIX + current.id, credIdBase64);
-            localStorage.setItem(this.KEYS.FACEID_PREFIX + 'last_user', current.id);
-
-            const users = this.getUsers();
-            const user = users.find(u => u.id === current.id);
-            if (user) {
-                user.hasFaceId = true;
-                this.saveUsers(users);
-                this.setCurrentUser(user);
-                if (window.API && typeof window.API.saveUser === 'function') {
-                    try { window.API.saveUser(user); } catch (e) {}
-                }
-            }
-
-            return { success: true };
-        } catch (err) {
-            console.error('Errore WebAuthn registerFaceId:', err);
-            if (err.name === 'NotAllowedError') {
-                return { success: false, error: 'Autorizzazione Face ID rifiutata o annullata.' };
-            }
-            return { success: false, error: 'Errore Face ID: ' + (err.message || err.name) };
-        }
-    },
-
-    // Accedi tramite Face ID
-    async loginWithFaceId() {
-        const lastUserId = localStorage.getItem(this.KEYS.FACEID_PREFIX + 'last_user');
-        const users = this.getUsers();
-        
-        let targetUser = null;
-        if (lastUserId) {
-            targetUser = users.find(u => u.id === lastUserId);
-        }
-        if (!targetUser) {
-            targetUser = users.find(u => u.hasFaceId) || users.find(u => u.isPrimary);
-        }
-
-        if (!targetUser) {
-            return { 
-                success: false, 
-                error: 'Nessun utente configurato con Face ID. Effettua prima l\'accesso con password e abilita Face ID.' 
-            };
-        }
-
-        const credIdBase64 = localStorage.getItem(this.KEYS.FACEID_PREFIX + targetUser.id);
-        if (!credIdBase64) {
-            return { 
-                success: false, 
-                error: `Face ID non ancora registrato per ${targetUser.name}. Accedi con password e tocca "Abilita Face ID".` 
-            };
-        }
-
-        try {
-            const challenge = new Uint8Array(32);
-            crypto.getRandomValues(challenge);
-
-            const credBuffer = this._base64ToBuffer(credIdBase64);
-
-            const requestOptions = {
-                publicKey: {
-                    challenge: challenge,
-                    allowCredentials: [{
-                        id: credBuffer,
-                        type: 'public-key'
-                    }],
-                    userVerification: 'required',
-                    timeout: 60000
-                }
-            };
-
-            const assertion = await navigator.credentials.get(requestOptions);
-            if (!assertion) {
-                return { success: false, error: 'Verifica Face ID non completata.' };
-            }
-
-            this.setCurrentUser(targetUser);
-            localStorage.setItem(this.KEYS.FACEID_PREFIX + 'last_user', targetUser.id);
-            return { success: true, user: targetUser };
-        } catch (err) {
-            console.error('Errore WebAuthn loginWithFaceId:', err);
-            if (err.name === 'NotAllowedError') {
-                return { success: false, error: 'Face ID annullato o non riconosciuto.' };
-            }
-            return { success: false, error: 'Errore verifica Face ID: ' + (err.message || err.name) };
-        }
-    },
-
-    // Rimuove Face ID per l'utente corrente
-    disableFaceId() {
-        const current = this.getCurrentUser();
-        if (!current) return;
-
-        localStorage.removeItem(this.KEYS.FACEID_PREFIX + current.id);
-        const users = this.getUsers();
-        const user = users.find(u => u.id === current.id);
-        if (user) {
-            user.hasFaceId = false;
-            this.saveUsers(users);
-            this.setCurrentUser(user);
-        }
     }
 };
 
     // === MODULE: API ===
-
 const API = {
     DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycbypX8DXc9dVSi9aZJ5ZIiNNLt2k4wJQJMyFep33USsCQixj0zFyfbzIOQNdnJIFoGbJGA/exec',
 
@@ -733,7 +712,6 @@ const API = {
 };
 
     // === MODULE: STORE ===
-
 const Store = {
     // Base Keys
     KEYS: {
@@ -821,13 +799,24 @@ const Store = {
         }
 
         // 3. Fallback/Init Defaults
-        const defaults = {
+        const user = Auth.getCurrentUser();
+        const isPrimary = !user || user.isPrimary;
+
+        // Nuovi utenti partono rigorosamente con parametri a 0. L'utente principale mantiene i suoi parametri.
+        const defaults = isPrimary ? {
             baseSalary: 3480.76,
             hourlyRate: 17.23,
             allowanceReturn: 30.00,
             allowanceOvernight: 60.00,
             allowanceForeign: 105.00,
             taxRate: 27
+        } : {
+            baseSalary: 0,
+            hourlyRate: 0,
+            allowanceReturn: 0,
+            allowanceOvernight: 0,
+            allowanceForeign: 0,
+            taxRate: 0
         };
 
         // If settings found, merge with defaults to ensure all keys exist and are numeric
@@ -1142,7 +1131,6 @@ const Store = {
 
     // === MODULE: AI ASSISTANT ===
 // --- Assistente AI Intelligente per Orari TS ---
-
 const AI = {
     // Cronologia conversazione (ultimi 10 messaggi)
     conversationHistory: [],
@@ -1212,9 +1200,85 @@ const AI = {
         return localResult;
     },
 
+    // Estrazione del mese target dalla richiesta in linguaggio naturale (es. "ore lavorate ad ottobre")
+    extractMonthFromQuery(q, fallbackMonth) {
+        if (!q) return fallbackMonth || new Date().toISOString().slice(0, 7);
+        const lower = q.toLowerCase();
+
+        // Dizionario mesi italiani
+        const monthsMap = {
+            'gennaio': '01', 'gen': '01',
+            'febbraio': '02', 'feb': '02',
+            'marzo': '03', 'mar': '03',
+            'aprile': '04', 'apr': '04',
+            'maggio': '05', 'mag': '05',
+            'giugno': '06', 'giu': '06',
+            'luglio': '07', 'lug': '07',
+            'agosto': '08', 'ago': '08',
+            'settembre': '09', 'set': '09',
+            'ottobre': '10', 'ott': '10',
+            'novembre': '11', 'nov': '11',
+            'dicembre': '12', 'dic': '12'
+        };
+
+        const now = new Date();
+        const currentYear = fallbackMonth ? fallbackMonth.split('-')[0] : String(now.getFullYear());
+        const currentMonthNum = fallbackMonth ? parseInt(fallbackMonth.split('-')[1], 10) : (now.getMonth() + 1);
+
+        // Controllo anno esplicito a 4 cifre nel testo (es. 2024, 2025, 2026, 2027)
+        const yearMatch = lower.match(/\b(202\d)\b/);
+        const targetYear = yearMatch ? yearMatch[1] : currentYear;
+
+        // Gestione "mese scorso" / "scorso mese" / "mese passato"
+        if (lower.includes('mese scorso') || lower.includes('scorso mese') || lower.includes('mese passato')) {
+            let y = parseInt(targetYear, 10);
+            let m = currentMonthNum - 1;
+            if (m < 1) {
+                m = 12;
+                y--;
+            }
+            return `${y}-${String(m).padStart(2, '0')}`;
+        }
+
+        // Gestione "questo mese" / "mese corrente"
+        if (lower.includes('questo mese') || lower.includes('mese corrente') || lower.includes('in corso')) {
+            return fallbackMonth;
+        }
+
+        // Cerca il nome del mese nel testo
+        for (const [name, num] of Object.entries(monthsMap)) {
+            const regex = new RegExp(`\\b${name}\\b`, 'i');
+            if (regex.test(lower)) {
+                return `${targetYear}-${num}`;
+            }
+        }
+
+        // Controllo formati YYYY-MM o MM/YYYY numerici
+        const isoMatch = lower.match(/\b(202\d)[-/](0[1-9]|1[0-2])\b/);
+        if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}`;
+
+        const revMatch = lower.match(/\b(0[1-9]|1[0-2])[-/](202\d)\b/);
+        if (revMatch) return `${revMatch[2]}-${revMatch[1]}`;
+
+        return fallbackMonth;
+    },
+
+    // Formatta "YYYY-MM" in etichetta leggibile italiana (es. "Ottobre 2026")
+    getMonthLabel(monthStr) {
+        if (!monthStr || !monthStr.includes('-')) return monthStr || 'Mese Corrente';
+        const [y, m] = monthStr.split('-');
+        const names = {
+            '01': 'Gennaio', '02': 'Febbraio', '03': 'Marzo', '04': 'Aprile',
+            '05': 'Maggio', '06': 'Giugno', '07': 'Luglio', '08': 'Agosto',
+            '09': 'Settembre', '10': 'Ottobre', '11': 'Novembre', '12': 'Dicembre'
+        };
+        return `${names[m] || m} ${y}`;
+    },
+
     // Riconoscimento Intent ed elaborazione dati locali
     processLocalIntent(q, reports, settings, currentMonth, user) {
-        const userName = user ? (user.name ? user.name.split(' ')[0] : user.username) : 'Fabio';
+        const targetMonth = this.extractMonthFromQuery(q, currentMonth);
+        const userName = user ? (user.username || (user.name ? user.name.split(' ')[0] : 'bubibs')) : 'bubibs';
 
         // 1. INTENT: Recupero Dati e Sincronizzazione Cloud
         if (q.includes('recuper') || q.includes('cloud') || q.includes('database') || q.includes('sincronizz') || q.includes('salvati') || q.includes('persi')) {
@@ -1242,9 +1306,9 @@ const AI = {
             return {
                 text: `👥 **Accesso e Gestione Utenti Multi-Dispositivo:**\n\n` +
                       `• **Utente Attuale:** ${user ? user.name : 'Non autenticato'} (${user ? (user.email || user.username) : ''})\n` +
-                      `• **Stato Biometria / Face ID:** ${user && user.hasFaceId ? '✅ Attivo' : '❌ Non attivo'}\n\n` +
+                      `` +
                       `**Come funziona per te e i colleghi:**\n` +
-                      `• **Utente Principale (Fabio Sandrini):** Recupera tutti i dati storici dal cloud con login rapido (password predefinita: *1234*).\n` +
+                      `• **Utente Principale (Fabio Sandrini):** Recupera tutti i dati storici dal cloud con login rapido (account: bubibs / bubibs@gmail.com).\n` +
                       `• **Altri Utenti:** Possono cliccare su *"Crea un nuovo account utente"* nella schermata di login. L'account viene salvato sia in locale che sul database Cloud di Tecnosistem, così possono salvare lì i propri orari e ritrovarli su qualsiasi dispositivo!\n` +
                       `• **Face ID:** Puoi abilitare Face ID dal menu profilo per accedere in un secondo senza digitare la password.`,
                 action: {
@@ -1280,17 +1344,47 @@ const AI = {
 
         // 4. INTENT: Giorni mancanti / Controllo anomalie
         if (q.includes('mancant') || q.includes('buchi') || q.includes('vuot') || q.includes('dimenticat') || q.includes('anomali')) {
-            return this.checkMissingDays(reports, currentMonth);
+            return this.checkMissingDays(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Ferie e Vacanze (prioritario rispetto a "ore")
+        if (q.includes('ferie') || q.includes('vacanz')) {
+            return this.calculateFerieSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Malattia e Infortunio
+        if (q.includes('malattia') || q.includes('infortun')) {
+            return this.calculateMalattiaSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Permessi e ROL
+        if (q.includes('permess') || q.includes('rol')) {
+            return this.calculatePermessiSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Assenze generiche
+        if (q.includes('assenz') && !q.includes('senza')) {
+            return this.calculateFerieSummary(reports, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Straordinari
+        if (q.includes('straordinar') || q.includes('ore extra') || q.includes('maggiorat')) {
+            return this.calculateStraordinariSummary(reports, settings, targetMonth);
+        }
+
+        // INTENT SPECIFICO: Trasferte e Diarie
+        if (q.includes('trasfert') || q.includes('diaria') || q.includes('pernott') || q.includes('estero')) {
+            return this.calculateTrasferteSummary(reports, settings, targetMonth);
         }
 
         // 5. INTENT: Calcolo / Stima Stipendio
         if (q.includes('stipendio') || q.includes('paga') || q.includes('netto') || q.includes('lordo') || q.includes('quanto prendo') || q.includes('guadagn')) {
-            return this.calculateSalarySummary(reports, settings, currentMonth);
+            return this.calculateSalarySummary(reports, settings, targetMonth);
         }
 
         // 6. INTENT: Riepilogo Ore e Straordinari
         if (q.includes('ore') || q.includes('straordinar') || q.includes('riepilogo') || q.includes('totale') || q.includes('lavorat')) {
-            return this.calculateHoursSummary(reports, currentMonth);
+            return this.calculateHoursSummary(reports, targetMonth);
         }
 
         // 7. INTENT: Compilazione Rapida Report con testo naturale
@@ -1342,35 +1436,331 @@ const AI = {
         };
     },
 
-    // Calcolo riepilogo ore
+    // 1. Calcolo specifico Ore di Ferie
+    calculateFerieSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+        
+        const ferieReports = monthReports.filter(r => 
+            (r.absence && r.absence.toLowerCase() === 'ferie') ||
+            (r.notes && r.notes.toLowerCase().includes('ferie')) ||
+            (r.type && r.type.toLowerCase().includes('ferie'))
+        );
+
+        let totalHours = 0;
+        const details = [];
+
+        ferieReports.forEach(r => {
+            const h = parseFloat(r.totalHours) || 8;
+            totalHours += h;
+            const d = r.date.split('-').reverse().join('/');
+            details.push(`• 📅 **${d}**: ${h} ore di ferie${r.notes ? ` (*${r.notes}*)` : ''}`);
+        });
+
+        if (ferieReports.length === 0) {
+            return {
+                text: `🏖️ **Ore di Ferie per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano registrate ore o giornate di ferie.\n\n` +
+                      `Tutte le attività registrate per questo mese sono di lavoro effettivo o trasferte.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `🏖️ **Riepilogo Ore di Ferie per ${monthLabel}:**\n\n` +
+                  `Nel mese di **${monthLabel}** hai usufruito di **${totalHours} ore di ferie** (${ferieReports.length} giornat${ferieReports.length === 1 ? 'a' : 'e'}):\n\n` +
+                  details.join('\n') + `\n\n` +
+                  `Totale ferie godute: **${totalHours} ore** (**${ferieReports.length} giorni**).`,
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // 2. Calcolo specifico Ore di Malattia / Infortunio
+    calculateMalattiaSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+        
+        const malattiaReports = monthReports.filter(r => 
+            (r.absence && (r.absence.toLowerCase() === 'malattia' || r.absence.toLowerCase() === 'infortunio')) ||
+            (r.notes && (r.notes.toLowerCase().includes('malattia') || r.notes.toLowerCase().includes('infortunio')))
+        );
+
+        let totalHours = 0;
+        const details = [];
+
+        malattiaReports.forEach(r => {
+            const h = parseFloat(r.totalHours) || 8;
+            totalHours += h;
+            const d = r.date.split('-').reverse().join('/');
+            details.push(`• 🩺 **${d}**: ${h} ore (Malattia/Infortunio)${r.notes ? ` (*${r.notes}*)` : ''}`);
+        });
+
+        if (malattiaReports.length === 0) {
+            return {
+                text: `🩺 **Ore di Malattia per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano registrati giorni di assenza per malattia.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `🩺 **Riepilogo Malattia per ${monthLabel}:**\n\n` +
+                  `Nel mese di **${monthLabel}** hai registrato **${totalHours} ore di malattia** (${malattiaReports.length} giornat${malattiaReports.length === 1 ? 'a' : 'e'}):\n\n` +
+                  details.join('\n'),
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // 3. Calcolo specifico Permessi / ROL
+    calculatePermessiSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+        
+        const permessiReports = monthReports.filter(r => 
+            (r.absence && (r.absence.toLowerCase() === 'permesso' || r.absence.toLowerCase() === 'rol')) ||
+            (r.notes && (r.notes.toLowerCase().includes('permesso') || r.notes.toLowerCase().includes('rol')))
+        );
+
+        let totalHours = 0;
+        const details = [];
+
+        permessiReports.forEach(r => {
+            const h = parseFloat(r.totalHours) || 0;
+            totalHours += h;
+            const d = r.date.split('-').reverse().join('/');
+            details.push(`• ⏱️ **${d}**: ${h} ore (Permesso/ROL)${r.notes ? ` (*${r.notes}*)` : ''}`);
+        });
+
+        if (permessiReports.length === 0) {
+            return {
+                text: `⏱️ **Permessi e ROL per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano permessi registrati.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `⏱️ **Riepilogo Permessi per ${monthLabel}:**\n\n` +
+                  `Nel mese di **${monthLabel}** hai registrato **${totalHours} ore di permesso/ROL**:\n\n` +
+                  details.join('\n'),
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // 4. Calcolo specifico Straordinari
+    calculateStraordinariSummary(reports, settings, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+
+        let ot25Total = 0;
+        let ot50Total = 0;
+        let otTotal = 0;
+        const details = [];
+
+        monthReports.forEach(r => {
+            const ot25 = parseFloat(r.overtime25) || 0;
+            const ot50 = parseFloat(r.overtime50) || 0;
+            const otLeg = parseFloat(r.overtime) || 0;
+            const tot = (ot25 + ot50) > 0 ? (ot25 + ot50) : otLeg;
+
+            if (tot > 0) {
+                ot25Total += ot25;
+                ot50Total += ot50;
+                otTotal += tot;
+                const d = r.date.split('-').reverse().join('/');
+                const sub = [];
+                if (ot25 > 0) sub.push(`${ot25}h al 25%`);
+                if (ot50 > 0) sub.push(`${ot50}h al 50%`);
+                details.push(`• 📈 **${d}**: ${tot}h straordinario (${sub.length > 0 ? sub.join(', ') : 'ordinario'}) presso *${r.location || 'Sede'}*`);
+            }
+        });
+
+        const hourly = parseFloat(settings.hourlyRate) || 17.23;
+        const estimatedComp = (ot25Total * (hourly * 1.25)) + (ot50Total * (hourly * 1.50));
+
+        if (otTotal === 0) {
+            return {
+                text: `📈 **Straordinari per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano ore di straordinario registrate.\n` +
+                      `Tutte le attività risultano svolte nell'orario ordinario.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `📈 **Dettaglio Straordinari per ${monthLabel}:**\n\n` +
+                  `• **Totale Straordinari:** **${otTotal.toFixed(1)} ore**\n` +
+                  (ot25Total > 0 ? `  - Straordinario 25%: ${ot25Total.toFixed(1)} ore\n` : '') +
+                  (ot50Total > 0 ? `  - Straordinario 50% / Festivo: ${ot50Total.toFixed(1)} ore\n` : '') +
+                  (estimatedComp > 0 ? `• **Compenso Lordo Stimato:** € ${estimatedComp.toFixed(2)}\n` : '') +
+                  `\n**Giornate con Straordinario:**\n` +
+                  details.join('\n'),
+            action: {
+                label: '💶 Controlla nello Stipendio',
+                type: 'navigate',
+                view: 'salary'
+            }
+        };
+    },
+
+    // 5. Calcolo specifico Trasferte
+    calculateTrasferteSummary(reports, settings, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
+        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
+
+        const trasferte = monthReports.filter(r => r.type && r.type !== 'sede');
+        let rientro = 0;
+        let notte = 0;
+        let estero = 0;
+        const details = [];
+
+        trasferte.forEach(r => {
+            const d = r.date.split('-').reverse().join('/');
+            let label = 'Trasferta con Rientro';
+            if (r.type === 'trasferta_rientro') { rientro++; label = '🚗 Rientro in giornata'; }
+            else if (r.type === 'trasferta_notte') { notte++; label = '🏨 Con Pernottamento'; }
+            else if (r.type === 'trasferta_estero') { estero++; label = '✈️ Estero'; }
+            details.push(`• **${d}**: ${label} presso *${r.location || 'Cliente'}* (${r.totalHours || 0}h)`);
+        });
+
+        const rRate = settings.allowanceReturn !== undefined ? settings.allowanceReturn : 30;
+        const nRate = settings.allowanceOvernight !== undefined ? settings.allowanceOvernight : 60;
+        const eRate = settings.allowanceForeign !== undefined ? settings.allowanceForeign : 105;
+        const totDiaria = (rientro * rRate) + (notte * nRate) + (estero * eRate);
+
+        if (trasferte.length === 0) {
+            return {
+                text: `🚗 **Trasferte per ${monthLabel}:**\n\n` +
+                      `Nel mese di **${monthLabel}** non risultano giornate di trasferta registrate.\n` +
+                      `Tutte le attività risultano svolte in sede.`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        return {
+            text: `🚗 **Riepilogo Trasferte per ${monthLabel}:**\n\n` +
+                  `• **Giorni Totali in Trasferta:** **${trasferte.length} giornate**\n` +
+                  (rientro > 0 ? `  - Con Rientro in giornata (€ ${rRate}/giorno): ${rientro} giorni\n` : '') +
+                  (notte > 0 ? `  - Con Pernottamento (€ ${nRate}/giorno): ${notte} giorni\n` : '') +
+                  (estero > 0 ? `  - Estero (€ ${eRate}/giorno): ${estero} giorni\n` : '') +
+                  (totDiaria > 0 ? `• **Totale Indennità Trasferta:** € ${totDiaria.toFixed(2)}\n` : '') +
+                  `\n**Elenco Interventi Fuori Sede:**\n` +
+                  details.join('\n'),
+            action: {
+                label: '⏱️ Apri Storico ' + monthLabel,
+                type: 'navigate',
+                view: 'history'
+            }
+        };
+    },
+
+    // Calcolo riepilogo ore per il mese specificato
     calculateHoursSummary(reports, monthStr) {
+        const monthLabel = this.getMonthLabel(monthStr);
         const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
         let totalHours = 0;
         let totalOt = 0;
+        let totalOt25 = 0;
+        let totalOt50 = 0;
         let daysWorked = 0;
         let absences = 0;
+        let returnTransfers = 0;
+        let overnightTransfers = 0;
+        let foreignTransfers = 0;
 
         monthReports.forEach(r => {
             const h = parseFloat(r.totalHours) || 0;
-            const ot = parseFloat(r.overtime) || (parseFloat(r.overtime25 || 0) + parseFloat(r.overtime50 || 0));
+            const ot25 = parseFloat(r.overtime25) || 0;
+            const ot50 = parseFloat(r.overtime50) || 0;
+            const otLegacy = parseFloat(r.overtime) || 0;
+            const ot = (ot25 + ot50) > 0 ? (ot25 + ot50) : otLegacy;
             totalHours += h;
             totalOt += ot;
+            totalOt25 += ot25;
+            totalOt50 += ot50;
+
             if (r.absence) {
                 absences++;
             } else if (h > 0) {
                 daysWorked++;
             }
+
+            if (r.type === 'trasferta_rientro') returnTransfers++;
+            if (r.type === 'trasferta_notte') overnightTransfers++;
+            if (r.type === 'trasferta_estero') foreignTransfers++;
         });
 
+        if (monthReports.length === 0) {
+            return {
+                text: `📊 **Riepilogo Orari per ${monthLabel}:**
+
+` +
+                      `Non risultano report o ore registrate per **${monthLabel}** nell'archivio locale.
+
+` +
+                      `💡 *Suggerimento:* Se hai già inserito i dati per questo mese da un altro dispositivo, premi l'icona della nuvoletta ☁️ in alto a destra per sincronizzare subito dal Cloud!`,
+                action: {
+                    label: '⏱️ Apri Storico ' + monthLabel,
+                    type: 'navigate',
+                    view: 'history'
+                }
+            };
+        }
+
+        const transfersCount = returnTransfers + overnightTransfers + foreignTransfers;
+
         return {
-            text: `📊 **Riepilogo Orari Mese Corrente (${monthStr}):**\n\n` +
-                  `• **Giorni Lavorati:** ${daysWorked} giorni\n` +
-                  `• **Ore Totali Registrate:** ${totalHours.toFixed(1)} ore\n` +
-                  `• **Straordinari Totali:** ${totalOt.toFixed(1)} ore\n` +
-                  `• **Giorni di Assenza/Ferie:** ${absences} giorni\n\n` +
-                  (totalOt > 0 ? `Hai registrato ${totalOt.toFixed(1)} ore di straordinario.` : `Tutte le ore registrate sono ordinarie.`),
+            text: `📊 **Riepilogo Ore per ${monthLabel}:**
+
+` +
+                  `• **Giorni Lavorati:** ${daysWorked} giorni
+` +
+                  `• **Ore Totali Registrate:** ${totalHours.toFixed(1)} ore
+` +
+                  `• **Straordinari Totali:** ${totalOt.toFixed(1)} ore` + (totalOt > 0 ? ` (${totalOt25.toFixed(1)}h al 25%, ${totalOt50.toFixed(1)}h al 50%)` : '') + `
+` +
+                  (transfersCount > 0 ? `• **Trasferte Effettuate:** ${transfersCount} (Rientro: ${returnTransfers}, Notte: ${overnightTransfers}, Estero: ${foreignTransfers})
+` : '') +
+                  `• **Giorni Assenza / Ferie:** ${absences} giorni
+
+` +
+                  (totalOt > 0 
+                    ? `Hai registrato **${totalOt.toFixed(1)} ore** di straordinario per il mese di **${monthLabel}**.` 
+                    : `Tutte le ore registrate per **${monthLabel}** sono ordinarie.`),
             action: {
-                label: '⏱️ Apri Storico Completo',
+                label: '⏱️ Apri Storico ' + monthLabel,
                 type: 'navigate',
                 view: 'history'
             }
@@ -1621,6 +2011,9 @@ Rispondi sempre in italiano, in modo cordiale, chiaro e professionale. Se l'uten
     // === MODULE: APP & UI ===
 ﻿
 
+
+
+
 // --- Helper: Generate Time Options ---
 const generateTimeOptions = (selected = '') => {
     let options = '<option value="" disabled selected>--:--</option>'; // Default empty
@@ -1646,22 +2039,7 @@ const Views = {
                 </div>
             </div>
 
-                        <!-- AI Assistant Quick Card -->
-            <div class="ai-banner-card" onclick="app.toggleAIAssistant()" style="cursor:pointer; margin-bottom:16px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="ai-icon-pulse">
-                        <i class="ph ph-sparkle"></i>
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="font-weight:700; font-size:1rem; color:var(--text); display:flex; align-items:center; gap:6px;">
-                            <span>Assistente AI</span>
-                            <span style="font-size:0.65rem; background:rgba(255,215,0,0.2); color:var(--primary); padding:2px 6px; border-radius:4px; text-transform:uppercase;">Intelligente</span>
-                        </div>
-                        <div style="font-size:0.8rem; color:var(--text-muted);">Analisi ore, stima stipendio o compila con testo</div>
-                    </div>
-                </div>
-                <i class="ph ph-caret-right text-gold" style="font-size:1.3rem;"></i>
-            </div>
+                        
 
             <div class="nav-grid">
                 <button class="btn btn-nav" onclick="app.navigate('report')">
@@ -1902,22 +2280,30 @@ const Views = {
                         <i class="ph ph-shield-check"></i>
                     </div>
                     <h2>Accedi ad Orari TS</h2>
-                    <p>Inserisci le tue credenziali o usa Face ID</p>
+                    <p>Inserisci le tue credenziali aziendali</p>
                 </div>
 
-                <!-- Pulsante Face ID / Biometria -->
-                <button type="button" class="btn btn-faceid" onclick="app.handleFaceIdLogin()" id="btn-faceid-login">
-                    <i class="ph ph-scan-face"></i>
-                    <span>Accedi con Face ID</span>
-                </button>
+                                <!-- Pulsante Accesso con Google -->
+                <div style="margin-bottom:14px;">
+                    <button type="button" class="btn btn-google" onclick="app.handleGoogleLogin()" id="btn-google-login">
+                        <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink:0;">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Accedi con Google</span>
+                    </button>
+                </div>
 
                 <div class="auth-divider">oppure con credenziali</div>
 
                 <form onsubmit="app.handleLoginSubmit(event)">
                     <div class="form-group">
                         <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username o Email</label>
-                        <input type="text" id="login-identifier" required placeholder="es. fabio oppure email" autocomplete="username" style="font-size:1rem; padding:12px;">
+                        <input type="text" id="login-identifier" required placeholder="es. bubibs oppure email" autocomplete="username" style="font-size:1rem; padding:12px;">
                     </div>
+
 
                     <div class="form-group">
                         <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password</label>
@@ -1986,6 +2372,14 @@ const Views = {
                     <div class="form-group">
                         <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Email (opzionale)</label>
                         <input type="email" id="reg-email" placeholder="mario@tecnosistem.com" autocomplete="email" style="font-size:1rem; padding:12px;">
+                    </div>
+
+                                        <div class="form-group">
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Numero di Cellulare (WhatsApp)</label>
+                        <input type="tel" id="reg-phone" placeholder="es. 3331234567" autocomplete="tel" style="font-size:1rem; padding:12px;">
+                        <small style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:3px;">
+                            📱 Utilizzato per inviarti il codice temporaneo di sicurezza se dimentichi la password.
+                        </small>
                     </div>
 
                     <div class="form-group">
@@ -2096,10 +2490,11 @@ class App {
         if (user) {
             if (userBadge) {
                 userBadge.style.display = 'flex';
-                if (userNameSpan) userNameSpan.textContent = user.name ? user.name.split(' ')[0] : 'Profilo';
+                if (userNameSpan) userNameSpan.textContent = user.username || (user.name ? user.name.split(' ')[0] : 'bubibs');
+                userBadge.title = `${user.name || user.username} (${user.email || user.username})`;
             }
             if (footer) {
-                footer.textContent = user.name || 'Tecnosistem';
+                footer.textContent = user.isPrimary ? 'Fabio Sandrini' : (user.name || 'Tecnosistem');
             }
         } else {
             if (userBadge) userBadge.style.display = 'none';
@@ -2135,7 +2530,7 @@ class App {
         this.showToast(`Bentornato, ${res.user.name}!`, 'success');
         this.sync();
 
-        this.checkPromptFaceId(res.user);
+        
     }
 
     async handleRegisterSubmit(event) {
@@ -2143,9 +2538,10 @@ class App {
         const name = document.getElementById('reg-name')?.value;
         const username = document.getElementById('reg-username')?.value;
         const email = document.getElementById('reg-email')?.value;
+        const phone = document.getElementById('reg-phone')?.value;
         const password = document.getElementById('reg-password')?.value;
 
-        const res = await Auth.register({ name, username, email, password });
+        const res = await Auth.register({ name, username, email, phone, password });
         if (!res.success) {
             this.showToast(res.error, 'error');
             return;
@@ -2157,7 +2553,8 @@ class App {
         this.showToast(`Benvenuto in Orari TS, ${res.user.name}!`, 'success');
         this.sync();
 
-        this.checkPromptFaceId(res.user);
+        // Per nuovi utenti, avvia la configurazione guidata parametri stipendio (default 0)
+        this.showSalaryOnboardingModal(res.user);
     }
 
     async handleFastLogin(username, password) {
@@ -2173,48 +2570,7 @@ class App {
         this.showToast(`Accesso rapido effettuato. Ciao ${res.user.name}!`, 'success');
         this.sync();
 
-        this.checkPromptFaceId(res.user);
-    }
-
-    async handleFaceIdLogin() {
-        this.showToast('Verifica Face ID in corso...', 'info');
-        const res = await Auth.loginWithFaceId();
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Accesso Face ID completato! Ciao ${res.user.name}.`, 'success');
-        this.sync();
-    }
-
-    async handleRegisterFaceId() {
-        this.showToast('Attivazione Face ID in corso...', 'info');
-        const res = await Auth.registerFaceId();
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        this.showToast('Face ID registrato con successo su questo dispositivo!', 'success');
-        this.closeUserMenu();
-        this.updateAuthUI(Auth.getCurrentUser());
-    }
-
-    async checkPromptFaceId(user) {
-        if (!user.hasFaceId) {
-            const available = await Auth.isFaceIdAvailable();
-            if (available) {
-                setTimeout(() => {
-                    if (confirm("Vuoi abilitare Face ID per accedere più velocemente la prossima volta?")) {
-                        this.handleRegisterFaceId();
-                    }
-                }, 900);
-            }
-        }
+        
     }
 
     handleSaveCloudUrl() {
@@ -3831,11 +4187,15 @@ ${emailBody}`
         try {
             const res = await AI.ask(text, Store, Auth);
             
-            // Format risposta con markdown semplice
-            let formatted = (res.text || '')
-                .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')
-                .replace(/\\*(.*?)\\*/g, '<em>$1</em>')
-                .replace(/\\n/g, '<br>');
+            // Format risposta con markdown pulito e sicuro
+            let rawText = res.text || '';
+            let formatted = rawText
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\*\*(.+?)\*\*/gs, '<strong>$1</strong>')
+                .replace(/\*([^\*\n]+?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
 
             botDiv.innerHTML = formatted;
 
@@ -3880,43 +4240,41 @@ ${emailBody}`
     }
 
     // --- Metodi Gestione Password & Utenti ---
+    // --- Metodi Gestione Password con Codice OTP Temporaneo & WhatsApp ---
+
     showForgotPasswordModal() {
         const container = document.getElementById('user-modal-container') || document.body;
+        document.getElementById('forgot-password-modal-overlay')?.remove();
+
         const modalDiv = document.createElement('div');
         modalDiv.id = 'forgot-password-modal-overlay';
         modalDiv.className = 'modal-overlay';
         modalDiv.onclick = () => modalDiv.remove();
 
         modalDiv.innerHTML = `
-            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+            <div class="modal-card fade-in" id="forgot-modal-content" onclick="event.stopPropagation()">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <i class="ph ph-key text-gold" style="font-size:1.6rem;"></i>
-                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Reimposta Password</h3>
+                        <i class="ph ph-shield-warning text-gold" style="font-size:1.6rem;"></i>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Recupero Password Sicuro</h3>
                     </div>
                     <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
                         <i class="ph ph-x"></i>
                     </button>
                 </div>
                 <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:16px; text-align:left;">
-                    Inserisci la tua email o username registrato e imposta una nuova password.
+                    Inserisci la tua email o username registrato. Verrà generato un <strong>codice di sblocco temporaneo univoco</strong> (OTP valido 15 minuti) da confermare prima di impostare la nuova password.
                 </p>
-                <form onsubmit="app.handleResetPasswordSubmit(event)">
+                <form onsubmit="app.handleRequestResetOtp(event)">
                     <div class="form-group" style="text-align:left;">
                         <label style="font-size:0.85rem; color:var(--text-muted);">Email o Username</label>
-                        <input type="text" id="reset-identifier" required placeholder="es. bubibs@gmail.com oppure username" style="font-size:0.95rem; padding:10px;">
+                        <input type="text" id="reset-req-identifier" required placeholder="es. mario.rossi oppure email" style="font-size:0.95rem; padding:10px;">
                     </div>
-                    <div class="form-group" style="text-align:left;">
-                        <label style="font-size:0.85rem; color:var(--text-muted);">Nuova Password</label>
-                        <input type="password" id="reset-password-1" required placeholder="Inserisci nuova password" style="font-size:0.95rem; padding:10px;">
-                    </div>
-                    <div class="form-group" style="text-align:left;">
-                        <label style="font-size:0.85rem; color:var(--text-muted);">Conferma Nuova Password</label>
-                        <input type="password" id="reset-password-2" required placeholder="Ripeti la nuova password" style="font-size:0.95rem; padding:10px;">
-                    </div>
-                    <div style="display:flex; gap:10px; margin-top:20px;">
+                    <div style="display:flex; gap:10px; margin-top:18px;">
                         <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
-                        <button type="submit" class="btn btn-primary" style="flex:1;">Salva Password</button>
+                        <button type="submit" class="btn btn-primary" style="flex:1.4;">
+                            <i class="ph ph-paper-plane-right"></i> Richiedi Codice OTP
+                        </button>
                     </div>
                 </form>
             </div>
@@ -3924,14 +4282,87 @@ ${emailBody}`
         container.appendChild(modalDiv);
     }
 
-    async handleResetPasswordSubmit(e) {
+    async handleRequestResetOtp(e) {
         e.preventDefault();
-        const id = document.getElementById('reset-identifier')?.value;
-        const p1 = document.getElementById('reset-password-1')?.value;
-        const p2 = document.getElementById('reset-password-2')?.value;
+        const identifier = document.getElementById('reset-req-identifier')?.value;
+        if (!identifier) return;
+
+        const res = await Auth.requestPasswordReset(identifier);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        const modalContent = document.getElementById('forgot-modal-content');
+        if (!modalContent) return;
+
+        const adminPhone = '3331234567'; // Cellulare aziendale Fabio Sandrini
+        const waText = encodeURIComponent(`Ciao Fabio, sono ${res.user.name || res.user.username} (${res.user.email || ''}). Ho richiesto il codice di sblocco temporaneo per Orari TS. Il mio codice di verifica OTP generato è: ${res.code}`);
+        const waLink = `https://api.whatsapp.com/send?text=${waText}`;
+
+        modalContent.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="ph ph-lock-key-open text-gold" style="font-size:1.6rem;"></i>
+                    <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Verifica Codice di Sblocco</h3>
+                </div>
+                <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+
+            <div style="background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); border-radius:10px; padding:10px 12px; margin-bottom:14px; text-align:left;">
+                <div style="font-weight:700; font-size:0.86rem; color:#22c55e; margin-bottom:3px;">
+                    ✅ Codice temporaneo generato per ${res.user.name || res.user.username}!
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.4;">
+                    Il codice a 6 cifre scade tra <strong>15 minuti</strong> ed è stato notificato all'amministratore (Fabio Sandrini).
+                </div>
+            </div>
+
+            <!-- Pulsante WhatsApp Diretto per inviare richiesta / codice a Fabio -->
+            <a href="${waLink}" target="_blank" class="btn" style="background:#22c55e; color:white; font-size:0.88rem; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px; text-decoration:none; font-weight:600; border-radius:10px; box-shadow:0 2px 8px rgba(34,197,94,0.3);">
+                <i class="ph ph-whatsapp-logo" style="font-size:1.25rem;"></i>
+                <span>Comunica / Ricevi Sblocco su WhatsApp</span>
+            </a>
+
+            <form onsubmit="app.handleCompleteResetOtp(event, '${encodeURIComponent(identifier)}')">
+                <div class="form-group" style="text-align:left; margin-bottom:10px;">
+                    <label style="font-size:0.82rem; color:var(--text-muted);">Codice Temporaneo Ricevuto (OTP a 6 Cifre)</label>
+                    <input type="text" id="reset-otp-input" required placeholder="es. ${res.code}" style="font-size:1.1rem; padding:10px; font-weight:700; letter-spacing:2px; text-align:center;">
+                </div>
+                <div class="form-group" style="text-align:left; margin-bottom:10px;">
+                    <label style="font-size:0.82rem; color:var(--text-muted);">Nuova Password</label>
+                    <input type="password" id="reset-new-pwd-1" required placeholder="Inserisci nuova password" style="font-size:0.95rem; padding:10px;">
+                </div>
+                <div class="form-group" style="text-align:left; margin-bottom:14px;">
+                    <label style="font-size:0.82rem; color:var(--text-muted);">Conferma Nuova Password</label>
+                    <input type="password" id="reset-new-pwd-2" required placeholder="Ripeti nuova password" style="font-size:0.95rem; padding:10px;">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1.4;">
+                        <i class="ph ph-check-circle"></i> Salva Password
+                    </button>
+                </div>
+            </form>
+        `;
+    }
+
+    async handleCompleteResetOtp(e, encId) {
+        e.preventDefault();
+        const identifier = decodeURIComponent(encId);
+        const otpCode = document.getElementById('reset-otp-input')?.value;
+        const p1 = document.getElementById('reset-new-pwd-1')?.value;
+        const p2 = document.getElementById('reset-new-pwd-2')?.value;
+
+        if (!otpCode || otpCode.trim().length !== 6) {
+            this.showToast('Inserisci il codice temporaneo OTP a 6 cifre.', 'error');
+            return;
+        }
 
         if (!p1 || p1.length < 3) {
-            this.showToast('La password deve contenere almeno 3 caratteri.', 'error');
+            this.showToast('La nuova password deve contenere almeno 3 caratteri.', 'error');
             return;
         }
 
@@ -3940,14 +4371,14 @@ ${emailBody}`
             return;
         }
 
-        const res = await Auth.resetPassword(id, p1);
+        const res = await Auth.completePasswordReset(identifier, otpCode, p1);
         if (!res.success) {
             this.showToast(res.error, 'error');
             return;
         }
 
         document.getElementById('forgot-password-modal-overlay')?.remove();
-        this.showToast('Password reimpostata con successo!', 'success');
+        this.showToast('Password reimpostata con successo! Ora puoi accedere.', 'success');
 
         const loginInput = document.getElementById('login-identifier');
         const pwdInput = document.getElementById('login-password');
@@ -3956,6 +4387,184 @@ ${emailBody}`
             pwdInput.value = p1;
             pwdInput.focus();
         }
+    }
+
+    // --- Metodi Accesso Google & Onboarding Parametri Stipendio ---
+
+    handleGoogleLogin() {
+        document.getElementById('google-login-modal-overlay')?.remove();
+        const container = document.getElementById('user-modal-container') || document.body;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'google-login-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => modalDiv.remove();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" style="max-width:400px; text-align:left;" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Accedi con Google</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('google-login-modal-overlay').remove()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
+                    Seleziona il tuo account Google per accedere istantaneamente ad <strong>Orari TS</strong>:
+                </p>
+
+                <!-- Scheda 1-Click Fabio Sandrini -->
+                <button type="button" class="google-account-pill" onclick="app.submitGoogleLogin('bubibs@gmail.com', 'Fabio Sandrini')">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="google-avatar-circle">FS</div>
+                        <div>
+                            <div style="font-weight:700; font-size:0.9rem; color:var(--text);">Fabio Sandrini</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">bubibs@gmail.com (Amministratore)</div>
+                        </div>
+                    </div>
+                    <i class="ph ph-caret-right text-gold"></i>
+                </button>
+
+                <div class="auth-divider" style="margin:14px 0 10px 0;">oppure inserisci account Google</div>
+
+                <form onsubmit="app.handleCustomGoogleLogin(event)">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label style="font-size:0.8rem; color:var(--text-muted);">Email Google (Gmail o Workspace)</label>
+                        <input type="email" id="custom-google-email" required placeholder="mario.rossi@gmail.com" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; padding:11px; font-size:0.92rem;">
+                        <i class="ph ph-sign-in"></i> Accedi con questo Account
+                    </button>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
+    }
+
+    async submitGoogleLogin(email, name = '') {
+        document.getElementById('google-login-modal-overlay')?.remove();
+        this.showToast('Accesso Google in corso...', 'info');
+
+        const res = await Auth.loginWithGoogle({ email, name });
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        Store.init();
+        this.updateAuthUI(res.user);
+        this.navigate('home');
+        this.showToast(`Accesso con Google completato! Ciao ${res.user.name || res.user.username}.`, 'success');
+        this.sync();
+
+        if (res.isNew) {
+            this.showSalaryOnboardingModal(res.user);
+        }
+    }
+
+    handleCustomGoogleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('custom-google-email')?.value;
+        if (!email) return;
+        this.submitGoogleLogin(email);
+    }
+
+    // Configurazione guidata parametri stipendio per nuovi utenti (default 0)
+    showSalaryOnboardingModal(user) {
+        if (!user || user.isPrimary) return;
+
+        document.getElementById('salary-onboarding-modal-overlay')?.remove();
+        const container = document.getElementById('user-modal-container') || document.body;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'salary-onboarding-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" style="max-width:440px;" onclick="event.stopPropagation()">
+                <div style="text-align:center; margin-bottom:14px;">
+                    <div style="font-size:2.2rem; color:var(--primary); margin-bottom:6px;">
+                        <i class="ph ph-currency-eur"></i>
+                    </div>
+                    <h3 style="margin:0; font-size:1.2rem; color:var(--text); font-weight:700;">Configurazione Stipendio</h3>
+                    <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">
+                        Benvenuto <strong>${user.name || user.username}</strong>! I tuoi parametri di calcolo sono attualmente impostati a <strong>0.00 €</strong>. Puoi configurarli ora o modificarli in seguito dalla sezione Stipendio.
+                    </p>
+                </div>
+
+                <form onsubmit="app.handleSaveOnboardingSalary(event)">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left;">
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Paga Base Mensile (€)</label>
+                            <input type="number" id="onb-base-salary" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Paga Oraria Base (€/h)</label>
+                            <input type="number" id="onb-hourly-rate" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Diaria Rientro (€)</label>
+                            <input type="number" id="onb-allowance-return" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Diaria Notte (€)</label>
+                            <input type="number" id="onb-allowance-overnight" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Diaria Estero (€)</label>
+                            <input type="number" id="onb-allowance-foreign" step="0.01" placeholder="0.00" value="0.00" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.78rem; color:var(--text-muted);">Aliquota Tasse (%)</label>
+                            <input type="number" id="onb-tax-rate" step="0.1" placeholder="0" value="0" style="font-size:0.9rem; padding:8px;">
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+                        <button type="submit" class="btn btn-primary" style="padding:11px; font-size:0.95rem;">
+                            <i class="ph ph-check-circle"></i> Salva Parametri Personali
+                        </button>
+                        <button type="button" class="btn" style="background:rgba(255,255,255,0.08); font-size:0.85rem; padding:9px;" onclick="document.getElementById('salary-onboarding-modal-overlay').remove()">
+                            Salta per ora (lascia a 0.00 €)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
+    }
+
+    handleSaveOnboardingSalary(e) {
+        e.preventDefault();
+        const baseSalary = parseFloat(document.getElementById('onb-base-salary')?.value) || 0;
+        const hourlyRate = parseFloat(document.getElementById('onb-hourly-rate')?.value) || 0;
+        const allowanceReturn = parseFloat(document.getElementById('onb-allowance-return')?.value) || 0;
+        const allowanceOvernight = parseFloat(document.getElementById('onb-allowance-overnight')?.value) || 0;
+        const allowanceForeign = parseFloat(document.getElementById('onb-allowance-foreign')?.value) || 0;
+        const taxRate = parseFloat(document.getElementById('onb-tax-rate')?.value) || 0;
+
+        const newSettings = {
+            baseSalary,
+            hourlyRate,
+            allowanceReturn,
+            allowanceOvernight,
+            allowanceForeign,
+            taxRate
+        };
+
+        Store.saveSettings(newSettings, 'default');
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        Store.saveSettings(newSettings, currentMonth);
+
+        document.getElementById('salary-onboarding-modal-overlay')?.remove();
+        this.showToast('Parametri stipendio configurati con successo!', 'success');
+        this.sync();
     }
 
     async confirmDeleteUser(userId, userName) {
@@ -3992,6 +4601,7 @@ ${emailBody}`
     }
 
 }
+
 
 
     // Esportazioni globali per console e interazioni
