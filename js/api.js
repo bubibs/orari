@@ -1,7 +1,7 @@
 import { Auth } from './auth.js';
 
 export const API = {
-    DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycbyfxWOPZ0F8gZGloDB9fOxLog6bjrs-YOpeiTC3_qll/dev',
+    DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycbypX8DXc9dVSi9aZJ5ZIiNNLt2k4wJQJMyFep33USsCQixj0zFyfbzIOQNdnJIFoGbJGA/exec',
 
     // Se l'utente ha configurato un proprio URL Google Apps Script personale, usa quello.
     // Altrimenti usa l'endpoint cloud principale aziendale.
