@@ -4,6 +4,184 @@
 (function() {
     'use strict';
 
+    // @pure-start
+    // ---- Funzioni pure (testate in tests/run-tests.js) ----
+    function escapeHtml(v) {
+        return String(v === undefined || v === null ? '' : v)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Per valori messi dentro una stringa JS tra apici, a sua volta dentro un attributo HTML (onclick="f('...')")
+    function jsAttr(v) {
+        const js = String(v === undefined || v === null ? '' : v)
+            .replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
+        return escapeHtml(js);
+    }
+
+    // Ore decimali tra due orari "HH:MM" (gestisce il passaggio di mezzanotte). La pausa vale 1h.
+    function oreDaOrario(start, end, lunch) {
+        const toMin = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
+        let min = toMin(end) - toMin(start);
+        if (min < 0) min += 1440;
+        let h = min / 60;
+        if (lunch) h -= 1;
+        return h < 0 ? 0 : h;
+    }
+
+    // Pasqua (algoritmo di Meeus/Jones/Butcher) -> {m: mese 1-12, d: giorno}
+    function pasqua(anno) {
+        const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100;
+        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const mese = Math.floor((h + l - 7 * m + 114) / 31), giorno = ((h + l - 7 * m + 114) % 31) + 1;
+        return { m: mese, d: giorno };
+    }
+
+    // Festivi nazionali italiani (+ Lunedi dell'Angelo). Restituisce il nome o '' se non festivo.
+    function nomeFestivo(dateStr) {
+        const p = String(dateStr || '').split('-').map(Number);
+        if (p.length !== 3 || p.some(n => isNaN(n))) return '';
+        const [y, m, d] = p;
+        const fissi = { '1-1': 'Capodanno', '1-6': 'Epifania', '4-25': 'Liberazione', '5-1': 'Festa del Lavoro', '6-2': 'Festa della Repubblica',
+            '8-15': 'Ferragosto', '11-1': 'Ognissanti', '12-8': 'Immacolata', '12-25': 'Natale', '12-26': 'Santo Stefano' };
+        if (fissi[m + '-' + d]) return fissi[m + '-' + d];
+        const pq = pasqua(y);
+        const lunedi = new Date(y, pq.m - 1, pq.d + 1);
+        if (lunedi.getMonth() === m - 1 && lunedi.getDate() === d) return "Lunedi dell'Angelo";
+        return '';
+    }
+    function isFestivo(dateStr) { return nomeFestivo(dateStr) !== ''; }
+
+    // Giorno pagato al 50%: sabato, domenica o festivo.
+    function isGiornoAl50(dateStr) {
+        const p = String(dateStr || '').split('-').map(Number);
+        if (p.length !== 3 || p.some(n => isNaN(n))) return false;
+        const day = new Date(p[0], p[1] - 1, p[2]).getDay();
+        return day === 0 || day === 6 || isFestivo(dateStr);
+    }
+
+    // Straordinari del giorno: sabato/domenica/festivi 50% su tutte le ore; lun-ven solo le ore oltre 8 al 25%; assenze: nessuno.
+    function straordinariGiorno(ore, dateStr, isAbsence) {
+        if (isAbsence) return { ot25: 0, ot50: 0 };
+        return isGiornoAl50(dateStr) ? { ot25: 0, ot50: ore } : { ot25: Math.max(0, ore - 8), ot50: 0 };
+    }
+
+    // ---- Impostazioni stipendio per mese, con riporto sui mesi successivi ----
+    const CAMPI_IMPOSTAZIONI = ['baseSalary', 'hourlyRate', 'allowanceReturn', 'allowanceOvernight', 'allowanceForeign', 'taxRate'];
+    const MESE_RE = /^\d{4}-\d{2}$/;
+    function numOrNull(v) {
+        if (v === undefined || v === null || v === '') return null;
+        const n = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
+        return isNaN(n) ? null : n;
+    }
+    // Valori in vigore in un mese: DEFAULTS < voce 'default' < voci dei mesi <= mese richiesto (la piu' recente vince, campo per campo).
+    function impostazioniEffettive(all, monthStr, defaults) {
+        all = all || {};
+        const out = { ...defaults };
+        const applica = o => { if (!o) return; CAMPI_IMPOSTAZIONI.forEach(k => { const n = numOrNull(o[k]); if (n !== null) out[k] = n; }); };
+        applica(all['default']);
+        Object.keys(all).filter(k => MESE_RE.test(k) && k <= monthStr).sort().forEach(k => applica(all[k]));
+        return out;
+    }
+    // Salva `nuovi` dal mese indicato in poi: i mesi precedenti non cambiano, quelli successivi ricevono i campi modificati.
+    function applicaImpostazioni(all, monthStr, nuovi, precedenti, ts) {
+        const next = JSON.parse(JSON.stringify(all || {}));
+        const cambiati = CAMPI_IMPOSTAZIONI.filter(k => Math.abs((numOrNull(nuovi[k]) ?? 0) - (numOrNull(precedenti[k]) ?? 0)) > 1e-9);
+        const voce = {};
+        CAMPI_IMPOSTAZIONI.forEach(k => { voce[k] = numOrNull(nuovi[k]) ?? 0; });
+        voce.updatedAt = ts;
+        next[monthStr] = voce;
+        const toccati = [monthStr];
+        Object.keys(next).filter(k => MESE_RE.test(k) && k > monthStr).sort().forEach(k => {
+            let mod = false;
+            cambiati.forEach(f => { if (next[k][f] !== voce[f]) { next[k][f] = voce[f]; mod = true; } });
+            if (mod) { next[k].updatedAt = ts; toccati.push(k); }
+        });
+        return { all: next, toccati };
+    }
+
+    // ---- Calcolo stipendio (unico motore, usato da pagina Stipendio, annuale e assistente AI) ----
+    function calcolaStipendio(reports, s) {
+        const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; };
+        const base = num(s.baseSalary), rate = num(s.hourlyRate);
+        const aRit = num(s.allowanceReturn), aNot = num(s.allowanceOvernight), aEst = num(s.allowanceForeign);
+        const daysWorked = { sede: 0, rientro: 0, notte: 0, estero: 0, totale: 0 };
+        let totalHours = 0, ot25 = 0, ot50 = 0;
+        (reports || []).forEach(r => {
+            const t = String(r.type || '').toLowerCase();
+            const h = num(r.totalHours);
+            if (h > 0) daysWorked.totale++;
+            totalHours += h;
+            ot25 += num(r.overtime25); ot50 += num(r.overtime50);
+            if (t === 'sede') daysWorked.sede++;
+            else if (t === 'trasferta_rientro') daysWorked.rientro++;
+            else if (t === 'trasferta_notte') daysWorked.notte++;
+            else if (t === 'trasferta_estero') daysWorked.estero++;
+        });
+        const extra25 = ot25 * rate * 1.25, extra50 = ot50 * rate * 1.5;
+        const allowanceReturnTotal = daysWorked.rientro * aRit;
+        const allowanceOvernightTotal = daysWorked.notte * aNot;
+        const allowanceForeignTotal = daysWorked.estero * aEst;
+        const allowance = allowanceReturnTotal + allowanceOvernightTotal + allowanceForeignTotal;
+        const lordo = base + extra25 + extra50 + allowance;
+        return { daysWorked, totalHours, ot25, ot50, base, extra25, extra50, allowance,
+            allowanceReturnTotal, allowanceOvernightTotal, allowanceForeignTotal, lordo, netto: stimaNettoMensile(lordo), settings: s };
+    }
+
+    // Stima netto mensile (indicativa): INPS 9,19%, IRPEF a scaglioni mensili, addizionali 2%, detrazione limitata.
+    function stimaNettoMensile(lordo) {
+        if (!(lordo > 0)) return 0;
+        const taxable = lordo - lordo * 0.0919;
+        let irpef;
+        if (taxable <= 2333) irpef = taxable * 0.23;
+        else if (taxable <= 4166) irpef = (2333 * 0.23) + ((taxable - 2333) * 0.35);
+        else irpef = (2333 * 0.23) + ((4166 - 2333) * 0.35) + ((taxable - 4166) * 0.43);
+        const detrazione = Math.min(irpef, Math.min(150, Math.max(0, 150 - ((taxable - 2000) * 0.05))));
+        return Math.max(0, taxable - (irpef - detrazione) - taxable * 0.02);
+    }
+
+    // SHA-256 puro JS (fallback quando crypto.subtle non e' disponibile). Restituisce l'hex.
+    function sha256Hex(str) {
+        const bytes = unescape(encodeURIComponent(String(str)));
+        const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+        const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+        const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+        const len = bytes.length;
+        const total = (((len + 9 + 63) >> 6) << 6);
+        const buf = new Uint8Array(total);
+        for (let i = 0; i < len; i++) buf[i] = bytes.charCodeAt(i);
+        buf[len] = 0x80;
+        const bitLenHi = Math.floor((len * 8) / 4294967296), bitLenLo = (len * 8) >>> 0;
+        buf[total - 8] = bitLenHi >>> 24; buf[total - 7] = bitLenHi >>> 16; buf[total - 6] = bitLenHi >>> 8; buf[total - 5] = bitLenHi;
+        buf[total - 4] = bitLenLo >>> 24; buf[total - 3] = bitLenLo >>> 16; buf[total - 2] = bitLenLo >>> 8; buf[total - 1] = bitLenLo;
+        const w = new Array(64);
+        for (let off = 0; off < total; off += 64) {
+            for (let i = 0; i < 16; i++) w[i] = (buf[off+i*4] << 24) | (buf[off+i*4+1] << 16) | (buf[off+i*4+2] << 8) | buf[off+i*4+3];
+            for (let i = 16; i < 64; i++) {
+                const s0 = rotr(w[i-15], 7) ^ rotr(w[i-15], 18) ^ (w[i-15] >>> 3);
+                const s1 = rotr(w[i-2], 17) ^ rotr(w[i-2], 19) ^ (w[i-2] >>> 10);
+                w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0;
+            }
+            let [a, b, c, d, e, f, g, h] = H;
+            for (let i = 0; i < 64; i++) {
+                const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+                const ch = (e & f) ^ (~e & g);
+                const t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+                const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+                const maj = (a & b) ^ (a & c) ^ (b & c);
+                const t2 = (S0 + maj) | 0;
+                h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+            }
+            H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+            H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+        }
+        return H.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+    }
+    // @pure-end
+
     // === MODULE: AUTH ===
 // --- Autenticazione e Gestione Utenti (Multi-Utente, Cloud Sync, Admin & OTP Reset) ---
 const Auth = {
@@ -29,62 +207,15 @@ const Auth = {
         return this._sha256Pure(password);
     },
 
-    // Implementazione pura JS di SHA-256 (compatibile al 100% con protocollo file:///)
-    _sha256Pure(ascii) {
-        function rightRotate(value, amount) {
-            return (value >>> amount) | (value << (32 - amount));
-        }
-        var mathPow = Math.pow;
-        var maxWord = mathPow(2, 32);
-        var lengthProperty = 'length';
-        var i, j;
-        var result = '';
-        var words = [];
-        var asciiBitLength = ascii[lengthProperty] * 8;
-        var hash = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
-        var k = [
-            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-            0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-            0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-            0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-        ];
-        words[asciiBitLength >> 5] |= 0x80 << (24 - asciiBitLength % 32);
-        words[(((asciiBitLength + 64) >> 9) << 4) + 15] = asciiBitLength;
-        for (i = 0; i < words[lengthProperty]; i += 16) {
-            var w = words.slice(i, i + 16);
-            var oldHash = hash.slice();
-            for (j = 0; j < 64; j++) {
-                var w15 = w[j - 15], w2 = w[j - 2];
-                var s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
-                var s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
-                w[j] = j < 16 ? w[j] : (w[j - 16] + s0 + w[j - 7] + s1) | 0;
-                var ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
-                var temp1 = (hash[7] + (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) + ch + k[j] + w[j]) | 0;
-                var maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
-                var temp2 = ((rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj) | 0;
-                hash = [(temp1 + temp2) | 0, hash[0], hash[1], hash[2], (hash[3] + temp1) | 0, hash[4], hash[5], hash[6]];
-            }
-            for (j = 0; j < 8; j++) {
-                hash[j] = (hash[j] + oldHash[j]) | 0;
-            }
-        }
-        for (i = 0; i < 8; i++) {
-            for (j = 3; j >= 0; j--) {
-                var b = (hash[i] >> (8 * j)) & 255;
-                result += (b < 16 ? '0' : '') + b.toString(16);
-            }
-        }
-        return result;
+    // Fallback SHA-256 puro JS (implementazione condivisa e testata: sha256Hex)
+    _sha256Pure(text) {
+        return sha256Hex(text);
     },
 
-    // Inizializza archivio utenti e utente primario predefinito (Fabio Sandrini: bubibs@gmail.com / Brescia1-)
+    // Inizializza archivio utenti e utente primario predefinito.
+    // NESSUNA password nel codice: l'utente primario senza password deve impostarla con "Password dimenticata".
     async init() {
         let users = this.getUsers();
-        const primaryHash = await this.hashPassword('Brescia1-');
 
         let primaryUser = users.find(u => u.isPrimary || u.id === 'fabio_sandrini' || u.email === 'bubibs@gmail.com' || u.email === 'amministrazione@tecnosistem.com');
 
@@ -94,27 +225,23 @@ const Auth = {
                 name: 'Fabio Sandrini',
                 username: 'bubibs',
                 email: 'bubibs@gmail.com',
-                phone: '3331234567',
-                passwordHash: primaryHash,
+                phone: '',
                 isPrimary: true,
                 cloudUrl: '',
                 createdAt: new Date().toISOString()
             };
             users.unshift(primaryUser);
         } else {
-            // Aggiorna credenziali per l'utente principale
             primaryUser.id = 'fabio_sandrini';
             primaryUser.name = 'Fabio Sandrini';
             primaryUser.username = 'bubibs';
             primaryUser.email = 'bubibs@gmail.com';
-            if (!primaryUser.phone) primaryUser.phone = '3331234567';
-            primaryUser.passwordHash = primaryHash;
             primaryUser.isPrimary = true;
+            // La password esistente NON viene piu' sovrascritta ad ogni avvio.
         }
 
         this.saveUsers(users);
 
-        // Se c'è già una sessione memorizzata valida
         const current = this.getCurrentUser();
         if (current) {
             const fresh = users.find(u => u.id === current.id);
@@ -150,9 +277,17 @@ const Auth = {
             const uemail = String(cu.email || '').trim().toLowerCase();
             const uid = String(cu.id || ('user_' + uname));
             
-            // Non sovrascrivere l'utente primario
-            if (uemail === 'bubibs@gmail.com' || uname === 'bubibs' || uname === 'bubib' || cu.isprimary === true || cu.isprimary === 'true') {
+            // Utente primario: identita' fissa nel codice, ma la password (hash) arriva dal cloud,
+            // cosi' e' la stessa su tutti i dispositivi.
+            const identitaAdmin = uemail === 'bubibs@gmail.com' || uname === 'bubibs' || uname === 'bubib' || uid === 'fabio_sandrini';
+            if (identitaAdmin) {
+                const prim = Array.from(map.values()).find(u => u.isPrimary);
+                const h = cu.passwordhash || cu.passwordHash;
+                if (prim && h && !prim.pwDirty) prim.passwordHash = h;
                 return;
+            }
+            if (cu.isprimary === true || cu.isprimary === 'true' || cu.isPrimary === true || cu.isPrimary === 'true') {
+                return;   // flag "primario" su un'identita' diversa dall'admin: ignorato
             }
 
             const existing = map.get(uid) || Array.from(map.values()).find(u => (u.username || '').toLowerCase() === uname || (u.email && u.email.toLowerCase() === uemail));
@@ -174,7 +309,7 @@ const Auth = {
                 if (!existing.isPrimary) {
                     if (cu.name) existing.name = cu.name;
                     if (cu.phone) existing.phone = cu.phone;
-                    if (cu.passwordhash || cu.passwordHash) existing.passwordHash = cu.passwordhash || cu.passwordHash;
+                    if ((cu.passwordhash || cu.passwordHash) && !existing.pwDirty) existing.passwordHash = cu.passwordhash || cu.passwordHash;
                 }
             }
         });
@@ -201,53 +336,66 @@ const Auth = {
     },
 
     // Login classico con Username/Email e Password
-    async login(identifier, password) {
-        const idClean = (identifier || '').trim().toLowerCase();
-        if (!idClean) {
-            return { success: false, error: 'Inserisci username o email.' };
-        }
-        if (!password) {
-            return { success: false, error: 'Inserisci la password.' };
-        }
-
-        let users = this.getUsers();
-        let user = users.find(u => 
+    _findUser(users, idClean) {
+        return users.find(u =>
             (u.username && u.username.toLowerCase() === idClean) ||
             (u.email && u.email.toLowerCase() === idClean) ||
             (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
+    },
 
-        // Se non trovato in locale, prova a sincronizzare gli utenti dal Cloud
-        if (!user && window.API && typeof window.API.fetchUsers === 'function') {
-            try {
-                const cloudUsers = await window.API.fetchUsers();
-                if (cloudUsers && cloudUsers.length > 0) {
-                    this.mergeCloudUsers(cloudUsers);
-                    users = this.getUsers();
-                    user = users.find(u => 
-                        (u.username && u.username.toLowerCase() === idClean) ||
-                        (u.email && u.email.toLowerCase() === idClean)
-                    );
-                }
-            } catch (err) {
-                console.warn('Verifica utenti cloud durante login:', err);
-            }
+    // Aggiorna le credenziali di un utente sul cloud; finche' l'invio non riesce l'utente e' "pwDirty"
+    // (la sincronizzazione non sovrascrive la password locale con quella vecchia del cloud).
+    _setPwDirty(userId, flag) {
+        const users = this.getUsers();
+        const u = users.find(x => x.id === userId);
+        if (!u) return;
+        if (flag) u.pwDirty = true; else delete u.pwDirty;
+        this.saveUsers(users);
+        const cur = this.getCurrentUser();
+        if (cur && cur.id === userId) this.setCurrentUser(u);
+    },
+    async pushUser(user) {
+        if (!user || !window.API || typeof window.API.saveUser !== 'function') return { success: false };
+        this._setPwDirty(user.id, true);
+        let res;
+        try { res = await window.API.saveUser(user); } catch (e) { res = { success: false }; }
+        if (res && res.success) this._setPwDirty(user.id, false);
+        return res;
+    },
+
+    // Login: il cloud e' la fonte delle credenziali, cosi' si entra con le stesse da qualsiasi dispositivo.
+    // Senza rete si usano le credenziali gia' salvate sul dispositivo.
+    async login(identifier, password) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        if (!idClean) return { success: false, error: 'Inserisci username o email.' };
+        if (!password) return { success: false, error: 'Inserisci la password.' };
+
+        if (!this.getUsers().some(u => u.isPrimary)) await this.init();
+
+        let cloudUsers = null;
+        if (window.API && typeof window.API.fetchUsers === 'function') {
+            try { cloudUsers = await window.API.fetchUsers(); } catch (err) { cloudUsers = null; }
+            if (Array.isArray(cloudUsers)) this.mergeCloudUsers(cloudUsers);
         }
 
-        // Se è l'utente primario (Fabio Sandrini / bubibs@gmail.com)
-        if (!user && (idClean === 'bubibs@gmail.com' || idClean === 'bubibs' || idClean === 'bubib' || idClean === 'fabio')) {
-            await this.init();
-            users = this.getUsers();
-            user = users.find(u => u.isPrimary);
-        }
-
+        const user = this._findUser(this.getUsers(), idClean);
         if (!user) {
             return { success: false, error: 'Utente non trovato. Controlla i dati o registrati come nuovo utente.' };
         }
-
+        if (!user.passwordHash) {
+            return { success: false, error: 'Questo account non ha ancora una password. Usa "Password dimenticata" per impostarla.' };
+        }
         const inputHash = await this.hashPassword(password);
-        if (user.passwordHash && user.passwordHash !== inputHash) {
+        if (user.passwordHash !== inputHash) {
             return { success: false, error: 'Password errata. Riprova o usa "Password dimenticata".' };
+        }
+
+        // Cloud raggiungibile ma senza la password di questo utente (o modifica non ancora inviata): la carica ora.
+        if (Array.isArray(cloudUsers)) {
+            const cu = cloudUsers.find(c => c && ((c.id && String(c.id) === String(user.id)) ||
+                (c.username && String(c.username).toLowerCase() === String(user.username || '').toLowerCase())));
+            if (!(cu && (cu.passwordHash || cu.passwordhash)) || user.pwDirty) this.pushUser(user);
         }
 
         this.setCurrentUser(user);
@@ -263,8 +411,12 @@ const Auth = {
 
         if (!cleanName) return { success: false, error: 'Inserisci nome e cognome.' };
         if (!cleanUsername || cleanUsername.length < 3) return { success: false, error: 'Lo username deve avere almeno 3 caratteri.' };
-        if (!password || password.length < 3) return { success: false, error: 'La password deve avere almeno 3 caratteri.' };
+        if (!password || password.length < 8) return { success: false, error: 'La password deve avere almeno 8 caratteri.' };
 
+        // Username/email gia' registrati su altri dispositivi
+        if (window.API && typeof window.API.fetchUsers === 'function') {
+            try { const cu = await window.API.fetchUsers(); if (Array.isArray(cu)) this.mergeCloudUsers(cu); } catch (e) {}
+        }
         let users = this.getUsers();
 
         // Controllo duplicati
@@ -297,7 +449,7 @@ const Auth = {
         // Salva l'utente anche nel Cloud DB (Google Sheets)
         if (window.API && typeof window.API.saveUser === 'function') {
             try {
-                window.API.saveUser(newUser);
+                Auth.pushUser(newUser);
             } catch (err) {
                 console.warn('Salvataggio utente su cloud differito:', err);
             }
@@ -308,6 +460,9 @@ const Auth = {
 
     // Autenticazione con Account Google
     async loginWithGoogle(googleData) {
+        // DISATTIVATO: senza verifica lato server del token Google, chiunque poteva entrare con una email qualsiasi.
+        return { success: false, error: 'Accesso con Google non disponibile. Usa username e password.' };
+        // eslint-disable-next-line no-unreachable
         if (!googleData || !googleData.email) {
             return { success: false, error: 'Dati account Google mancanti o non validi.' };
         }
@@ -365,7 +520,7 @@ const Auth = {
             // Sincronizza nuovo utente su Cloud Google Sheets
             if (window.API && typeof window.API.saveUser === 'function') {
                 try {
-                    window.API.saveUser(user);
+                    Auth.pushUser(user);
                 } catch (e) {}
             }
         }
@@ -421,6 +576,10 @@ const Auth = {
             return { success: false, error: 'Nessun account trovato associato a questa email o username.' };
         }
 
+        if (user.isPrimary) {
+            return { success: false, error: 'La password dell\'amministratore non si recupera con il codice temporaneo: usa Profilo → Cambia password (serve la password attuale) oppure, se l\'hai persa, le istruzioni in ISTRUZIONI-AGGIORNAMENTO-CLOUD.md.' };
+        }
+
         // Genera codice numerico casuale a 6 cifre
         const code = String(Math.floor(100000 + Math.random() * 900000));
         const expiresAt = Date.now() + (15 * 60 * 1000); // 15 minuti di validità
@@ -454,7 +613,7 @@ const Auth = {
 
         if (!idClean) return { success: false, error: 'Inserisci email o username.' };
         if (!codeClean) return { success: false, error: 'Inserisci il codice temporaneo di sblocco.' };
-        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+        if (!newPassword || newPassword.length < 8) return { success: false, error: 'La nuova password deve contenere almeno 8 caratteri.' };
 
         const users = this.getUsers();
         const user = users.find(u => 
@@ -465,6 +624,9 @@ const Auth = {
 
         if (!user) {
             return { success: false, error: 'Account utente non trovato.' };
+        }
+        if (user.isPrimary) {
+            return { success: false, error: 'La password dell\'amministratore non si recupera con il codice temporaneo: usa Profilo → Cambia password (serve la password attuale) oppure, se l\'hai persa, le istruzioni in ISTRUZIONI-AGGIORNAMENTO-CLOUD.md.' };
         }
 
         const reqList = this.getPendingResetRequests();
@@ -495,7 +657,7 @@ const Auth = {
         // Sincronizza su Cloud
         if (window.API && typeof window.API.saveUser === 'function') {
             try {
-                window.API.saveUser(user);
+                Auth.pushUser(user);
             } catch (e) {
                 console.warn('Errore sync password reset su cloud:', e);
             }
@@ -506,9 +668,11 @@ const Auth = {
 
     // Reimpostazione password diretta da parte dell'Admin
     async resetPassword(identifier, newPassword) {
+        const cur = this.getCurrentUser();
+        if (!cur || !cur.isPrimary) return { success: false, error: 'Solo l\'amministratore puo reimpostare le password degli altri utenti.' };
         const idClean = (identifier || '').trim().toLowerCase();
         if (!idClean) return { success: false, error: 'Inserisci username o email.' };
-        if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+        if (!newPassword || newPassword.length < 8) return { success: false, error: 'La nuova password deve contenere almeno 8 caratteri.' };
 
         let users = this.getUsers();
         let user = users.find(u => 
@@ -521,12 +685,13 @@ const Auth = {
             return { success: false, error: 'Account non trovato.' };
         }
 
+        if (user.isPrimary) return { success: false, error: 'La password dell\'amministratore si cambia da Profilo → Cambia password.' };
         const newHash = await this.hashPassword(newPassword);
         user.passwordHash = newHash;
         this.saveUsers(users);
 
         if (window.API && typeof window.API.saveUser === 'function') {
-            try { window.API.saveUser(user); } catch (e) {}
+            try { Auth.pushUser(user); } catch (e) {}
         }
 
         return { success: true, user };
@@ -572,7 +737,7 @@ const Auth = {
     async changePassword(currentPassword, newPassword) {
         const current = this.getCurrentUser();
         if (!current) return { success: false, error: 'Nessun utente connesso.' };
-        if (!newPassword || newPassword.length < 3) return { success: false, error: 'Nuova password troppo corta.' };
+        if (!newPassword || newPassword.length < 8) return { success: false, error: 'Nuova password troppo corta (minimo 8 caratteri).' };
 
         const users = this.getUsers();
         const user = users.find(u => u.id === current.id);
@@ -587,7 +752,7 @@ const Auth = {
         this.saveUsers(users);
 
         if (window.API && typeof window.API.saveUser === 'function') {
-            try { window.API.saveUser(user); } catch (e) {}
+            try { Auth.pushUser(user); } catch (e) {}
         }
 
         return { success: true };
@@ -616,7 +781,7 @@ const Auth = {
         this.setCurrentUser(user);
 
         if (window.API && typeof window.API.saveUser === 'function') {
-            try { window.API.saveUser(user); } catch (e) {}
+            try { Auth.pushUser(user); } catch (e) {}
         }
 
         return true;
@@ -647,13 +812,13 @@ const API = {
         }
     },
 
-    async _post(action, data) {
+    async _post(action, data, raw = false) {
         try {
             const user = Auth.getCurrentUser();
             const payload = (typeof data === 'object' && data !== null) ? { ...data } : { value: data };
             
             // Inietta le informazioni dell'utente nel payload per il cloud
-            if (user) {
+            if (user && !raw) {
                 payload.userId = user.id;
                 payload.userName = user.name;
                 payload.userEmail = user.email;
@@ -679,17 +844,23 @@ const API = {
     saveSettings(settings) { return this._post('saveSettings', settings); },
 
     // --- Gestione Utenti Cloud ---
-    saveUser(user) { return this._post('saveUser', user); },
+    saveUser(user) { const { pwDirty, ...u } = user || {}; return this._post('saveUser', u, true); },
     deleteUser(id) { return this._post('deleteUser', { id }); },
 
     async fetchUsers() {
+        const leggi = async (action) => {
+            const ctrl = new AbortController();
+            const t = setTimeout(() => ctrl.abort(), 8000);
+            try { const r = await fetch(this.ENDPOINT + '?action=' + action, { signal: ctrl.signal }); return await r.json(); }
+            finally { clearTimeout(t); }
+        };
         try {
-            const response = await fetch(this.ENDPOINT + '?action=getData');
-            const data = await response.json();
-            return data.users || [];
+            let data = await leggi('getUsers');
+            if (!data || !Array.isArray(data.users)) data = await leggi('getData');   // script cloud non ancora aggiornato
+            return Array.isArray(data && data.users) ? data.users : [];
         } catch (error) {
             console.error('Fetch users failed:', error);
-            return [];
+            return null;   // null = cloud non raggiungibile
         }
     },
 
@@ -785,70 +956,69 @@ const Store = {
         return key;
     },
 
-    // --- Settings (Month-Specific) ---
-    getSettings(monthStr = 'default') {
-        const allSettings = this.get(this.KEYS.SETTINGS) || {};
-        const normMonth = this.normalizeMonthKey(monthStr);
-
-        // 1. Try specific month (normalized or raw)
-        let settings = allSettings[normMonth] || allSettings[monthStr];
-
-        // 2. Try 'default' if month not found
-        if (!settings && allSettings['default']) {
-            settings = allSettings['default'];
-        }
-
-        // 3. Fallback/Init Defaults
+    // --- Impostazioni stipendio: per mese, con riporto sui mesi successivi (mai sui precedenti) ---
+    _defaultSettings() {
         const user = Auth.getCurrentUser();
         const isPrimary = !user || user.isPrimary;
-
-        // Nuovi utenti partono rigorosamente con parametri a 0. L'utente principale mantiene i suoi parametri.
-        const defaults = isPrimary ? {
-            baseSalary: 3480.76,
-            hourlyRate: 17.23,
-            allowanceReturn: 30.00,
-            allowanceOvernight: 60.00,
-            allowanceForeign: 105.00,
-            taxRate: 27
-        } : {
-            baseSalary: 0,
-            hourlyRate: 0,
-            allowanceReturn: 0,
-            allowanceOvernight: 0,
-            allowanceForeign: 0,
-            taxRate: 0
-        };
-
-        // If settings found, merge with defaults to ensure all keys exist and are numeric
-        if (settings) {
-            // Aggressive legacy purge (baseSalary 2000 or 1500)
-            if (settings.baseSalary === 2000 || settings.baseSalary === 1500) {
-                return defaults;
-            }
-
-            const merged = { ...defaults, ...settings };
-            // Ensure all values are numbers
-            Object.keys(merged).forEach(k => {
-                if (typeof merged[k] !== 'number' || isNaN(merged[k])) {
-                    merged[k] = defaults[k] || 0;
-                }
-            });
-            return merged;
-        }
-
-        // Save as default for future if completely empty
-        if (Object.keys(allSettings).length === 0) {
-            this.saveSettings(defaults, 'default');
-        }
-
-        return defaults;
+        // Nuovi utenti partono a 0. L'utente principale mantiene i suoi parametri storici.
+        return isPrimary
+            ? { baseSalary: 3480.76, hourlyRate: 17.23, allowanceReturn: 30, allowanceOvernight: 60, allowanceForeign: 105, taxRate: 27 }
+            : { baseSalary: 0, hourlyRate: 0, allowanceReturn: 0, allowanceOvernight: 0, allowanceForeign: 0, taxRate: 0 };
     },
 
+    // Sempre un oggetto semplice (get() restituiva un array vuoto: le impostazioni scritte li' sopra andavano perse)
+    _allSettings() {
+        const raw = this.get(this.KEYS.SETTINGS);
+        return (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+    },
+
+    getSettings(monthStr = 'default') {
+        const norm = this.normalizeMonthKey(monthStr);
+        return impostazioniEffettive(this._allSettings(), norm === 'default' ? '0000-00' : norm, this._defaultSettings());
+    },
+
+    // Salva una singola voce (usata dall'onboarding)
     saveSettings(settings, monthStr = 'default') {
-        const allSettings = this.get(this.KEYS.SETTINGS) || {};
-        const normMonth = this.normalizeMonthKey(monthStr);
-        allSettings[normMonth] = settings;
-        this.set(this.KEYS.SETTINGS, allSettings);
+        const all = this._allSettings();
+        const k = this.normalizeMonthKey(monthStr);
+        const voce = {};
+        CAMPI_IMPOSTAZIONI.forEach(f => { voce[f] = numOrNull(settings[f]) ?? 0; });
+        voce.updatedAt = Date.now();
+        all[k] = voce;
+        this.set(this.KEYS.SETTINGS, all);
+        this._queueSettingsPush([k]);
+    },
+
+    // Salva dal mese indicato in poi: mesi precedenti invariati, mesi successivi aggiornati. Restituisce i mesi toccati.
+    applySettings(monthStr, nuovi) {
+        const norm = this.normalizeMonthKey(monthStr);
+        const r = applicaImpostazioni(this._allSettings(), norm, nuovi, this.getSettings(norm), Date.now());
+        this.set(this.KEYS.SETTINGS, r.all);
+        this._queueSettingsPush(r.toccati);
+        return r.toccati;
+    },
+
+    // Coda dei mesi da inviare al cloud (resta in memoria locale finche' l'invio non riesce)
+    _pendingSettings() { const v = this.get('tecnosistem_settings_pending'); return Array.isArray(v) ? v : []; },
+    _queueSettingsPush(months) {
+        const pend = new Set(this._pendingSettings());
+        months.forEach(m => pend.add(m));
+        this.set('tecnosistem_settings_pending', Array.from(pend));
+    },
+    async flushSettings() {
+        const pend = this._pendingSettings();
+        if (pend.length === 0) return { inviati: 0, inAttesa: 0 };
+        const all = this._allSettings();
+        const defaults = this._defaultSettings();
+        const rimasti = [];
+        for (const m of pend) {
+            if (!all[m]) continue;
+            const eff = impostazioniEffettive(all, m === 'default' ? '0000-00' : m, defaults);
+            const res = await API.saveSettings({ month: m, ...eff, updatedAt: all[m].updatedAt || Date.now() });
+            if (!(res && res.success)) rimasti.push(m);
+        }
+        this.set('tecnosistem_settings_pending', rimasti);
+        return { inviati: pend.length - rimasti.length, inAttesa: rimasti.length };
     },
 
     init() {
@@ -863,6 +1033,7 @@ const Store = {
         if (settingsRaw) {
             try {
                 let allSettings = JSON.parse(settingsRaw);
+                if (Array.isArray(allSettings)) allSettings = {};
 
                 // 1. Convert old flat format to new structure
                 if (allSettings.baseSalary !== undefined && !allSettings['default']) {
@@ -882,16 +1053,6 @@ const Store = {
                         }
                     }
                 });
-
-                // 3. Aggressively purge "2000" defaults
-                if (allSettings['default']) {
-                    const d = allSettings['default'];
-                    if (Math.abs(d.baseSalary - 2000) < 1 || Math.abs(d.baseSalary - 1500) < 1) {
-                        console.log("Purging legacy 2000 default settings during init.");
-                        delete allSettings['default'];
-                        updated = true;
-                    }
-                }
 
                 if (updated) {
                     this.set(this.KEYS.SETTINGS, allSettings);
@@ -938,37 +1099,28 @@ const Store = {
             this.set(this.KEYS.DAILY_QUOTE, cloudData.quote);
         }
 
-        // 1. Settings (Cloud wins per utente primario, o personalizzati)
-        if (cloudData.settings && Object.keys(cloudData.settings).length > 0) {
-            if (isPrimary) {
-                const current = this.get(this.KEYS.SETTINGS) || {};
-                const cleanSettings = { ...current };
-
-                if (cloudData.settings.baseSalary !== undefined && !cloudData.settings['default']) {
-                    cleanSettings['default'] = { ...cleanSettings['default'], ...cloudData.settings };
-                } else {
-                    Object.entries(cloudData.settings).forEach(([rawKey, val]) => {
-                        const normKey = this.normalizeMonthKey(rawKey, val);
-                        const parsedVal = {};
-                        Object.keys(val).forEach(k => {
-                            let num = parseFloat(val[k]);
-                            parsedVal[k] = isNaN(num) ? val[k] : num;
-                        });
-                        cleanSettings[normKey] = {
-                            ...(cleanSettings[normKey] || {}),
-                            ...parsedVal
-                        };
-                    });
-                }
-
-                Object.keys(cleanSettings).forEach(k => {
-                    if (k !== 'default' && !k.match(/^\d{4}-\d{2}$/)) {
-                        delete cleanSettings[k];
-                    }
-                });
-
-                this.set(this.KEYS.SETTINGS, cleanSettings);
-            }
+        // 1. Impostazioni: per ogni mese vince la voce piu' recente (updatedAt).
+        //    Per gli utenti non primari solo se lo script cloud e' aggiornato (impostazioni per utente, apiVersion >= 2).
+        if (cloudData.settings && typeof cloudData.settings === 'object' && Object.keys(cloudData.settings).length > 0
+            && (isPrimary || Number(cloudData.apiVersion) >= 2)) {
+            let cloudObj = cloudData.settings;
+            if (cloudObj.baseSalary !== undefined && !cloudObj['default']) cloudObj = { 'default': cloudObj };
+            const local = { ...this._allSettings() };
+            const daInviare = [];
+            Object.entries(cloudObj).forEach(([rawKey, val]) => {
+                if (!val || typeof val !== 'object') return;
+                const key = this.normalizeMonthKey(rawKey, val);
+                if (key !== 'default' && !MESE_RE.test(key)) return;
+                const c = {};
+                CAMPI_IMPOSTAZIONI.forEach(f => { const n = numOrNull(val[f]); if (n !== null) c[f] = n; });
+                const cTs = Number(val.updatedAt) || 0;
+                const l = local[key];
+                const lTs = (l && Number(l.updatedAt)) || 0;
+                if (l && lTs > cTs) { daInviare.push(key); return; }   // la copia locale e' piu' recente: resta, e viene inviata
+                local[key] = { ...(l || {}), ...c, updatedAt: cTs };
+            });
+            this.set(this.KEYS.SETTINGS, local);
+            if (daInviare.length) this._queueSettingsPush(daInviare);
         }
 
         // 2. Contacts (Merge by ID, filtrati per utente se non primario)
@@ -1769,41 +1921,19 @@ const AI = {
 
     // Calcolo stima stipendio
     calculateSalarySummary(reports, settings, monthStr) {
-        const monthReports = reports.filter(r => r.date && r.date.startsWith(monthStr));
-        const baseSalary = parseFloat(settings.baseSalary) || 3480.76;
-        const hourlyRate = parseFloat(settings.hourlyRate) || 17.23;
-        const taxRate = parseFloat(settings.taxRate) || 27;
-
-        let otHours = 0;
-        let returnAllowances = 0;
-        let overnightAllowances = 0;
-        let foreignAllowances = 0;
-
-        monthReports.forEach(r => {
-            const ot = parseFloat(r.overtime25 || 0) + parseFloat(r.overtime50 || 0) || parseFloat(r.overtime || 0);
-            otHours += ot;
-            if (r.type === 'trasferta_rientro') returnAllowances++;
-            if (r.type === 'trasferta_notte') overnightAllowances++;
-            if (r.type === 'trasferta_estero') foreignAllowances++;
-        });
-
-        const otPay = otHours * (hourlyRate * 1.25);
-        const allowancesTotal = (returnAllowances * (settings.allowanceReturn || 30)) +
-                                (overnightAllowances * (settings.allowanceOvernight || 60)) +
-                                (foreignAllowances * (settings.allowanceForeign || 105));
-
-        const lordo = baseSalary + otPay + allowancesTotal;
-        const netto = lordo * (1 - (taxRate / 100));
-
+        const monthReports = reports.filter(r => r.date && String(r.date).startsWith(monthStr));
+        const st = calcolaStipendio(monthReports, settings || {});
+        const nTrasf = st.daysWorked.rientro + st.daysWorked.notte + st.daysWorked.estero;
+        const fmt = n => n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         return {
             text: `💰 **Stima Calcolo Stipendio (${monthStr}):**\n\n` +
-                  `• **Paga Base Mensile:** € ${baseSalary.toFixed(2)}\n` +
-                  `• **Straordinari (${otHours.toFixed(1)}h):** € ${otPay.toFixed(2)}\n` +
-                  `• **Indennità Trasferte (${returnAllowances + overnightAllowances + foreignAllowances} gg):** € ${allowancesTotal.toFixed(2)}\n` +
+                  `• **Paga Base Mensile:** € ${fmt(st.base)}\n` +
+                  `• **Straordinari (${(st.ot25 + st.ot50).toFixed(1)}h):** € ${fmt(st.extra25 + st.extra50)}\n` +
+                  `• **Indennità Trasferte (${nTrasf} gg):** € ${fmt(st.allowance)}\n` +
                   `------------------------------------\n` +
-                  `• **Totale Lordo Stimato:** € ${lordo.toFixed(2)}\n` +
-                  `• **Totale Netto Stimato (-${taxRate}%):** **€ ${netto.toFixed(2)}**\n\n` +
-                  `*Nota: Il calcolo è basato sulle aliquote configurate per il mese selezionato.*`,
+                  `• **Totale Lordo Stimato:** € ${fmt(st.lordo)}\n` +
+                  `• **Totale Netto Stimato:** **€ ${fmt(st.netto)}**\n\n` +
+                  `*Nota: stesso calcolo della pagina Stipendio, con i valori in vigore nel mese selezionato.*`,
             action: {
                 label: '💶 Apri Dettaglio Stipendio',
                 type: 'navigate',
@@ -1831,7 +1961,7 @@ const AI = {
         for (let d = 1; d <= maxDay; d++) {
             const dateObj = new Date(year, month, d);
             const dayOfWeek = dateObj.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            if (dayOfWeek !== 0 && dayOfWeek !== 6 && !isFestivo(`${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`)) {
                 if (!reportedDays.has(d)) {
                     const dStr = String(d).padStart(2, '0');
                     missing.push(`${year}-${String(month + 1).padStart(2, '0')}-${dStr}`);
@@ -1945,8 +2075,8 @@ L'utente connesso è: ${context.currentUser ? context.currentUser.name : 'Fabio 
 Contesto attuale:
 - Totale report registrati: ${context.reports.length}
 - Mese corrente: ${context.currentMonth}
-- Paga base mensile: € ${context.settings.baseSalary || 3480.76}
-- Paga oraria: € ${context.settings.hourlyRate || 17.23}
+- Paga base mensile: € ${context.settings.baseSalary ?? 0}
+- Paga oraria: € ${context.settings.hourlyRate ?? 0}
 - Diaria trasferta rientro: € 30, notte: € 60, estero: € 105.
 Rispondi sempre in italiano, in modo cordiale, chiaro e professionale. Se l'utente chiede come recuperare i dati o salvare, ricordagli che i dati sono sincronizzati sul cloud Google Sheets aziendale e possono essere sincronizzati con un tocco.`;
 
@@ -2255,17 +2385,17 @@ const Views = {
             <!-- Settings Modal (Hidden by default) -->
             <div id="settings-modal" class="card hidden" style="position:absolute; top:80px; left:20px; right:20px; z-index:50; box-shadow: 0 10px 50px rgba(0,0,0,0.5);">
                  <h3>Impostazioni</h3>
-                 <p style="font-size:0.8rem; color:#aaa; margin-bottom:10px;">Modifica i valori per il mese selezionato.</p>
+                 <p style="font-size:0.8rem; color:#aaa; margin-bottom:10px;">I valori valgono dal mese selezionato in poi. I mesi precedenti non cambiano.</p>
                  <form onsubmit="app.saveSettings(event)" style="margin-top:15px;">
-                    <div class="form-group"><label>Paga Base (€)</label><input type="number" name="baseSalary" step="0.01"></div>
-                    <div class="form-group"><label>Paga Oraria (€)</label><input type="number" name="hourlyRate" step="0.01"></div>
-                    <div class="form-group"><label>Indennità Rientro (€)</label><input type="number" name="allowanceReturn" step="0.01"></div>
-                    <div class="form-group"><label>Indennità Notte (€)</label><input type="number" name="allowanceOvernight" step="0.01"></div>
-                    <div class="form-group"><label>Indennità Estero (€)</label><input type="number" name="allowanceForeign" step="0.01"></div>
+                    <div class="form-group"><label>Paga Base (€)</label><input type="number" name="baseSalary" step="0.01" min="0" inputmode="decimal"></div>
+                    <div class="form-group"><label>Paga Oraria (€)</label><input type="number" name="hourlyRate" step="0.01" min="0" inputmode="decimal"></div>
+                    <div class="form-group"><label>Indennità Rientro (€)</label><input type="number" name="allowanceReturn" step="0.01" min="0" inputmode="decimal"></div>
+                    <div class="form-group"><label>Indennità Notte (€)</label><input type="number" name="allowanceOvernight" step="0.01" min="0" inputmode="decimal"></div>
+                    <div class="form-group"><label>Indennità Estero (€)</label><input type="number" name="allowanceForeign" step="0.01" min="0" inputmode="decimal"></div>
                     
                     <div style="display:flex; gap:10px; margin-top:20px;">
                         <button type="button" class="btn" onclick="app.toggleSettings()">Chiudi</button>
-                        <button type="submit" class="btn btn-primary">Salva Mese</button>
+                        <button type="submit" class="btn btn-primary">Salva da questo mese</button>
                     </div>
                  </form>
             </div>
@@ -2322,20 +2452,6 @@ const Views = {
                         <i class="ph ph-sign-in"></i> Accedi
                     </button>
                 </form>
-
-                <!-- Accesso Rapido Fabio Sandrini -->
-                <div class="fast-access-section">
-                    <button type="button" class="fast-access-btn" onclick="app.handleFastLogin('bubibs@gmail.com', 'Brescia1-')">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="ph ph-user-check" style="font-size:1.2rem;"></i>
-                            <span>Accesso Rapido Fabio Sandrini</span>
-                        </div>
-                        <i class="ph ph-arrow-right"></i>
-                    </button>
-                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-                        (Account: <strong>bubibs@gmail.com</strong>)
-                    </div>
-                </div>
 
                 <div style="text-align:center; margin-top:22px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
                     <span style="font-size:0.85rem; color:var(--text-muted);">Non hai ancora un account?</span><br>
@@ -2610,14 +2726,14 @@ class App {
                 : otherUsers.map(u => `
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
                         <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
-                            <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || u.username}</div>
+                            <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(u.name)}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(u.email || u.username)}</div>
                         </div>
                         <div style="display:flex; gap:6px; flex-shrink:0;">
-                            <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Reimposta Password">
+                            <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${jsAttr(u.id)}', '${jsAttr(u.name)}')" title="Reimposta Password">
                                 <i class="ph ph-key"></i> Reset
                             </button>
-                            <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Elimina Utente">
+                            <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${jsAttr(u.id)}', '${jsAttr(u.name)}')" title="Elimina Utente">
                                 <i class="ph ph-trash"></i> Elimina
                             </button>
                         </div>
@@ -2655,8 +2771,8 @@ class App {
                     <div style="display:flex; align-items:center; gap:10px;">
                         <i class="ph ph-user-circle text-gold" style="font-size:2rem;"></i>
                         <div style="text-align:left;">
-                            <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">${user.name}</h3>
-                            <span style="font-size:0.8rem; color:var(--text-muted);">${user.email || user.username} ${user.isPrimary ? '★ (Principale)' : ''}</span>
+                            <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">${escapeHtml(user.name)}</h3>
+                            <span style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(user.email || user.username)} ${user.isPrimary ? '★ (Principale)' : ''}</span>
                         </div>
                     </div>
                     <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="app.closeUserMenu()">
@@ -2695,11 +2811,16 @@ class App {
                     <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
                         URL Google Apps Script personale (lascia vuoto per usare il cloud aziendale condiviso).
                     </p>
-                    <input type="text" id="user-cloud-url" value="${user.cloudUrl || ''}" placeholder="https://script.google.com/..." style="font-size:0.82rem; padding:8px 10px; width:100%; margin-bottom:8px;">
+                    <input type="text" id="user-cloud-url" value="${escapeHtml(user.cloudUrl || '')}" placeholder="https://script.google.com/..." style="font-size:0.82rem; padding:8px 10px; width:100%; margin-bottom:8px;">
                     <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; font-size:0.82rem; width:100%;" onclick="app.handleSaveCloudUrl()">
                         Salva URL Cloud
                     </button>
                 </div>
+
+                <!-- Cambio password (richiede quella attuale) -->
+                <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; width:100%; font-size:0.9rem; margin-bottom:12px;" onclick="app.openChangePassword()">
+                    <i class="ph ph-key"></i> Cambia password
+                </button>
 
                 <!-- Pulsante Logout -->
                 <button type="button" class="btn btn-danger" style="background:#ef4444; color:white; width:100%; font-size:0.95rem; font-weight:600; padding:12px;" onclick="app.handleLogout()">
@@ -2709,6 +2830,38 @@ class App {
         `;
 
         container.appendChild(modalDiv);
+    }
+
+    openChangePassword() {
+        this.closeUserMenu();
+        document.getElementById('change-pwd-overlay')?.remove();
+        const o = document.createElement('div');
+        o.id = 'change-pwd-overlay';
+        o.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px;';
+        o.innerHTML = `
+            <form class="card" style="width:100%; max-width:380px; margin:0;" onsubmit="app.handleChangePassword(event)">
+                <h3 style="margin-bottom:12px;">Cambia password</h3>
+                <div class="form-group"><label>Password attuale</label><input type="password" id="chg-current" required autocomplete="current-password"></div>
+                <div class="form-group"><label>Nuova password (min. 8 caratteri)</label><input type="password" id="chg-new1" required minlength="8" autocomplete="new-password"></div>
+                <div class="form-group"><label>Ripeti nuova password</label><input type="password" id="chg-new2" required minlength="8" autocomplete="new-password"></div>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button type="button" class="btn" onclick="document.getElementById('change-pwd-overlay').remove()">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Salva</button>
+                </div>
+            </form>`;
+        document.body.appendChild(o);
+    }
+
+    async handleChangePassword(e) {
+        e.preventDefault();
+        const cur = document.getElementById('chg-current').value;
+        const n1 = document.getElementById('chg-new1').value;
+        const n2 = document.getElementById('chg-new2').value;
+        if (n1 !== n2) { this.showToast('Le due nuove password non coincidono.', 'error'); return; }
+        const res = await Auth.changePassword(cur, n1);
+        if (!res.success) { this.showToast(res.error, 'error'); return; }
+        document.getElementById('change-pwd-overlay')?.remove();
+        this.showToast('Password cambiata: vale su tutti i dispositivi');
     }
 
     closeUserMenu() {
@@ -2840,7 +2993,7 @@ class App {
 
             const dow = checkD.getDay();
             // Monday to Friday only
-            if (dow >= 1 && dow <= 5) {
+            if (dow >= 1 && dow <= 5 && !isFestivo(dateStrCheck)) {
                 if (!existingDates.has(dateStrCheck)) {
                     const rawWd = checkD.toLocaleDateString('it-IT', { weekday: 'short' });
                     const wdCap = rawWd.charAt(0).toUpperCase() + rawWd.slice(1);
@@ -2905,8 +3058,8 @@ class App {
         // 4. Quote (Get existing logic)
         // We will fetch it and render it inside the dashboard grid
         const cloudQuote = Store.get(Store.KEYS.DAILY_QUOTE);
-        const quoteText = (cloudQuote && cloudQuote.text) ? `"${cloudQuote.text}"` : '"Caricamento ispirazione..."';
-        const quoteAuthor = (cloudQuote && cloudQuote.author) ? `- ${cloudQuote.author}` : '';
+        const quoteText = (cloudQuote && cloudQuote.text) ? `"${escapeHtml(cloudQuote.text)}"` : '"Caricamento ispirazione..."';
+        const quoteAuthor = (cloudQuote && cloudQuote.author) ? `- ${escapeHtml(cloudQuote.author)}` : '';
 
         // RENDER
         container.innerHTML = `
@@ -2951,6 +3104,7 @@ class App {
         const cloudData = await API.fetchCloudData();
         if (cloudData) {
             Store.mergeCloudData(cloudData);
+            await Store.flushSettings();
             this.showToast('Dati Cloud scaricati');
 
             if (this.currentView === 'contacts') this.renderContacts();
@@ -2988,7 +3142,8 @@ class App {
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.style.borderLeftColor = type === 'success' ? '#22c55e' : '#ef4444';
-        toast.innerHTML = `<i class="ph ph-${type === 'success' ? 'check-circle' : 'warning-circle'}"></i> <span>${msg}</span>`;
+        toast.innerHTML = `<i class="ph ph-${type === 'success' ? 'check-circle' : 'warning-circle'}"></i> <span></span>`;
+        toast.querySelector('span').textContent = msg;
         container.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
@@ -3117,43 +3272,12 @@ class App {
 
         if (!start || !end) return;
 
-        const d1 = new Date(`2000-01-01T${start}`);
-        const d2 = new Date(`2000-01-01T${end}`);
-
-        let diffMs = d2 - d1;
-        if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
-
-        let diffHrs = diffMs / (1000 * 60 * 60);
-        if (lunch) diffHrs -= 1;
-        if (diffHrs < 0) diffHrs = 0;
-
+        const diffHrs = oreDaOrario(start, end, lunch);
         const dateVal = document.getElementById('field-date').value;
-        let day = 0;
-        let isWeekend = false;
-        if (dateVal) {
-            const parts = dateVal.split('-').map(Number);
-            if (parts.length === 3) {
-                const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                day = dateObj.getDay(); // 0=Sun, 6=Sat
-                isWeekend = (day === 0 || day === 6);
-            }
-        }
-
-        let overtime25 = 0;
-        let overtime50 = 0;
-
-        // No overtime for absences (ferie, malattia, permesso)
         const isAbsence = (absenceVal !== '');
+        const { ot25: overtime25, ot50: overtime50 } = straordinariGiorno(diffHrs, dateVal, isAbsence);
 
-        if (!isAbsence) {
-            if (isWeekend) {
-                overtime50 = diffHrs;
-            } else {
-                overtime25 = Math.max(0, diffHrs - 8);
-            }
-        }
-
-        document.getElementById('calc-total').textContent = diffHrs.toFixed(1) + 'h';
+        document.getElementById('calc-total').textContent = diffHrs.toFixed(2) + 'h';
 
         let otString = '';
         if (overtime25 > 0) otString += `<span class="text-gold">${overtime25.toFixed(1)}h (25%)</span> `;
@@ -3232,20 +3356,20 @@ class App {
             return `
             <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="flex:1;">
-                    <strong>${c.company}</strong>
-                    <div style="font-size:0.85rem; color:#aaa;">${fullAddress || 'Nessun indirizzo'}</div>
+                    <strong>${escapeHtml(c.company)}</strong>
+                    <div style="font-size:0.85rem; color:#aaa;">${escapeHtml(fullAddress) || 'Nessun indirizzo'}</div>
                     <!-- Highlighted Contact Person -->
                     <div class="contact-highlight">
-                        <i class="ph ph-user"></i> ${c.person || 'Nessun referente'}
+                        <i class="ph ph-user"></i> ${escapeHtml(c.person) || 'Nessun referente'}
                     </div>
                 </div>
                 <div style="display:flex; gap:8px;">
-                     <button class="btn btn-icon-only text-white" style="background:#3b82f6;" onclick="app.editContact('${c.id}')">
+                     <button class="btn btn-icon-only text-white" style="background:#3b82f6;" onclick="app.editContact('${jsAttr(c.id)}')">
                         <i class="ph ph-pencil-simple" style="color:white; font-weight:bold;"></i>
                     </button>
                     ${fullAddress ? `<a href="https://maps.apple.com/?q=${encodeURIComponent(fullAddress)}" target="_blank" class="btn btn-icon-only btn-primary"><i class="ph ph-map-pin"></i></a>` : ''}
-                    ${c.phone ? `<a href="tel:${c.phone}" class="btn btn-icon-only btn-primary"><i class="ph ph-phone"></i></a>` : ''}
-                    <button class="btn btn-icon-only" style="background:#ef4444;" onclick="app.deleteContact('${c.id}')">
+                    ${c.phone ? `<a href="tel:${escapeHtml(String(c.phone).replace(/[^0-9+*#]/g, ''))}" class="btn btn-icon-only btn-primary"><i class="ph ph-phone"></i></a>` : ''}
+                    <button class="btn btn-icon-only" style="background:#ef4444;" onclick="app.deleteContact('${jsAttr(c.id)}')">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>
@@ -3439,7 +3563,7 @@ class App {
                     if (parts.length === 3) {
                         const d = new Date(parts[0], parts[1] - 1, parts[2]);
                         const dow = d.getDay();
-                        isWeekend = (dow === 0 || dow === 6);
+                        isWeekend = isGiornoAl50(r.date);
                     }
                 }
 
@@ -3732,31 +3856,31 @@ ${emailBody}`
                         <strong class="text-gold" style="font-size:1.1rem;">${dateDisplay}</strong>
                          ${r.synced ? '<i class="ph ph-check-circle" style="color:#22c55e; font-size:0.8rem"></i>' : '<i class="ph ph-circle" style="color:#aaa; font-size:0.8rem"></i>'}
                     </div>
-                    <span class="badge ${badgeClass}">${badgeLabel}</span>
+                    <span class="badge ${badgeClass}">${escapeHtml(badgeLabel)}</span>
                 </div>
                 
                 <!-- Main Title: Location OR Absence Reason -->
                 <div style="font-weight:600; font-size:1rem; margin-bottom:4px; color:${mainTitleColor}; text-transform: capitalize;">
-                    ${isAbsence ? '<i class="ph ph-warning-circle"></i> ' : ''}${mainTitle}
+                    ${isAbsence ? '<i class="ph ph-warning-circle"></i> ' : ''}${escapeHtml(mainTitle)}
                 </div>
 
                 ${isAbsence ?
                     /* Absence Layout: Simplified (Title is enough usually, maybe show hours if > 0) */
-                    (r.totalHours && r.totalHours !== '0' && r.totalHours !== '0.0' ? `<div style="font-size:0.9rem; color:#aaa;">Ore segnate: <strong>${r.totalHours}</strong></div>` : '')
+                    (r.totalHours && r.totalHours !== '0' && r.totalHours !== '0.0' ? `<div style="font-size:0.9rem; color:#aaa;">Ore segnate: <strong>${escapeHtml(r.totalHours)}</strong></div>` : '')
                     :
                     /* Regular Work Layout: Hours + Notes if any */
                     `<div style="font-size:0.9rem; color:#aaa;">
-                        ${r.startTime} - ${r.endTime} &nbsp;|&nbsp; Tot: <strong>${r.totalHours}</strong>
-                        ${r.overtime && r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${r.overtime})</span>` : ''}
+                        ${escapeHtml(r.startTime)} - ${escapeHtml(r.endTime)} &nbsp;|&nbsp; Tot: <strong>${escapeHtml(r.totalHours)}</strong>
+                        ${r.overtime && r.overtime !== '0.0h' ? `<span style="color:#fbbf24; margin-left:5px;">(Str: ${escapeHtml(r.overtime)})</span>` : ''}
                      </div>
-                     ${r.notes ? `<div style="font-size:0.85rem; color:#888; margin-top:5px; font-style:italic;">"${r.notes}"</div>` : ''}`
+                     ${r.notes ? `<div style="font-size:0.85rem; color:#888; margin-top:5px; font-style:italic;">"${escapeHtml(r.notes)}"</div>` : ''}`
                 }
                 
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
-                    <button class="btn btn-icon-only text-white" style="background:#3b82f6; width:auto; padding:6px 12px; color:white !important;" onclick="app.editReport('${r.id}')">
+                    <button class="btn btn-icon-only text-white" style="background:#3b82f6; width:auto; padding:6px 12px; color:white !important;" onclick="app.editReport('${jsAttr(r.id)}')">
                         <i class="ph ph-pencil-simple" style="color:white !important;"></i> Modifica
                     </button>
-                    <button class="btn btn-icon-only text-white" style="background:#ef4444; width:auto; padding:6px 12px; color:white !important;" onclick="app.deleteReport('${r.id}')">
+                    <button class="btn btn-icon-only text-white" style="background:#ef4444; width:auto; padding:6px 12px; color:white !important;" onclick="app.deleteReport('${jsAttr(r.id)}')">
                         <i class="ph ph-trash" style="color:white !important;"></i> Elimina
                     </button>
                 </div>
@@ -3785,118 +3909,30 @@ ${emailBody}`
         document.getElementById('settings-modal').classList.toggle('hidden');
     }
 
-    saveSettings(e) {
+    async saveSettings(e) {
         e.preventDefault();
-        const fd = new FormData(e.target);
-        const settings = Object.fromEntries(fd.entries());
-        Object.keys(settings).forEach(k => {
-            let val = parseFloat(settings[k]);
-            settings[k] = isNaN(val) ? 0 : val;
-        });
-
         const currentMonth = document.getElementById('salary-month').value || new Date().toISOString().slice(0, 7);
-        Store.saveSettings(settings, currentMonth); // Save to specific month!
-
-        // Sync settings to cloud (as requested "salvarli sul cloud")
-        // We'll pass the month as context if the API supports it, or just the whole settings blob?
-        // Current API.saveSettings likely expects the object. 
-        // We should probably update API to handle month-specific settings, 
-        // OR just save the "current view's" settings as general settings?
-        // User said: "conviene salvarli sul cloud".
-        // Let's modify the API.saveSettings to accept the whole blob or month. 
-        // For now, I will assume we send the *current month's* settings as the active ones, 
-        // or potentially a new endpoint. 
-        // Given constraints, I'll send it as generic settings for now to ensure at least some backup.
-        API._post('saveSettings', { month: currentMonth, ...settings });
-
+        const nuovi = { ...Store.getSettings(currentMonth) };
+        for (const [k, v] of new FormData(e.target).entries()) {
+            if (!CAMPI_IMPOSTAZIONI.includes(k)) continue;
+            const n = numOrNull(v);
+            if (n === null) continue;                    // campo vuoto: resta il valore attuale
+            if (n < 0) { this.showToast('I valori non possono essere negativi.', 'error'); return; }
+            nuovi[k] = Math.round(n * 100) / 100;
+        }
+        Store.applySettings(currentMonth, nuovi);       // da questo mese in poi; i mesi precedenti non cambiano
         this.toggleSettings();
         this.renderSalary(currentMonth);
-        this.showToast(`Impostazioni salvate per ${currentMonth}`);
+        const r = await Store.flushSettings();
+        if (r.inAttesa === 0) this.showToast(`Impostazioni salvate dal ${currentMonth} in poi (cloud aggiornato)`);
+        else this.showToast(`Salvate dal ${currentMonth} in poi. Cloud non raggiungibile: invio alla prossima sincronizzazione`, 'error');
     }
 
     // Helper to calculate stats for a given month
     calculateSalaryStats(monthStr) {
         const settings = Store.getSettings(monthStr);
-        const reports = Store.getReports().filter(r => r.date.startsWith(monthStr));
-
-        let daysWorked = { sede: 0, rientro: 0, notte: 0, estero: 0, totale: 0 };
-        let totalHours = 0;
-        let ot25 = 0;
-        let ot50 = 0;
-
-        reports.forEach(r => {
-            const parseNum = (v) => {
-                const n = parseFloat(String(v).replace(',', '.'));
-                return isNaN(n) ? 0 : n;
-            };
-
-            const hrs = parseNum(r.totalHours);
-            const o25 = parseNum(r.overtime25);
-            const o50 = parseNum(r.overtime50);
-
-            if (hrs > 0) daysWorked.totale++;
-            totalHours += hrs;
-
-            const type = (r.type || '').toLowerCase();
-            if (type === 'sede') daysWorked.sede++;
-            if (type === 'trasferta_rientro') daysWorked.rientro++;
-            if (type === 'trasferta_notte') daysWorked.notte++;
-            if (type === 'trasferta_estero') daysWorked.estero++;
-
-            ot25 += o25;
-            ot50 += o50;
-        });
-
-        // CALCULATION ENGINE
-        const base = settings.baseSalary;
-        const rate = settings.hourlyRate;
-
-        const extra25 = ot25 * (rate * 1.25);
-        const extra50 = ot50 * (rate * 1.50);
-
-        const allowanceReturnTotal = daysWorked.rientro * settings.allowanceReturn;
-        const allowanceOvernightTotal = daysWorked.notte * settings.allowanceOvernight;
-        const allowanceForeignTotal = daysWorked.estero * settings.allowanceForeign;
-
-        const allowance = allowanceReturnTotal + allowanceOvernightTotal + allowanceForeignTotal;
-
-        const lordo = base + extra25 + extra50 + allowance;
-
-        // NETTO ESTIMATION
-        const inps = lordo * 0.0919;
-        const taxable = lordo - inps;
-
-        // IRPEF (Monthly Brackets Approx)
-        let irpef = 0;
-        if (taxable <= 2333) {
-            irpef = taxable * 0.23;
-        } else if (taxable <= 4166) {
-            irpef = (2333 * 0.23) + ((taxable - 2333) * 0.35);
-        } else {
-            irpef = (2333 * 0.23) + ((4166 - 2333) * 0.35) + ((taxable - 4166) * 0.43);
-        }
-
-        // Deductions
-        const deductions = Math.max(0, 150 - ((taxable - 2000) * 0.05));
-        const addizionali = taxable * 0.02;
-        const netto = taxable - irpef - addizionali + deductions;
-
-        return {
-            month: monthStr,
-            daysWorked,
-            ot25,
-            ot50,
-            base,
-            extra25,
-            extra50,
-            allowance,
-            allowanceReturnTotal,
-            allowanceOvernightTotal,
-            allowanceForeignTotal,
-            lordo,
-            netto,
-            settings
-        };
+        const reports = Store.getReports().filter(r => r.date && String(r.date).startsWith(monthStr));
+        return { month: monthStr, ...calcolaStipendio(reports, settings) };
     }
 
     formatMoney(amount) {
@@ -4313,7 +4349,7 @@ ${emailBody}`
 
             <div style="background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); border-radius:10px; padding:10px 12px; margin-bottom:14px; text-align:left;">
                 <div style="font-weight:700; font-size:0.86rem; color:#22c55e; margin-bottom:3px;">
-                    ✅ Codice temporaneo generato per ${res.user.name || res.user.username}!
+                    ✅ Codice temporaneo generato per ${escapeHtml(res.user.name || res.user.username)}!
                 </div>
                 <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.4;">
                     Il codice a 6 cifre scade tra <strong>15 minuti</strong> ed è stato notificato all'amministratore (Fabio Sandrini).
@@ -4361,8 +4397,8 @@ ${emailBody}`
             return;
         }
 
-        if (!p1 || p1.length < 3) {
-            this.showToast('La nuova password deve contenere almeno 3 caratteri.', 'error');
+        if (!p1 || p1.length < 8) {
+            this.showToast('La nuova password deve contenere almeno 8 caratteri.', 'error');
             return;
         }
 
@@ -4392,60 +4428,7 @@ ${emailBody}`
     // --- Metodi Accesso Google & Onboarding Parametri Stipendio ---
 
     handleGoogleLogin() {
-        document.getElementById('google-login-modal-overlay')?.remove();
-        const container = document.getElementById('user-modal-container') || document.body;
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'google-login-modal-overlay';
-        modalDiv.className = 'modal-overlay';
-        modalDiv.onclick = () => modalDiv.remove();
-
-        modalDiv.innerHTML = `
-            <div class="modal-card fade-in" style="max-width:400px; text-align:left;" onclick="event.stopPropagation()">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <svg width="22" height="22" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Accedi con Google</h3>
-                    </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('google-login-modal-overlay').remove()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                </div>
-
-                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
-                    Seleziona il tuo account Google per accedere istantaneamente ad <strong>Orari TS</strong>:
-                </p>
-
-                <!-- Scheda 1-Click Fabio Sandrini -->
-                <button type="button" class="google-account-pill" onclick="app.submitGoogleLogin('bubibs@gmail.com', 'Fabio Sandrini')">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="google-avatar-circle">FS</div>
-                        <div>
-                            <div style="font-weight:700; font-size:0.9rem; color:var(--text);">Fabio Sandrini</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">bubibs@gmail.com (Amministratore)</div>
-                        </div>
-                    </div>
-                    <i class="ph ph-caret-right text-gold"></i>
-                </button>
-
-                <div class="auth-divider" style="margin:14px 0 10px 0;">oppure inserisci account Google</div>
-
-                <form onsubmit="app.handleCustomGoogleLogin(event)">
-                    <div class="form-group" style="margin-bottom:12px;">
-                        <label style="font-size:0.8rem; color:var(--text-muted);">Email Google (Gmail o Workspace)</label>
-                        <input type="email" id="custom-google-email" required placeholder="mario.rossi@gmail.com" style="font-size:0.95rem; padding:10px;">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%; padding:11px; font-size:0.92rem;">
-                        <i class="ph ph-sign-in"></i> Accedi con questo Account
-                    </button>
-                </form>
-            </div>
-        `;
-        container.appendChild(modalDiv);
+        this.showToast('Accesso con Google non disponibile: usa username e password.', 'error');
     }
 
     async submitGoogleLogin(email, name = '') {
@@ -4494,7 +4477,7 @@ ${emailBody}`
                     </div>
                     <h3 style="margin:0; font-size:1.2rem; color:var(--text); font-weight:700;">Configurazione Stipendio</h3>
                     <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">
-                        Benvenuto <strong>${user.name || user.username}</strong>! I tuoi parametri di calcolo sono attualmente impostati a <strong>0.00 €</strong>. Puoi configurarli ora o modificarli in seguito dalla sezione Stipendio.
+                        Benvenuto <strong>${escapeHtml(user.name || user.username)}</strong>! I tuoi parametri di calcolo sono attualmente impostati a <strong>0.00 €</strong>. Puoi configurarli ora o modificarli in seguito dalla sezione Stipendio.
                     </p>
                 </div>
 
@@ -4584,7 +4567,7 @@ ${emailBody}`
     }
 
     async adminResetUserPassword(userId, userName) {
-        const newPwd = prompt(`Inserisci la nuova password per "${userName}":`, "Brescia1-");
+        const newPwd = prompt(`Inserisci la nuova password per "${userName}":`, "");
         if (!newPwd) return;
 
         const users = Auth.getUsers();

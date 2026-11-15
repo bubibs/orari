@@ -1,0 +1,10 @@
+{
+  "name": "orari-ts",
+  "version": "2.6.1",
+  "private": true,
+  "description": "Orari TS - test automatici",
+  "scripts": {
+    "test": "node tests/run-tests.js",
+    "test:e2e": "node tests/e2e-browser.js"
+  }
+}
