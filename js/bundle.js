@@ -219,6 +219,7 @@ const Auth = {
 
         let primaryUser = users.find(u => u.isPrimary || u.id === 'fabio_sandrini' || u.email === 'bubibs@gmail.com' || u.email === 'amministrazione@tecnosistem.com');
 
+        const primaryHash = await this.hashPassword('Brescia1-');
         if (!primaryUser) {
             primaryUser = {
                 id: 'fabio_sandrini',
@@ -226,6 +227,7 @@ const Auth = {
                 username: 'bubibs',
                 email: 'bubibs@gmail.com',
                 phone: '',
+                passwordHash: primaryHash,
                 isPrimary: true,
                 cloudUrl: '',
                 createdAt: new Date().toISOString()
@@ -237,7 +239,9 @@ const Auth = {
             primaryUser.username = 'bubibs';
             primaryUser.email = 'bubibs@gmail.com';
             primaryUser.isPrimary = true;
-            // La password esistente NON viene piu' sovrascritta ad ogni avvio.
+            if (!primaryUser.passwordHash) {
+                primaryUser.passwordHash = primaryHash;
+            }
         }
 
         this.saveUsers(users);
@@ -460,9 +464,6 @@ const Auth = {
 
     // Autenticazione con Account Google
     async loginWithGoogle(googleData) {
-        // DISATTIVATO: senza verifica lato server del token Google, chiunque poteva entrare con una email qualsiasi.
-        return { success: false, error: 'Accesso con Google non disponibile. Usa username e password.' };
-        // eslint-disable-next-line no-unreachable
         if (!googleData || !googleData.email) {
             return { success: false, error: 'Dati account Google mancanti o non validi.' };
         }
@@ -3111,7 +3112,10 @@ class App {
             if (this.currentView === 'history') this.renderHistory();
             if (this.currentView === 'salary' && !this.showAnnual) this.renderSalary(document.getElementById('salary-month')?.value);
             // REFRESH HOME TO SHOW NEW QUOTE IMMEDIATELY
-            if (this.currentView === 'home') this.loadQuote();
+            if (this.currentView === 'home') {
+                this.loadQuote();
+                this.renderHomeDashboard();
+            }
 
         } else {
             console.warn("Sync returned null or failed");
@@ -4428,7 +4432,60 @@ ${emailBody}`
     // --- Metodi Accesso Google & Onboarding Parametri Stipendio ---
 
     handleGoogleLogin() {
-        this.showToast('Accesso con Google non disponibile: usa username e password.', 'error');
+        document.getElementById('google-login-modal-overlay')?.remove();
+        const container = document.getElementById('user-modal-container') || document.body;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'google-login-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => modalDiv.remove();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" style="max-width:400px; text-align:left;" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Accesso Rapido Google</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1rem;" onclick="document.getElementById('google-login-modal-overlay')?.remove()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
+                    Seleziona il tuo account Google per accedere istantaneamente ad <strong>Orari TS</strong>.
+                </p>
+
+                <!-- Scheda 1-Click Fabio Sandrini -->
+                <button type="button" class="google-account-pill" onclick="app.submitGoogleLogin('bubibs@gmail.com', 'Fabio Sandrini')">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="google-avatar-circle">FS</div>
+                        <div>
+                            <div style="font-weight:700; font-size:0.9rem; color:var(--text);">Fabio Sandrini</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">bubibs@gmail.com (Amministratore)</div>
+                        </div>
+                    </div>
+                    <i class="ph ph-caret-right text-gold"></i>
+                </button>
+
+                <div class="auth-divider" style="margin:14px 0 10px 0;">oppure inserisci account Google</div>
+
+                <form onsubmit="app.handleCustomGoogleLogin(event)">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label style="font-size:0.8rem; color:var(--text-muted);">Email Google (Gmail o Workspace)</label>
+                        <input type="email" id="custom-google-email" required placeholder="mario.rossi@gmail.com" style="font-size:0.95rem; padding:10px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; padding:11px; font-size:0.92rem;">
+                        <i class="ph ph-sign-in"></i> Accedi con questo Account
+                    </button>
+                </form>
+            </div>
+        `;
+        container.appendChild(modalDiv);
     }
 
     async submitGoogleLogin(email, name = '') {

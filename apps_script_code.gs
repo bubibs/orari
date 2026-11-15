@@ -1,4 +1,3 @@
-
 // --- CONFIGURATION ---
 const SHEET_REPORTS = "Reports";
 const SHEET_CONTACTS = "Contacts";
@@ -7,6 +6,16 @@ const SHEET_USERS = "Users";
 const API_VERSION = 2;   // 2 = impostazioni per utente + getUsers
 const SETTINGS_HEADERS = ['month', 'baseSalary', 'hourlyRate', 'allowanceReturn', 'allowanceOvernight', 'allowanceForeign', 'taxRate', 'userId', 'updatedAt'];
 const SETTINGS_NUMERIC = ['baseSalary', 'hourlyRate', 'allowanceReturn', 'allowanceOvernight', 'allowanceForeign', 'taxRate'];
+
+// ID Foglio Google Principale collegato
+const SPREADSHEET_ID = "17ESdvGgJZWy24FFKGpMx9qS3Z-4Uo6y_pJG-zfJE-C8";
+function getSS() {
+  try {
+    const active = getSS();
+    if (active) return active;
+  } catch (e) {}
+  return SpreadsheetApp.openById(SPREADSHEET_ID);
+}
 
 // --- DO POST ---
 function doPost(e) {
@@ -58,7 +67,7 @@ function testDoGet() {
 
 function getData(params) {
   params = params || {};
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSS();
   const userId = params.userId || '';
   const userEmail = params.userEmail ? params.userEmail.toLowerCase() : '';
   const isPrimary = params.isPrimary === '1' || !userId;
@@ -177,7 +186,7 @@ function getDailyQuote() {
 }
 
 function saveReport(report) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSS();
   const sheet = getOrCreateSheet(ss, SHEET_REPORTS);
   
   // Headers con supporto Multi-Tenant (user, userEmail)
@@ -216,7 +225,7 @@ function saveReport(report) {
 }
 
 function deleteReport(params) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSS();
   const sheet = getOrCreateSheet(ss, SHEET_REPORTS);
   const data = sheet.getDataRange().getValues();
   let rowIndex = data.findIndex(r => r[0] == params.id);
@@ -229,7 +238,7 @@ function deleteReport(params) {
 }
 
 function saveContact(contact) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSS();
   const sheet = getOrCreateSheet(ss, SHEET_CONTACTS);
   
   const headers = ['id', 'company', 'person', 'phone', 'city', 'street', 'number', 'user'];
@@ -259,7 +268,7 @@ function saveContact(contact) {
 }
 
 function deleteContact(params) {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getSS();
     const sheet = getOrCreateSheet(ss, SHEET_CONTACTS);
     const data = sheet.getDataRange().getValues();
     let rowIndex = data.findIndex(r => r[0] == params.id);
@@ -275,7 +284,7 @@ function saveSettings(params) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getSS();
     const sheet = getOrCreateSheet(ss, SHEET_SETTINGS);
     ensureHeaders(sheet, SETTINGS_HEADERS);
 
@@ -322,7 +331,7 @@ function saveSettings(params) {
 }
 
 function saveUser(user) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSS();
   const sheet = getOrCreateSheet(ss, SHEET_USERS);
   
   const headers = ['id', 'name', 'username', 'email', 'passwordHash', 'isPrimary', 'cloudUrl', 'hasFaceId', 'createdAt'];
@@ -353,7 +362,7 @@ function saveUser(user) {
 }
 
 function deleteUser(params) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSS();
   const sheet = getOrCreateSheet(ss, SHEET_USERS);
   const data = sheet.getDataRange().getValues();
   let rowIndex = data.findIndex(r => 
@@ -469,7 +478,7 @@ function readUsers(ss) {
 
 // Leggero: solo gli utenti (usato dal login)
 function getUsers() {
-  return jsonOut({ users: readUsers(SpreadsheetApp.getActiveSpreadsheet()), apiVersion: API_VERSION });
+  return jsonOut({ users: readUsers(getSS()), apiVersion: API_VERSION });
 }
 
 // --- RECUPERO PASSWORD AMMINISTRATORE (da eseguire a mano dall'editor di Apps Script) ---
