@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>TECNOSISTEM - Rubrica</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Rubrica</h1>
+                <div class="backup-status" id="backupStatus">
+                    <span class="status-icon" id="statusIcon">💾</span>
+                    <span class="status-text" id="statusText">Locale</span>
+                </div>
+            </div>
+            <a href="index.html" class="back-button">← Torna alla Home</a>
+        </header>
+
+        <div class="form-container">
+            <h2 style="margin-bottom: 20px; color: var(--text-dark);">Nuovo Contatto</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="azienda">Azienda *</label>
+                    <input type="text" id="azienda" name="azienda" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="citta">Città</label>
+                    <input type="text" id="citta" name="citta" placeholder="Es: Milano">
+                </div>
+
+                <div class="form-group">
+                    <label for="via">Via e Numero</label>
+                    <input type="text" id="via" name="via" placeholder="Es: Via Roma 10">
+                </div>
+
+                <div class="form-group">
+                    <label for="referente">Referente</label>
+                    <input type="text" id="referente" name="referente">
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">Numero di Telefono</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="+39 123 456 7890">
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="saveContactButton">Salva Contatto</button>
+            </form>
+        </div>
+
+        <div class="list-container">
+            <h2 style="margin-bottom: 20px; color: var(--text-dark);">Contatti Salvati</h2>
+            <div id="contactsList">
+                <p>Caricamento contatti...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="rubrica.js"></script>
+</body>
+</html>
+

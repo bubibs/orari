@@ -1,0 +1,74 @@
+:root {
+  --bg: #f5f7fa;
+  --text: #1f2933;
+  --card: #ffffff;
+  --primary: #2563eb;
+  --success: #16a34a;
+  --warning: #ca8a04;
+  --error: #dc2626;
+}
+
+/* DARK MODE automatico */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --text: #e5e7eb;
+    --card: #1e293b;
+    --primary: #3b82f6;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  padding: 20px;
+  text-align: center;
+}
+
+.sync {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.sync.checking { color: var(--warning); }
+.sync.ok { color: var(--success); }
+.sync.error { color: var(--error); }
+
+main {
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+}
+
+.quote-box {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  font-style: italic;
+}
+
+.menu button {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.menu button:hover {
+  opacity: 0.9;
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>TECNOSISTEM - Stipendio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Stipendio</h1>
+                <div class="backup-status" id="backupStatus">
+                    <span class="status-icon" id="statusIcon">💾</span>
+                    <span class="status-text" id="statusText">Locale</span>
+                </div>
+            </div>
+            <a href="index.html" class="back-button">← Torna alla Home</a>
+        </header>
+
+        <div class="date-selector">
+            <div class="date-selector-item">
+                <label for="monthSelect">Mese</label>
+                <select id="monthSelect">
+                    <option value="1">Gennaio</option>
+                    <option value="2">Febbraio</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Aprile</option>
+                    <option value="5">Maggio</option>
+                    <option value="6">Giugno</option>
+                    <option value="7">Luglio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Settembre</option>
+                    <option value="10">Ottobre</option>
+                    <option value="11">Novembre</option>
+                    <option value="12">Dicembre</option>
+                </select>
+            </div>
+            <div class="date-selector-item">
+                <label for="yearSelect">Anno</label>
+                <select id="yearSelect"></select>
+            </div>
+        </div>
+
+        <div class="button-group" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn btn-secondary" onclick="window.location.href='impostazioni.html'">Impostazioni</button>
+            <button class="btn btn-primary" id="viewAnnualBtn">Vista Annuale</button>
+        </div>
+
+        <div class="salary-summary" id="salarySummary">
+            <p>Seleziona mese e anno per visualizzare i dati</p>
+        </div>
+        
+        <div class="annual-view" id="annualView" style="display: none;">
+            <h2>Stipendi Annuali - <span id="selectedYear"></span></h2>
+            <div id="annualChart" style="margin: 20px 0; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <canvas id="salaryChart"></canvas>
+            </div>
+            <div id="annualSummary"></div>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="stipendio.js"></script>
+</body>
+</html>
+

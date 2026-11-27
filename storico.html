@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>TECNOSISTEM - Storico Interventi</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Storico Interventi</h1>
+                <div class="backup-status" id="backupStatus">
+                    <span class="status-icon" id="statusIcon">💾</span>
+                    <span class="status-text" id="statusText">Locale</span>
+                </div>
+            </div>
+            <a href="index.html" class="back-button">← Torna alla Home</a>
+        </header>
+
+        <div class="list-container">
+            <div id="reportsList">
+                <p>Caricamento report...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="storico.js"></script>
+</body>
+</html>
+

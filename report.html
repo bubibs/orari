@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>TECNOSISTEM - Inserisci Report</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Inserisci Report</h1>
+                <div class="backup-status" id="backupStatus">
+                    <span class="status-icon" id="statusIcon">💾</span>
+                    <span class="status-text" id="statusText">Locale</span>
+                </div>
+            </div>
+            <a href="index.html" class="back-button">← Torna alla Home</a>
+        </header>
+
+        <div class="form-container">
+            <form id="reportForm">
+                <div class="form-group">
+                    <label for="data">Data *</label>
+                    <input type="date" id="data" name="data" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipoLavoro">Tipo di Lavoro *</label>
+                    <select id="tipoLavoro" name="tipoLavoro" required>
+                        <option value="">Seleziona...</option>
+                        <option value="in sede">In sede</option>
+                        <option value="trasferta con rientro">Trasferta con rientro</option>
+                        <option value="trasferta con pernottamento">Trasferta con pernottamento</option>
+                        <option value="trasferta estero">Trasferta estero</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="assenza">Assenza</label>
+                    <select id="assenza" name="assenza">
+                        <option value="">Nessuna</option>
+                        <option value="ferie">Ferie</option>
+                        <option value="malattia">Malattia</option>
+                        <option value="permesso">Permesso</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="oraInizio">Ora Inizio *</label>
+                    <input type="time" id="oraInizio" name="oraInizio" step="1800" min="00:00" max="23:59" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="oraFine">Ora Fine *</label>
+                    <input type="time" id="oraFine" name="oraFine" step="1800" min="00:00" max="23:59" required>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="pausaMensa" name="pausaMensa">
+                    <label for="pausaMensa">Pausa mensa (1 ora)</label>
+                </div>
+
+                <div class="form-group">
+                    <label for="luogoIntervento">Luogo Intervento</label>
+                    <input type="text" id="luogoIntervento" name="luogoIntervento" list="luoghiList">
+                    <datalist id="luoghiList"></datalist>
+                </div>
+
+                <div class="form-group">
+                    <label for="note">Note</label>
+                    <textarea id="note" name="note" placeholder="Appunti vari..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="oreTotali">Ore Totali</label>
+                    <input type="number" id="oreTotali" name="oreTotali" step="0.5" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="oreStraordinarie">Ore Straordinarie</label>
+                    <input type="number" id="oreStraordinarie" name="oreStraordinarie" step="0.5" readonly>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="saveButton">Salva Report</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="report.js"></script>
+</body>
+</html>
+

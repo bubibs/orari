@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>TECNOSISTEM - Impostazioni</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-top">
+                <h1 class="main-title">Impostazioni</h1>
+                <div class="backup-status" id="backupStatus">
+                    <span class="status-icon" id="statusIcon">💾</span>
+                    <span class="status-text" id="statusText">Locale</span>
+                </div>
+            </div>
+            <a href="stipendio.html" class="back-button">← Torna a Stipendio</a>
+        </header>
+
+        <div class="settings-section">
+            <h2>Impostazioni Mensili</h2>
+            <p style="color: #666; margin-bottom: 15px;">Imposta tutte le impostazioni per un mese/anno specifico. Ogni report userà le impostazioni del suo mese/anno.</p>
+            
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="settingsMonth">Mese</label>
+                    <select id="settingsMonth" name="settingsMonth" required>
+                        <option value="1">Gennaio</option>
+                        <option value="2">Febbraio</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Aprile</option>
+                        <option value="5">Maggio</option>
+                        <option value="6">Giugno</option>
+                        <option value="7">Luglio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Settembre</option>
+                        <option value="10">Ottobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Dicembre</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="settingsYear">Anno</label>
+                    <input type="number" id="settingsYear" name="settingsYear" min="2020" max="2100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pagaBase">Paga Base Mensile (€)</label>
+                    <input type="number" id="pagaBase" name="pagaBase" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pagaOraria">Paga Oraria (€)</label>
+                    <input type="number" id="pagaOraria" name="pagaOraria" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="indennitaRientro">Indennità Trasferta con Rientro (€)</label>
+                    <input type="number" id="indennitaRientro" name="indennitaRientro" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="indennitaPernottamento">Indennità Trasferta con Pernottamento (€)</label>
+                    <input type="number" id="indennitaPernottamento" name="indennitaPernottamento" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="indennitaEstero">Indennità Trasferta Estero (€)</label>
+                    <input type="number" id="indennitaEstero" name="indennitaEstero" step="0.01" min="0" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Salva Impostazioni Mensili</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="impostazioni.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,21 @@
+{
+  "name": "TECNOSISTEM - The Italian Job",
+  "short_name": "Orari TS",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "img/TS.png",
+      "sizes": "200x200",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "200x200",
+      "type": "image/png"
+    }
+  ]
+}

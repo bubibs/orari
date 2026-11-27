@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Orari TS">
+    <title>Tecnosistem - The Italian Job</title>
+
+    <!-- App Icons (iPhone Home Screen & PWA) -->
+    <link rel="apple-touch-icon" href="img/TS.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/TS.png">
+    <link rel="apple-touch-icon-precomposed" href="img/TS.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="img/TS.png">
+    <link rel="shortcut icon" href="img/TS.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- PDF Libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.6">
+    <!-- Google Identity Services (GIS) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-area" onclick="app.navigate('home')" style="cursor: pointer;">
+                    <h1>TECNOSISTEM</h1>
+                    <span class="subtitle">The Italian Job</span>
+                </div>
+                <div class="header-actions" style="display:flex; align-items:center; gap:10px;">
+                    <!-- AI Assistant Header Button -->
+                    <button id="ai-header-btn" class="ai-header-btn" onclick="app.toggleAIAssistant()" title="Assistente AI Intelligente">
+                        <i class="ph ph-sparkle"></i>
+                        <span>AI</span>
+                    </button>
+
+                    <div id="weather-header"
+                        style="font-size:0.85rem; font-weight:600; color:var(--text); display:flex; align-items:center; gap:4px;">
+                        <!-- Weather injected here -->
+                    </div>
+
+                    <div id="cloud-status" class="cloud-indicator" title="Sync Status" onclick="app.sync()"
+                        style="cursor: pointer;">
+                        <i id="cloud-icon" class="ph ph-cloud-check"></i>
+                    </div>
+
+                    <!-- User Profile & Session Pill -->
+                    <div id="user-header-badge" class="user-badge" onclick="app.toggleUserMenu()" style="display:none;" title="Profilo Utente & Impostazioni">
+                        <i class="ph ph-user-circle"></i>
+                        <span id="user-header-name">Utente</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- Views will be injected here by JS -->
+        </main>
+
+        <!-- Bottom Navigation Bar (Home, Storico, Stipendio sempre in prima piano) -->
+        <nav id="bottom-nav" class="bottom-nav-bar" style="display:none;">
+            <button class="bottom-nav-item active" id="bottom-nav-home" onclick="app.navigate('home')">
+                <i class="ph ph-house"></i>
+                <span>Home</span>
+            </button>
+            <button class="bottom-nav-item" id="bottom-nav-history" onclick="app.navigate('history')">
+                <i class="ph ph-clock-counter-clockwise"></i>
+                <span>Storico</span>
+            </button>
+            <button class="bottom-nav-item" id="bottom-nav-salary" onclick="app.navigate('salary')">
+                <i class="ph ph-currency-eur"></i>
+                <span>Stipendio</span>
+            </button>
+        </nav>
+
+        <!-- Toast Notification Container -->
+        <div id="toast-container"></div>
+
+        <!-- User Profile / Session Modal Container -->
+        <div id="user-modal-container"></div>
+
+        <!-- App Footer Signature (nascosto quando c'è la bottom nav, visibile nei report o profilo) -->
+        <footer class="app-footer" id="app-footer">
+            Fabio Sandrini
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Bundle (includes Auth, API, Store, and App) -->
+    <script src="js/bundle.js"></script>
+</body>
+
+</html>
