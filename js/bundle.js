@@ -3378,15 +3378,32 @@ class App {
         if (!container) {
             container = document.createElement('div');
             container.id = 'toast-container';
-            container.style.cssText = 'position:fixed; top:120px; left:50%; transform:translateX(50%); z-index:2147483647; display:flex; flex-direction:column; gap:8px; pointer-events:none;';
+            container.style.setProperty('position', 'fixed');
+            container.style.setProperty('top', '8px');
+            container.style.setProperty('left', '0');
+            container.style.setProperty('right', '0');
+            container.style.setProperty('z-index', '2147483647');
+            container.style.setProperty('display', 'flex');
+            container.style.setProperty('flex-direction', 'column');
+            container.style.setProperty('align-items', 'center');
+            container.style.setProperty('gap', '8px');
+            container.style.setProperty('pointer-events', 'none');
+            container.style.setProperty('padding', '12px');
+            container.style.setProperty('margin', '0');
+            container.style.setProperty('overflow', 'visible');
             document.body.appendChild(container);
         }
         const toast = document.createElement('div');
         toast.className = 'toast';
-        toast.style.cssText = 'pointer-events:auto; background:#22c55e; border-left:4px solid; padding:12px 16px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:0.9rem; max-width:360px; color:white;';
-        // Set color based on type
-        if (type === 'info') toast.style.background = '#3b82f6';
-        else if (type === 'error' || type !== 'success') toast.style.background = '#ef4444';
+        toast.style.setProperty('pointer-events', 'auto');
+        toast.style.setProperty('background', type === 'success' ? '#22c55e' : type === 'info' ? '#3b82f6' : '#ef4444');
+        toast.style.setProperty('border-left', '4px solid');
+        toast.style.setProperty('padding', '12px 16px');
+        toast.style.setProperty('border-radius', '8px');
+        toast.style.setProperty('box-shadow', '0 4px 12px rgba(0,0,0,0.15)');
+        toast.style.setProperty('font-size', '0.85rem');
+        toast.style.setProperty('max-width', '420px');
+        toast.style.setProperty('color', 'white');
         const icon = type === 'success' ? 'check-circle' : type === 'info' ? 'info' : 'warning-circle';
         toast.innerHTML = `<i class="ph ph-${icon}"></i> <span>${msg}</span>`;
         container.insertBefore(toast, container.firstChild);
