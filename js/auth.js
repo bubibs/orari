@@ -537,7 +537,7 @@ export const Auth = {
     },
 
     // Reimpostazione password diretta da parte dell'Admin
-    async resetPassword(identifier, newPassword) {
+    async resetPassword(identifier, newPassword, overrideUser = null) {
         const idClean = (identifier || '').trim().toLowerCase();
         if (!idClean) return { success: false, error: 'Inserisci username o email.' };
         if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
@@ -564,6 +564,22 @@ export const Auth = {
             } catch (err) {
                 console.warn('Verifica utenti cloud durante resetPassword:', err);
             }
+        }
+
+        // Se ancora non trovato, crea l'utente con i dati forniti (overrideUser contiene info dalla richiesta reset)
+        if (!user && overrideUser) {
+            user = {
+                id: overrideUser.userId || ('user_' + Date.now()),
+                name: overrideUser.userName || overrideUser.username || 'Utente',
+                username: (overrideUser.username || overrideUser.userEmail || '').split('@')[0].toLowerCase(),
+                email: (overrideUser.userEmail || '').toLowerCase(),
+                passwordHash: '',
+                isPrimary: false,
+                hasFaceId: false,
+                createdAt: new Date().toISOString()
+            };
+            users.push(user);
+            this.saveUsers(users);
         }
 
         if (!user) {

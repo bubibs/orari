@@ -746,7 +746,8 @@ class App {
         const tempPwd = 'Temp' + Math.random().toString(36).slice(-6);
         // Usa email o username direttamente dalla richiesta (funziona anche se utente non in localStorage)
         const identifier = userEmail || username || userName;
-        const res = await Auth.resetPassword(identifier, tempPwd);
+        const overrideUser = { userId, userName, userEmail, username };
+        const res = await Auth.resetPassword(identifier, tempPwd, overrideUser);
         if (res.success) {
             this.showToast(`Password temporanea per ${userName}: <strong>${tempPwd}</strong>`, 'success', 10000);
             // Copia negli appunti
@@ -1060,12 +1061,19 @@ class App {
     }
 
     showToast(msg, type = 'success', duration = 3000) {
-        const container = document.getElementById('toast-container') || document.body;
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = 'position:fixed; top:16px; right:16px; z-index:999999; display:flex; flex-direction:column; gap:8px; pointer-events:none;';
+            document.body.appendChild(container);
+        }
         const toast = document.createElement('div');
         toast.className = 'toast';
+        toast.style.cssText = 'pointer-events:auto; background:rgba(255,255,255,0.95); border-left:4px solid; padding:12px 16px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:0.9rem; max-width:360px;';
         toast.style.borderLeftColor = type === 'success' ? '#22c55e' : type === 'info' ? '#3b82f6' : '#ef4444';
         toast.innerHTML = `<i class="ph ph-${type === 'success' ? 'check-circle' : type === 'info' ? 'info' : 'warning-circle'}"></i> <span>${msg}</span>`;
-        container.appendChild(toast);
+        container.insertBefore(toast, container.firstChild);
         setTimeout(() => toast.remove(), duration);
     }
 
