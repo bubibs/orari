@@ -3378,7 +3378,7 @@ class App {
         if (!container) {
             container = document.createElement('div');
             container.id = 'toast-container';
-            container.style.cssText = 'position:fixed; top:80px; right:16px; z-index:999999; display:flex; flex-direction:column; gap:8px; pointer-events:none;';
+            container.style.cssText = 'position:fixed; top:120px; right:16px; z-index:999999; display:flex; flex-direction:column; gap:8px; pointer-events:none;';
             document.body.appendChild(container);
         }
         const toast = document.createElement('div');
