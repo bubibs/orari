@@ -1135,7 +1135,7 @@ class App {
             container = document.createElement('div');
             container.id = 'toast-container';
             container.style.setProperty('position', 'fixed');
-            container.style.setProperty('top', '8px');
+            container.style.setProperty('top', '100px');
             container.style.setProperty('left', '0');
             container.style.setProperty('right', '0');
             container.style.setProperty('z-index', '2147483647');
