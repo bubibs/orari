@@ -2934,11 +2934,11 @@ class App {
         `;
     }
 
-    generateTempPassword(userId, userName, userEmail, username) {
+    async generateTempPassword(userId, userName, userEmail, username) {
         const tempPwd = 'Temp' + Math.random().toString(36).slice(-6);
         // Usa email o username direttamente dalla richiesta (funziona anche se utente non in localStorage)
         const identifier = userEmail || username || userName;
-        const res = Auth.resetPassword(identifier, tempPwd);
+        const res = await Auth.resetPassword(identifier, tempPwd);
         if (res.success) {
             this.showToast(`Password temporanea per ${userName}: <strong>${tempPwd}</strong>`, 'success', 10000);
             // Copia negli appunti
