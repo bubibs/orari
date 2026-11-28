@@ -705,7 +705,7 @@ class App {
                         <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">Richiesta: ${new Date(req.requestedAt).toLocaleString('it-IT')}</div>
                     </div>
                     <div style="display:flex; gap:6px; flex-shrink:0;">
-                        <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#facc15; color:#1a1a1a; width:auto;" onclick="app.generateTempPassword('${req.userId}', '${req.userName}', '${req.userEmail || ''}', '${req.username || ''}')" title="Genera password temporanea">
+                        <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#facc15; color:#1a1a1a; width:auto;" onclick="app.generateTempPassword('${req.id}', '${req.userId}', '${req.userName}', '${req.userEmail || ''}', '${req.username || ''}')" title="Genera password temporanea">
                             <i class="ph ph-key"></i> Password Temp
                         </button>
                         <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#22c55e; color:white; width:auto;" onclick="app.markResetRequestDone('${req.id}')" title="Segna come gestita">
@@ -742,7 +742,7 @@ class App {
         `;
     }
 
-    async generateTempPassword(userId, userName, userEmail, username) {
+    async generateTempPassword(requestId, userId, userName, userEmail, username) {
         const tempPwd = 'Temp' + Math.random().toString(36).slice(-6);
         // Usa email o username direttamente dalla richiesta (funziona anche se utente non in localStorage)
         const identifier = userEmail || username || userName;
@@ -753,6 +753,10 @@ class App {
             navigator.clipboard.writeText(tempPwd).then(() => {
                 this.showToast('Password copiata negli appunti!', 'info');
             });
+            // Segna la richiesta come gestita nel cloud
+            if (requestId) {
+                await API.updateResetRequest({ id: requestId, status: 'done', handledAt: new Date().toISOString() });
+            }
         } else {
             this.showToast(res.error, 'error');
         }
