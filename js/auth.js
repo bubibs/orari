@@ -456,13 +456,16 @@ export const Auth = {
 
         const reqList = this.getPendingResetRequests().filter(r => r.userId !== user.id);
         const newReq = {
+            id: 'reset_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             userId: user.id,
             userName: user.name || user.username,
             userEmail: user.email || '',
             userPhone: user.phone || '',
             code: code,
             expiresAt: expiresAt,
-            createdAt: new Date().toISOString()
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            requestedAt: new Date().toISOString()
         };
         reqList.push(newReq);
         this.savePendingResetRequests(reqList);

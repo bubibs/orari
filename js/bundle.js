@@ -464,13 +464,16 @@ const Auth = {
 
         const reqList = this.getPendingResetRequests().filter(r => r.userId !== user.id);
         const newReq = {
+            id: 'reset_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             userId: user.id,
             userName: user.name || user.username,
             userEmail: user.email || '',
             userPhone: user.phone || '',
             code: code,
             expiresAt: expiresAt,
-            createdAt: new Date().toISOString()
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            requestedAt: new Date().toISOString()
         };
         reqList.push(newReq);
         this.savePendingResetRequests(reqList);
@@ -833,6 +836,14 @@ const API = {
     // --- Gestione Utenti Cloud ---
     saveUser(user) { return this._post('saveUser', user); },
     deleteUser(id) { return this._post('deleteUser', { id }); },
+
+    // --- Gestione Richieste Reset Password Cloud ---
+    saveResetRequest(req) { return this._post('saveResetRequest', req); },
+    getResetRequests(status) {
+        const url = this.ENDPOINT + '?action=getResetRequests' + (status ? '&status=' + status : '');
+        return fetch(url).then(r => r.json()).then(d => d.requests || []).catch(e => { console.error('getResetRequests failed:', e); return []; });
+    },
+    updateResetRequest(req) { return this._post('updateResetRequest', req); },
 
     // Recupera tutti gli utenti dal cloud (usato da admin)
     async fetchUsers() {
@@ -2438,21 +2449,6 @@ const Views = {
                     <p>Inserisci le tue credenziali aziendali</p>
                 </div>
 
-                                <!-- Pulsante Accesso con Google -->
-                <div style="margin-bottom:14px;">
-                    <button type="button" class="btn btn-google" onclick="app.handleGoogleLogin()" id="btn-google-login">
-                        <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink:0;">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <span>Accedi con Google</span>
-                    </button>
-                </div>
-
-                <div class="auth-divider">oppure con credenziali</div>
-
                 <form onsubmit="app.handleLoginSubmit(event)">
                     <div class="form-group">
                         <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Username o Email</label>
@@ -2469,7 +2465,7 @@ const Views = {
                             </button>
                         </div>
                         <div style="display:flex; justify-content:flex-end; margin-top:6px;">
-                            <button type="button" onclick="app.showForgotPasswordModal()" style="background:none; border:none; color:var(--primary); font-size:0.82rem; cursor:pointer; text-decoration:underline; padding:0;">Hai dimenticato la password?</button>
+                            <button type="button" onclick="app.showResetPasswordRequestModal()" style="background:none; border:none; color:var(--primary); font-size:0.82rem; cursor:pointer; text-decoration:underline; padding:0;">Hai dimenticato la password?</button>
                         </div>
                     </div>
 
@@ -2810,35 +2806,92 @@ class App {
         if (modal) modal.remove();
     }
 
-    refreshAdminUserList() {
+    async refreshAdminUserList() {
         const section = document.getElementById('admin-users-list');
-        if (section) section.innerHTML = this.buildAdminUserRows();
+        if (section) section.innerHTML = await this.buildAdminUserRows();
     }
 
-    buildAdminUserRows() {
+    async buildAdminUserRows() {
         const user = Auth.getCurrentUser();
         const otherUsers = Auth.getUsers().filter(u => !u.isPrimary && (!user || u.id !== user.id));
 
-        if (otherUsers.length === 0) {
-            return '<p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">Nessun altro utente registrato al momento.</p>';
+        // Recupera richieste reset password dal Cloud (visibili su tutti i dispositivi admin)
+        let pendingRequests = [];
+        if (window.API && typeof window.API.getResetRequests === 'function') {
+            try {
+                pendingRequests = await window.API.getResetRequests('pending');
+            } catch (e) {
+                console.warn('Errore fetch reset requests dal cloud:', e);
+            }
+        }
+        // Fallback locale se cloud non disponibile
+        if (pendingRequests.length === 0) {
+            const localRequests = JSON.parse(localStorage.getItem('tecnosistem_reset_requests') || '[]');
+            pendingRequests = localRequests.filter(r => r.status === 'pending');
         }
 
-        return otherUsers.map(u => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
-                <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
-                    <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || u.username}</div>
+        let html = '';
+
+        // Sezione Utenti Registrati
+        if (otherUsers.length > 0) {
+            html += `
+                <div style="margin-bottom:16px;">
+                    <h4 style="margin:0 0 10px 0; color:var(--text-muted); font-size:0.85rem;">Utenti Registrati (${otherUsers.length})</h4>
+            `;
+
+            html += otherUsers.map(u => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
+                        <div style="font-weight:600; font-size:0.88rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || u.username}</div>
+                    </div>
+                    <div style="display:flex; gap:6px; flex-shrink:0;">
+                        <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Reimposta Password">
+                            <i class="ph ph-key"></i> Reset
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Elimina Utente">
+                            <i class="ph ph-trash"></i> Elimina
+                        </button>
+                    </div>
                 </div>
-                <div style="display:flex; gap:6px; flex-shrink:0;">
-                    <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6; color:white; width:auto;" onclick="app.adminResetUserPassword('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Reimposta Password">
-                        <i class="ph ph-key"></i> Reset
-                    </button>
-                    <button type="button" class="btn btn-sm btn-danger" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:white; width:auto;" onclick="app.confirmDeleteUser('${u.id}', '${(u.name || '').replace(/'/g, "\\'")}')" title="Elimina Utente">
-                        <i class="ph ph-trash"></i> Elimina
-                    </button>
+            `).join('');
+
+            html += '</div>';
+        } else {
+            html += '<p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">Nessun altro utente registrato al momento.</p>';
+        }
+
+        // Sezione Richieste Reset Password
+        if (pendingRequests.length > 0) {
+            html += `
+                <div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,215,0,0.3);">
+                    <h4 style="margin:0 0 10px 0; color:#facc15; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                        <i class="ph ph-shield-warning"></i> Richieste Reset Password (${pendingRequests.length})
+                    </h4>
+            `;
+
+            html += pendingRequests.map(req => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(250,204,21,0.05); border-radius:8px; margin-bottom:8px;">
+                    <div style="text-align:left; flex:1; min-width:0; margin-right:8px;">
+                        <div style="font-weight:600; font-size:0.88rem; color:var(--text);">${req.userName}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">${req.userEmail || req.username}</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">Richiesta: ${new Date(req.requestedAt).toLocaleString('it-IT')}</div>
+                    </div>
+                    <div style="display:flex; gap:6px; flex-shrink:0;">
+                        <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#facc15; color:#1a1a1a; width:auto;" onclick="app.generateTempPassword('${req.userId}', '${req.userName}', '${req.userEmail || ''}', '${req.username || ''}')" title="Genera password temporanea">
+                            <i class="ph ph-key"></i> Password Temp
+                        </button>
+                        <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#22c55e; color:white; width:auto;" onclick="app.markResetRequestDone('${req.id}')" title="Segna come gestita">
+                            <i class="ph ph-check"></i> Fatto
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+
+            html += '</div>';
+        }
+
+        return html;
     }
 
     renderAdminUsersSection() {
@@ -2853,13 +2906,53 @@ class App {
                     <span style="font-size:0.75rem; background:rgba(255,215,0,0.2); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">ADMIN</span>
                 </div>
                 <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:10px;">
-                    Cancella colleghi non più presenti in azienda o reimposta la loro password.
+                    Cancella colleghi non più presenti in azienda, reimposta password o gestisci richieste reset.
                 </p>
-                <div id="admin-users-list" style="max-height:160px; overflow-y:auto; padding-right:4px;">
+                <div id="admin-users-list" style="max-height:280px; overflow-y:auto; padding-right:4px;">
                     <p style="font-size:0.8rem; color:var(--text-muted); padding:6px 0;"><i class="ph ph-spinner ph-spin"></i> Sincronizzazione cloud...</p>
                 </div>
             </div>
         `;
+    }
+
+    generateTempPassword(userId, userName, userEmail, username) {
+        const tempPwd = 'Temp' + Math.random().toString(36).slice(-6);
+        // Usa email o username direttamente dalla richiesta (funziona anche se utente non in localStorage)
+        const identifier = userEmail || username || userName;
+        const res = Auth.resetPassword(identifier, tempPwd);
+        if (res.success) {
+            this.showToast(`Password temporanea per ${userName}: <strong>${tempPwd}</strong>`, 'success', 10000);
+            // Copia negli appunti
+            navigator.clipboard.writeText(tempPwd).then(() => {
+                this.showToast('Password copiata negli appunti!', 'info');
+            });
+        } else {
+            this.showToast(res.error, 'error');
+        }
+        this.refreshAdminUserList();
+    }
+
+    async markResetRequestDone(requestId) {
+        // Aggiorna locale
+        const localRequests = JSON.parse(localStorage.getItem('tecnosistem_reset_requests') || '[]');
+        const req = localRequests.find(r => r.id === requestId);
+        if (req) {
+            req.status = 'done';
+            req.handledAt = new Date().toISOString();
+            localStorage.setItem('tecnosistem_reset_requests', JSON.stringify(localRequests));
+        }
+
+        // Aggiorna Cloud (Google Sheets)
+        if (window.API && typeof window.API.updateResetRequest === 'function') {
+            try {
+                await window.API.updateResetRequest({ id: requestId, status: 'done', handledAt: new Date().toISOString() });
+            } catch (err) {
+                console.warn('Errore aggiornamento richiesta reset su cloud:', err);
+            }
+        }
+
+        this.showToast('Richiesta segnata come gestita.', 'success');
+        this.refreshAdminUserList();
     }
 
     // --- Weather Logic ---
@@ -4505,40 +4598,39 @@ ${emailBody}`
     }
 
     // --- Metodi Gestione Password & Utenti ---
-    // --- Metodi Gestione Password con Codice OTP Temporaneo & WhatsApp ---
 
-    showForgotPasswordModal() {
+    showResetPasswordRequestModal() {
         const container = document.getElementById('user-modal-container') || document.body;
-        document.getElementById('forgot-password-modal-overlay')?.remove();
+        document.getElementById('reset-request-modal-overlay')?.remove();
 
         const modalDiv = document.createElement('div');
-        modalDiv.id = 'forgot-password-modal-overlay';
+        modalDiv.id = 'reset-request-modal-overlay';
         modalDiv.className = 'modal-overlay';
         modalDiv.onclick = () => modalDiv.remove();
 
         modalDiv.innerHTML = `
-            <div class="modal-card fade-in" id="forgot-modal-content" onclick="event.stopPropagation()">
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <i class="ph ph-shield-warning text-gold" style="font-size:1.6rem;"></i>
-                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Recupero Password Sicuro</h3>
+                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Richiedi Reset Password</h3>
                     </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
+                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('reset-request-modal-overlay').remove()">
                         <i class="ph ph-x"></i>
                     </button>
                 </div>
                 <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:16px; text-align:left;">
-                    Inserisci la tua email o username registrato. Verrà generato un <strong>codice di sblocco temporaneo univoco</strong> (OTP valido 15 minuti) da confermare prima di impostare la nuova password.
+                    Inserisci la tua email o username registrato. L'amministratore riceverà la richiesta e ti fornirà una password temporanea per accedere e cambiarla.
                 </p>
-                <form onsubmit="app.handleRequestResetOtp(event)">
+                <form onsubmit="app.handleSubmitResetRequest(event)">
                     <div class="form-group" style="text-align:left;">
                         <label style="font-size:0.85rem; color:var(--text-muted);">Email o Username</label>
                         <input type="text" id="reset-req-identifier" required placeholder="es. mario.rossi oppure email" style="font-size:0.95rem; padding:10px;">
                     </div>
                     <div style="display:flex; gap:10px; margin-top:18px;">
-                        <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
+                        <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('reset-request-modal-overlay').remove()">Annulla</button>
                         <button type="submit" class="btn btn-primary" style="flex:1.4;">
-                            <i class="ph ph-paper-plane-right"></i> Richiedi Codice OTP
+                            <i class="ph ph-paper-plane-right"></i> Invia Richiesta all'Admin
                         </button>
                     </div>
                 </form>
@@ -4547,198 +4639,51 @@ ${emailBody}`
         container.appendChild(modalDiv);
     }
 
-    async handleRequestResetOtp(e) {
+    async handleSubmitResetRequest(e) {
         e.preventDefault();
         const identifier = document.getElementById('reset-req-identifier')?.value;
         if (!identifier) return;
 
-        const res = await Auth.requestPasswordReset(identifier);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
+        const users = Auth.getUsers();
+        const user = users.find(u => u.email === identifier || u.username === identifier);
+        if (!user) {
+            this.showToast('Utente non trovato.', 'error');
             return;
         }
 
-        const modalContent = document.getElementById('forgot-modal-content');
-        if (!modalContent) return;
+        // Genera codice OTP per il reset
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        const expiresAt = Date.now() + (15 * 60 * 1000); // 15 min
 
-        const adminPhone = '3331234567'; // Cellulare aziendale Fabio Sandrini
-        const waText = encodeURIComponent(`Ciao Fabio, sono ${res.user.name || res.user.username} (${res.user.email || ''}). Ho richiesto il codice di sblocco temporaneo per Orari TS. Il mio codice di verifica OTP generato è: ${res.code}`);
-        const waLink = `https://api.whatsapp.com/send?text=${waText}`;
+        // Salva richiesta nel Cloud (Google Sheets) - visibile a tutti i dispositivi admin
+        const requestData = {
+            id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            userId: user.id,
+            userName: user.name,
+            userEmail: user.email,
+            username: user.username,
+            code: code,
+            expiresAt: expiresAt,
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            requestedAt: new Date().toISOString()
+        };
 
-        modalContent.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <i class="ph ph-lock-key-open text-gold" style="font-size:1.6rem;"></i>
-                    <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Verifica Codice di Sblocco</h3>
-                </div>
-                <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">
-                    <i class="ph ph-x"></i>
-                </button>
-            </div>
-
-            <div style="background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); border-radius:10px; padding:10px 12px; margin-bottom:14px; text-align:left;">
-                <div style="font-weight:700; font-size:0.86rem; color:#22c55e; margin-bottom:3px;">
-                    ✅ Codice temporaneo generato per ${res.user.name || res.user.username}!
-                </div>
-                <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.4;">
-                    Il codice a 6 cifre scade tra <strong>15 minuti</strong> ed è stato notificato all'amministratore (Fabio Sandrini).
-                </div>
-            </div>
-
-            <!-- Pulsante WhatsApp Diretto per inviare richiesta / codice a Fabio -->
-            <a href="${waLink}" target="_blank" class="btn" style="background:#22c55e; color:white; font-size:0.88rem; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px; text-decoration:none; font-weight:600; border-radius:10px; box-shadow:0 2px 8px rgba(34,197,94,0.3);">
-                <i class="ph ph-whatsapp-logo" style="font-size:1.25rem;"></i>
-                <span>Comunica / Ricevi Sblocco su WhatsApp</span>
-            </a>
-
-            <form onsubmit="app.handleCompleteResetOtp(event, '${encodeURIComponent(identifier)}')">
-                <div class="form-group" style="text-align:left; margin-bottom:10px;">
-                    <label style="font-size:0.82rem; color:var(--text-muted);">Codice Temporaneo Ricevuto (OTP a 6 Cifre)</label>
-                    <input type="text" id="reset-otp-input" required placeholder="es. ${res.code}" style="font-size:1.1rem; padding:10px; font-weight:700; letter-spacing:2px; text-align:center;">
-                </div>
-                <div class="form-group" style="text-align:left; margin-bottom:10px;">
-                    <label style="font-size:0.82rem; color:var(--text-muted);">Nuova Password</label>
-                    <input type="password" id="reset-new-pwd-1" required placeholder="Inserisci nuova password" style="font-size:0.95rem; padding:10px;">
-                </div>
-                <div class="form-group" style="text-align:left; margin-bottom:14px;">
-                    <label style="font-size:0.82rem; color:var(--text-muted);">Conferma Nuova Password</label>
-                    <input type="password" id="reset-new-pwd-2" required placeholder="Ripeti nuova password" style="font-size:0.95rem; padding:10px;">
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button type="button" class="btn" style="flex:1; background:rgba(255,255,255,0.1);" onclick="document.getElementById('forgot-password-modal-overlay').remove()">Annulla</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1.4;">
-                        <i class="ph ph-check-circle"></i> Salva Password
-                    </button>
-                </div>
-            </form>
-        `;
-    }
-
-    async handleCompleteResetOtp(e, encId) {
-        e.preventDefault();
-        const identifier = decodeURIComponent(encId);
-        const otpCode = document.getElementById('reset-otp-input')?.value;
-        const p1 = document.getElementById('reset-new-pwd-1')?.value;
-        const p2 = document.getElementById('reset-new-pwd-2')?.value;
-
-        if (!otpCode || otpCode.trim().length !== 6) {
-            this.showToast('Inserisci il codice temporaneo OTP a 6 cifre.', 'error');
-            return;
+        if (window.API && typeof window.API.saveResetRequest === 'function') {
+            try {
+                await window.API.saveResetRequest(requestData);
+            } catch (err) {
+                console.warn('Errore salvataggio richiesta reset su cloud:', err);
+            }
         }
 
-        if (!p1 || p1.length < 3) {
-            this.showToast('La nuova password deve contenere almeno 3 caratteri.', 'error');
-            return;
-        }
+        // Backup locale per compatibilità (non sincronizzato tra dispositivi)
+        const localRequests = JSON.parse(localStorage.getItem('tecnosistem_reset_requests') || '[]');
+        localRequests.push(requestData);
+        localStorage.setItem('tecnosistem_reset_requests', JSON.stringify(localRequests));
 
-        if (p1 !== p2) {
-            this.showToast('Le due password non coincidono!', 'error');
-            return;
-        }
-
-        const res = await Auth.completePasswordReset(identifier, otpCode, p1);
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        document.getElementById('forgot-password-modal-overlay')?.remove();
-        this.showToast('Password reimpostata con successo! Ora puoi accedere.', 'success');
-
-        const loginInput = document.getElementById('login-identifier');
-        const pwdInput = document.getElementById('login-password');
-        if (loginInput) loginInput.value = res.user.email || res.user.username;
-        if (pwdInput) {
-            pwdInput.value = p1;
-            pwdInput.focus();
-        }
-    }
-
-    // --- Metodi Accesso Google & Onboarding Parametri Stipendio ---
-
-    handleGoogleLogin() {
-        document.getElementById('google-login-modal-overlay')?.remove();
-        const container = document.getElementById('user-modal-container') || document.body;
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'google-login-modal-overlay';
-        modalDiv.className = 'modal-overlay';
-        modalDiv.onclick = () => modalDiv.remove();
-
-        modalDiv.innerHTML = `
-            <div class="modal-card fade-in" style="max-width:400px; text-align:left;" onclick="event.stopPropagation()">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <svg width="22" height="22" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">Accedi con Google</h3>
-                    </div>
-                    <button type="button" class="btn btn-icon-only" style="padding:4px 8px; font-size:1.1rem; background:rgba(255,255,255,0.1);" onclick="document.getElementById('google-login-modal-overlay').remove()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                </div>
-
-                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
-                    Seleziona il tuo account Google per accedere istantaneamente ad <strong>Orari TS</strong>:
-                </p>
-
-                <!-- Scheda 1-Click Fabio Sandrini -->
-                <button type="button" class="google-account-pill" onclick="app.submitGoogleLogin('bubibs@gmail.com', 'Fabio Sandrini')">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="google-avatar-circle">FS</div>
-                        <div>
-                            <div style="font-weight:700; font-size:0.9rem; color:var(--text);">Fabio Sandrini</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">bubibs@gmail.com (Amministratore)</div>
-                        </div>
-                    </div>
-                    <i class="ph ph-caret-right text-gold"></i>
-                </button>
-
-                <div class="auth-divider" style="margin:14px 0 10px 0;">oppure inserisci account Google</div>
-
-                <form onsubmit="app.handleCustomGoogleLogin(event)">
-                    <div class="form-group" style="margin-bottom:12px;">
-                        <label style="font-size:0.8rem; color:var(--text-muted);">Email Google (Gmail o Workspace)</label>
-                        <input type="email" id="custom-google-email" required placeholder="mario.rossi@gmail.com" style="font-size:0.95rem; padding:10px;">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%; padding:11px; font-size:0.92rem;">
-                        <i class="ph ph-sign-in"></i> Accedi con questo Account
-                    </button>
-                </form>
-            </div>
-        `;
-        container.appendChild(modalDiv);
-    }
-
-    async submitGoogleLogin(email, name = '') {
-        document.getElementById('google-login-modal-overlay')?.remove();
-        this.showToast('Accesso Google in corso...', 'info');
-
-        const res = await Auth.loginWithGoogle({ email, name });
-        if (!res.success) {
-            this.showToast(res.error, 'error');
-            return;
-        }
-
-        Store.init();
-        this.updateAuthUI(res.user);
-        this.navigate('home');
-        this.showToast(`Accesso con Google completato! Ciao ${res.user.name || res.user.username}.`, 'success');
-        this.sync();
-
-        if (res.isNew) {
-            this.showSalaryOnboardingModal(res.user);
-        }
-    }
-
-    handleCustomGoogleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('custom-google-email')?.value;
-        if (!email) return;
-        this.submitGoogleLogin(email);
+        document.getElementById('reset-request-modal-overlay')?.remove();
+        this.showToast('Richiesta inviata all\'amministratore. Riceverai una password temporanea.', 'success');
     }
 
     // Configurazione guidata parametri stipendio per nuovi utenti (default 0)
@@ -4844,8 +4789,7 @@ ${emailBody}`
         }
 
         this.showToast(`Utente "${userName}" eliminato con successo.`, 'success');
-        this.closeUserMenu();
-        this.toggleUserMenu();
+        this.refreshAdminUserList();
     }
 
     async adminResetUserPassword(userId, userName) {

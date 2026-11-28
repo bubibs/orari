@@ -4,6 +4,7 @@ const SHEET_REPORTS = "Reports";
 const SHEET_CONTACTS = "Contacts";
 const SHEET_SETTINGS = "Settings";
 const SHEET_USERS = "Users";
+const SHEET_RESET_REQUESTS = "ResetRequests";
 
 // --- DO POST ---
 function doPost(e) {
@@ -22,7 +23,10 @@ function doPost(e) {
   if (action === 'saveSettings') return saveSettings(params);
   if (action === 'saveUser') return saveUser(params);
   if (action === 'deleteUser') return deleteUser(params);
-  
+  if (action === 'saveResetRequest') return saveResetRequest(params);
+  if (action === 'getResetRequests') return getResetRequests(params);
+  if (action === 'updateResetRequest') return updateResetRequest(params);
+
   return ContentService.createTextOutput(JSON.stringify({success:false, error:'Unknown action'})).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -432,7 +436,7 @@ function ensureHeaders(sheet, headers) {
     sheet.appendRow(headers);
     return;
   }
-  
+
   // Se mancano nuove colonne (es. user, userEmail), le aggiunge in coda
   const currentHeaders = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
   const missing = [];
@@ -442,4 +446,81 @@ function ensureHeaders(sheet, headers) {
   if (missing.length > 0) {
     sheet.getRange(1, currentHeaders.length + 1, 1, missing.length).setValues([missing]);
   }
+}
+
+// --- RESET REQUESTS ---
+
+function saveResetRequest(params) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateSheet(ss, SHEET_RESET_REQUESTS);
+
+  const headers = ['id', 'userId', 'userName', 'userEmail', 'username', 'code', 'expiresAt', 'status', 'createdAt', 'requestedAt', 'handledAt'];
+  ensureHeaders(sheet, headers);
+
+  const data = sheet.getDataRange().getValues();
+  let rowIndex = data.findIndex(r => String(r[0]) === String(params.id));
+
+  const row = [
+    params.id,
+    params.userId,
+    params.userName,
+    (params.userEmail || '').toLowerCase(),
+    (params.username || '').toLowerCase(),
+    params.code || '',
+    params.expiresAt || '',
+    params.status || 'pending',
+    params.createdAt || new Date().toISOString(),
+    params.requestedAt || new Date().toISOString(),
+    params.handledAt || ''
+  ];
+
+  if (rowIndex > -1) {
+    sheet.getRange(rowIndex + 1, 1, 1, row.length).setValues([row]);
+  } else {
+    sheet.appendRow(row);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({success:true})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getResetRequests(params) {
+  params = params || {};
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateSheet(ss, SHEET_RESET_REQUESTS);
+  const data = sheet.getDataRange().getValues();
+  let requests = [];
+  if (data && data.length > 1) {
+    const headers = data.shift();
+    requests = data.map(row => {
+      let r = {};
+      headers.forEach((h, i) => r[h] = row[i]);
+      return r;
+    });
+  }
+
+  // Filtra solo pending se richiesto
+  if (params.status === 'pending') {
+    requests = requests.filter(r => String(r.status || '').toLowerCase() === 'pending');
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({success:true, requests: requests})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function updateResetRequest(params) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateSheet(ss, SHEET_RESET_REQUESTS);
+  const data = sheet.getDataRange().getValues();
+  let rowIndex = data.findIndex(r => String(r[0]) === String(params.id));
+
+  if (rowIndex > -1) {
+    const headers = data[0] || [];
+    const row = data[rowIndex];
+    // Aggiorna solo i campi forniti
+    if (params.status !== undefined) row[headers.indexOf('status')] = params.status;
+    if (params.handledAt !== undefined) row[headers.indexOf('handledAt')] = params.handledAt;
+
+    sheet.getRange(rowIndex + 1, 1, 1, row.length).setValues([row]);
+    return ContentService.createTextOutput(JSON.stringify({success:true})).setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput(JSON.stringify({success:false, error: 'Request not found'})).setMimeType(ContentService.MimeType.JSON);
 }

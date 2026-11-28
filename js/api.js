@@ -67,6 +67,14 @@ export const API = {
     saveUser(user) { return this._post('saveUser', user); },
     deleteUser(id) { return this._post('deleteUser', { id }); },
 
+    // --- Gestione Richieste Reset Password Cloud ---
+    saveResetRequest(req) { return this._post('saveResetRequest', req); },
+    getResetRequests(status) {
+        const url = this.ENDPOINT + '?action=getResetRequests' + (status ? '&status=' + status : '');
+        return fetch(url).then(r => r.json()).then(d => d.requests || []).catch(e => { console.error('getResetRequests failed:', e); return []; });
+    },
+    updateResetRequest(req) { return this._post('updateResetRequest', req); },
+
     // Recupera tutti gli utenti dal cloud (usato da admin)
     async fetchUsers() {
         try {
