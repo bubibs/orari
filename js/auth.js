@@ -147,9 +147,9 @@ export const Auth = {
             const uemail = String(cu.email || '').trim().toLowerCase();
             const uid = String(cu.id || ('user_' + uname));
 
-            // Non sovrascrivere l'utente primario
-            if (uemail === 'bubibs@gmail.com' || uname === 'bubibs' || uname === 'bubib' || cu.isPrimary === true || cu.isPrimary === 'true') {
-                console.log('[mergeCloudUsers] Skipping primary user:', uname || uemail);
+            // Non sovrascrivere l'utente primario (solo Fabio Sandrini / bubibs@gmail.com)
+            if (uemail === 'bubibs@gmail.com' || uname === 'bubibs' || uname === 'bubib') {
+                console.log('[mergeCloudUsers] Skipping admin user:', uname || uemail);
                 return;
             }
 

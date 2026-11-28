@@ -2878,7 +2878,7 @@ class App {
                         <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">Richiesta: ${new Date(req.requestedAt).toLocaleString('it-IT')}</div>
                     </div>
                     <div style="display:flex; gap:6px; flex-shrink:0;">
-                        <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#facc15; color:#1a1a1a; width:auto;" onclick="app.generateTempPassword('${req.userId}', '${req.userName}')" title="Genera password temporanea">
+                        <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#facc15; color:#1a1a1a; width:auto;" onclick="app.generateTempPassword('${req.userId}', '${req.userName}', '${req.userEmail || ''}', '${req.username || ''}')" title="Genera password temporanea">
                             <i class="ph ph-key"></i> Password Temp
                         </button>
                         <button type="button" class="btn btn-sm" style="padding:4px 8px; font-size:0.7rem; background:#22c55e; color:white; width:auto;" onclick="app.markResetRequestDone('${req.id}')" title="Segna come gestita">
@@ -2915,12 +2915,10 @@ class App {
         `;
     }
 
-    generateTempPassword(userId, userName) {
+    generateTempPassword(userId, userName, userEmail, username) {
         const tempPwd = 'Temp' + Math.random().toString(36).slice(-6);
-        // Trova l'utente per ottenere l'identificatore corretto (username o email)
-        const users = Auth.getUsers();
-        const user = users.find(u => u.id === userId);
-        const identifier = user ? (user.email || user.username) : userName;
+        // Usa email o username direttamente dalla richiesta (funziona anche se utente non in localStorage)
+        const identifier = userEmail || username || userName;
         const res = Auth.resetPassword(identifier, tempPwd);
         if (res.success) {
             this.showToast(`Password temporanea per ${userName}: <strong>${tempPwd}</strong>`, 'success', 10000);
