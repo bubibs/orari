@@ -597,6 +597,42 @@ export const Auth = {
         return { success: true, user };
     },
 
+    // Cambia password (utente autenticato)
+    async changePassword(identifier, oldPassword, newPassword) {
+        const idClean = (identifier || '').trim().toLowerCase();
+        if (!idClean) return { success: false, error: 'Inserisci username o email.' };
+        if (!oldPassword || !newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
+
+        let users = this.getUsers();
+        let user = users.find(u =>
+            (u.username && u.username.toLowerCase() === idClean) ||
+            (u.email && u.email.toLowerCase() === idClean) ||
+            (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
+        );
+
+        if (!user) {
+            return { success: false, error: 'Account non trovato.' };
+        }
+
+        // Verifica password corrente
+        const currentHash = user.passwordHash || '';
+        const oldHash = await this.hashPassword(oldPassword);
+        if (currentHash && currentHash !== oldHash) {
+            return { success: false, error: 'Password attuale errata.' };
+        }
+
+        // Salva nuova password
+        const newHash = await this.hashPassword(newPassword);
+        user.passwordHash = newHash;
+        this.saveUsers(users);
+
+        if (window.API && typeof window.API.saveUser === 'function') {
+            try { await window.API.saveUser(user); } catch (e) {}
+        }
+
+        return { success: true, user };
+    },
+
     // Eliminazione utente (riservata all'utente primario / Admin)
     async deleteUser(userId) {
         const currentUser = this.getCurrentUser();

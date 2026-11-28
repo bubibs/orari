@@ -605,6 +605,13 @@ class App {
 
                 ${userManagementHtml}
 
+                <!-- Bottone Cambia Password (solo utenti non primari) -->
+                ${!user.isPrimary ? `
+                <button type="button" class="btn" style="background:#3b82f6; color:white; width:100%; font-size:0.95rem; font-weight:600; padding:10px; margin-top:8px;" onclick="app.showChangePasswordModal()">
+                    <i class="ph ph-key"></i> Cambia Password
+                </button>
+                ` : ''}
+
                 <!-- Pulsante Logout -->
                 <button type="button" class="btn btn-danger" style="background:#ef4444; color:white; width:100%; font-size:0.95rem; font-weight:600; padding:12px;" onclick="app.handleLogout()">
                     <i class="ph ph-sign-out"></i> Disconnetti Account
@@ -631,6 +638,65 @@ class App {
     closeUserMenu() {
         const modal = document.getElementById('user-profile-modal-overlay');
         if (modal) modal.remove();
+    }
+
+    showChangePasswordModal() {
+        const currentUser = Auth.getCurrentUser();
+        if (!currentUser) return;
+
+        // Chiudi il menu corrente
+        this.closeUserMenu();
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'change-password-modal-overlay';
+        modalDiv.className = 'modal-overlay';
+        modalDiv.onclick = () => document.getElementById('change-password-modal-overlay')?.remove();
+
+        modalDiv.innerHTML = `
+            <div class="modal-card fade-in" onclick="event.stopPropagation()">
+                <h3 style="margin:0 0 16px 0; font-size:1.25rem; color:var(--text);">Cambia Password</h3>
+                <form onsubmit="app.handleChangePasswordSubmit(event)">
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Password attuale</label>
+                        <input type="password" id="change-pwd-current" required placeholder="Inserisci la password attuale" style="width:100%; padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.2);">
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Nuova password</label>
+                        <input type="password" id="change-pwd-new" required placeholder="Inserisci la nuova password" style="width:100%; padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.2);" minlength="3">
+                    </div>
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button type="button" class="btn" style="padding:8px 16px;" onclick="document.getElementById('change-password-modal-overlay')?.remove()">
+                            Annulla
+                        </button>
+                        <button type="submit" class="btn" style="background:#3b82f6; color:white; padding:8px 16px;">
+                            Salva Nuova Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        document.body.appendChild(modalDiv);
+    }
+
+    async handleChangePasswordSubmit(event) {
+        event.preventDefault();
+        const currentPwd = document.getElementById('change-pwd-current')?.value;
+        const newPwd = document.getElementById('change-pwd-new')?.value;
+
+        if (!currentPwd || !newPwd || newPwd.length < 3) {
+            this.showToast('Inserisci password attuale e nuova (almeno 3 caratteri)', 'error');
+            return;
+        }
+
+        const res = await Auth.changePassword(currentPwd, newPwd);
+        if (!res.success) {
+            this.showToast(res.error, 'error');
+            return;
+        }
+
+        this.showToast('Password cambiata con successo!', 'success');
+        document.getElementById('change-password-modal-overlay')?.remove();
     }
 
     async refreshAdminUserList() {
