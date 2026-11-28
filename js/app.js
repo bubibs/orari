@@ -749,10 +749,11 @@ class App {
         const overrideUser = { userId, userName, userEmail, username };
         const res = await Auth.resetPassword(identifier, tempPwd, overrideUser);
         if (res.success) {
-            this.showToast(`Password temporanea per ${userName}: <strong>${tempPwd}</strong>`, 'success', 10000);
-            // Copia negli appunti
+            // Mostra la password per 15 secondi (tempo adequate per leggerla/copiarla)
+            this.showToast(`Password temporanea per ${userName}: <strong>${tempPwd}</strong>`, 'success', 15000);
+            // Copia negli appunti e mostra conferma
             navigator.clipboard.writeText(tempPwd).then(() => {
-                this.showToast('Password copiata negli appunti!', 'info');
+                setTimeout(() => this.showToast('Password copiata negli appunti!', 'info', 4000), 500);
             });
             // Segna la richiesta come gestita nel cloud
             if (requestId) {
