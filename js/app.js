@@ -1055,14 +1055,14 @@ class App {
         });
     }
 
-    showToast(msg, type = 'success') {
+    showToast(msg, type = 'success', duration = 3000) {
         const container = document.getElementById('toast-container') || document.body;
         const toast = document.createElement('div');
         toast.className = 'toast';
-        toast.style.borderLeftColor = type === 'success' ? '#22c55e' : '#ef4444';
-        toast.innerHTML = `<i class="ph ph-${type === 'success' ? 'check-circle' : 'warning-circle'}"></i> <span>${msg}</span>`;
+        toast.style.borderLeftColor = type === 'success' ? '#22c55e' : type === 'info' ? '#3b82f6' : '#ef4444';
+        toast.innerHTML = `<i class="ph ph-${type === 'success' ? 'check-circle' : type === 'info' ? 'info' : 'warning-circle'}"></i> <span>${msg}</span>`;
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(() => toast.remove(), duration);
     }
 
     // --- Components logic ---
