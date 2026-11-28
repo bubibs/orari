@@ -69,9 +69,12 @@ export const API = {
 
     // --- Gestione Richieste Reset Password Cloud ---
     saveResetRequest(req) { return this._post('saveResetRequest', req); },
-    getResetRequests(status) {
+    async getResetRequests(status) {
         const url = this.ENDPOINT + '?action=getResetRequests' + (status ? '&status=' + status : '');
-        return fetch(url).then(r => r.json()).then(d => d.requests || []).catch(e => { console.error('getResetRequests failed:', e); return []; });
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok: ' + response.status);
+        const d = await response.json();
+        return d.requests || [];
     },
     updateResetRequest(req) { return this._post('updateResetRequest', req); },
 

@@ -908,9 +908,12 @@ const API = {
 
     // --- Gestione Richieste Reset Password Cloud ---
     saveResetRequest(req) { return this._post('saveResetRequest', req); },
-    getResetRequests(status) {
+    async getResetRequests(status) {
         const url = this.ENDPOINT + '?action=getResetRequests' + (status ? '&status=' + status : '');
-        return fetch(url).then(r => r.json()).then(d => d.requests || []).catch(e => { console.error('getResetRequests failed:', e); return []; });
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok: ' + response.status);
+        const d = await response.json();
+        return d.requests || [];
     },
     updateResetRequest(req) { return this._post('updateResetRequest', req); },
 
@@ -2679,36 +2682,12 @@ class App {
         this.currentView = viewName;
         this.root.innerHTML = Views[viewName]();
 
-        // Aggiorna la barra di navigazione inferiore fissa
-        this.updateBottomNav(viewName);
-
         // Post-render lifecycle
         if (viewName === 'home') this.renderHomeDashboard();
         if (viewName === 'report') this.initReportForm(params);
         if (viewName === 'contacts') this.renderContacts();
         if (viewName === 'history') this.renderHistory();
         if (viewName === 'salary') this.renderSalary(new Date().toISOString().slice(0, 7));
-    }
-
-    updateBottomNav(viewName) {
-        const bottomNav = document.getElementById('bottom-nav');
-        if (!bottomNav) return;
-
-        const currentUser = Auth.getCurrentUser();
-        if (!currentUser || viewName === 'login' || viewName === 'register') {
-            bottomNav.style.display = 'none';
-            return;
-        }
-
-        bottomNav.style.display = 'flex';
-
-        const btnHome = document.getElementById('bottom-nav-home');
-        const btnHistory = document.getElementById('bottom-nav-history');
-        const btnSalary = document.getElementById('bottom-nav-salary');
-
-        if (btnHome) btnHome.classList.toggle('active', viewName === 'home');
-        if (btnHistory) btnHistory.classList.toggle('active', viewName === 'history');
-        if (btnSalary) btnSalary.classList.toggle('active', viewName === 'salary');
     }
 
     updateAuthUI(user) {
@@ -2953,18 +2932,15 @@ class App {
         const otherUsers = Auth.getUsers().filter(u => !u.isPrimary && (!user || u.id !== user.id));
 
         // Recupera richieste reset password dal Cloud (visibili su tutti i dispositivi admin)
+        // Solo il cloud è la fonte della verità per l'admin - non usare fallback locale che può mostrare dati stale
         let pendingRequests = [];
         if (window.API && typeof window.API.getResetRequests === 'function') {
             try {
                 pendingRequests = await window.API.getResetRequests('pending');
             } catch (e) {
                 console.warn('Errore fetch reset requests dal cloud:', e);
+                // Non usare fallback locale: mostra 0 richieste se il cloud non è disponibile
             }
-        }
-        // Fallback locale se cloud non disponibile
-        if (pendingRequests.length === 0) {
-            const localRequests = JSON.parse(localStorage.getItem('tecnosistem_reset_requests') || '[]');
-            pendingRequests = localRequests.filter(r => r.status === 'pending');
         }
 
         let html = '';
