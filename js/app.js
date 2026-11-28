@@ -749,6 +749,8 @@ class App {
         const overrideUser = { userId, userName, userEmail, username };
         const res = await Auth.resetPassword(identifier, tempPwd, overrideUser);
         if (res.success) {
+            // Chiudi il popup subito dopo aver generato la password
+            this.closeUserMenu();
             // Mostra la password per 15 secondi (tempo adequate per leggerla/copiarla)
             this.showToast(`Password temporanea per ${userName}: <strong>${tempPwd}</strong>`, 'success', 15000);
             // Copia negli appunti e mostra conferma
