@@ -2773,17 +2773,6 @@ class App {
         let userManagementHtml = '';
         if (user.isPrimary) {
             userManagementHtml = this.renderAdminUsersSection();
-
-            // Integra gli utenti dal cloud e aggiorna solo la lista, senza richiudere il menu
-            API.fetchUsers().then(cloudUsers => {
-                if (cloudUsers && cloudUsers.length > 0) {
-                    Auth.mergeCloudUsers(cloudUsers);
-                }
-                this.refreshAdminUserList();
-            }).catch(e => {
-                console.warn('Errore sincronizzazione utenti:', e);
-                this.refreshAdminUserList();
-            });
         }
 
         const modalDiv = document.createElement('div');
@@ -2816,6 +2805,19 @@ class App {
         `;
 
         container.appendChild(modalDiv);
+
+        // Integra gli utenti dal cloud e aggiorna la lista (dopo che il modal è nel DOM)
+        if (user.isPrimary) {
+            API.fetchUsers().then(cloudUsers => {
+                if (cloudUsers && cloudUsers.length > 0) {
+                    Auth.mergeCloudUsers(cloudUsers);
+                }
+                this.refreshAdminUserList();
+            }).catch(e => {
+                console.warn('Errore sincronizzazione utenti:', e);
+                this.refreshAdminUserList();
+            });
+        }
     }
 
     closeUserMenu() {
