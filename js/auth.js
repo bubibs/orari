@@ -543,11 +543,28 @@ export const Auth = {
         if (!newPassword || newPassword.length < 3) return { success: false, error: 'La nuova password deve contenere almeno 3 caratteri.' };
 
         let users = this.getUsers();
-        let user = users.find(u => 
+        let user = users.find(u =>
             (u.username && u.username.toLowerCase() === idClean) ||
             (u.email && u.email.toLowerCase() === idClean) ||
             (u.isPrimary && (idClean === 'bubibs' || idClean === 'bubib' || idClean === 'bubibs@gmail.com' || idClean === 'fabio'))
         );
+
+        // Se non trovato in locale, prova a sincronizzare dal Cloud
+        if (!user && window.API && typeof window.API.fetchUsers === 'function') {
+            try {
+                const cloudUsers = await window.API.fetchUsers();
+                if (cloudUsers && cloudUsers.length > 0) {
+                    this.mergeCloudUsers(cloudUsers);
+                    users = this.getUsers();
+                    user = users.find(u =>
+                        (u.username && u.username.toLowerCase() === idClean) ||
+                        (u.email && u.email.toLowerCase() === idClean)
+                    );
+                }
+            } catch (err) {
+                console.warn('Verifica utenti cloud durante resetPassword:', err);
+            }
+        }
 
         if (!user) {
             return { success: false, error: 'Account non trovato.' };

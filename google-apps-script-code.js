@@ -39,7 +39,8 @@ function doGet(e) {
   const action = e.parameter.action;
   if (action === 'ping') return ContentService.createTextOutput("pong");
   if (action === 'getData') return getData(e.parameter);
-  
+  if (action === 'getResetRequests') return getResetRequests(e.parameter);
+
   return ContentService.createTextOutput(JSON.stringify({success:false, error:'Unknown action'})).setMimeType(ContentService.MimeType.JSON);
 }
 
