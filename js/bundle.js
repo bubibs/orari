@@ -3378,14 +3378,29 @@ class App {
         if (!container) {
             container = document.createElement('div');
             container.id = 'toast-container';
-            container.style.cssText = 'position:fixed; top:16px; right:16px; z-index:999999; display:flex; flex-direction:column; gap:8px; pointer-events:none;';
+            container.style.position = 'fixed';
+            container.style.top = '16px';
+            container.style.right = '16px';
+            container.style.zIndex = '999999';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '8px';
+            container.style.pointerEvents = 'none';
             document.body.appendChild(container);
         }
         const toast = document.createElement('div');
         toast.className = 'toast';
-        toast.style.cssText = 'pointer-events:auto; background:rgba(255,255,255,0.95); border-left:4px solid; padding:12px 16px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:0.9rem; max-width:360px;';
-        toast.style.borderLeftColor = type === 'success' ? '#22c55e' : type === 'info' ? '#3b82f6' : '#ef4444';
-        toast.innerHTML = `<i class="ph ph-${type === 'success' ? 'check-circle' : type === 'info' ? 'info' : 'warning-circle'}"></i> <span>${msg}</span>`;
+        toast.style.pointerEvents = 'auto';
+        toast.style.background = type === 'success' ? '#22c55e' : type === 'info' ? '#3b82f6' : '#ef4444';
+        toast.style.borderLeft = '4px solid';
+        toast.style.padding = '12px 16px';
+        toast.style.borderRadius = '8px';
+        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        toast.style.fontSize = '0.9rem';
+        toast.style.maxWidth = '360px';
+        toast.style.color = 'white';
+        const icon = type === 'success' ? 'check-circle' : type === 'info' ? 'info' : 'warning-circle';
+        toast.innerHTML = `<i class="ph ph-${icon}"></i> <span>${msg}</span>`;
         container.insertBefore(toast, container.firstChild);
         setTimeout(() => toast.remove(), duration);
     }
