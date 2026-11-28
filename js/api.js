@@ -1,5 +1,5 @@
 export const API = {
-    DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycby9_zx_4yqZRBHTkmMcG51_Ayxal5hJEM4RY8c3wZAVxlnHwMO7dDts6YDrw3FQB-IIuw/exec',
+    DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycbwSkwdVdHZl8Xlbs_pgmPTTOZ2DUHC1x5XNPXk0ceCZIHQ1vBM-Fj8IXJHIggpHWLUang/exec',
 
     // Se l'utente ha configurato un proprio URL Google Apps Script personale, usa quello.
     // Altrimenti usa l'endpoint cloud principale aziendale.
