@@ -786,7 +786,7 @@ const Auth = {
 
     // === MODULE: API ===
 const API = {
-    DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycbwSkwdVdHZl8Xlbs_pgmPTTOZ2DUHC1x5XNPXk0ceCZIHQ1vBM-Fj8IXJHIggpHWLUang/exec',
+    DEFAULT_ENDPOINT: 'https://script.google.com/macros/s/AKfycbz_mZme6IkDGdyhSZsj0gX2QkXa2C5R5yg37VhwvM6j5wXRlRd83FimZVJ22vFlOf8DGA/exec',
 
     // Se l'utente ha configurato un proprio URL Google Apps Script personale, usa quello.
     // Altrimenti usa l'endpoint cloud principale aziendale.
